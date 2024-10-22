@@ -220,7 +220,7 @@ protected:
 #define _CALL_(name) child.name
 #define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
 			case msgid: \
-				if constexpr (member_##name##_of<AnyChild>::existed) { \
+				if constexpr (member_##name##_of<AnyChild>::callable) { \
 					using fn_type = ret argslist; \
 					misdef_assert(member_##name##_of<AnyChild>:: \
 						template compatible_to<fn_type>, \
@@ -230,7 +230,7 @@ protected:
 #define WX_BUTTON
 #include "msg_ctl.inl"
 		}
-		if constexpr (member_wmailBox_of<AnyChild>::existed) {
+		if constexpr (member_wmailBox_of<AnyChild>::callable) {
 			LRESULT res;
 			if (static_cast<AnyChild * >(this)->wmailBox(res, msgid, wParam, lParam))
 				return res;
@@ -241,25 +241,25 @@ protected:
 
 #pragma region Properties
 public: // Property - IdealSize
-	/* R */ inline LSize IdealSize() const assert_reflect_to(LSize sz, Button_GetIdealSize(self, &sz), sz);
+	/* R */ inline LSize IdealSize() const assertl_reflect_to(LSize sz, Button_GetIdealSize(self, &sz), sz);
 public: // Property - Note // style with BS_COMMANDLINK only
-	/* W */ inline auto  &Note(LPCTSTR lpszNote) assert_reflect_as_child(Button_SetNote(self, lpszNote));
+	/* W */ inline auto  &Note(LPCTSTR lpszNote) assertl_reflect_as_child(Button_SetNote(self, lpszNote));
 	/* R */ inline String Note() const {
 		auto len = Button_GetNoteLength(self);
 		if (len <= 0) return O;
 		String note = len;
-		assert(Button_GetNote(self, note, len + 1));
+		assertl(Button_GetNote(self, note, len + 1));
 		return note;
 	}
 public: // Property - TextMargin
-	/* W */ inline auto &TextMargin(RECT margin) assert_reflect_as_child(Button_SetTextMargin(self, &margin));
-	/* R */ inline LRect TextMargin() const assert_reflect_to(LRect rc, Button_GetTextMargin(self, &rc), rc);
+	/* W */ inline auto &TextMargin(RECT margin) assertl_reflect_as_child(Button_SetTextMargin(self, &margin));
+	/* R */ inline LRect TextMargin() const assertl_reflect_to(LRect rc, Button_GetTextMargin(self, &rc), rc);
 public: // Property - SplitInfo
-	/* W */ inline auto      &SplitInfo(BUTTON_SPLITINFO bsp) assert_reflect_as_child(Button_SetSplitInfo(self, &bsp));
-	/* R */ inline BSplitInfo SplitInfo() const assert_reflect_to(BSplitInfo bsp, Button_GetSplitInfo(self, &bsp), bsp);
+	/* W */ inline auto      &SplitInfo(BUTTON_SPLITINFO bsp) assertl_reflect_as_child(Button_SetSplitInfo(self, &bsp));
+	/* R */ inline BSplitInfo SplitInfo() const assertl_reflect_to(BSplitInfo bsp, Button_GetSplitInfo(self, &bsp), bsp);
 public: // Property - ImageList
-	/* W */ inline auto      &ImageList(BUTTON_IMAGELIST &iml) assert_reflect_as_child(Button_SetImageList(self, &iml));
-	/* R */ inline BImageList ImageList() const assert_reflect_to(BImageList iml, Button_GetImageList(self, &iml), iml);
+	/* W */ inline auto      &ImageList(BUTTON_IMAGELIST &iml) assertl_reflect_as_child(Button_SetImageList(self, &iml));
+	/* R */ inline BImageList ImageList() const assertl_reflect_to(BImageList iml, Button_GetImageList(self, &iml), iml);
 //public: // Property - Image
 //	/* W */ inline auto &Image() reflect_to_child(super::Send(BM_SETIMAGE));
 //	/* R */ inline auto &Image() const {}
@@ -346,12 +346,12 @@ public: // Property - Position
 	/* R */ inline int   Position() const reflect_as(super::Send(SBM_GETPOS));
 public: // Property - Range
 	/* W */ inline auto &Range(int MinPos, int MaxPos, bool bRedraw = true) reflect_to_child(super::Send(bRedraw ? SBM_SETRANGEREDRAW : SBM_SETRANGE, MinPos, MaxPos));
-	/* R */ inline auto  Range() const assert_reflect_to(struct{ _M_(int Min, Max); } rgn, super::Send(SBM_GETRANGE, &rgn.Min, &rgn.Max), rgn);
+	/* R */ inline auto  Range() const assertl_reflect_to(struct{ _M_(int Min, Max); } rgn, super::Send(SBM_GETRANGE, &rgn.Min, &rgn.Max), rgn);
 public: // Property - ScrollInfo
 	/* W */ inline auto  &Info(const SInfo &i, bool bRedraw = true) reflect_to_self(super::Send(SBM_SETSCROLLINFO, bRedraw, &i));
-	/* R */ inline SInfo  Info() const assert_reflect_to(SInfo i, super::Send(SBM_GETSCROLLINFO, 0, &i), i);
+	/* R */ inline SInfo  Info() const assertl_reflect_to(SInfo i, super::Send(SBM_GETSCROLLINFO, 0, &i), i);
 public:
-	/* R */ inline SBarInfo BarInfo() const assert_reflect_to(SBarInfo i, super::Send(SBM_GETSCROLLBARINFO, 0, &i), i);
+	/* R */ inline SBarInfo BarInfo() const assertl_reflect_to(SBarInfo i, super::Send(SBM_GETSCROLLBARINFO, 0, &i), i);
 #pragma endregion
 };
 #pragma endregion
@@ -390,14 +390,14 @@ public: // Property - Parts
 	/* R */ inline bool GetParts(int (&Slice)[Len]) const reflect_as(super::Send(SB_GETPARTS, Len, Slice));
 	/* R */ inline bool GetParts(int *pSlices, int Len) const reflect_as(super::Send(SB_GETPARTS, Len, pSlices));
 public: // Property - Borders
-	/* R */ inline auto Borders() const assert_reflect_to(struct { int _M_(BorderH, BorderV, GapH); } borders, super::Send(SB_GETBORDERS, 0, &borders), borders);
+	/* R */ inline auto Borders() const assertl_reflect_to(struct { int _M_(BorderH, BorderV, GapH); } borders, super::Send(SB_GETBORDERS, 0, &borders), borders);
 public: // Property - MinHeight
 	/* W */ inline auto&MinHeight(int MinHeight) reflect_to_self(super::Send(SB_SETMINHEIGHT, MinHeight));
 public: // Property - Simple
 	/* W */ inline auto&Simple(bool bSimple) reflect_to_self(super::Send(SB_SIMPLE, bSimple));
 	/* R */ inline bool Simple() const reflect_as(super::Send(SB_SIMPLE));
 public: // Property - Rect
-	/* W */ inline LRect Rect(uint8_t nPart) assert_reflect_to(LRect rc, super::Send(SB_GETRECT, nPart, &rc), rc);
+	/* W */ inline LRect Rect(uint8_t nPart) assertl_reflect_to(LRect rc, super::Send(SB_GETRECT, nPart, &rc), rc);
 public: // Property - Icon
 	/* W */ inline auto &Icon(uint8_t nPart, HICON hIcon) reflect_to_self(super::Send(SB_SETICON, nPart, hIcon));
 	/* R */ inline CIcon Icon(uint8_t nPart) const reflect_as((HICON)super::Send(SB_GETICON, nPart));
@@ -524,21 +524,21 @@ public:
 	public:
 		IButton(ToolBarBase &tb, int idCommand) : tb(tb), idCommand(idCommand) {}
 	public: // Property - Enable
-		/* W */ inline auto&Enable(bool bEnable) assert_reflect_as_self(tb.Send(TB_ENABLEBUTTON, idCommand, bEnable));
+		/* W */ inline auto&Enable(bool bEnable) assertl_reflect_as_self(tb.Send(TB_ENABLEBUTTON, idCommand, bEnable));
 		/* R */ inline bool Enable() const reflect_as(tb.Send(TB_ISBUTTONENABLED, idCommand));
 	public: // Property - Check
-		/* W */ inline auto&Check(bool bCheck) assert_reflect_as_self(tb.Send(TB_CHECKBUTTON, idCommand, bCheck));
+		/* W */ inline auto&Check(bool bCheck) assertl_reflect_as_self(tb.Send(TB_CHECKBUTTON, idCommand, bCheck));
 		/* R */ inline bool Check() const reflect_as(tb.Send(TB_ISBUTTONCHECKED, idCommand));
 	public: // Property - Press
-		/* W */ inline auto&Press(bool bPress) assert_reflect_as_self(tb.Send(TB_PRESSBUTTON, idCommand, bPress));
+		/* W */ inline auto&Press(bool bPress) assertl_reflect_as_self(tb.Send(TB_PRESSBUTTON, idCommand, bPress));
 		/* R */ inline bool Press() const reflect_as(tb.Send(TB_ISBUTTONPRESSED, idCommand));
 	public: // Property - Hide
-		/* W */ inline auto&Hide(bool bPress) assert_reflect_as_self(tb.Send(TB_HIDEBUTTON, idCommand, bPress));
+		/* W */ inline auto&Hide(bool bPress) assertl_reflect_as_self(tb.Send(TB_HIDEBUTTON, idCommand, bPress));
 		/* R */ inline bool Hide() const reflect_as(tb.Send(TB_ISBUTTONHIDDEN, idCommand));
 	public: // Property - HighLighted
 		/* R */ inline bool HighLighted() const reflect_as(tb.Send(TB_ISBUTTONHIGHLIGHTED, idCommand));
 	public: // Property - Indeterminate
-		/* W */ inline auto&Indeterminate(bool bEnable) assert_reflect_as_self(tb.Send(TB_INDETERMINATE, idCommand, bEnable));
+		/* W */ inline auto&Indeterminate(bool bEnable) assertl_reflect_as_self(tb.Send(TB_INDETERMINATE, idCommand, bEnable));
 		/* R */ inline bool Indeterminate() const reflect_as(tb.Send(TB_ISBUTTONINDETERMINATE, idCommand));
 	public: // Property - Text
 		/* R */ inline String Text() const {
@@ -548,19 +548,19 @@ public:
 			return text;
 		}
 	public: // Property - Mark
-		/* W */ inline auto&Mark(bool bMark) assert_reflect_as_self(tb.Send(TB_MARKBUTTON, idCommand, bMark));
+		/* W */ inline auto&Mark(bool bMark) assertl_reflect_as_self(tb.Send(TB_MARKBUTTON, idCommand, bMark));
 	public: // Property - Index
-		/* R */ inline int Index() assert_reflect_to(int index, (index = tb.Send(TB_COMMANDTOINDEX, idCommand)) > 0, index);
+		/* R */ inline int Index() assertl_reflect_to(int index, (index = tb.Send(TB_COMMANDTOINDEX, idCommand)) > 0, index);
 	public: // Property - ID
 		inline auto &ID(int idCommand) {
-			assert(Send(TB_SETCMDID, this->idCommand, idCommand));
+			assertl(Send(TB_SETCMDID, this->idCommand, idCommand));
 			this->idCommand = idCommand;
 			retself;
 		}
 		inline int ID() const reflect_as(idCommand);
 	public: // Property - 
 	public:
-		inline void Delete() assert_reflect_as_self(tb.Send(TB_DELETEBUTTON, idCommand));
+		inline void Delete() assertl_reflect_as_self(tb.Send(TB_DELETEBUTTON, idCommand));
 
 	};
 public:
@@ -570,14 +570,14 @@ public:
 //#define TB_ADDBITMAP            (WM_USER + 19)
 
 	template<size_t nCount>
-	inline auto &Add(const Button(&buttons)[nCount]) assert_reflect_as(super::Send(TB_ADDBUTTONS, nCount, buttons));
-	inline auto &Add(std::initializer_list<Button> buttons) assert_reflect_as(super::Send(TB_ADDBUTTONS, buttons.size(), buttons.begin()));
-	inline auto &Add(LPCTBBUTTON lpButtons, UINT nCount) assert_reflect_as(super::Send(TB_ADDBUTTONS, nCount, lpButtons));
-	inline auto &Add(const Button *lpButtons, UINT nCount) assert_reflect_as(super::Send(TB_ADDBUTTONS, nCount, lpButtons));
-	inline auto &Add(const TBBUTTON &button) assert_reflect_as(super::Send(TB_ADDBUTTONS, 1, &button));
-	inline auto &Add(const Button &button) assert_reflect_as(super::Send(TB_ADDBUTTONS, 1, &button));
-	inline auto &Insert(const Button &button, int idBefore) assert_reflect_as(super::Send(TB_INSERTBUTTON, idBefore, &button));
-//	inline Button Get(int id) assert_reflect_as(Send(TB_GETBUTTON, ));
+	inline auto &Add(const Button(&buttons)[nCount]) assertl_reflect_as(super::Send(TB_ADDBUTTONS, nCount, buttons));
+	inline auto &Add(std::initializer_list<Button> buttons) assertl_reflect_as(super::Send(TB_ADDBUTTONS, buttons.size(), buttons.begin()));
+	inline auto &Add(LPCTBBUTTON lpButtons, UINT nCount) assertl_reflect_as(super::Send(TB_ADDBUTTONS, nCount, lpButtons));
+	inline auto &Add(const Button *lpButtons, UINT nCount) assertl_reflect_as(super::Send(TB_ADDBUTTONS, nCount, lpButtons));
+	inline auto &Add(const TBBUTTON &button) assertl_reflect_as(super::Send(TB_ADDBUTTONS, 1, &button));
+	inline auto &Add(const Button &button) assertl_reflect_as(super::Send(TB_ADDBUTTONS, 1, &button));
+	inline auto &Insert(const Button &button, int idBefore) assertl_reflect_as(super::Send(TB_INSERTBUTTON, idBefore, &button));
+//	inline Button Get(int id) assertl_reflect_as(Send(TB_GETBUTTON, ));
 
 #define TB_GETBUTTON            (WM_USER + 23)
 
@@ -653,7 +653,7 @@ public:
 //public: // Property - ToolCount
 //	/* R */ inline int ToolCount() const reflect_as(super::Send(TTM_GETTOOLCOUNT));
 //public: // Property - CurrentTool
-//	/* R */ inline CInfo CurrentTool() const { CInfo i; assert(super::Send(TTM_GETCURRENTTOOL, 0, &i)); return i; }
+//	/* R */ inline CInfo CurrentTool() const { CInfo i; assertl(super::Send(TTM_GETCURRENTTOOL, 0, &i)); return i; }
 //public: // Property - DelayTime
 //	/* W */ inline auto &DelayTime(CInfo i) { super::Send(TTM_SETDELAYTIME); retchild; }
 //	/* R */ inline CInfo DelayTime() const { CInfo i; super::Send(TTM_GETDELAYTIME); return i; }
@@ -793,11 +793,11 @@ public: // Property - BandCount
 	/* R */ inline UINT  BandCount() const reflect_as(super::template Send<UINT>(RB_GETBANDCOUNT));
 
 #pragma region Band
-	inline void  BandDelete(UINT ind) assert_reflect_as_child(super::Send(RB_DELETEBAND, ind));
+	inline void  BandDelete(UINT ind) assertl_reflect_as_child(super::Send(RB_DELETEBAND, ind));
 	inline auto &BandMinimize(UINT ind) reflect_to_child(super::Send(RB_MINIMIZEBAND, ind));
 	inline auto &BandMaximize(UINT ind) reflect_to_child(super::Send(RB_MAXIMIZEBAND, ind));
 public: // Property - BandVisible
-	/* R */ inline auto &BandVisible(UINT ind, bool bVisible) assert_reflect_as_child(super::template Send<bool>(RB_SHOWBAND, ind, bVisible));
+	/* R */ inline auto &BandVisible(UINT ind, bool bVisible) assertl_reflect_as_child(super::template Send<bool>(RB_SHOWBAND, ind, bVisible));
 //public: // Property - BandInfo
 //	/* W */ inline bool  BandInfo(UINT ind); // RB_SETBANDINFO
 //	/* R */ inline bool  BandInfo(UINT ind) const; // RB_GETBANDINFO
@@ -806,9 +806,9 @@ public: // Property - BandBorders
 public: // Property - BandMargins
 	/* R */ inline LRect BandMargins(UINT ind) const reflect_to(LRect rc; super::Send(RB_GETBANDMARGINS, ind, &rc), rc);
 public: // Property - BandWidth
-	/* W */ inline auto &BandWidth(UINT ind, UINT width) assert_reflect_as_child(super::template Send<bool>(RB_SETBANDWIDTH, ind, width));
+	/* W */ inline auto &BandWidth(UINT ind, UINT width) assertl_reflect_as_child(super::template Send<bool>(RB_SETBANDWIDTH, ind, width));
 public: // Property - BandRect
-	/* R */ inline bool  BandRect(UINT ind) const assert_reflect_to(LRect rc, super::template Send<bool>(RB_GETRECT, ind, &rc), rc);
+	/* R */ inline bool  BandRect(UINT ind) const assertl_reflect_to(LRect rc, super::template Send<bool>(RB_GETRECT, ind, &rc), rc);
 public: // Property - BandRowHeight
 	/* R */ inline UINT  BandRowHeight(UINT ind) const reflect_as(super::template Send<UINT>(RB_GETROWHEIGHT, ind));
 #pragma endregion
@@ -837,12 +837,12 @@ public: // Property - Palette
 	/* R */ inline CPalette Palette() const reflect_as(super::template Send<HPALETTE>(RB_GETPALETTE));
 public: // Property - ColorScheme
 	/* W */ inline auto &ColorScheme(COLORSCHEME cs) reflect_to_child(super::Send(RB_SETCOLORSCHEME, 0, &cs));
-	/* R */ inline ::ColorScheme ColorScheme() const assert_reflect_to(::ColorScheme cs, super::template Send<bool>(RB_GETCOLORSCHEME, 0, &cs), cs);
+	/* R */ inline ::ColorScheme ColorScheme() const assertl_reflect_to(::ColorScheme cs, super::template Send<bool>(RB_GETCOLORSCHEME, 0, &cs), cs);
 //public: // Property - DropTarget
 //	/* R */ inline auto DropTarget(IDropTarget); // RB_GETDROPTARGET
 public: // Property - UnicodeFormat
 	/* W */ inline auto &UnicodeFormat(bool bUnicode) reflect_to_child(Send(RB_SETUNICODEFORMAT, bUnicode));
-	/* R */ inline bool  UnicodeFormat() const assert_reflect_as(Send<bool>(RB_SETUNICODEFORMAT));
+	/* R */ inline bool  UnicodeFormat() const assertl_reflect_as(Send<bool>(RB_SETUNICODEFORMAT));
 //public: // Property - WindowTheme
 //	/* W */ inline auto &WindowTheme(); // RB_SETWINDOWTHEME
 #pragma endregion
@@ -919,8 +919,8 @@ public:
 //#define EM_LINEFROMCHAR         0x00C9
 //#define EM_POSFROMCHAR          0x00D6
 //#define EM_CHARFROMPOS          0x00D7
-	inline auto&BalloonTip(const Balloon &tip) const assert_reflect_as_child(Edit_ShowBalloonTip(self, &tip));
-	inline auto&BalloonTip() const assert_reflect_as_child(Edit_HideBalloonTip(self));
+	inline auto&BalloonTip(const Balloon &tip) const assertl_reflect_as_child(Edit_ShowBalloonTip(self, &tip));
+	inline auto&BalloonTip() const assertl_reflect_as_child(Edit_HideBalloonTip(self));
 //#define Edit_GetFileLineFromChar(hwndCtl, characterIndex) \
 //        (DWORD)SNDMSG((hwndCtl), EM_FILELINEFROMCHAR, (WPARAM)(characterIndex), 0)
 #pragma endregion
@@ -931,7 +931,7 @@ public: // Property - uSel
 	/* R */ inline auto  uSel() const reflect_to(struct { _M_(int to = 0, from = 0); } r; super::Send(EM_GETSEL, &r.from, &r.to), r);
 public: // Property - Rect
 	/* W */ inline auto &Rect(LRect rc) reflect_to_child(super::Send(EM_SETRECT, O, rc));
-	/* R */ inline LRect Rect() const assert_reflect_to(LRect rc, super::Send(EM_GETRECT, O, &rc), rc);
+	/* R */ inline LRect Rect() const assertl_reflect_to(LRect rc, super::Send(EM_GETRECT, O, &rc), rc);
 public: // Property - RectNp
 	/* W */ inline auto &RectNp(LRect rc) reflect_to_child(super::Send(EM_SETRECTNP, O, rc));
 public: // Property - Modify
@@ -951,14 +951,14 @@ public: // Property - LineLength
 public: // Property - Line
 	/* W */ inline String Line(int nLine) const {
 		auto len = LineLength(nLine);
-		assert(len > 0);
+		assertl(len > 0);
 		if (len == 0) return O;
 		String line(len);
-		assert(super::Send(EM_GETLINE, nLine, line));
+		assertl(super::Send(EM_GETLINE, nLine, line));
 		return line;
 	}
 public: // Property - FmtLines
-	/* W */ inline auto &FmtLines(bool bFmtLines) reflect_to_child(assert(super::Send(EM_FMTLINES, bFmtLines) == bFmtLines));
+	/* W */ inline auto &FmtLines(bool bFmtLines) reflect_to_child(assertl(super::Send(EM_FMTLINES, bFmtLines) == bFmtLines));
 public: // Property - LimitText
 	/* W */ inline auto &LimitText(UINT limit) reflect_to_child(super::Send(EM_SETLIMITTEXT, limit));
 	/* R */ inline UINT  LimitText() const reflect_as(super::Send(EM_GETLIMITTEXT));
@@ -969,7 +969,7 @@ public: // Property - TabStops
 public: // Property - FirstVisibleLine
 	/* R */ inline int FirstVisibleLine() const reflect_as(super::Send(EM_GETFIRSTVISIBLELINE));
 public: // Property - ReadOnly
-	/* W */ inline auto &ReadOnly(bool bReadOnly) reflect_to_child(assert(super::Send(EM_SETREADONLY, bReadOnly)));
+	/* W */ inline auto &ReadOnly(bool bReadOnly) reflect_to_child(assertl(super::Send(EM_SETREADONLY, bReadOnly)));
 //public: // Property - WordBreakProc
 //	/* W */ inline auto &WordBreakProc() reflect_to_child(super::Send(EM_SETWORDBREAKPROC));
 //	/* R */ inline auto &WordBreakProc() const reflect_as(super::Send(EM_GETWORDBREAKPROC));
@@ -985,7 +985,7 @@ public: // Property - PasswordChar
 //	/* R */ inline auto &ImeStatus() const reflect_as(super::Send(EM_GETIMESTATUS));
 public: // Property - CueBanner
 	/* W */ inline auto  &CueBanner(LPCTSTR lpString, bool bFocused = false) reflect_to_child(Edit_SetCueBannerTextFocused(self, lpString, bFocused));
-	/* R */ inline String CueBanner() const assert_reflect_to(String cbt = MaxLenNotice, Edit_GetCueBannerText(self, cbt, MaxLenNotice + 1), cbt.Trunc());
+	/* R */ inline String CueBanner() const assertl_reflect_to(String cbt = MaxLenNotice, Edit_GetCueBannerText(self, cbt, MaxLenNotice + 1), cbt.Trunc());
 //public: // Property - ExtendedStyle
 //	/* W */ inline auto &ExtendedStyle(TCHAR chr) reflect_to_child(Edit_SetExtendedStyle(self, ));
 //	/* R */ inline TCHAR ExtendedStyle() const reflect_as(Edit_GetExtendedStyle(self));
@@ -996,7 +996,7 @@ public: // Property - CaretIndex
 	/* R */ inline DWORD CaretIndex() const reflect_as(Edit_GetCaretIndex(self));
 public: // Property - Zoom
 	/* W */ inline auto &Zoom(int Numerator, int Denominator) reflect_to_child(Edit_SetZoom(self, Numerator, Denominator));
-	/* R */ inline auto  Zoom() const assert_reflect_to(struct { _M_(int Numerator, Denominator); } z, Edit_GetZoom(self, &z.Numerator, &z.Denominator), z);
+	/* R */ inline auto  Zoom() const assertl_reflect_to(struct { _M_(int Numerator, Denominator); } z, Edit_GetZoom(self, &z.Numerator, &z.Denominator), z);
 public: // Property - FileLineIndex
 	/* R */ inline int FileLineIndex(int index) const reflect_as(Edit_GetFileLineIndex(self, index));
 public: // Property - FileLineLength
@@ -1004,10 +1004,10 @@ public: // Property - FileLineLength
 public: // Property - FileLine
 	/* R */ inline String FileLine(int nLine) const {
 		auto len = FileLineLength(nLine);
-		assert(len > 0);
+		assertl(len > 0);
 		if (len == 0) return O;
 		String line(len);
-		assert(Edit_GetFileLine(self, nLine, line));
+		assertl(Edit_GetFileLine(self, nLine, line));
 		return line;
 	}
 public: // Property - FileLineCount

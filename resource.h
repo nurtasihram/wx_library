@@ -34,7 +34,7 @@ public:
 
 	inline void Delete() {
 		if (hobj) {
-			assert(DeleteObject(hobj));
+			assertl(DeleteObject(hobj));
 			hobj = O;
 		}
 	}
@@ -142,7 +142,7 @@ public: // Property - Colors
 	/* W */ inline auto &Colors(LPVOID bmBits) reflect_to_self(self->bmBits = bmBits);
 	/* R */ inline LPVOID Colors() const reflect_as(self->bmBits);
 public:
-	inline HBITMAP Create() const assert_reflect_as(auto h = CreateBitmapIndirect(self), h);
+	inline HBITMAP Create() const assertl_reflect_as(auto h = CreateBitmapIndirect(self), h);
 	inline operator HBITMAP() const reflect_as(Create());
 };
 class BaseOf_GDI(Bitmap, HBITMAP) {
@@ -190,31 +190,31 @@ public:
 		/* W */ inline auto &Colors(LPCVOID lpBits) reflect_to_self(this->lpBits = lpBits);
 		/* R */ inline LPCVOID Colors() const reflect_as(this->lpBits);
 	public:
-		inline Bitmap Create() const assert_reflect_as(auto h = CreateBitmap(nWidth, nHeight, nPlanes, nBitsPerPixel, lpBits), h);
+		inline Bitmap Create() const assertl_reflect_as(auto h = CreateBitmap(nWidth, nHeight, nPlanes, nBitsPerPixel, lpBits), h);
 		inline operator Bitmap() const reflect_as(Create());
 	};
 	static inline CreateStruct Create(LSize s = 0) reflect_as(s);
 
-	static inline Bitmap Create(const BITMAPINFO *pbi, void **ppbits, HANDLE hSection = O, DWORD offset = 0) assert_reflect_as(auto h = CreateDIBSection(O, pbi, DIB_RGB_COLORS, ppbits, hSection, offset), h);
-	static inline Bitmap Create(const BITMAPINFO *pbi, HANDLE hSection = O, DWORD offset = 0) assert_reflect_as(auto h = CreateDIBSection(O, pbi, DIB_RGB_COLORS, O, hSection, offset), h);
+	static inline Bitmap Create(const BITMAPINFO *pbi, void **ppbits, HANDLE hSection = O, DWORD offset = 0) assertl_reflect_as(auto h = CreateDIBSection(O, pbi, DIB_RGB_COLORS, ppbits, hSection, offset), h);
+	static inline Bitmap Create(const BITMAPINFO *pbi, HANDLE hSection = O, DWORD offset = 0) assertl_reflect_as(auto h = CreateDIBSection(O, pbi, DIB_RGB_COLORS, O, hSection, offset), h);
 
 	static inline Bitmap From(HDC hDC, LSize s) reflect_as(CreateCompatibleBitmap(hDC, s.cx, s.cy));
 
-	inline auto &Restretch(LSize sz) assert_reflect_as_self((super::hobj = (HBITMAP)CopyImage(self, IMAGE_BITMAP, sz.cx, sz.cy, LR_DEFAULTSIZE)));
-	inline Bitmap StretchNew(LSize sz) const assert_reflect_as(auto h = (HBITMAP)CopyImage(self, IMAGE_BITMAP, sz.cx, sz.cy, LR_DEFAULTCOLOR), h);
+	inline auto &Restretch(LSize sz) assertl_reflect_as_self((super::hobj = (HBITMAP)CopyImage(self, IMAGE_BITMAP, sz.cx, sz.cy, LR_DEFAULTSIZE)));
+	inline Bitmap StretchNew(LSize sz) const assertl_reflect_as(auto h = (HBITMAP)CopyImage(self, IMAGE_BITMAP, sz.cx, sz.cy, LR_DEFAULTCOLOR), h);
 	inline Bitmap Clone() const reflect_as(StretchNew(Size()));
 
 #pragma region Properties
 public: // Property - Size
-	/* R */ inline LSize Size() const assert_reflect_to(LSize sz, GetBitmapDimensionEx(self, &sz), sz);
+	/* R */ inline LSize Size() const assertl_reflect_to(LSize sz, GetBitmapDimensionEx(self, &sz), sz);
 public: // Property - SizeBytes
 	/* R */ inline size_t SizeBytes() const {
 		auto &&log = Log();
 		return (((log.Width() * log.Planes() /* nPlanes */ * log.BitsPerPixel() /* nBitCount */ + 15) >> 4) << 1) * log.Height();
 	}
 public: // Property - Colors
-	/* W */ inline auto &GetColors(void *lpBits, DWORD cb) const assert_reflect_as_self(GetBitmapBits(self, cb, lpBits));
-	/* R */ inline auto &SetColors(const void *lpBits, DWORD cb) assert_reflect_as_self(SetBitmapBits(self, cb, lpBits));
+	/* W */ inline auto &GetColors(void *lpBits, DWORD cb) const assertl_reflect_as_self(GetBitmapBits(self, cb, lpBits));
+	/* R */ inline auto &SetColors(const void *lpBits, DWORD cb) assertl_reflect_as_self(SetBitmapBits(self, cb, lpBits));
 #pragma endregion
 
 };
@@ -245,15 +245,15 @@ public:
 	static inline Pen Null()  reflect_as((HPEN)::GetStockObject(NULL_PEN));
 	static inline Pen DC()    reflect_as((HPEN)::GetStockObject(DC_PEN));
 
-	static inline Pen CreateSolid(COLORREF rgb, int nWidth = 0)       assert_reflect_as(auto h = CreatePen(PS_SOLID, nWidth, rgb), h);
-	static inline Pen CreateDash(COLORREF rgb, int nWidth = 0)        assert_reflect_as(auto h = CreatePen(PS_DASH, nWidth, rgb), h);
-	static inline Pen CreateDot(COLORREF rgb, int nWidth = 0)         assert_reflect_as(auto h = CreatePen(PS_DOT, nWidth, rgb), h);
-	static inline Pen CreateDashDot(COLORREF rgb, int nWidth = 0)     assert_reflect_as(auto h = CreatePen(PS_DASHDOT, nWidth, rgb), h);
-	static inline Pen CreateDashDotDot(COLORREF rgb, int nWidth = 0)  assert_reflect_as(auto h = CreatePen(PS_DASHDOTDOT, nWidth, rgb), h);
-	static inline Pen Create(COLORREF rgb, int nWidth = 0)            assert_reflect_as(auto h = CreatePen(PS_NULL, nWidth, rgb), h);
-	static inline Pen CreateInsideFrame(COLORREF rgb, int nWidth = 0) assert_reflect_as(auto h = CreatePen(PS_INSIDEFRAME, nWidth, rgb), h);
-	static inline Pen CreateUserStyle(COLORREF rgb, int nWidth = 0)   assert_reflect_as(auto h = CreatePen(PS_USERSTYLE, nWidth, rgb), h);
-	static inline Pen CreateAlternate(COLORREF rgb, int nWidth = 0)   assert_reflect_as(auto h = CreatePen(PS_ALTERNATE, nWidth, rgb), h);
+	static inline Pen CreateSolid(COLORREF rgb, int nWidth = 0)       assertl_reflect_as(auto h = CreatePen(PS_SOLID, nWidth, rgb), h);
+	static inline Pen CreateDash(COLORREF rgb, int nWidth = 0)        assertl_reflect_as(auto h = CreatePen(PS_DASH, nWidth, rgb), h);
+	static inline Pen CreateDot(COLORREF rgb, int nWidth = 0)         assertl_reflect_as(auto h = CreatePen(PS_DOT, nWidth, rgb), h);
+	static inline Pen CreateDashDot(COLORREF rgb, int nWidth = 0)     assertl_reflect_as(auto h = CreatePen(PS_DASHDOT, nWidth, rgb), h);
+	static inline Pen CreateDashDotDot(COLORREF rgb, int nWidth = 0)  assertl_reflect_as(auto h = CreatePen(PS_DASHDOTDOT, nWidth, rgb), h);
+	static inline Pen Create(COLORREF rgb, int nWidth = 0)            assertl_reflect_as(auto h = CreatePen(PS_NULL, nWidth, rgb), h);
+	static inline Pen CreateInsideFrame(COLORREF rgb, int nWidth = 0) assertl_reflect_as(auto h = CreatePen(PS_INSIDEFRAME, nWidth, rgb), h);
+	static inline Pen CreateUserStyle(COLORREF rgb, int nWidth = 0)   assertl_reflect_as(auto h = CreatePen(PS_USERSTYLE, nWidth, rgb), h);
+	static inline Pen CreateAlternate(COLORREF rgb, int nWidth = 0)   assertl_reflect_as(auto h = CreatePen(PS_ALTERNATE, nWidth, rgb), h);
 };
 #pragma endregion
 
@@ -313,7 +313,7 @@ public:
 	
 	using super::operator=;
 
-	static inline Brush SysColor(WX::SysColor sc) assert_reflect_as(auto hbr = GetSysColorBrush(sc.yield()), hbr);
+	static inline Brush SysColor(WX::SysColor sc) assertl_reflect_as(auto hbr = GetSysColorBrush(sc.yield()), hbr);
 
 	static inline Brush White()   reflect_as((HBRUSH)::GetStockObject(WHITE_BRUSH));
 	static inline Brush LitGray() reflect_as((HBRUSH)::GetStockObject(LTGRAY_BRUSH));
@@ -323,9 +323,9 @@ public:
 	static inline Brush Null()    reflect_as((HBRUSH)::GetStockObject(NULL_BRUSH));
 	static inline Brush DC()      reflect_as((HBRUSH)::GetStockObject(DC_BRUSH));
 
-	static inline Brush CreateSolid(COLORREF rgb)                assert_reflect_as(auto h = CreateSolidBrush(rgb), h);
-	static inline Brush CreatePattern(HBITMAP hbm)               assert_reflect_as(auto h = CreatePatternBrush(hbm), h);
-	static inline Brush CreateHatch(COLORREF rgb, HatchStyle hs) assert_reflect_as(auto h = CreateHatchBrush(hs.yield(), rgb), h);
+	static inline Brush CreateSolid(COLORREF rgb)                assertl_reflect_as(auto h = CreateSolidBrush(rgb), h);
+	static inline Brush CreatePattern(HBITMAP hbm)               assertl_reflect_as(auto h = CreatePatternBrush(hbm), h);
+	static inline Brush CreateHatch(COLORREF rgb, HatchStyle hs) assertl_reflect_as(auto h = CreateHatchBrush(hs.yield(), rgb), h);
 };
 #pragma endregion
 
@@ -368,14 +368,14 @@ public:
 	Palette(Palette &pal) : super(pal) {}
 	Palette(Palette &&pal) : super(pal) {}
 	Palette(const Entry *lpEntries, UINT nCount) {
-		assert(1 < nCount && nCount <= 256);
+		assertl(1 < nCount && nCount <= 256);
 		AutoPointer<Heap, LOGPALETTE> hPal;
 		hPal.Alloc(sizeof(LOGPALETTE) + (nCount - 1) * sizeof(Entry));
 		auto pPal = &hPal;
 		pPal->palVersion = 0x300;
 		pPal->palNumEntries = (WORD)nCount;
 		CopyMemory(&pPal->palPalEntry, lpEntries, sizeof(Entry) * nCount);
-		assert(this->hobj = CreatePalette(pPal));
+		assertl(this->hobj = CreatePalette(pPal));
 	}
 	Palette(std::initializer_list<COLORREF> entries) : Palette((const Entry *)entries.begin(), (UINT)entries.size()) {}
 	Palette(std::initializer_list<Entry> entries) : Palette(entries.begin(), (UINT)entries.size()) {}
@@ -385,8 +385,8 @@ public:
 
 	static inline CPalette Default() reflect_as((HPALETTE)::GetStockObject(DEFAULT_PALETTE));
 
-	inline auto &SetEntries(UINT iStart, const Entry *pPalEntries, UINT cEntries = 1) assert_reflect_as_self(SetPaletteEntries(self, iStart, cEntries, (const PALETTEENTRY *)pPalEntries));
-	inline auto &GetEntries(UINT iStart, Entry *pPalEntries, UINT cEntries = 1) const assert_reflect_as_self(GetPaletteEntries(self, iStart, cEntries, (LPPALETTEENTRY)pPalEntries));
+	inline auto &SetEntries(UINT iStart, const Entry *pPalEntries, UINT cEntries = 1) assertl_reflect_as_self(SetPaletteEntries(self, iStart, cEntries, (const PALETTEENTRY *)pPalEntries));
+	inline auto &GetEntries(UINT iStart, Entry *pPalEntries, UINT cEntries = 1) const assertl_reflect_as_self(GetPaletteEntries(self, iStart, cEntries, (LPPALETTEENTRY)pPalEntries));
 
 	inline UINT NearestIndex(COLORREF cr) const reflect_as(GetNearestPaletteIndex(self, cr));
 
@@ -394,7 +394,7 @@ public:
 public: // Property - Entries
 	/* W */ inline auto &Entries(std::vector<Entry> entries) {
 		auto count = std::min((size_t)Count(), entries.size());
-		assert(count <= 256);
+		assertl(count <= 256);
 		if (count > 0)
 			SetEntries(0, entries.data(), (WORD)(count - 1));
 		retself;
@@ -407,8 +407,8 @@ public: // Property - Entries
 		return entries;
 	}
 public: // Property - NumEntries
-	/* W */ inline auto &Count(WORD nNumEntries) assert_reflect_as_self(ResizePalette(self, nNumEntries));
-	/* R */ inline WORD  Count() const assert_reflect_to(WORD w = 0, GetObject(self, sizeof(WORD), &w), w);
+	/* W */ inline auto &Count(WORD nNumEntries) assertl_reflect_as_self(ResizePalette(self, nNumEntries));
+	/* R */ inline WORD  Count() const assertl_reflect_to(WORD w = 0, GetObject(self, sizeof(WORD), &w), w);
 public: // Property - Size
 	/* R */ inline size_t Size() const reflect_as(Count() * sizeof(Entry));
 #pragma endregion
@@ -469,66 +469,66 @@ public:
 
 	using super::operator=;
 
-	static inline DeviceCap CreateCompatible(HDC hdc = O) assert_reflect_as(auto hobj = CreateCompatibleDC(hdc), hobj);
+	static inline DeviceCap CreateCompatible(HDC hdc = O) assertl_reflect_as(auto hobj = CreateCompatibleDC(hdc), hobj);
 
 	inline void Delete() {
 		if (self) {
-			assert(DeleteDC(self));
+			assertl(DeleteDC(self));
 			this->hobj = O;
 		}
 	}
 	inline auto Release(HWND hWnd) reflect_as(ReleaseDC(hWnd, self));
 
 //	inline auto &BltStretch(LPoint dstStart, LSize dstSize, Rop rop = Rop::SrcCopy)
-	inline auto &BltStretch(LPoint dstStart, LSize dstSize, HDC hdcSrc, LPoint srcStart, LSize srcSize, Rop rop = Rop::SrcCopy) assert_reflect_as_self(::StretchBlt(self, dstStart.x, dstStart.y, dstSize.cx, dstSize.cy, hdcSrc, srcStart.x, srcStart.y, srcSize.cx, srcSize.cy, rop.yield()));
-	inline auto &BltStretch(LRect dst, HDC hdcSrc, LRect src, Rop rop = Rop::SrcCopy) reflect_to_self(BltStretch(dst.top_left(), dst.size(), hdcSrc, src.top_left(), src.size(), rop));
-	inline auto &BltBit(LPoint dstStart, LSize dstSize, HDC hdcSrc, LPoint srcStart = 0, Rop rop = Rop::SrcCopy) assert_reflect_as_self(::BitBlt(self, dstStart.x, dstStart.y, dstSize.cx, dstSize.cy, hdcSrc, srcStart.x, srcStart.y, rop.yield()));
-	inline auto &BltBit(LRect rc, HDC hdcSrc, LPoint srcStart = 0, Rop rop = Rop::SrcCopy) reflect_to_self(BltBit(rc.top_left(), rc.size(), hdcSrc, srcStart, rop));
+	inline auto &BltStretch(LPoint dstStart, LSize dstSize, HDC hdcSrc, LPoint srcStart, LSize srcSize, Rop rop = Rop::SrcCopy) assertl_reflect_as_self(::StretchBlt(self, dstStart.x, dstStart.y, dstSize.cx, dstSize.cy, hdcSrc, srcStart.x, srcStart.y, srcSize.cx, srcSize.cy, rop.yield()));
+	inline auto &BltStretch(LRect dst, HDC hdcSrc, LRect src, Rop rop = Rop::SrcCopy) reflect_to_self(BltStretch(dst.left_top(), dst.size(), hdcSrc, src.left_top(), src.size(), rop));
+	inline auto &BltBit(LPoint dstStart, LSize dstSize, HDC hdcSrc, LPoint srcStart = 0, Rop rop = Rop::SrcCopy) assertl_reflect_as_self(::BitBlt(self, dstStart.x, dstStart.y, dstSize.cx, dstSize.cy, hdcSrc, srcStart.x, srcStart.y, rop.yield()));
+	inline auto &BltBit(LRect rc, HDC hdcSrc, LPoint srcStart = 0, Rop rop = Rop::SrcCopy) reflect_to_self(BltBit(rc.left_top(), rc.size(), hdcSrc, srcStart, rop));
 
-	inline CGObject Select(HGDIOBJ ho) assert_reflect_as((ho = SelectObject(self, ho)) != HGDI_ERROR, ho);
-	inline CPalette Palette(HPALETTE hPal, bool bForceBkgd = false) check_reflect_to(hPal = SelectPalette(self, hPal, bForceBkgd), hPal);
+	inline CGObject Select(HGDIOBJ ho) assertl_reflect_as((ho = SelectObject(self, ho)) != HGDI_ERROR, ho);
+	inline CPalette Palette(HPALETTE hPal, bool bForceBkgd = false) nt_assertl_reflect_to(hPal = SelectPalette(self, hPal, bForceBkgd), hPal);
 
-	inline auto&DrawIcon(HICON hIcon, LPoint p = 0) assert_reflect_as_self(::DrawIcon(self, p.x, p.y, hIcon));
+	inline auto&DrawIcon(HICON hIcon, LPoint p = 0) assertl_reflect_as_self(::DrawIcon(self, p.x, p.y, hIcon));
 //	inline bool DrawText(String text, Rect r = 0) reflect_as(DrawText(self, text.c_str(), text.size(), r, ));
-	inline auto&DrawPixel(COLORREF rgb, LPoint p) assert_reflect_as_self(SetPixel(self, p.x, p.y, rgb) != -1);
+	inline auto&DrawPixel(COLORREF rgb, LPoint p) assertl_reflect_as_self(SetPixel(self, p.x, p.y, rgb) != -1);
 	template<size_t len>
-	inline auto&DrawPolyline(const LPoint(&pts)[len]) assert_reflect_as_self(Polyline(self, pts, len));
-	inline auto&DrawPie(LRect rc, LPoint start, LPoint end) assert_reflect_as_self(Pie(self, rc.left, rc.top, rc.right, rc.bottom, start.x, start.y, end.x, end.y));
-	inline auto&DrawEllipse(LRect rc) assert_reflect_as_self(Ellipse(self, rc.left, rc.top, rc.right, rc.bottom));
-	inline auto&DrawFocus(LRect rc) assert_reflect_as_self(DrawFocusRect(self, rc));
-	inline auto&Invert(LRect rc) assert_reflect_as_self(InvertRect(self, rc));
-	inline auto&Fill(LRect rc, HBRUSH hbr) assert_reflect_as_self(FillRect(self, rc, hbr));
+	inline auto&DrawPolyline(const LPoint(&pts)[len]) assertl_reflect_as_self(Polyline(self, pts, len));
+	inline auto&DrawPie(LRect rc, LPoint start, LPoint end) assertl_reflect_as_self(Pie(self, rc.left, rc.top, rc.right, rc.bottom, start.x, start.y, end.x, end.y));
+	inline auto&DrawEllipse(LRect rc) assertl_reflect_as_self(Ellipse(self, rc.left, rc.top, rc.right, rc.bottom));
+	inline auto&DrawFocus(LRect rc) assertl_reflect_as_self(DrawFocusRect(self, rc));
+	inline auto&Invert(LRect rc) assertl_reflect_as_self(InvertRect(self, rc));
+	inline auto&Fill(LRect rc, HBRUSH hbr) assertl_reflect_as_self(FillRect(self, rc, hbr));
 	inline auto&Fill(HBRUSH hbr) reflect_as(Fill(Size(), hbr));
 
 #pragma region Properties
 public: // Property - PenColor
-	/* W */ inline auto    &PenColor(COLORREF rgb) assert_reflect_as_self(SetDCPenColor(self, rgb));
+	/* W */ inline auto    &PenColor(COLORREF rgb) assertl_reflect_as_self(SetDCPenColor(self, rgb));
 	/* R */ inline RGBColor PenColor() const reflect_as(GetDCPenColor(self));
 public: // Property - BkColor
-	/* W */ inline auto    &BkColor(COLORREF rgb) assert_reflect_as_self(SetBkColor(self, rgb));
+	/* W */ inline auto    &BkColor(COLORREF rgb) assertl_reflect_as_self(SetBkColor(self, rgb));
 	/* R */ inline RGBColor BkColor() const reflect_as(GetBkColor(self));
 public: // Property - ViewOrg
-	/* W */ inline auto  &ViewOrg(LPoint pt) assert_reflect_as_self(SetViewportOrgEx(self, pt.x, pt.y, O));
-	/* R */ inline LPoint ViewOrg() const assert_reflect_to(LPoint pt, GetViewportOrgEx(self, &pt), pt);
+	/* W */ inline auto  &ViewOrg(LPoint pt) assertl_reflect_as_self(SetViewportOrgEx(self, pt.x, pt.y, O));
+	/* R */ inline LPoint ViewOrg() const assertl_reflect_to(LPoint pt, GetViewportOrgEx(self, &pt), pt);
 public: // Property - ViewExt
-	/* W */ inline auto &ViewExt(LSize sz) assert_reflect_as_self(SetViewportExtEx(self, sz.cx, sz.cy, O));
-	/* R */ inline LSize ViewExt() const assert_reflect_to(LSize sz, GetViewportExtEx(self, &sz), sz);
+	/* W */ inline auto &ViewExt(LSize sz) assertl_reflect_as_self(SetViewportExtEx(self, sz.cx, sz.cy, O));
+	/* R */ inline LSize ViewExt() const assertl_reflect_to(LSize sz, GetViewportExtEx(self, &sz), sz);
 public: // Property - WindowOrg
-	/* W */ inline auto  &WindowOrg(LPoint pt) assert_reflect_as_self(SetWindowOrgEx(self, pt.x, pt.y, O));
-	/* R */ inline LPoint WindowOrg() const assert_reflect_to(LPoint pt, GetWindowOrgEx(self, &pt), pt);
+	/* W */ inline auto  &WindowOrg(LPoint pt) assertl_reflect_as_self(SetWindowOrgEx(self, pt.x, pt.y, O));
+	/* R */ inline LPoint WindowOrg() const assertl_reflect_to(LPoint pt, GetWindowOrgEx(self, &pt), pt);
 public: // Property - WindowExt
-	/* W */ inline auto &WindowExt(LSize sz) assert_reflect_as_self(SetWindowExtEx(self, sz.cx, sz.cy, O));
-	/* R */ inline LSize WindowExt() const assert_reflect_to(LSize sz, GetWindowExtEx(self, &sz), sz);
+	/* W */ inline auto &WindowExt(LSize sz) assertl_reflect_as_self(SetWindowExtEx(self, sz.cx, sz.cy, O));
+	/* R */ inline LSize WindowExt() const assertl_reflect_to(LSize sz, GetWindowExtEx(self, &sz), sz);
 public: // Property - MapMode
-	/* W */ inline auto    &MapMode(MapModes mode) assert_reflect_as_self(SetMapMode(self, mode.yield()));
+	/* W */ inline auto    &MapMode(MapModes mode) assertl_reflect_as_self(SetMapMode(self, mode.yield()));
 	/* R */ inline MapModes MapMode() const reflect_as(force_cast<MapModes>(GetMapMode(self)));
 public: // Property - Size
 	/* R */ inline LSize Size() const reflect_as({ GetDeviceCaps(self, HORZRES), GetDeviceCaps(self, VERTRES) });
 public: // Property - PaletteRealize
 	/* R */ inline UINT PaletteRealize() const reflect_as(RealizePalette(self));
 public: // Property - StretchMode
-	/* W */ inline auto     &StretchMode(Stretches mode) assert_reflect_as_self(SetStretchBltMode(self, mode.yield()));
-	/* R */ inline Stretches StretchMode() const assert_reflect_as(auto mode = GetStretchBltMode(self), force_cast<Stretches>(mode));
+	/* W */ inline auto     &StretchMode(Stretches mode) assertl_reflect_as_self(SetStretchBltMode(self, mode.yield()));
+	/* R */ inline Stretches StretchMode() const assertl_reflect_as(auto mode = GetStretchBltMode(self), force_cast<Stretches>(mode));
 #pragma endregion
 
 	inline auto&operator()(HGDIOBJ ho) reflect_to_self(Select(ho));
@@ -642,23 +642,23 @@ public:
 		/* W */ inline auto   &Colors(LPCVOID lpBits) reflect_to_self(this->lpXORbits = (LPCBYTE)lpBits);
 		/* R */ inline LPCBYTE Colors() const reflect_as(this->lpXORbits);
 	public:
-		inline Icon Create() const assert_reflect_as(auto h = CreateIcon(hInstance, nWidth, nHeight, nPlanes, nBitsPerPixel, lpANDbits, lpXORbits), h);
+		inline Icon Create() const assertl_reflect_as(auto h = CreateIcon(hInstance, nWidth, nHeight, nPlanes, nBitsPerPixel, lpANDbits, lpXORbits), h);
 	};
 	static inline CreateStruct Create(LPCBYTE lpANDbits, LPCBYTE lpXORbits = O) reflect_as({ lpANDbits, lpXORbits });
-	static inline Icon Create(HBITMAP hbmColor, HBITMAP hbmMask = O) assert_reflect_as(auto h = CreateIconIndirect(&CIconInfo(IconInfo())->Colors(hbmColor).Mask(hbmMask)), h);
+	static inline Icon Create(HBITMAP hbmColor, HBITMAP hbmMask = O) assertl_reflect_as(auto h = CreateIconIndirect(&CIconInfo(IconInfo())->Colors(hbmColor).Mask(hbmMask)), h);
 
 	inline void Destroy() {
 		if (self) {
-			assert(DestroyIcon(hIcon));
+			assertl(DestroyIcon(hIcon));
 			hIcon = O;
 		}
 	}
 
 #pragma region Properties
 public: // Property - Info
-	/* R */ inline Info Informations() const assert_reflect_to(ICONINFO i, GetIconInfo(hIcon, &i), i);
+	/* R */ inline Info Informations() const assertl_reflect_to(ICONINFO i, GetIconInfo(hIcon, &i), i);
 public: // Property - InfoEx
-	/* R */ inline InfoEx InformationsEx() const assert_reflect_to(ICONINFOEX i, GetIconInfoEx(hIcon, &i), i);
+	/* R */ inline InfoEx InformationsEx() const assertl_reflect_to(ICONINFOEX i, GetIconInfoEx(hIcon, &i), i);
 public: // Property - Masks
 	/* R */ inline Bitmap Mask() const reflect_as(Informations().Mask());
 public: // Property - Colors
@@ -667,7 +667,7 @@ public: // Property - Colors
 
 	inline operator HICON() const reflect_as(hIcon);
 
-	inline Icon operator+() const assert_reflect_as(auto h = CopyIcon(hIcon), h);
+	inline Icon operator+() const assertl_reflect_as(auto h = CopyIcon(hIcon), h);
 
 	inline auto &operator=(Icon &i) reflect_to_self(std::swap(hIcon, i.hIcon));
 	inline auto &operator=(Icon &&i) reflect_to_self(std::swap(hIcon, i.hIcon));
@@ -708,15 +708,15 @@ public:
 		inline auto &Height(LONG nHeight) reflect_to_self(this->nHeight = nHeight);
 		inline auto &Size(LSize sz) reflect_to_self(this->nWidth = sz.cx, this->nHeight = sz.cy);
 	public:
-		inline Cursor Create() const assert_reflect_as(auto h = CreateCursor(hInstance, xHotspot, yHotspot, nWidth, nHeight, lpANDbits, lpXORbits), h);
+		inline Cursor Create() const assertl_reflect_as(auto h = CreateCursor(hInstance, xHotspot, yHotspot, nWidth, nHeight, lpANDbits, lpXORbits), h);
 		inline operator Cursor() const reflect_as(Create());
 	};
 	static inline CreateStruct Create(LPCBYTE lpANDbits, LPCBYTE lpXORbits = O, LPoint Hotspot = 0) reflect_as({ lpANDbits, lpXORbits, Hotspot });
-	static inline Cursor Create(HBITMAP hbmColor, HBITMAP hbmMask = O, LPoint Hotspot = 0) assert_reflect_as(auto h = CreateIconIndirect(&CIconInfo(IconInfo())->Colors(hbmColor).Mask(hbmMask)), h);
+	static inline Cursor Create(HBITMAP hbmColor, HBITMAP hbmMask = O, LPoint Hotspot = 0) assertl_reflect_as(auto h = CreateIconIndirect(&CIconInfo(IconInfo())->Colors(hbmColor).Mask(hbmMask)), h);
 
 	inline void Destroy() {
 		if (self) {
-			assert(DestroyCursor(super::hIcon));
+			assertl(DestroyCursor(super::hIcon));
 			super::hIcon = O;
 		}
 	}
@@ -728,7 +728,7 @@ public: // Property - Hotspot
 
 	inline operator HCURSOR() const reflect_as((HCURSOR)super::hIcon);
 
-	inline Cursor operator+() const assert_reflect_as(auto h = CopyCursor(super::hIcon), h);
+	inline Cursor operator+() const assertl_reflect_as(auto h = CopyCursor(super::hIcon), h);
 
 	inline auto &operator=(Cursor &i) reflect_to_self(std::swap(hIcon, i.hIcon));
 	inline auto &operator=(Cursor &&i) reflect_to_self(std::swap(hIcon, i.hIcon));
@@ -793,17 +793,17 @@ class MenuItem {
 	using Type = MenuItemType;
 	using State = MenuItemState;
 public:
-	inline void Delete(UINT uID) assert(DeleteMenu(hMenu, uID, flags) || (flags = 0));
-	inline void Remove(UINT uID) assert(RemoveMenu(hMenu, uID, flags) || (flags = 0));
-	inline auto&Hilite(HWND hWnd, bool bHilite = true) assert_reflect_as_self(HiliteMenuItem(hWnd, hMenu, uID, flags | (bHilite ? MF_HILITE : MF_UNHILITE)));
+	inline void Delete(UINT uID) assertl(DeleteMenu(hMenu, uID, flags) || (flags = 0));
+	inline void Remove(UINT uID) assertl(RemoveMenu(hMenu, uID, flags) || (flags = 0));
+	inline auto&Hilite(HWND hWnd, bool bHilite = true) assertl_reflect_as_self(HiliteMenuItem(hWnd, hMenu, uID, flags | (bHilite ? MF_HILITE : MF_UNHILITE)));
 	CMenu Sub(int nPos);
 public: // Property - Enable
-	/* W */ inline auto &Enable(bool bEnable) assert_reflect_as_self(EnableMenuItem(hMenu, uID, flags | (bEnable ? MF_ENABLED : MF_DISABLED)) >= 0);
+	/* W */ inline auto &Enable(bool bEnable) assertl_reflect_as_self(EnableMenuItem(hMenu, uID, flags | (bEnable ? MF_ENABLED : MF_DISABLED)) >= 0);
 public: // Property - Check
-	/* W */ inline auto &Check(bool bChecked) assert_reflect_as_self(CheckMenuItem(hMenu, uID, flags | (bChecked ? MF_CHECKED : MF_UNCHECKED)) >= 0);
+	/* W */ inline auto &Check(bool bChecked) assertl_reflect_as_self(CheckMenuItem(hMenu, uID, flags | (bChecked ? MF_CHECKED : MF_UNCHECKED)) >= 0);
 #define MENUITEM_PROPERTY(name, mask, memb, type, in, conv) \
-	/* W */ inline auto &name(type memb) assert_reflect_to_self(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = mask; mii.memb = in, SetMenuItemInfo(hMenu, uID, flags, &mii)); \
-	/* R */ inline type  name() const assert_reflect_to(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = mask, GetMenuItemInfo(hMenu, uID, flags, &mii), conv(mii.memb))
+	/* W */ inline auto &name(type memb) assertl_reflect_to_self(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = mask; mii.memb = in, SetMenuItemInfo(hMenu, uID, flags, &mii)); \
+	/* R */ inline type  name() const assertl_reflect_to(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = mask, GetMenuItemInfo(hMenu, uID, flags, &mii), conv(mii.memb))
 public: // Property - Types
 	MENUITEM_PROPERTY(Types, MIIM_TYPE, fType, Type, fType.yield(), reuse_as<Type>);
 public: // Property - State
@@ -816,7 +816,7 @@ public: // Property - Unchecked
 	MENUITEM_PROPERTY(Unchecked, MIIM_CHECKMARKS, hbmpUnchecked, CBitmap, hbmpUnchecked, _M_);
 public: // Property - Bitmap
 	MENUITEM_PROPERTY(Bitmap, MIIM_BITMAP, hbmpItem, CBitmap, hbmpItem, _M_);
-	/* W */ inline auto &Bitmap(MenuBmp hbmpItem) assert_reflect_to_self(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = MIIM_BITMAP; mii.hbmpItem = hbmpItem.yield(), SetMenuItemInfo(hMenu, uID, flags, &mii));
+	/* W */ inline auto &Bitmap(MenuBmp hbmpItem) assertl_reflect_to_self(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = MIIM_BITMAP; mii.hbmpItem = hbmpItem.yield(), SetMenuItemInfo(hMenu, uID, flags, &mii));
 public: // Property - UserData
 	MENUITEM_PROPERTY(UserData, MIIM_DATA, dwItemData, void *, (ULONG_PTR)dwItemData, reuse_as<void *>);
 public: // Property - SubMenu
@@ -828,7 +828,7 @@ public: // Property - String
 		mii.cbSize = sizeof(mii);
 		mii.fMask = MIIM_STRING;
 		mii.dwTypeData = const_cast<LPTSTR>((LPCTSTR)str);
-		assert(SetMenuItemInfo(hMenu, uID, flags, &mii));
+		assertl(SetMenuItemInfo(hMenu, uID, flags, &mii));
 		retself;
 	}
 	/* R */ inline WX::String String() const {
@@ -838,7 +838,7 @@ public: // Property - String
 		mii.cch = MaxLenNotice;
 		WX::String data((size_t)mii.cch);
 		mii.dwTypeData = data;
-		assert(GetMenuItemInfo(hMenu, uID, flags, &mii));
+		assertl(GetMenuItemInfo(hMenu, uID, flags, &mii));
 		return data;
 	}
 };
@@ -859,28 +859,28 @@ public:
 	~Menu() reflect_to(Destroy());
 
 #pragma region Methods
-	static inline Menu Create()      assert_reflect_as(auto h = CreateMenu(), h);
-	static inline Menu CreatePopup() assert_reflect_as(auto h = CreatePopupMenu(), h);
+	static inline Menu Create()      assertl_reflect_as(auto h = CreateMenu(), h);
+	static inline Menu CreatePopup() assertl_reflect_as(auto h = CreatePopupMenu(), h);
 
 	inline void Destroy() {
 		if (self) {
-			assert(DestroyMenu(hMenu));
+			assertl(DestroyMenu(hMenu));
 			hMenu = O;
 		}
 	}
 
-	inline auto&String(LPCTSTR lpString, UINT_PTR uID = 0, bool bEnable = true) assert_reflect_as_self(AppendMenu(hMenu, MF_STRING | (bEnable ? MF_ENABLED : MF_DISABLED), uID, lpString));
-	inline auto&Popup(LPCTSTR lpString, HMENU hPopup) assert_reflect_as_self(AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopup, lpString));
-	inline auto&Check(LPCTSTR lpString, UINT_PTR uID = 0, bool bChecked = false) assert_reflect_as_self(AppendMenu(hMenu, (bChecked ? MF_CHECKED : MF_UNCHECKED), uID, lpString));
-	inline auto&Separator() assert_reflect_as_self(AppendMenu(hMenu, MF_SEPARATOR, 0, O));
+	inline auto&String(LPCTSTR lpString, UINT_PTR uID = 0, bool bEnable = true) assertl_reflect_as_self(AppendMenu(hMenu, MF_STRING | (bEnable ? MF_ENABLED : MF_DISABLED), uID, lpString));
+	inline auto&Popup(LPCTSTR lpString, HMENU hPopup) assertl_reflect_as_self(AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopup, lpString));
+	inline auto&Check(LPCTSTR lpString, UINT_PTR uID = 0, bool bChecked = false) assertl_reflect_as_self(AppendMenu(hMenu, (bChecked ? MF_CHECKED : MF_UNCHECKED), uID, lpString));
+	inline auto&Separator() assertl_reflect_as_self(AppendMenu(hMenu, MF_SEPARATOR, 0, O));
 
-	inline auto&String(UINT uPosition, LPCTSTR lpString, UINT_PTR uID = 0, bool bEnable = true) assert_reflect_as_self(InsertMenu(hMenu, uPosition, MF_STRING | (bEnable ? MF_ENABLED : MF_DISABLED), uID, lpString));
-	inline auto&Popup(UINT uPosition, LPCTSTR lpString, HMENU hPopup) assert_reflect_as_self(InsertMenu(hMenu, uPosition, MF_POPUP, (UINT_PTR)hPopup, lpString));
-	inline auto&Check(UINT uPosition, LPCTSTR lpString, UINT_PTR uID = 0, bool bChecked = false) assert_reflect_as_self(InsertMenu(hMenu, uPosition, (bChecked ? MF_CHECKED : MF_UNCHECKED), uID, lpString));
-	inline auto&Separator(UINT uPosition) assert_reflect_as_self(InsertMenu(hMenu, uPosition, MF_SEPARATOR, 0, O));
+	inline auto&String(UINT uPosition, LPCTSTR lpString, UINT_PTR uID = 0, bool bEnable = true) assertl_reflect_as_self(InsertMenu(hMenu, uPosition, MF_STRING | (bEnable ? MF_ENABLED : MF_DISABLED), uID, lpString));
+	inline auto&Popup(UINT uPosition, LPCTSTR lpString, HMENU hPopup) assertl_reflect_as_self(InsertMenu(hMenu, uPosition, MF_POPUP, (UINT_PTR)hPopup, lpString));
+	inline auto&Check(UINT uPosition, LPCTSTR lpString, UINT_PTR uID = 0, bool bChecked = false) assertl_reflect_as_self(InsertMenu(hMenu, uPosition, (bChecked ? MF_CHECKED : MF_UNCHECKED), uID, lpString));
+	inline auto&Separator(UINT uPosition) assertl_reflect_as_self(InsertMenu(hMenu, uPosition, MF_SEPARATOR, 0, O));
 
-	inline auto&Radio(UINT idFirst, UINT idLast, UINT idCheck) assert_reflect_as_self(CheckMenuRadioItem(hMenu, idFirst, idLast, idCheck, MF_BYCOMMAND));
-	inline auto&RadioIndex(UINT indFirst, UINT indLast, UINT indCheck) assert_reflect_as_self(CheckMenuRadioItem(hMenu, indFirst, indLast, indCheck, MF_BYPOSITION));
+	inline auto&Radio(UINT idFirst, UINT idLast, UINT idCheck) assertl_reflect_as_self(CheckMenuRadioItem(hMenu, idFirst, idLast, idCheck, MF_BYCOMMAND));
+	inline auto&RadioIndex(UINT indFirst, UINT indLast, UINT indCheck) assertl_reflect_as_self(CheckMenuRadioItem(hMenu, indFirst, indLast, indCheck, MF_BYPOSITION));
 	
 	enum_flags(Tracks, UINT,
 		LeftButton          = TPM_LEFTBUTTON,
@@ -912,8 +912,8 @@ public:
 //public: // Property - Count
 //	inline auto Count() const reflect_as(GetMenuItemCount(hMenu));
 //#define MENU_PROPERTY(name, mask, memb, type, in) \
-//	/* W */ inline auto &name(type memb) assert_reflect_to_self(MENUINFO mi({ 0 }); mi.cbSize = sizeof(mi); mi.fMask = mask; mi.memb = in, SetMenuInfo(hMenu, &mi)); \
-//	/* R */ inline type  name() const assert_reflect_to(MENUINFO mi({ 0 }); mi.cbSize = sizeof(mi); mi.fMask = mask, GetMenuInfo(hMenu, &mi), reuse_as<type>(mi.memb));
+//	/* W */ inline auto &name(type memb) assertl_reflect_to_self(MENUINFO mi({ 0 }); mi.cbSize = sizeof(mi); mi.fMask = mask; mi.memb = in, SetMenuInfo(hMenu, &mi)); \
+//	/* R */ inline type  name() const assertl_reflect_to(MENUINFO mi({ 0 }); mi.cbSize = sizeof(mi); mi.fMask = mask, GetMenuInfo(hMenu, &mi), reuse_as<type>(mi.memb));
 //public: // Property - Styles
 //	MENU_PROPERTY(Styles, MIM_STYLE, dwStyle, Style, dwStyle.yield());
 //public: // Property - MaxY
@@ -963,11 +963,11 @@ public:
 	~Module() reflect_to(Free());
 
 	static inline Module Handle(LPCTSTR lpModuleName) reflect_as(GetModuleHandle(lpModuleName));
-	static inline Module Library(LPCTSTR lpLibFileName) assert_reflect_as(auto hInst = LoadLibrary(lpLibFileName), hInst);
+	static inline Module Library(LPCTSTR lpLibFileName) assertl_reflect_as(auto hInst = LoadLibrary(lpLibFileName), hInst);
 
 	inline void Free() {
 		if (self) {
-			assert(::FreeLibrary(hInst));
+			assertl(::FreeLibrary(hInst));
 			hInst = O;
 		}
 	}
@@ -986,7 +986,7 @@ public:
 
 	inline WX::String String(WORD wID) const {
 		auto len = LoadString(self, wID, O, 0);
-		assert(len >= 0);
+		assertl(len >= 0);
 		WX::String str((size_t)len);
 		LoadString(self, wID, str, len);
 		return str;
@@ -1103,7 +1103,7 @@ public: // Properties - PitchAndFamily
 	/* W */ inline auto&PitchAndFamily(BYTE lfPitchAndFamily) reflect_to_self(self->lfPitchAndFamily = lfPitchAndFamily);
 	/* R */ inline BYTE PitchAndFamily() const reflect_as(self->lfPitchAndFamily);
 public: // Properties - FaceName
-	/* W */ inline auto &FaceName(String name) assert_reflect_as_self(SUCCEEDED(StringCchCopy(self->lfFaceName, name.Length() + 1, name)));
+	/* W */ inline auto &FaceName(String name) assertl_reflect_as_self(SUCCEEDED(StringCchCopy(self->lfFaceName, name.Length() + 1, name)));
 	/* R */ inline const String FaceName() const reflect_as(CString(self->lfFaceName, LF_FACESIZE));
 public:
 	inline LPLOGFONT operator&() reflect_as(self);
@@ -1153,14 +1153,16 @@ inline void SaveToFile(DC &dc, const Palette &pal, const Bitmap &bmp, File &file
 	header.Size(log.Size());
 	header.Planes(log.Planes());
 	header.BitsPerPixel(log.BitsPerPixel());
-	assert(GetDIBits(dc, bmp, 0, log.Height(), O, header, usage));
+	assertl(GetDIBits(dc, bmp, 0, log.Height(), O, header, usage));
 	header.PaletteSize(palSize);
 	header.ColorsSize(header.SizeImage());
-	assert(file.Write(&header, sizeof(header) - 4) == sizeof(header) - 4);
-	assert(file.Write(pal.Entries().data(), palSize) == palSize);
+	assertl(file.Write(&header, sizeof(header) - 4) == sizeof(header) - 4);
+	assertl(file.Write(pal.Entries().data(), palSize) == palSize);
 	AutoPointer<Heap> hBits(header.SizeImage());
-	assert(GetDIBits(dc, bmp, 0, log.Height(), &hBits, header, usage));
-	assert(file.Write(&hBits, header.SizeImage()) == header.SizeImage());
+	assertl(GetDIBits(dc, bmp, 0, log.Height(), &hBits, header, usage));
+	assertl(file.Write(&hBits, header.SizeImage()) == header.SizeImage());
 }
+
+inline void SaveToFile(DC &dc, const Palette &pal, const Bitmap &bmp, File &&file) { SaveToFile(dc, pal, bmp, file); }
 
 }

@@ -54,8 +54,8 @@ public:
 	//			_In_ DWORD dwOptions
 	//		);
 	//}
-	inline bool WaitForSignal(DWORD dwMilliSec = INFINITE) const assert_reflect_to(DWORD ret, (ret = WaitForSingleObject(self, dwMilliSec)) != WAIT_FAILED, ret == WAIT_OBJECT_0);
-	inline bool WaitForAbandon(DWORD dwMilliSec = INFINITE) const assert_reflect_to(DWORD ret, (ret = WaitForSingleObject(self, dwMilliSec)) != WAIT_FAILED, ret == WAIT_ABANDONED);
+	inline bool WaitForSignal(DWORD dwMilliSec = INFINITE) const assertl_reflect_to(DWORD ret, (ret = WaitForSingleObject(self, dwMilliSec)) != WAIT_FAILED, ret == WAIT_OBJECT_0);
+	inline bool WaitForAbandon(DWORD dwMilliSec = INFINITE) const assertl_reflect_to(DWORD ret, (ret = WaitForSingleObject(self, dwMilliSec)) != WAIT_FAILED, ret == WAIT_ABANDONED);
 
 	class Duplication {
 		using AnyAccess = typename Child::Access;
@@ -74,7 +74,7 @@ public:
 		inline auto &Accesses(AnyAccess acs) reflect_to_self(this->dwDesiredAccess = acs.yield(), this->dwOptions &= ~DUPLICATE_SAME_ACCESS);
 		inline auto &Inherit(bool bInheritHandle = true) reflect_to_self(this->bInheritHandle = bInheritHandle);
 	public:
-		inline operator Child() const assert_reflect_to(
+		inline operator Child() const assertl_reflect_to(
 			HANDLE hTargetHandle = O,
 			DuplicateHandle(
 				hSourceProcessHandle, hSourceHandle,
@@ -85,8 +85,8 @@ public:
 	inline Duplication Duplicate(HANDLE hTargetProcessHandle) reflect_as({ hObject, hTargetProcessHandle });
 
 public: // Property - Information
-	/* W */ inline auto &Information(DWORD dwMask, DWORD dwFlags) assert_reflect_as_child(SetHandleInformation(self, dwMask, dwFlags));
-	/* R */ inline DWORD Information(DWORD dwMask) const assert_reflect_to(DWORD dwFlags = 0, GetHandleInformation(self, &dwFlags), dwFlags & dwMask);
+	/* W */ inline auto &Information(DWORD dwMask, DWORD dwFlags) assertl_reflect_as_child(SetHandleInformation(self, dwMask, dwFlags));
+	/* R */ inline DWORD Information(DWORD dwMask) const assertl_reflect_to(DWORD dwFlags = 0, GetHandleInformation(self, &dwFlags), dwFlags & dwMask);
 public: // Property - Inherit
 	/* W */ inline auto &Inherit(bool bInherit) reflect_to_child(Information(HANDLE_FLAG_INHERIT, bInherit ? HANDLE_FLAG_INHERIT : 0));
 	/* R */ inline bool  Inherit() const reflect_as(Information(HANDLE_FLAG_INHERIT));
@@ -126,11 +126,11 @@ public:
 	static inline void *Realloc(void *ptr, size_t size, LAF flags = LAF::Fixed) reflect_as(LocalReAlloc(ptr, size, flags.yield()));
 	static inline void  Free(void *ptr) {
 		if (ptr)
-			assert(!LocalFree(ptr));
+			assertl(!LocalFree(ptr));
 	}
 
 	static inline void *Lock(void *ptr) reflect_as(LocalLock(ptr));
-	static inline void Unlock(void *ptr) assert_reflect_as(LocalUnlock(ptr));
+	static inline void Unlock(void *ptr) assertl_reflect_as(LocalUnlock(ptr));
 } inline LocalHeap;
 #pragma endregion
 
@@ -194,21 +194,21 @@ public:
 		return true;
 	}
 
-	inline void *Alloc(size_t size, AllocFlags flags = AllocFlags::Fixed) assert_reflect_as(auto h = HeapAlloc(self, flags.yield(), size), h);
-	inline void *Realloc(void *ptr, size_t nSize, DWORD flags = 0) assert_reflect_as((ptr = HeapReAlloc(self, flags, ptr, nSize)), ptr);
+	inline void *Alloc(size_t size, AllocFlags flags = AllocFlags::Fixed) assertl_reflect_as(auto h = HeapAlloc(self, flags.yield(), size), h);
+	inline void *Realloc(void *ptr, size_t nSize, DWORD flags = 0) assertl_reflect_as((ptr = HeapReAlloc(self, flags, ptr, nSize)), ptr);
 	inline bool Free(void *ptr, DWORD flags = 0) reflect_as(HeapFree(self, flags, ptr));
 
-	inline size_t Sizeof(const void *ptr, DWORD flags) const assert_reflect_as(auto size = HeapSize(self, flags, ptr), size);
+	inline size_t Sizeof(const void *ptr, DWORD flags) const assertl_reflect_as(auto size = HeapSize(self, flags, ptr), size);
 	inline bool IsValid(const void *ptr, DWORD flags) const reflect_as(HeapValidate(self, flags, ptr));
 
-	inline auto &Lock() assert_reflect_as_self(HeapLock(self));
-	inline auto &Unlock() assert_reflect_as_self(HeapUnlock(self));
+	inline auto &Lock() assertl_reflect_as_self(HeapLock(self));
+	inline auto &Unlock() assertl_reflect_as_self(HeapUnlock(self));
 
 	//	HeapWalk();
 	//	SIZE_T HeapCompact(HANDLE hHeap, DWORD dwFlags);
 
 public: // Property - Summaries
-	inline Summary Summaries(DWORD dwFlags = 0) const assert_reflect_to(Summary s, ::HeapSummary(self, dwFlags, &s), s);
+	inline Summary Summaries(DWORD dwFlags = 0) const assertl_reflect_to(Summary s, ::HeapSummary(self, dwFlags, &s), s);
 
 	//BOOL HeapSetInformation(
 	//	_In_opt_ HANDLE HeapHandle,
@@ -298,9 +298,9 @@ template<class CharType = TCHAR> const StringBase<CharType> CString(const CharTy
 template<class CharType>
 inline size_t Length(const CharType *lpString, size_t MaxLen) {
 	if constexpr (std::is_same_v<CharType, CHAR>)
-		assert(SUCCEEDED(StringCchLengthA(lpString, MaxLen, &MaxLen)))
+		assertl(SUCCEEDED(StringCchLengthA(lpString, MaxLen, &MaxLen)))
 	else if constexpr (std::is_same_v<CharType, WCHAR>)
-		assert(SUCCEEDED(StringCchLengthW(lpString, MaxLen, &MaxLen)));
+		assertl(SUCCEEDED(StringCchLengthW(lpString, MaxLen, &MaxLen)));
 	return MaxLen;
 }
 
@@ -487,16 +487,16 @@ inline String Fits(const CharType *lpString, size_t MaxLen, CodePages cp) {
 	else {
 		int tLen;
 #ifdef UNICODE
-		assert((tLen = MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, O, 0)) > 0);
+		assertl((tLen = MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, O, 0)) > 0);
 #else
-		assert((tLen = WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, O, 0, O, O)) > 0);
+		assertl((tLen = WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, O, 0, O, O)) > 0);
 #endif
 		// if (tLen != uLen) warnning glyphs missing 
 		auto lpsz = String::Alloc(tLen);
 #ifdef UNICODE
-		assert(tLen == MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen));
+		assertl(tLen == MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen));
 #else
-		assert(tLen == WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen, O, O));
+		assertl(tLen == WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen, O, O));
 #endif
 		lpsz[tLen] = 0;
 		return{ (size_t)tLen, lpsz };
@@ -546,7 +546,7 @@ inline LPTSTR Copies(LPTSTR lpBuffer) reflect_as((LPTSTR)lpBuffer);
 template<class... Args>
 inline LPTSTR Copies(LPTSTR lpBuffer, const String &str, const Args &... args) {
 	auto uLen = str.Length();
-	if (uLen > 0) assert(StringCchCopy(lpBuffer, uLen + 1, str) == 0);
+	if (uLen > 0) assertl(StringCchCopy(lpBuffer, uLen + 1, str) == 0);
 	return Copies(lpBuffer + uLen, args...);
 }
 
@@ -700,8 +700,8 @@ struct format_numeral : public fmt_word {
 public:
 	format_numeral() : fmt_word{ 0 } {}
 	format_numeral(fmt_word fmt) : fmt_word(fmt) {}
-	format_numeral(const char *lpFormat) : fmt_word{ 0 } assert(fmt_single(self, lpFormat));
-	format_numeral(const wchar_t *lpFormat) : fmt_word{ 0 } assert(fmt_single(self, lpFormat));
+	format_numeral(const char *lpFormat) : fmt_word{ 0 } assertl(fmt_single(self, lpFormat));
+	format_numeral(const wchar_t *lpFormat) : fmt_word{ 0 } assertl(fmt_single(self, lpFormat));
 private:
 	static inline auto __push(
 		uintptr_t ui, LPTSTR hpString,
@@ -865,11 +865,11 @@ inline const String Exception::Function() const reflect_as(CString(szFunc, lpszF
 inline const String Exception::Sentence() const reflect_as(CString(szSent, lpszSent));
 
 inline Exception::operator String() const reflect_as(Cats(
-	_T("File:\t"), File(),
-	_T("\nFunction:\t"), Function(),
-	_T("\nSentence:\t"), Sentence(),
-	_T("\nLine:\t"), Line(),
-	_T("\nLastError:\t"), LastError()));
+	_T("\nFile:      "), File(),
+	_T("\nFunction:  "), Function(),
+	_T("\nSentence:  "), Sentence(),
+	_T("\nLine:      "), Line(),
+	_T("\nLastError: "), LastError()));
 inline String Exception::toString() const reflect_to_self();
 
 inline int MsgBox(LPCTSTR lpCaption, const Exception &err, HWND hParent) reflect_as(MsgBox(lpCaption, err.toString(), MB::IconError | MB::AbortRetryIgnore, hParent));

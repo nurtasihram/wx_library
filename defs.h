@@ -234,7 +234,7 @@ template <class AnyClass> class member_##name##_of { \
 	static auto _compatible(...) -> std::false_type; \
 public: \
 	using type = decltype(_retof_##name<AnyClass>(0)); \
-	static constexpr bool existed = !std::is_void_v<type>; \
+	static constexpr bool callable = !std::is_void_v<type>; \
 	template<class AnyType> \
 	static constexpr bool compatible_to = \
 		decltype(_compatible<AnyClass>(std::declval<AnyType *>()))::value; }
@@ -309,7 +309,7 @@ struct EnumUnitBase {
 };
 def_memberof(EnumName);
 template<class AnyType>
-static constexpr bool IsEnumBased = member_EnumName_of<AnyType>::existed;
+static constexpr bool IsEnumBased = member_EnumName_of<AnyType>::callable;
 template<class AnyType>
 using EnumUnit = std::conditional_t<
 	IsEnumBased<AnyType>, AnyType,
@@ -542,7 +542,6 @@ template<class OtherType>
 using functionof = __functionof<to_proto<OtherType>>;
 #pragma endregion
 
-
 #pragma region MessageBox
 enum_flags(MB, int,
 	Ok                   =  MB_OK,
@@ -608,43 +607,50 @@ public:
 	inline operator bool() const reflect_as(lpszSent);
 };
 int MsgBox(LPCTSTR lpCaption, const Exception &err, HWND hParent = O);
-class OnError {
+
+#define wx_answer_retry return false
+#define wx_answer_ignore return true
+#define wx_answer_abort(err) throw(err)
+using wx_answer = bool;
+
+class Catch {
 	static std::function<bool(const Exception &)> invoker;
-	bool bIgnore = false;
+	wx_answer bAnswer = false;
 public:
 	template<class AnyFunc>
-	OnError(const AnyFunc &af) reflect_to(invoker = af);
-	OnError(const Exception &err) : bIgnore(invoker(err)) {}
-	inline operator bool() const reflect_as(bIgnore);
+	Catch(const AnyFunc &af) reflect_to(invoker = af);
+	Catch(const Exception &err) : bAnswer(invoker(err)) {}
+	inline operator wx_answer() const reflect_as(bAnswer);
 };
-static std::function<bool(const Exception &err)> OnError = [](const Exception &err) {
-	switch (MsgBox(_T("Error"), err)) {
-		case IDABORT:
-			throw err;
+static std::function<wx_answer(const Exception &)> Catch = [](const Exception &err) {
+	switch (MsgBox(_T("Global error"), err)) {
 		case IDIGNORE:
-			return false;
+			wx_answer_ignore;
 		case IDRETRY:
+			wx_answer_retry;
+		case IDABORT:
 			break;
 	}
-	return true;
+	wx_answer_abort(err);
 };
-#define wx_exception(line, ...) Exception(_T(__FILE__), _T(__FUNCTION__), _T(#line), __LINE__)
-#define assert(line) { using namespace WX; while (!(line)) if (OnError(wx_exception(line))) break; }
 
-#define assert_reflect_as(line, ...) \
-{ if (line) return __VA_ARGS__; throw wx_exception(line); }
-#define assert_reflect_as_self(line)  assert_reflect_as(line, self)
-#define assert_reflect_as_child(line) assert_reflect_as(line, child)
+#define wx_exception(line, ...) Exception(_T(__FILE__), _T(__FUNCTION__), _T(line), __LINE__)
+#define assertl(line) { using namespace WX; while (!(line)) if (Catch(wx_exception(#line))) break; }
 
-#define assert_reflect_to(defs, line, ...) \
-{ defs; if (line) return __VA_ARGS__; throw wx_exception(line); }
-#define assert_reflect_to_self(defs, line)  assert_reflect_to(defs, line, self)
-#define assert_reflect_to_child(defs, line) assert_reflect_to(defs, line, child)
+#define assertl_reflect_as(line, ...) \
+{ if (line) return __VA_ARGS__; throw wx_exception(#line); }
+#define assertl_reflect_as_self(line)  assertl_reflect_as(line, self)
+#define assertl_reflect_as_child(line) assertl_reflect_as(line, child)
 
-#define check_reflect_to(line, ...) \
-{ SetLastError(0); line; if (auto _err = GetLastError()) throw wx_exception(line, _err); return __VA_ARGS__; }
-#define check_reflect_to_self(line)  check_reflect_to(line, self)
-#define check_reflect_to_child(line) check_reflect_to(line, child)
+#define assertl_reflect_to(defs, line, ...) \
+{ defs; if (line) return __VA_ARGS__; throw wx_exception(#line); }
+#define assertl_reflect_to_self(defs, line)  assertl_reflect_to(defs, line, self)
+#define assertl_reflect_to_child(defs, line) assertl_reflect_to(defs, line, child)
+
+#define nt_assertl_reflect_to(line, ...) \
+{ SetLastError(0); line; if (auto _err = GetLastError()) throw wx_exception(#line, _err); return __VA_ARGS__; }
+#define nt_assertl_reflect_to_self(line)  nt_assertl_reflect_to(line, self)
+#define nt_assertl_reflect_to_child(line) nt_assertl_reflect_to(line, child)
 
 #pragma endregion
 
@@ -666,7 +672,7 @@ public:
 	FunctionPackage(PackType &f) : func(f) {}
 	RetType operator()(Args ...args) override {
 		static_assert(static_compatible<PackType, RetType(Args...)>, "Argument list uncompatible");
-		if constexpr (std::is_pointer_v<PackType>) reflect_to(assert(func), func(args...))
+		if constexpr (std::is_pointer_v<PackType>) reflect_to(assertl(func), func(args...))
 		else reflect_as(func(args...));
 	}
 };
@@ -696,7 +702,7 @@ public:
 	inline bool operator==(Null) const reflect_as(!func);
 	inline Function operator&() reflect_to_self();
 	inline const Function operator&() const reflect_to_self();
-	inline Ret operator()(Args...args) const reflect_to(assert(func), (*func)(args...));
+	inline Ret operator()(Args...args) const reflect_to(assertl(func), (*func)(args...));
 	inline auto &operator=(const Function &f) const noexcept reflect_to_self(func = f.func, bAllocated = false);
 	inline auto &operator=(const Function &f) noexcept reflect_to_self(func = f.func, bAllocated = false);
 	inline auto &operator=(Function &&f) noexcept reflect_to_self(func = f.func, f.func = O, bAllocated = true);
@@ -760,6 +766,13 @@ struct LSize : public SIZE {
 	inline operator LPoint() const reflect_as({ cx, cy });
 };
 inline LPoint::operator LSize() const reflect_as({ x, y });
+enum_flags(LAlign, BYTE,
+	Left	= 1 << 0,
+	Right	= 2 << 0,
+	HCenter = 3 << 0,
+	Top		= 1 << 2,
+	Bottom  = 2 << 2,
+	VCenter = 3 << 2);
 struct LRect : public RECT {
 	LRect() : RECT{ 0 } {}
 	LRect(const MARGINS &m) : RECT({ m.cxLeftWidth, m.cyTopHeight, m.cxRightWidth, m.cyBottomHeight }) {}
@@ -770,13 +783,29 @@ struct LRect : public RECT {
 	LRect(const LSize &sz, const LPoint &pt = 0) : RECT{ pt.x, pt.y, pt.x + sz.cx - 1, pt.y + sz.cy - 1 } {}
 	LRect(LONG a) : RECT{ a, a, a, a } {}
 	LRect(LONG left, LONG top, LONG right, LONG bottom) : RECT{ left, top, right, bottom } {}
-	inline LSize  size()         const reflect_as({ right - left + 1, bottom - top + 1});
-	inline LPoint top_left()     const reflect_as({ left,    top });
-	inline LPoint bottom_left()  const reflect_as({ left, bottom });
-	inline LPoint top_right()    const reflect_as({ right,    top });
-	inline LPoint bottom_right() const reflect_as({ right, bottom });
-	inline auto   width()        const reflect_as(right - left);
-	inline auto   height()       const reflect_as(bottom - top);
+public:
+	inline auto xsize()        const reflect_as(right - left + 1);
+	inline auto ysize()        const reflect_as(bottom - top + 1);
+	inline LSize size()        const reflect_as({ xsize(), ysize() });
+	inline auto  dx()           const reflect_as(right - left);
+	inline auto  dy()           const reflect_as(bottom - top);
+	inline LSize d()            const reflect_as({ dx(), dy() });
+	inline auto &xmove(LONG dx) reflect_to_self(right += dx, left += dx);
+	inline auto &ymove(LONG dy) reflect_to_self(bottom += dy, top += dy);
+	LRect &align(LAlign a, const LRect &r2);
+public:
+	inline auto &left_top(LPoint lt) reflect_to_self(left = lt.x, top = lt.y);
+
+public:
+	inline auto x0() const reflect_as(left);
+	inline auto y0() const reflect_as(top);
+	inline auto x1() const reflect_as(right);
+	inline auto y1() const reflect_as(bottom);
+	inline LPoint left_top()     const reflect_as({ left,  top });
+	inline LPoint left_bottom()  const reflect_as({ left,  bottom });
+	inline LPoint right_top()    const reflect_as({ right, top });
+	inline LPoint right_bottom() const reflect_as({ right, bottom });
+public:
 	inline LRect  operator+ ()                const reflect_to_self();
 	inline LRect  operator- ()                const reflect_as({ -left,   -top, -right, -bottom });
 	inline LRect  operator~ ()                const reflect_as({ right, bottom,   left,     top });
@@ -788,7 +817,7 @@ struct LRect : public RECT {
 	inline LRect  operator- (const LSize &p)  const reflect_as({ left, top, right - p.cx, bottom - p.cy });
 	inline LRect  operator* (double l)        const reflect_as({ LONG((double)left * l), LONG((double)top * l), LONG((double)right * l), LONG((double)bottom * l) });
 	inline LRect  operator/ (double l)        const reflect_as({ LONG((double)left / l), LONG((double)top / l), LONG((double)right / l), LONG((double)bottom / l) });
-	inline LRect  operator* (int l)           const reflect_as({ left * l, top * l, right * l, bottom * l });
+	inline LRect  operator* (int l )          const reflect_as({ left * l, top * l, right * l, bottom * l });
 	inline LRect  operator/ (int l)           const reflect_as({ left / l, top / l, right / l, bottom / l });
 	inline LRect &operator*=(double l)              reflect_to_self(left = LONG((double)left * l), top = LONG((double)top * l), right = LONG((double)right * l), bottom = LONG((double)bottom * l));
 	inline LRect &operator/=(double l)              reflect_to_self(left = LONG((double)left / l), top = LONG((double)top / l), right = LONG((double)right / l), bottom = LONG((double)bottom / l));
@@ -810,6 +839,29 @@ inline LRect operator+(const LPoint &p, const LRect &r) reflect_as(r + p);
 inline LRect operator-(const LPoint &p, const LRect &r) reflect_as(-(r - p));
 inline LRect operator&(const LPoint &p, const LSize &s) reflect_as({ p, s });
 inline LRect operator&(const LSize &s, const LPoint &p) reflect_as({ p, s });
+inline LRect &WX::LRect::align(LAlign a, const LRect &r2) {
+	if (a == LAlign::HCenter)
+		xmove((r2.left + r2.right - left - right) / 2);
+	else if (a <= LAlign::Right) {
+		left += r2.right - right;
+		right = r2.right;
+	}
+	else /* if (a <= LAlign::Left) */ {
+		right += r2.left - left;
+		left = r2.left;
+	}
+	if (a == LAlign::VCenter)
+		ymove((r2.top + r2.bottom - top - bottom) / 2);
+	else if (a <= LAlign::Bottom) {
+		top += r2.bottom - bottom;
+		bottom = r2.bottom;
+	}
+	else /* if (a & LAlign::Top) */ {
+		bottom += r2.top - top;
+		top = r2.top;
+	}
+	return*this;
+}
 
 class RGBColor {
 protected:
@@ -849,7 +901,7 @@ enum_flags(DateFormat, DWORD,
 struct SysTime : public SYSTEMTIME {
 	SysTime(Null) : SYSTEMTIME{ 0 } {}
 	SysTime() reflect_to(GetSystemTime(this));
-	SysTime(const FILETIME &ft) assert(FileTimeToSystemTime(&ft, this));
+	SysTime(const FILETIME &ft) assertl(FileTimeToSystemTime(&ft, this));
 	static inline SysTime Local() reflect_to(SysTime st; GetLocalTime(&st), st);
 	String FormatTime(TimeFormat = TimeFormat::Default, Locales = Locales::Default) const;
 	String FormatDate(DateFormat = DateFormat::Default, Locales = Locales::Default) const;

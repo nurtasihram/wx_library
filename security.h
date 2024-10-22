@@ -44,27 +44,27 @@ public:
 	SecurityIdentifier(SecurityIdentifier &&sid) : pSID(&sid) reflect_to(sid.pSID = O);
 	SecurityIdentifier(const SecurityIdentifier &) = delete;
 
-	SecurityIdentifier(LPCTSTR lpszSID) assert(ConvertStringSidToSid(lpszSID, &pSID));
+	SecurityIdentifier(LPCTSTR lpszSID) assertl(ConvertStringSidToSid(lpszSID, &pSID));
 
 	SecurityIdentifier(const SecAuthorID &sia, RID nSA0)
-		assert(AllocateAndInitializeSid(&sia, 1, nSA0, 0, 0, 0, 0, 0, 0, 0, &pSID));
+		assertl(AllocateAndInitializeSid(&sia, 1, nSA0, 0, 0, 0, 0, 0, 0, 0, &pSID));
 	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1)
-		assert(AllocateAndInitializeSid(&sia, 2, nSA0, nSA1, 0, 0, 0, 0, 0, 0, &pSID));
+		assertl(AllocateAndInitializeSid(&sia, 2, nSA0, nSA1, 0, 0, 0, 0, 0, 0, &pSID));
 	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2)
-		assert(AllocateAndInitializeSid(&sia, 3, nSA0, nSA1, nSA2, 0, 0, 0, 0, 0, &pSID));
+		assertl(AllocateAndInitializeSid(&sia, 3, nSA0, nSA1, nSA2, 0, 0, 0, 0, 0, &pSID));
 	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3)
-		assert(AllocateAndInitializeSid(&sia, 4, nSA0, nSA1, nSA2, nSA3, 0, 0, 0, 0, &pSID));
+		assertl(AllocateAndInitializeSid(&sia, 4, nSA0, nSA1, nSA2, nSA3, 0, 0, 0, 0, &pSID));
 	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4)
-		assert(AllocateAndInitializeSid(&sia, 5, nSA0, nSA1, nSA2, nSA3, nSA4, 0, 0, 0, &pSID));
+		assertl(AllocateAndInitializeSid(&sia, 5, nSA0, nSA1, nSA2, nSA3, nSA4, 0, 0, 0, &pSID));
 	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4, RID nSA5)
-		assert(AllocateAndInitializeSid(&sia, 6, nSA0, nSA1, nSA2, nSA3, nSA4, nSA5, 0, 0, &pSID));
+		assertl(AllocateAndInitializeSid(&sia, 6, nSA0, nSA1, nSA2, nSA3, nSA4, nSA5, 0, 0, &pSID));
 	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4, RID nSA5, RID nSA6)
-		assert(AllocateAndInitializeSid(&sia, 7, nSA0, nSA1, nSA2, nSA3, nSA4, nSA5, nSA6, 0, &pSID));
+		assertl(AllocateAndInitializeSid(&sia, 7, nSA0, nSA1, nSA2, nSA3, nSA4, nSA5, nSA6, 0, &pSID));
 	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4, RID nSA5, RID nSA6, RID nSA7)
-		assert(AllocateAndInitializeSid(&sia, 8, nSA0, nSA1, nSA2, nSA3, nSA4, nSA5, nSA6, nSA7, &pSID));
+		assertl(AllocateAndInitializeSid(&sia, 8, nSA0, nSA1, nSA2, nSA3, nSA4, nSA5, nSA6, nSA7, &pSID));
 	//SecurityIdentifier(const SecAuthorID &sia, BYTE nSubAuthorityCount = 0) {
-	//	assert(pSID = (PSID)LocalAlloc(0, GetSidLengthRequired(nSubAuthorityCount)));
-	//	assert(InitializeSid(pSID, &sia, nSubAuthorityCount));
+	//	assertl(pSID = (PSID)LocalAlloc(0, GetSidLengthRequired(nSubAuthorityCount)));
+	//	assertl(InitializeSid(pSID, &sia, nSubAuthorityCount));
 	//}
 
 	~SecurityIdentifier() reflect_to(Delete());
@@ -80,31 +80,31 @@ public:
 		if (!*this) return O;
 		auto size = Size();
 		auto npSID = Local::Alloc(size);
-		assert(CopySid(size, npSID, pSID));
+		assertl(CopySid(size, npSID, pSID));
 		return npSID;
 	}
 
-	inline bool EqualDomain(PSID pSID) assert_reflect_to(BOOL eq, EqualDomainSid(this->pSID, pSID, &eq), eq);
+	inline bool EqualDomain(PSID pSID) assertl_reflect_to(BOOL eq, EqualDomainSid(this->pSID, pSID, &eq), eq);
 	inline bool EqualPrefix(PSID pSID) reflect_as(EqualPrefixSid(this->pSID, pSID));
 
 public: // Property - Size
-	/* R */ inline DWORD Size() const assert_reflect_as(auto size = GetLengthSid(this->pSID), size);
+	/* R */ inline DWORD Size() const assertl_reflect_as(auto size = GetLengthSid(this->pSID), size);
 public: // Property - AuthorityID
-	/* R */ SecAuthorID AuthorityID() const assert_reflect_as(auto id = GetSidIdentifierAuthority(this->pSID), *id);
+	/* R */ SecAuthorID AuthorityID() const assertl_reflect_as(auto id = GetSidIdentifierAuthority(this->pSID), *id);
 public: // Property - AuthorityCount
-	/* S */ UCHAR &SubAuthorityCount() assert_reflect_as(auto pCount = GetSidSubAuthorityCount(this->pSID), *pCount);
-	/* R */ UCHAR  SubAuthorityCount() const assert_reflect_as(auto pCount = GetSidSubAuthorityCount(this->pSID), *pCount);
+	/* S */ UCHAR &SubAuthorityCount() assertl_reflect_as(auto pCount = GetSidSubAuthorityCount(this->pSID), *pCount);
+	/* R */ UCHAR  SubAuthorityCount() const assertl_reflect_as(auto pCount = GetSidSubAuthorityCount(this->pSID), *pCount);
 public: // 
 	//GetWindowsAccountDomainSid
 	//IsWellKnownSid
 
-	inline RID &operator[](BYTE uSubAuthorityIndex) assert_reflect_as(auto dwAuthority = GetSidSubAuthority(this->pSID, uSubAuthorityIndex), *dwAuthority);
-	inline RID  operator[](BYTE uSubAuthorityIndex) const assert_reflect_as(auto dwAuthority = GetSidSubAuthority(this->pSID, uSubAuthorityIndex), *dwAuthority);
+	inline RID &operator[](BYTE uSubAuthorityIndex) assertl_reflect_as(auto dwAuthority = GetSidSubAuthority(this->pSID, uSubAuthorityIndex), *dwAuthority);
+	inline RID  operator[](BYTE uSubAuthorityIndex) const assertl_reflect_as(auto dwAuthority = GetSidSubAuthority(this->pSID, uSubAuthorityIndex), *dwAuthority);
 
 	inline bool operator==(PSID pSID) const reflect_as(EqualSid(this->pSID, pSID));
 	inline bool operator!=(PSID pSID) const reflect_as(EqualSid(this->pSID, pSID));
 
-	inline operator String() const assert_reflect_to(AutoPointer<_M_(Local, TCHAR)> szSID(LocalHeap), ConvertSidToStringSid(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
+	inline operator String() const assertl_reflect_to(AutoPointer<_M_(Local, TCHAR)> szSID(LocalHeap), ConvertSidToStringSid(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
 	inline PSID operator&() const reflect_as(this->pSID);
 	inline operator bool() const reflect_as(this->pSID ? IsValidSid(this->pSID) : false);
 };
@@ -274,17 +274,17 @@ public:
 		mutable DWORD dwAceIndex;
 		Iterator(const AccessControlList &acl, DWORD dwAceIndex) : acl(const_cast<AccessControlList &>(acl)), dwAceIndex(dwAceIndex) {}
 	public:
-		inline auto &Delete() assert_reflect_as_self(DeleteAce(&acl, dwAceIndex));
+		inline auto &Delete() assertl_reflect_as_self(DeleteAce(&acl, dwAceIndex));
 		inline bool operator==(Null) const reflect_as(dwAceIndex >= acl.Count());
 		inline bool operator!=(Null) const reflect_as(dwAceIndex <  acl.Count());
-		inline bool operator==(const Iterator &i) const assert_reflect_as(&acl == &i.acl, dwAceIndex == i.dwAceIndex);
-		inline bool operator!=(const Iterator &i) const assert_reflect_as(&acl == &i.acl, dwAceIndex != i.dwAceIndex);
-		inline Entry *operator&() assert_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<Entry *>(lpACE));
-		inline const Entry *operator&() const assert_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<const Entry *>(lpACE));
-		inline Entry *operator->() assert_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<Entry *>(lpACE));
-		inline const Entry *operator->() const assert_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<const Entry *>(lpACE));
-		inline Entry & operator*() assert_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), *reuse_as<Entry *>(lpACE));
-		inline const Entry & operator*() const assert_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), *reuse_as<const Entry *>(lpACE));
+		inline bool operator==(const Iterator &i) const assertl_reflect_as(&acl == &i.acl, dwAceIndex == i.dwAceIndex);
+		inline bool operator!=(const Iterator &i) const assertl_reflect_as(&acl == &i.acl, dwAceIndex != i.dwAceIndex);
+		inline Entry *operator&() assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<Entry *>(lpACE));
+		inline const Entry *operator&() const assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<const Entry *>(lpACE));
+		inline Entry *operator->() assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<Entry *>(lpACE));
+		inline const Entry *operator->() const assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<const Entry *>(lpACE));
+		inline Entry & operator*() assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), *reuse_as<Entry *>(lpACE));
+		inline const Entry & operator*() const assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), *reuse_as<const Entry *>(lpACE));
 		inline Iterator &operator++() reflect_to_self(++dwAceIndex);
 		inline const Iterator &operator++() const reflect_to_self(++dwAceIndex);
 		inline Iterator operator++(int) reflect_as({ acl, dwAceIndex++ });
@@ -297,7 +297,7 @@ public:
 	AccessControlList(AccessControlList &&acl) : pACL(&acl) reflect_to(acl.pACL = O);
 	AccessControlList(const AccessControlList &) = delete;
 
-	AccessControlList(std::initializer_list<AccessExplicit> list) assert(SetEntriesInAcl((ULONG)list.size(), (EXPLICIT_ACCESS *)list.begin(), O, &pACL) == ERROR_SUCCESS);
+	AccessControlList(std::initializer_list<AccessExplicit> list) assertl(SetEntriesInAcl((ULONG)list.size(), (EXPLICIT_ACCESS *)list.begin(), O, &pACL) == ERROR_SUCCESS);
 
 #pragma region
 	//inline void Add() { AddAce(pACL, ); }
@@ -325,18 +325,18 @@ public:
 
 #pragma region Properties
 public: // Property - Count
-	/* R */ inline DWORD Count() const assert_reflect_to(ACL_SIZE_INFORMATION asi, GetAclInformation(pACL, &asi, sizeof(asi), AclSizeInformation), asi.AceCount);
+	/* R */ inline DWORD Count() const assertl_reflect_to(ACL_SIZE_INFORMATION asi, GetAclInformation(pACL, &asi, sizeof(asi), AclSizeInformation), asi.AceCount);
 public: // Property - Usage
 	struct _Usage {
 		DWORD used, free;
 		inline DWORD Total() const reflect_as(used + free);
 	};
-	/* R */ inline auto Usage() const assert_reflect_to(ACL_SIZE_INFORMATION asi, GetAclInformation(pACL, &asi, sizeof(asi), AclSizeInformation), _Usage{ asi.AclBytesInUse, asi.AclBytesFree });
+	/* R */ inline auto Usage() const assertl_reflect_to(ACL_SIZE_INFORMATION asi, GetAclInformation(pACL, &asi, sizeof(asi), AclSizeInformation), _Usage{ asi.AclBytesInUse, asi.AclBytesFree });
 public: // Property - Size
 	/* R */ inline DWORD Size() const reflect_as(Usage().Total());
 public: // Property - Revision
-	/* W */ inline auto &Revision(DWORD dwRevision) assert_reflect_to_self(ACL_REVISION_INFORMATION ari = { dwRevision }, GetAclInformation(pACL, &ari, sizeof(ACL_REVISION_INFORMATION), AclRevisionInformation));
-	/* R */ inline DWORD Revision() const assert_reflect_to(ACL_REVISION_INFORMATION ari, GetAclInformation(pACL, &ari, sizeof(ACL_REVISION_INFORMATION), AclRevisionInformation), ari.AclRevision);
+	/* W */ inline auto &Revision(DWORD dwRevision) assertl_reflect_to_self(ACL_REVISION_INFORMATION ari = { dwRevision }, GetAclInformation(pACL, &ari, sizeof(ACL_REVISION_INFORMATION), AclRevisionInformation));
+	/* R */ inline DWORD Revision() const assertl_reflect_to(ACL_REVISION_INFORMATION ari, GetAclInformation(pACL, &ari, sizeof(ACL_REVISION_INFORMATION), AclRevisionInformation), ari.AclRevision);
 #pragma endregion
 
 	inline Iterator operator[](DWORD dwAceIndex) reflect_as({ self, dwAceIndex });
@@ -367,18 +367,18 @@ class SecurityDescriptor {
 		xACL(const SecurityDescriptor &sd) : sd(const_cast<SecurityDescriptor &>(sd)) {
 			BOOL bDefault = false, bPresent = false;
 			if constexpr (_SACL_1_DACL_0_)
-				assert(GetSecurityDescriptorSacl(&sd, &bPresent, &pACL, &bDefault))
+				assertl(GetSecurityDescriptorSacl(&sd, &bPresent, &pACL, &bDefault))
 			else
-				assert(GetSecurityDescriptorDacl(&sd, &bPresent, &pACL, &bDefault))
+				assertl(GetSecurityDescriptorDacl(&sd, &bPresent, &pACL, &bDefault))
 			this->bDefault = bDefault, this->bPresent = bPresent;
 		}
 		xACL(SecurityDescriptor &sd, PACL pACL) : sd(sd), pACL(pACL), bPresent(true), bModified(true) {}
 		inline void __Set() {
 			if (bModified) {
 				if constexpr (_SACL_1_DACL_0_)
-					assert(SetSecurityDescriptorSacl(&sd, bPresent, pACL, bDefault))
+					assertl(SetSecurityDescriptorSacl(&sd, bPresent, pACL, bDefault))
 				else
-					assert(SetSecurityDescriptorDacl(&sd, bPresent, pACL, bDefault))
+					assertl(SetSecurityDescriptorDacl(&sd, bPresent, pACL, bDefault))
 			}
 		}
 	public:
@@ -414,18 +414,18 @@ class SecurityDescriptor {
 		xSID(const SecurityDescriptor &sd) : sd(const_cast<SecurityDescriptor &>(sd)) {
 			BOOL bDefault = false;
 			if constexpr (_GSID_1_OSID_0_)
-				assert(GetSecurityDescriptorGroup(&sd, &pSID, &bDefault))
+				assertl(GetSecurityDescriptorGroup(&sd, &pSID, &bDefault))
 			else
-				assert(GetSecurityDescriptorOwner(&sd, &pSID, &bDefault))
+				assertl(GetSecurityDescriptorOwner(&sd, &pSID, &bDefault))
 			this->bDefault = bDefault;
 		}
 		xSID(SecurityDescriptor &sd, PSID pSID) : sd(sd), pSID(pSID), bModified(true) {}
 		inline void __Set() {
 			if (bModified) {
 				if constexpr (_GSID_1_OSID_0_)
-					assert(SetSecurityDescriptorGroup(&sd, pSID, bDefault))
+					assertl(SetSecurityDescriptorGroup(&sd, pSID, bDefault))
 				else
-					assert(SetSecurityDescriptorOwner(&sd, pSID, bDefault))
+					assertl(SetSecurityDescriptorOwner(&sd, pSID, bDefault))
 			}
 		}
 	public:
@@ -496,12 +496,12 @@ class SecurityDescriptor {
 	};
 	SecurityDescriptor(PSECURITY_DESCRIPTOR pSD) : pSD(pSD) {}
 public:
-	SecurityDescriptor() : pSD(Local::Alloc<SECURITY_DESCRIPTOR>()) assert(InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION));
+	SecurityDescriptor() : pSD(Local::Alloc<SECURITY_DESCRIPTOR>()) assertl(InitializeSecurityDescriptor(pSD, SECURITY_DESCRIPTOR_REVISION));
 	SecurityDescriptor(Null) {}
 	SecurityDescriptor(SecurityDescriptor &sd) : pSD(sd.pSD) reflect_to(sd.pSD = O);
 	SecurityDescriptor(SecurityDescriptor &&sd) : pSD(sd.pSD) reflect_to(sd.pSD = O);
 	SecurityDescriptor(const SecurityDescriptor &sd) = delete;
-	SecurityDescriptor(LPCTSTR lpszDesc) assert_reflect_to(ULONG size, ConvertStringSecurityDescriptorToSecurityDescriptor(lpszDesc, SDDL_REVISION_1, &pSD, &size));
+	SecurityDescriptor(LPCTSTR lpszDesc) assertl_reflect_to(ULONG size, ConvertStringSecurityDescriptorToSecurityDescriptor(lpszDesc, SDDL_REVISION_1, &pSD, &size));
 
 	inline void Delete() reflect_to(Local::Free(pSD); pSD = O);
 	inline SecurityDescriptor operator+() const {
@@ -520,10 +520,10 @@ public:
 
 #pragma region Properties
 public: // Property - Size
-	/* R */ inline DWORD Size() const assert_reflect_as(DWORD len = GetSecurityDescriptorLength(pSD), len);
+	/* R */ inline DWORD Size() const assertl_reflect_as(DWORD len = GetSecurityDescriptorLength(pSD), len);
 public: // Property - Controls
-	/* W */ inline auto   &Controls(Control ctl) assert_reflect_as_self(SetSecurityDescriptorControl(pSD, ctl.mask, ctl.flags));
-	/* R */ inline Control Controls() const assert_reflect_to(WORD ctl; DWORD rev, GetSecurityDescriptorControl(pSD, &ctl, &rev), ctl);
+	/* W */ inline auto   &Controls(Control ctl) assertl_reflect_as_self(SetSecurityDescriptorControl(pSD, ctl.mask, ctl.flags));
+	/* R */ inline Control Controls() const assertl_reflect_to(WORD ctl; DWORD rev, GetSecurityDescriptorControl(pSD, &ctl, &rev), ctl);
 public: // Property - SelfRelative
 	/* R */ inline bool SelfRelative() const reflect_as(Controls().Self_Relative());
 public: // Property - Discretion

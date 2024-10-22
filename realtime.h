@@ -43,7 +43,7 @@ public:
 		inline auto &Security(LPSECURITY_ATTRIBUTES pSA) reflect_to_self(this->lpAttributes = pSA);
 		inline auto &Name(LPCTSTR lpName) reflect_to_self(this->lpName = lpName);
 	public:
-		inline operator Event() const assert_reflect_as(auto h = CreateEvent(lpAttributes, bManualReset, bInitialState, lpName), h);
+		inline operator Event() const assertl_reflect_as(auto h = CreateEvent(lpAttributes, bManualReset, bInitialState, lpName), h);
 	};
 	static inline CreateStruct Create(LPCTSTR lpName = O) reflect_as(lpName);
 
@@ -58,12 +58,12 @@ public:
 		inline auto &Inherit(bool bInheritHandle = true) reflect_to_self(this->bInheritHandle = bInheritHandle);
 		inline auto &Name(LPCTSTR lpName) reflect_to_self(this->lpName = lpName);
 	public:
-		inline operator Event() const assert_reflect_as(auto h = OpenEvent(dwDesiredAccess.yield(), bInheritHandle, lpName), h);
+		inline operator Event() const assertl_reflect_as(auto h = OpenEvent(dwDesiredAccess.yield(), bInheritHandle, lpName), h);
 	};
 	static inline OpenStruct Open(LPCTSTR lpName = O) reflect_as(lpName);
 
-	inline Event&Set() assert_reflect_as_self(SetEvent(self));
-	inline Event&Reset() assert_reflect_as_self(ResetEvent(self));
+	inline Event&Set() assertl_reflect_as_self(SetEvent(self));
+	inline Event&Reset() assertl_reflect_as_self(ResetEvent(self));
 
 	inline auto&operator=(bool bState) reflect_as(bState ? Set() : Reset());
 };
@@ -88,7 +88,7 @@ public:
 
 	using super::operator=;
 
-	inline auto &Release() assert_reflect_as_self(ReleaseMutex(self));
+	inline auto &Release() assertl_reflect_as_self(ReleaseMutex(self));
 
 	class CreateStruct {
 		friend class Mutex;
@@ -102,7 +102,7 @@ public:
 		inline auto &Security(const SecAttr &MutexAttributes) reflect_to_self(this->lpMutexAttributes = &MutexAttributes);
 		inline auto &Security(LPSECURITY_ATTRIBUTES lpMutexAttributes) reflect_to_self(this->lpMutexAttributes = lpMutexAttributes);
 	public:
-		inline operator Mutex() const assert_reflect_as(auto h = CreateMutex(lpMutexAttributes, bInitialState, lpName), h);
+		inline operator Mutex() const assertl_reflect_as(auto h = CreateMutex(lpMutexAttributes, bInitialState, lpName), h);
 	};
 	static inline CreateStruct Create(LPCTSTR lpName = O) reflect_as(lpName);
 
@@ -117,7 +117,7 @@ public:
 		inline auto &Accesses(Access dwDesiredAccess) reflect_to_self(this->dwDesiredAccess = dwDesiredAccess);
 		inline auto &Inherit(bool bInheritHandle = true) reflect_to_self(this->bInheritHandle = bInheritHandle);
 	public:
-		inline operator Mutex() const assert_reflect_as(auto h = OpenMutex(dwDesiredAccess.yield(), bInheritHandle, lpName), h);
+		inline operator Mutex() const assertl_reflect_as(auto h = OpenMutex(dwDesiredAccess.yield(), bInheritHandle, lpName), h);
 	};
 	static inline OpenStruct Open(LPCTSTR lpName = O) reflect_as(lpName);
 };
@@ -178,7 +178,7 @@ public:
 		inline auto &Suspend(bool bSuspend = true) reflect_to_child(this->dwCreationFlags = bSuspend ? (this->dwCreationFlags | CREATE_SUSPENDED) : (this->dwCreationFlags & ~CREATE_SUSPENDED));
 	public:
 		template<class _Child>
-		inline ThreadBase<_Child> Create() assert_reflect_as(auto h = CreateThread(this->lpThreadAttributes, this->dwStackSize, this->lpStartAddress, this->lpParameter, this->dwCreationFlags, O), h);
+		inline ThreadBase<_Child> Create() assertl_reflect_as(auto h = CreateThread(this->lpThreadAttributes, this->dwStackSize, this->lpStartAddress, this->lpParameter, this->dwCreationFlags, O), h);
 	};
 	static inline CreateStruct<> Create(LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter = O) reflect_as({ lpStartAddress, lpParameter });
 
@@ -198,10 +198,10 @@ public:
 
 	static inline Thread Current() reflect_as(GetCurrentThread());
 
-	inline void Suspend() assert_reflect_as(SuspendThread(self));
-	inline void Resume()  assert_reflect_as(ResumeThread(self));
+	inline void Suspend() assertl_reflect_as(SuspendThread(self));
+	inline void Resume()  assertl_reflect_as(ResumeThread(self));
 
-	inline void Terminate(DWORD dwExitCode = 0) assert_reflect_as(TerminateThread(this->hObject, dwExitCode));
+	inline void Terminate(DWORD dwExitCode = 0) assertl_reflect_as(TerminateThread(this->hObject, dwExitCode));
 	inline bool TerminateWait(DWORD dwMilliSec, DWORD dwExitCode = 0) {
 		if (WaitForSignal(dwMilliSec)) return false;
 		Terminate(dwExitCode);
@@ -211,14 +211,14 @@ public:
 	static inline void Exit(DWORD dwExitCode = 0) reflect_to(ExitThread(dwExitCode));
 
 	template<class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
-	inline void Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) assert_reflect_as(PostThreadMessage(ID(), force_cast<UINT>(msgid), force_cast<WPARAM>(wParam), force_cast<LPARAM>(lParam)));
-	inline void Post(const Message &msg) assert_reflect_as(PostThreadMessage(ID(), msg.ID(), msg.ParamW(), msg.ParamL()));
+	inline void Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) assertl_reflect_as(PostThreadMessage(ID(), force_cast<UINT>(msgid), force_cast<WPARAM>(wParam), force_cast<LPARAM>(lParam)));
+	inline void Post(const Message &msg) assertl_reflect_as(PostThreadMessage(ID(), msg.ID(), msg.ParamW(), msg.ParamL()));
 
 #pragma region Properties
 public: // Property - ID
-	/* W */ inline DWORD ID() const assert_reflect_as(auto id = GetThreadId(self), id);
+	/* W */ inline DWORD ID() const assertl_reflect_as(auto id = GetThreadId(self), id);
 public: // Property - ExitCode
-	/* W */ inline DWORD ExitCode() const assert_reflect_to(DWORD dwExitCode, GetExitCodeThread(self, &dwExitCode), dwExitCode);
+	/* W */ inline DWORD ExitCode() const assertl_reflect_to(DWORD dwExitCode, GetExitCodeThread(self, &dwExitCode), dwExitCode);
 public: // Property - StillActive
 	/* W */ inline bool StillActive() const {
 		if (self)
@@ -229,7 +229,7 @@ public: // Property - StillActive
 		return false;
 	}
 public: // Property - ProcessID
-	/* R */ inline DWORD ProcessID() const check_reflect_to(DWORD dwID = GetProcessIdOfThread(self), dwID);
+	/* R */ inline DWORD ProcessID() const nt_assertl_reflect_to(DWORD dwID = GetProcessIdOfThread(self), dwID);
 #pragma endregion
 };
 template<class AnyChild>
@@ -239,30 +239,65 @@ public:
 	using super = Thread;
 protected:
 	friend class ThreadBase<>;
-	def_memberof(Start);
-	def_memberof(Catch);
 	using ChainExtend<ThreadBase<AnyChild>, AnyChild>::child_;
 	static DWORD WINAPI Proc(LPVOID lpThis) {
-		using FuncTypeRet = DWORD();
+		auto pThis = static_cast<ThreadBase *>(lpThis);
+	retry:
 		try {
-			if constexpr (member_Start_of<AnyChild>::template compatible_to<FuncTypeRet>)
-				reflect_as(((AnyChild *)lpThis)->Start())
-			else {
-				static_assert(member_Start_of<AnyChild>::template compatible_to<void()>);
-				((AnyChild *)lpThis)->Start();
-				return 0;
-			}
+			return pThis->Start();
 		} catch (Exception err) {
-			if constexpr (member_Catch_of<AnyChild>::template compatible_to<DWORD(Exception)>)
-				reflect_as(((AnyChild *)lpThis)->Catch(err))
-			else if constexpr (member_Catch_of<AnyChild>::template compatible_to<void(Exception)>)
-				((AnyChild *)lpThis)->Catch(err);
-			else if constexpr (member_Catch_of<AnyChild>::template compatible_to<DWORD()>)
-				reflect_as(((AnyChild *)lpThis)->Catch())
-			else if constexpr (member_Catch_of<AnyChild>::template compatible_to<void()>)
-				((AnyChild *)lpThis)->Catch();
+			if (pThis->Catch(err))
+				goto retry;
+			return pThis->Final();
 		}
-		return -1;
+		return -2; // unreachable
+	}
+protected:
+	def_memberof(OnStart);
+	inline DWORD Start() {
+		if constexpr (member_OnStart_of<AnyChild>::template compatible_to<DWORD()>)
+			reflect_as(child.OnStart())
+		else if constexpr (member_OnStart_of<AnyChild>::template compatible_to<void()>)
+			reflect_to(child.OnStart(), 0)
+		else {
+			static_assert(member_OnStart_of<AnyChild>::callable, "OnStart uncallable or unexisted");
+			static_assert(!member_OnStart_of<AnyChild>::callable, "OnStart uncompatible");
+			return 0;
+		}
+	}
+	def_memberof(OnCatch);
+	inline wx_answer Catch(const Exception &err) {
+		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Exception)>)
+			reflect_as(child.OnCatch(err))
+		else if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
+			reflect_as(child.OnCatch())
+		else if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Exception)>)
+			reflect_to(child.OnCatch(err), false)
+		else if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
+			reflect_to(child.OnCatch(), false)
+		else {
+			static_assert(!member_OnCatch_of<AnyChild>::callable, "OnCatch uncompatible");
+			switch (MsgBox(Cats(_T("Thread[PID:"), ID(), _T("] error")), err)) {
+				case IDIGNORE:
+					wx_answer_ignore;
+				case IDRETRY:
+					wx_answer_retry;
+				case IDABORT:
+					break;
+			}
+			wx_answer_abort(err);
+		}
+	}
+	def_memberof(OnFinal);
+	inline DWORD Final() {
+		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<DWORD()>)
+			reflect_as(child.OnFinal())
+		else if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
+			reflect_to(child.OnFinal(), -1)
+		else {
+			static_assert(!member_OnFinal_of<AnyChild>::callable, "OnFinal uncallable");
+			return -3;
+		}
 	}
 protected:
 	inline auto &operator=(ThreadBase &t) reflect_to_child(std::swap(this->hObject, t.hObject));
@@ -309,52 +344,53 @@ protected:
 			if constexpr (static_compatible<AnyCallable, DWORD()>)
 				reflect_as(f())
 			else {
-				static_assert(static_compatible<AnyCallable, void()>, "Error function type");
+				static_assert(static_compatible<AnyCallable, void()>, "Error uncompatible");
 				reflect_to(f(), 0)
 			}
 		}
 	};
 	StartClosure *lpStart = O;
-	inline DWORD Start() reflect_as((*lpStart)());
+	inline DWORD OnStart() reflect_as((*lpStart)());
 protected:
-	struct CatchClosure {
-		virtual ~CatchClosure() {}
-		virtual DWORD operator()(const Exception& err) = 0;
+	struct ExceptionClosure {
+		virtual ~ExceptionClosure() {}
+		virtual bool OnCatch(const Exception &err) = 0;
 	};
-	template<class AnyCallable>
-	struct InlineCatchClosure : CatchClosure {
-		AnyCallable f;
-		InlineCatchClosure(const AnyCallable &f) : f(f) {}
-		DWORD operator()(const Exception &err) override {
-			if constexpr (static_compatible<AnyCallable, DWORD(Exception)>)
-				reflect_as(f(err))
-			else if constexpr (static_compatible<AnyCallable, void(Exception)>)
-				reflect_to(f(err), 0)
-			else if constexpr (static_compatible<AnyCallable, DWORD()>)
-				reflect_as(f())
+	template<class AnyCatch>
+	struct InlineExceptionClosure : ExceptionClosure {
+		AnyCatch lOnCatch;
+		InlineExceptionClosure(const AnyCatch &lOnCatch) : lOnCatch(lOnCatch) {}
+		bool OnCatch(const Exception &err) override {
+			if constexpr (static_compatible<AnyCatch, wx_answer(Exception)>)
+				reflect_as(lOnCatch(err))
+			else if constexpr (static_compatible<AnyCatch, wx_answer()>)
+				reflect_as(lOnCatch())
+			else if constexpr (static_compatible<AnyCatch, void(Exception)>)
+				reflect_to(lOnCatch(err), false)
 			else {
-				static_assert(static_compatible<AnyCallable, void()>, "Error function type");
-				reflect_to(f(), 0)
+				static_assert(static_compatible<AnyCatch, void()>, "OnCatch uncompatible");
+				reflect_to(lOnCatch(err), false);
 			}
 		}
 	};
-	CatchClosure *lpCatch = O;
-	inline DWORD Catch(const Exception &err) reflect_as(lpCatch ? (*lpCatch)(err) : 0);
+	ExceptionClosure *lpException = O;
+	inline bool OnCatch(const Exception &err) reflect_as(lpException ? lpException->OnCatch(err) : false);
+public:
+	template<class AnyCatch>
+	void SetOnCatch(const AnyCatch &Catch) reflect_to(lpException = new InlineExceptionClosure<AnyCatch>(Catch));
 public:
 	template<class AnyCallable>
-	LThread(const AnyCallable &Start) : lpStart(new InlineStartClosure<AnyCallable>(Start)) {}
+	LThread(const AnyCallable &OnStart) : lpStart(new InlineStartClosure<AnyCallable>(OnStart)) {}
 	~LThread() {
 		if (StillActive())
 			Terminate();
-		delete lpStart;
-		lpStart = O;
-		if (lpCatch)
-			delete lpCatch,
-			lpCatch = O;
+		if (lpStart)
+			delete lpStart,
+			lpStart = O;
+		if (lpException)
+			delete lpException,
+			lpException = O;
 	}
-public:
-	template<class AnyCatch>
-	void OnError(const AnyCatch &Catch) reflect_to(lpCatch = new InlineCatchClosure<AnyCatch>(Catch));
 };
 #pragma endregion
 
@@ -443,7 +479,7 @@ public:
 		inline String ValueExpend() const {
 			if (!value) return O;
 			DWORD lenDst;
-			assert((lenDst = ExpandEnvironmentStrings(value, O, 0)));
+			assertl((lenDst = ExpandEnvironmentStrings(value, O, 0)));
 			if (lenDst - 1 == value.Length()) return &value;
 			String eval((size_t)lenDst - 1);
 			ExpandEnvironmentStrings(value, eval, lenDst);
@@ -468,7 +504,7 @@ public:
 
 	inline void Free() {
 		if (lpEnv) {
-			assert(FreeEnvironmentStrings(lpEnv));
+			assertl(FreeEnvironmentStrings(lpEnv));
 			lpEnv = O;
 		}
 	}
@@ -508,9 +544,9 @@ public:
 		*pEnv = '\0';
 		return lpEnv;
 	}
-	static inline Environments Current() assert_reflect_as(auto lpEnv = GetEnvironmentStrings(), lpEnv);
+	static inline Environments Current() assertl_reflect_as(auto lpEnv = GetEnvironmentStrings(), lpEnv);
 
-	inline void Use() const assert_reflect_as(SetEnvironmentStrings(lpEnv));
+	inline void Use() const assertl_reflect_as(SetEnvironmentStrings(lpEnv));
 
 public: // Property - Count
 	/* R */ inline size_t Count() const {
@@ -558,10 +594,10 @@ class CurrentEnvironment {
 	public:
 		Variable(const String &name) : name(+name) {}
 	public: // Property - Value
-		/* W */ inline Variable &Value(const String &value) assert_reflect_as_self(SetEnvironmentVariable(name, value.str_safe()));
+		/* W */ inline Variable &Value(const String &value) assertl_reflect_as_self(SetEnvironmentVariable(name, value.str_safe()));
 		/* R */ inline String Value() const {
 			DWORD len;
-			assert((len = GetEnvironmentVariable(name, O, 0)));
+			assertl((len = GetEnvironmentVariable(name, O, 0)));
 			String value((size_t)len - 1);
 			GetEnvironmentVariable(name, value, len);
 			return value;
@@ -569,11 +605,11 @@ class CurrentEnvironment {
 	public: // Property - ValueExpend
 		inline String ValueExpend() const {
 			DWORD lenSrc;
-			assert((lenSrc = GetEnvironmentVariable(name, O, 0)));
+			assertl((lenSrc = GetEnvironmentVariable(name, O, 0)));
 			String value((size_t)lenSrc - 1);
 			GetEnvironmentVariable(name, value, lenSrc);
 			DWORD lenDst;
-			assert((lenDst = ExpandEnvironmentStrings(value, O, 0)));
+			assertl((lenDst = ExpandEnvironmentStrings(value, O, 0)));
 			if (lenSrc == lenDst) return value;
 			String eval((size_t)lenDst - 1);
 			ExpandEnvironmentStrings(value, eval, lenDst);
@@ -591,7 +627,7 @@ public:
 	inline operator Environments() reflect_as(Environments::Current());
 	inline Variable operator[](const String &str) reflect_as(str);
 	inline CurrentEnvironment &operator=(const Environments &env) reflect_to_self(env.Use());
-} Environment;
+} inline Environment;
 enum_flags(StartupFlag, DWORD,
 	UseShowWindow       = STARTF_USESHOWWINDOW,
 	UseSize             = STARTF_USESIZE,
@@ -734,7 +770,7 @@ public:
 		inline auto &StartupInfo(const WX::StartupInfo &si) reflect_to_self(this->startupInfo = si, this->dwCreationFlags |= CreateFlag::ExtendedStartupInfoPresent);
 		inline auto &CurrentDirectory(LPCTSTR lpCurrentDirectory) reflect_to_self(this->lpCurrentDirectory = lpCurrentDirectory);
 	public:
-		inline auto &Create() assert_reflect_as(CreateProcess(
+		inline auto &Create() assertl_reflect_as(CreateProcess(
 			lpApplicationName, lpCommandLine,
 			lpProcessAttributes, lpThreadAttributes, bInheritHandles,
 			dwCreationFlags.yield(), lpEnvironment, lpCurrentDirectory,
@@ -779,12 +815,12 @@ public: // Property - ExitCode
 public: // Property - ID
 	/* R */ inline auto ID() const reflect_as(GetProcessId(self));
 public: // Property - Memory
-	/* W */ inline auto Memory() const assert_reflect_to(PROCESS_MEMORY_COUNTERS pmc, GetProcessMemoryInfo(self, &pmc, sizeof(pmc)), pmc);
+	/* W */ inline auto Memory() const assertl_reflect_to(PROCESS_MEMORY_COUNTERS pmc, GetProcessMemoryInfo(self, &pmc, sizeof(pmc)), pmc);
 public: // Property - WorkingSetSize
-	/* W */ inline auto &WorkingSetSize(SIZE_T Min, SIZE_T Max) assert_reflect_as_self(SetProcessWorkingSetSize(self, Min, Max));
-	/* R */ inline auto  WorkingSetSize() const assert_reflect_to(struct _B_(SIZE_T Min, Max;) size, GetProcessWorkingSetSize(self, &size.Min, &size.Max), size);
+	/* W */ inline auto &WorkingSetSize(SIZE_T Min, SIZE_T Max) assertl_reflect_as_self(SetProcessWorkingSetSize(self, Min, Max));
+	/* R */ inline auto  WorkingSetSize() const assertl_reflect_to(struct _B_(SIZE_T Min, Max;) size, GetProcessWorkingSetSize(self, &size.Min, &size.Max), size);
 public: // Property - HandleCount
-	/* R */ inline DWORD HandleCount() const assert_reflect_as(DWORD dwCount = 0, GetProcessHandleCount(self, &dwCount), dwCount);
+	/* R */ inline DWORD HandleCount() const assertl_reflect_as(DWORD dwCount = 0, GetProcessHandleCount(self, &dwCount), dwCount);
 public: // Property - WorkingSetSizeEx
 	//GetProcessWorkingSetSizeEx
 	//SetProcessWorkingSetSizeEx
@@ -804,8 +840,8 @@ public: // Property - MitigationPolicy
 public: // Property - CommandLine
 	/* R */ static inline String CommandLine() reflect_as(+CString(GetCommandLine(), MaxLenNotice));
 public: // Property - Environment
-	/* W */ static inline void Environment(LPTCH lpNewEnvironment) assert_reflect_as(SetEnvironmentStrings(lpNewEnvironment));
-	/* R */ inline Environments Environment() assert_reflect_to(LPTCH lpEnv, (lpEnv = GetEnvironmentStrings()), force_cast<Environments>(lpEnv));
+	/* W */ static inline void Environment(LPTCH lpNewEnvironment) assertl_reflect_as(SetEnvironmentStrings(lpNewEnvironment));
+	/* R */ inline Environments Environment() assertl_reflect_to(LPTCH lpEnv, (lpEnv = GetEnvironmentStrings()), force_cast<Environments>(lpEnv));
 
 };
 #pragma endregion

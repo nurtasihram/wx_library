@@ -172,9 +172,9 @@ public: // Property - Point
 	/* W */ inline auto &Point(POINT pt) reflect_to_self(self->pt = pt);
 	/* R */ inline LPoint Point() const reflect_as(self->pt);
 public:
-	inline bool Get(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) check_reflect_to(auto res = GetMessage(self, O, wMsgFilterMin, wMsgFilterMax), res);
-	inline bool Get(HWND hwnd, UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) check_reflect_to(auto res = GetMessage(self, hwnd, wMsgFilterMin, wMsgFilterMax), res);
-	inline bool GetThread(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) check_reflect_to(auto res = GetMessage(self, (HWND)-1, wMsgFilterMin, wMsgFilterMax), res);
+	inline bool Get(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) nt_assertl_reflect_to(auto res = GetMessage(self, O, wMsgFilterMin, wMsgFilterMax), res);
+	inline bool Get(HWND hwnd, UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) nt_assertl_reflect_to(auto res = GetMessage(self, hwnd, wMsgFilterMin, wMsgFilterMax), res);
+	inline bool GetThread(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) nt_assertl_reflect_to(auto res = GetMessage(self, (HWND)-1, wMsgFilterMin, wMsgFilterMax), res);
 
 	inline bool Translate() const reflect_as(TranslateMessage(self));
 	template<class RetType = LRESULT>
@@ -295,11 +295,11 @@ public: // Property - Name
 	/* S */ inline LPCTSTR     &Name() reflect_as(self->lpszClassName);
 	/* R */ inline const String Name() const reflect_as(CString(self->lpszClassName, MaxLenClass));
 public:
-	inline ATOM Register() const assert_reflect_as(auto atom = RegisterClass(self), atom);
-	inline void Unregister() const assert_reflect_as(UnregisterClass(self->lpszClassName, self->hInstance));
+	inline ATOM Register() const assertl_reflect_as(auto atom = RegisterClass(self), atom);
+	inline void Unregister() const assertl_reflect_as(UnregisterClass(self->lpszClassName, self->hInstance));
 	inline void Unregister(ATOM classAtom) const reflect_as(UnregisterClass(MAKEINTRESOURCE(classAtom), self->hInstance));
-	inline auto&GetInfo() assert_reflect_as_self(GetClassInfo(self->hInstance, self->lpszClassName, self));
-	inline auto&GetInfo(ATOM classAtom) assert_reflect_as_self(GetClassInfo(self->hInstance, MAKEINTRESOURCE(classAtom), self));
+	inline auto&GetInfo() assertl_reflect_as_self(GetClassInfo(self->hInstance, self->lpszClassName, self));
+	inline auto&GetInfo(ATOM classAtom) assertl_reflect_as_self(GetClassInfo(self->hInstance, MAKEINTRESOURCE(classAtom), self));
 };
 #pragma region ClassEx
 template<class = void>
@@ -365,8 +365,8 @@ public: // Property - IconSm
 	/* R */ inline CIcon     IconSm() const reflect_as(self->hIconSm);
 public:
 	inline ATOM Register() const reflect_as(RegisterClassEx(self));
-	inline void Unregister() const assert_reflect_as(UnregisterClass(lpszClassName, hInstance));
-	inline void Unregister(ATOM classAtom) const assert_reflect_as(UnregisterClass(MAKEINTRESOURCE(classAtom), hInstance));
+	inline void Unregister() const assertl_reflect_as(UnregisterClass(lpszClassName, hInstance));
+	inline void Unregister(ATOM classAtom) const assertl_reflect_as(UnregisterClass(MAKEINTRESOURCE(classAtom), hInstance));
 	inline bool GetInfo() reflect_as(GetClassInfoEx(hInstance, lpszClassName, self));
 	inline bool GetInfo(ATOM classAtom) reflect_as(GetClassInfoEx(hInstance, MAKEINTRESOURCE(classAtom), self));
 public:
@@ -382,11 +382,14 @@ enum_flags(WindowStyle, LONG,
 	Popup               = WS_POPUP,
 	Child               = WS_CHILD,
 	Minimize            = WS_MINIMIZE,
+	Maximize            = WS_MAXIMIZE,
+	MinimizeBox         = WS_MINIMIZEBOX,
+	MaximizeBox         = WS_MAXIMIZEBOX,
+	SizeBox             = WS_SIZEBOX,
 	Visible             = WS_VISIBLE,
 	Disabled            = WS_DISABLED,
-	Clipsiblings        = WS_CLIPSIBLINGS,
+	ClipSiblings        = WS_CLIPSIBLINGS,
 	ClipChildren        = WS_CLIPCHILDREN,
-	Maximize            = WS_MAXIMIZE,
 	Caption             = WS_CAPTION,
 	Border              = WS_BORDER,
 	DlgFrame            = WS_DLGFRAME,
@@ -396,17 +399,15 @@ enum_flags(WindowStyle, LONG,
 	ThickFrame          = WS_THICKFRAME,
 	Group               = WS_GROUP,
 	TabStop             = WS_TABSTOP,
-	MinimizeBox         = WS_MINIMIZEBOX,
-	MaximizeBox         = WS_MAXIMIZEBOX,
 	Tiled               = WS_TILED,
 	Iconic              = WS_ICONIC,
-	SizeBox             = WS_SIZEBOX,
 	TiledWindow         = WS_TILEDWINDOW,
 	PopupWindow         = WS_POPUPWINDOW,
 	OverlappedWindow    = WS_OVERLAPPEDWINDOW);
 using WS = WindowStyle;
 using WStyle = WindowStyle;
 enum_flags(WindowStyleEx, DWORD,
+	No                  = 0,
 	DlgModalFrame       = WS_EX_DLGMODALFRAME,
 	NoParentNotify      = WS_EX_NOPARENTNOTIFY,
 	TopMost             = WS_EX_TOPMOST,
@@ -486,17 +487,23 @@ public: // Property - Position
 	/* W */ inline auto  &Position(LPoint pos) reflect_to_child(self->x = pos.x, self->y = pos.y);
 	/* R */ inline LPoint Position() const reflect_as({ self->x, self->y });
 public: // Property - Rect
-	/* W */ inline auto &Rect(LRect rc) reflect_to_child(auto &&sz = rc.size(); auto &&pt = rc.bottom_left(); self->x = pt.x, self->y = pt.y, self->cx = sz.cx, self->cy = sz.cy);
+	/* W */ inline auto &Rect(LRect rc) reflect_to_child(auto &&sz = rc.size(); auto &&pt = rc.left_bottom(); self->x = pt.x, self->y = pt.y, self->cx = sz.cx, self->cy = sz.cy);
 	/* R */ inline LRect Rect() const reflect_as({ Position(), Size() });
 public: // Property - ClientRect
-	/* W */ inline auto &ClientRect(LRect rc) assert_reflect_as(AdjustWindowRectEx(rc, self->style, self->hMenu, self->dwExStyle), self->Rect(rc));
-	/* W */ inline auto &ClientRect(LRect rc, UINT dpi) assert_reflect_as(AdjustWindowRectExForDpi(rc, self->style, self->hMenu, self->dwExStyle, dpi), self->Rect(rc));
+	/* W */ inline auto &ClientRect(LRect rc) assertl_reflect_as(AdjustWindowRectEx(rc, self->style, self->hMenu, self->dwExStyle), self->Rect(rc));
+	/* W */ inline auto &ClientRect(LRect rc, UINT dpi) assertl_reflect_as(AdjustWindowRectExForDpi(rc, self->style, self->hMenu, self->dwExStyle, dpi), self->Rect(rc));
 public: // Property - ClientSize
 	/* W */ inline auto &ClientSize(LSize sz) reflect_as(ClientRect({ Position(), sz }));
 	/* W */ inline auto &ClientSize(LSize sz, UINT dpi) reflect_as(ClientRect({ Position(), sz }, dpi));
 public:
 	template <class _AnyChild = void>
-	inline WindowShim<_AnyChild> Create() const assert_reflect_as(auto h = CreateWindowEx(
+	inline WindowShim<_AnyChild> Create() const assertl_reflect_as(auto h = CreateWindowEx(
+		self->dwExStyle, self->lpszClass, self->lpszName, self->style,
+		self->x, self->y, self->cx, self->cy,
+		self->hwndParent, self->hMenu, self->hInstance,
+		self->lpCreateParams), h);
+	template <class _AnyChild = void>
+	inline WindowShim<_AnyChild> CreateMDI() const assertl_reflect_as(auto h = CreateMDIWindow(
 		self->dwExStyle, self->lpszClass, self->lpszName, self->style,
 		self->x, self->y, self->cx, self->cy,
 		self->hwndParent, self->hMenu, self->hInstance,
@@ -596,7 +603,7 @@ public:
 	}
 	inline void Unregister() {
 		if (_ClassAtom)
-			assert(UnregisterClass(MAKEINTRESOURCE(_ClassAtom), _hClassModule));
+			assertl(UnregisterClass(MAKEINTRESOURCE(_ClassAtom), _hClassModule));
 		_ClassAtom = 0;
 	}
 #pragma endregion
@@ -643,11 +650,11 @@ public:
 	}
 	inline void Destroy() {
 		if (self) {
-			assert(DestroyWindow(self));
+			assertl(DestroyWindow(self));
 			hWnd = O;
 		}
 	}
-	inline void Close() assert_reflect_as(CloseWindow(self));
+	inline void Close() assertl_reflect_as(CloseWindow(self));
 #pragma endregion
 
 #pragma region Messages Procedure
@@ -658,7 +665,7 @@ protected:
 	def_memberof(name);
 #include "msg.inl"
 	static LRESULT CallDefProc(HWND hWnd, UINT msgid, WPARAM wParam, LPARAM lParam) {
-		if constexpr (member_DefProc_of<Child>::existed) {
+		if constexpr (member_DefProc_of<Child>::callable) {
 			misdef_assert((!std::is_member_pointer_v<decltype(&Child::DefProc)>),
 						  "DefProc must be a static method.");
 			using tfn_WndProc = LRESULT(HWND, UINT, WPARAM, LPARAM);
@@ -674,6 +681,7 @@ protected:
 	static LRESULT CALLBACK MainProc(HWND hWnd, UINT msgid, WPARAM wParam, LPARAM lParam) {
 		auto &Wnd = WindowBase::Attach(hWnd);
 		auto pThis = (Child *)Wnd.HeapPtr(index);
+	retry:
 		try {
 			switch (msgid) {
 				case WM_CREATE: {
@@ -697,7 +705,7 @@ protected:
 #define _CALL_(name) pThis->name
 #define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
 				case msgid: \
-					if constexpr (member_##name##_of<Child>::existed) { \
+					if constexpr (member_##name##_of<Child>::callable) { \
 						using fn_type = ret argslist; \
 						misdef_assert((member_##name##_of<Child>::template compatible_to<fn_type>), \
 										"Member " #name " must be a method compatible to " #ret #argslist); \
@@ -705,58 +713,80 @@ protected:
 					} break;
 #include "msg.inl"
 				}
-			if constexpr (member_Callback_of<Child>::existed)
+			if constexpr (member_Callback_of<Child>::callable)
 				return pThis->Callback(msgid, wParam, lParam);
 		} catch (MSG msg) {
 			if (msg.message)
 				return CallDefProc(msg.hwnd, msg.message, msg.wParam, msg.lParam);
 		} catch (Exception err) {
-			if (msgid == WM_CREATE)
-				return -1;
-			throw err;
+			if (pThis->Catch(err))
+				goto retry;
+			return pThis->Final();
 		}
 		return CallDefProc(hWnd, msgid, wParam, lParam);
 	}
 protected:
 	inline void OnDestroy() reflect_to(PostQuitMessage(0));
-	inline bool OnError(const Exception &err) {
-		switch (MsgBox(S("Error"), err.toString(), MB::IconError | MB::AbortRetryIgnore)) {
-			case IDABORT:
-				throw err;
-			case IDRETRY:
-				return false;
-			case IDIGNORE:
-				break;
+protected:
+	def_memberof(OnCatch);
+	inline wx_answer Catch(const Exception &err) {
+		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Exception)>)
+			reflect_as(child.OnCatch(err))
+		else if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
+			reflect_as(child.OnCatch())
+		else if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Exception)>)
+			reflect_to(child.OnCatch(err), false)
+		else if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
+			reflect_to(child.OnCatch(), false)
+		else {
+			static_assert(!member_OnCatch_of<AnyChild>::callable, "OnCatch uncompatible");
+			switch (MsgBox(S("Window Error"), err.toString(), MB::IconError | MB::AbortRetryIgnore)) {
+				case IDRETRY:
+					wx_answer_retry;
+				case IDIGNORE:
+					wx_answer_ignore;
+				case IDABORT:
+					break;
+			}
+			wx_answer_abort(err);
 		}
-		return true;
+	}
+	def_memberof(OnFinal);
+	inline LRESULT Final() {
+		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<LRESULT()>)
+			reflect_as(child.OnFinal())
+		else if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
+			reflect_to(child.OnFinal(), -1)
+		else {
+			static_assert(!member_OnFinal_of<AnyChild>::callable, "OnFinal uncallable");
+			return -3;
+		}
 	}
 public:
-	inline auto Call() {
-		class Pack {
-			HWND hwnd;
-		public:
-			Pack(HWND hwnd) : hwnd(hwnd) {}
+	class CallPack {
+		HWND hwnd;
+	public:
+		CallPack(HWND hwnd) : hwnd(hwnd) {}
 #define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
 			inline ret name argslist reflect_as(send);
 #define _SEND_(ret, msgid, wparam, lparam) \
 			ret(CallDefProc(hwnd, msgid, wparam, lparam))
 #include "msg.inl"
-		} p = (HWND)self;
-		return p;
-	}
+	};
+	inline CallPack Call() reflect_as((HWND)self);
 #pragma endregion
 
 #pragma region Message System
 public:
 	template<class RetType = LRESULT, class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
 	inline RetType Send(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const
-		check_reflect_to(auto res = force_cast<RetType>(SendMessage(self, force_cast<UINT>(msgid), force_cast<WPARAM>(wParam), force_cast<LPARAM>(lParam))), res);
+		nt_assertl_reflect_to(auto res = force_cast<RetType>(SendMessage(self, force_cast<UINT>(msgid), force_cast<WPARAM>(wParam), force_cast<LPARAM>(lParam))), res);
 	//template<class WParam = WPARAM, class LParam = LPARAM>
 	//inline auto &SendTimeout(UINT msgid, WParam wParam = 0, LParam lParam = 0) {
 	//	SendMessageTimeoutW(self, msgid, wParam, lParam, )
 	//}
 	template<class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
-	inline auto &Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const assert_reflect_as_child(PostMessage(self, force_cast<UINT>(msgid), force_cast<WPARAM>(wParam), force_cast<LPARAM>(lParam)));
+	inline auto &Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const assertl_reflect_as_child(PostMessage(self, force_cast<UINT>(msgid), force_cast<WPARAM>(wParam), force_cast<LPARAM>(lParam)));
 public:
 	class MessageSwitch {
 	protected:
@@ -775,7 +805,7 @@ public:
 			Indirect(HWND hwnd, UINT msgid, WPARAM wParam, LPARAM lParam) :
 				hwnd(hwnd), msgid(msgid), wParam(wParam), lParam(lParam) {}
 		public:
-			inline RetType Send() check_reflect_to(auto res = SendMessage(hwnd, msgid, wParam, lParam), (RetType)res);
+			inline RetType Send() nt_assertl_reflect_to(auto res = SendMessage(hwnd, msgid, wParam, lParam), (RetType)res);
 			template<class AnyCallback>
 			inline void SendCallback(AnyCallback cb) {
 				struct AsyncProc {
@@ -787,9 +817,9 @@ public:
 						delete lpThis;
 					}
 				};
-				assert(SendMessageCallback(hwnd, msgid, wParam, lParam, AsyncProc::lpfnCallback, (ULONG_PTR)(new AsyncProc(cb))));
+				assertl(SendMessageCallback(hwnd, msgid, wParam, lParam, AsyncProc::lpfnCallback, (ULONG_PTR)(new AsyncProc(cb))));
 			}
-			inline void Post() assert_reflect_as(PostMessage(hwnd, msgid, wParam, lParam));
+			inline void Post() assertl_reflect_as(PostMessage(hwnd, msgid, wParam, lParam));
 		};
 #define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
 		inline Indirect<ret> name argslist send
@@ -803,20 +833,22 @@ public:
 #pragma region Methods
 	inline auto &Show(SW nShow)     reflect_to_child(ShowWindow(self, nShow.yield()));
 	inline auto &Hide()             reflect_as(Show(SW::Hide));
-	inline auto &ShowNormal()       reflect_as(Show(SW::ShowNormal));
 	inline auto &Normal()           reflect_as(Show(SW::Normal));
+	inline auto &ShowNormal()       reflect_as(Show(SW::ShowNormal));
 	inline auto &ShowMinimized()    reflect_as(Show(SW::ShowMinimized));
 	inline auto &ShowMaximized()    reflect_as(Show(SW::ShowMaximized));
-	inline auto &Maximize()         reflect_as(Show(SW::Maximize));
 	inline auto &ShowNoActivate()   reflect_as(Show(SW::ShowNoActivate));
 	inline auto &Show()             reflect_as(Show(SW::Show));
+	inline auto &Maximize()         reflect_as(Show(SW::Maximize));
 	inline auto &Minimize()         reflect_as(Show(SW::Minimize));
+	inline auto &ForceMinimize()    reflect_as(Show(SW::ForceMinimize));
 	inline auto &ShowMinNoActive()  reflect_as(Show(SW::ShowMinNoActive));
+	inline auto &ShowDefault()      reflect_as(Show(SW::ShowDefault));
 	inline auto &ShowNA()           reflect_as(Show(SW::ShowNA));
 	inline auto &Restore()          reflect_as(Show(SW::Restore));
-	inline auto &ShowDefault()      reflect_as(Show(SW::ShowDefault));
-	inline auto &ForceMinimize()    reflect_as(Show(SW::ForceMinimize));
 	inline auto &Max()              reflect_as(Show(SW::Max));
+
+	inline auto &BringToTop()       assertl_reflect_as_child(::BringWindowToTop(self));
 
 	inline int MsgBox(LPCTSTR lpCaption = O, LPCTSTR lpText = O, MB uType = MB::Ok) const reflect_as(WX::MsgBox(lpCaption, lpText, uType, self));
 	inline int MsgBox(LPCTSTR lpCaption, const Exception &err) reflect_as(WX::MsgBox(lpCaption, err, self));
@@ -827,24 +859,24 @@ public:
 	static inline Window Find(LPCTSTR lpszClass, LPCTSTR lpszName) reflect_as(FindWindow(lpszClass, lpszName));
 	static inline WindowBase Find(LPCTSTR lpszName) reflect_as(FindWindow(MAKEINTRESOURCE(_ClassAtom), lpszName));
 
-	inline LPoint ScreenToClient(LPoint pt) const assert_reflect_as(::ScreenToClient(self, &pt), pt);
-	inline LPoint ClientToScreen(LPoint pt) const assert_reflect_as(::ClientToScreen(self, &pt), pt);
-	inline LRect AdjustRect(LRect rc) const assert_reflect_as(::AdjustWindowRect(&rc, Styles().yield(), this->Menu()), rc);
+	inline LPoint ScreenToClient(LPoint pt) const assertl_reflect_as(::ScreenToClient(self, &pt), pt);
+	inline LPoint ClientToScreen(LPoint pt) const assertl_reflect_as(::ClientToScreen(self, &pt), pt);
+	inline LRect AdjustRect(LRect rc) const assertl_reflect_as(::AdjustWindowRect(&rc, Styles().yield(), this->Menu()), rc);
 	inline LRect AdjustRect() const reflect_to(LRect rc, AdjustRect(rc), rc);
 
-	inline void Validate(LPCRECT lpRect = O) const assert_reflect_as(ValidateRect(self, lpRect));
-	inline void Invalidate(LPCRECT lpRect = O, bool fErase = false) const assert_reflect_as(InvalidateRect(self, lpRect, fErase));
+	inline void Validate(LPCRECT lpRect = O) const assertl_reflect_as(ValidateRect(self, lpRect));
+	inline void Invalidate(LPCRECT lpRect = O, bool fErase = false) const assertl_reflect_as(InvalidateRect(self, lpRect, fErase));
 
-	inline UINT_PTR SetTimer(UINT uElapse, UINT_PTR nIDEvent = 0) assert_reflect_as((nIDEvent = ::SetTimer(self, nIDEvent, uElapse, O)), nIDEvent);
-	inline void KillTimer(UINT_PTR nIDEvent) assert_reflect_as(::KillTimer(self, nIDEvent));
+	inline UINT_PTR SetTimer(UINT uElapse, UINT_PTR nIDEvent = 0) assertl_reflect_as((nIDEvent = ::SetTimer(self, nIDEvent, uElapse, O)), nIDEvent);
+	inline void KillTimer(UINT_PTR nIDEvent) assertl_reflect_as(::KillTimer(self, nIDEvent));
 
-	inline void Move(LRect rc, bool bRedraw = true) const assert_reflect_as(::MoveWindow(self, rc.top, rc.left, rc.width(), rc.height(), bRedraw));
+	inline void Move(LRect rc, bool bRedraw = true) const assertl_reflect_as(::MoveWindow(self, rc.top, rc.left, rc.xsize(), rc.ysize(), bRedraw));
 
-	inline auto &Update() assert_reflect_as_child(UpdateWindow(self));
+	inline auto &Update() assertl_reflect_as_child(UpdateWindow(self));
 	inline CDC DC() const reflect_as(GetDC(self));
 
-	inline auto &RegisterTouch(bool bFine = true, bool bWantPalm = false) assert_reflect_as_child(RegisterTouchWindow(self, (bFine *TWF_FINETOUCH) | (bWantPalm * TWF_WANTPALM)));
-	inline auto &UnregisterTouch() assert_reflect_as_child(UnregisterTouchWindow(self));
+	inline auto &RegisterTouch(bool bFine = true, bool bWantPalm = false) assertl_reflect_as_child(RegisterTouchWindow(self, (bFine *TWF_FINETOUCH) | (bWantPalm * TWF_WANTPALM)));
+	inline auto &UnregisterTouch() assertl_reflect_as_child(UnregisterTouchWindow(self));
 
 	inline TrackMouseEventBox TrackMouse() const reflect_as((HWND)self);
 
@@ -855,7 +887,7 @@ public:
 		PaintBox(HWND hwnd) : hwnd(hwnd), hdc1(::BeginPaint(hwnd, self)) {}
 		~PaintBox() reflect_to(End());
 		inline CDC DDC() const reflect_as(hdc1);
-		inline void End() const assert_reflect_as(EndPaint(hwnd, self));
+		inline void End() const assertl_reflect_as(EndPaint(hwnd, self));
 	};
 	inline PaintBox BeginPaint() reflect_as((HWND)self);
 #pragma endregion
@@ -864,41 +896,41 @@ public:
 public: // Property - Iconic
 	/* R */ inline bool Iconic() const reflect_as(IsIconic(self));
 public: // Property - Visible
-	/* W */ inline auto &Visible(bool bVisible) assert_reflect_as_child(ShowWindow(self, SW_SHOW));
+	/* W */ inline auto &Visible(bool bVisible) assertl_reflect_as_child(ShowWindow(self, SW_SHOW));
 	/* R */ inline bool Visible() const reflect_as(IsWindowVisible(self));
 public: // Proterty - Enabled
-	/* W */ inline auto &Enabled(bool bEnable) assert_reflect_as_child(EnableWindow(self, bEnable));
+	/* W */ inline auto &Enabled(bool bEnable) assertl_reflect_as_child(EnableWindow(self, bEnable));
 	/* R */ inline bool Enabled() const reflect_as(IsWindowEnabled(self));
 public: // Property - TextLength
 	/* R */ inline int TextLength() const reflect_as(GetWindowTextLength(self));
 public: // Property - String
-	/* W */ inline auto &Text(LPCTSTR lpString) assert_reflect_as_child(SetWindowText(self, lpString) >= 0);
+	/* W */ inline auto &Text(LPCTSTR lpString) assertl_reflect_as_child(SetWindowText(self, lpString) >= 0);
 	/* R */ inline String Text() const {
 		auto len = TextLength();
 		if (len <= 0) return O;
 		auto lpszName = String::Alloc(len);
-		assert(len == GetWindowText(self, lpszName, len + 1));
+		assertl(len == GetWindowText(self, lpszName, len + 1));
 		return{ (size_t)len, lpszName };
 	}
 public: // Property - Parent
-	/* W */ inline auto  &Parent(HWND hParent) check_reflect_to_child(SetParent(self, hParent));
+	/* W */ inline auto  &Parent(HWND hParent) nt_assertl_reflect_to_child(SetParent(self, hParent));
 	/* R */ inline Window Parent() const reflect_as(Parent(self));
 public: // Property - Menu
-	/* W */ inline auto &Menu(HMENU hMenu) assert_reflect_as_child(SetMenu(self, hMenu));
+	/* W */ inline auto &Menu(HMENU hMenu) assertl_reflect_as_child(SetMenu(self, hMenu));
 	/* R */ inline CMenu Menu() const reflect_as(GetMenu(self));
 public: // Property - ClientRect
-	/* R */ inline LRect ClientRect() const assert_reflect_to(LRect rc, GetClientRect(self, &rc), rc);
+	/* R */ inline LRect ClientRect() const assertl_reflect_to(LRect rc, GetClientRect(self, &rc), rc);
 public: // Property - ClientSize
-	/* R */ inline LSize ClientSize() const assert_reflect_to(LRect rc, GetClientRect(self, &rc), rc.bottom_right());
+	/* R */ inline LSize ClientSize() const assertl_reflect_to(LRect rc, GetClientRect(self, &rc), rc.right_bottom());
 public: // Property - Position
-	/* W */ inline auto  &Position(LPoint ptPosition) assert_reflect_as_child(SetWindowPos(self, O, ptPosition.x, ptPosition.y, 0, 0, SWP_NOSIZE));
-	/* R */ inline LPoint Position() const assert_reflect_to(LRect rc, GetWindowRect(self, &rc), rc.top_left());
+	/* W */ inline auto  &Position(LPoint ptPosition) assertl_reflect_as_child(SetWindowPos(self, O, ptPosition.x, ptPosition.y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE));
+	/* R */ inline LPoint Position() const assertl_reflect_to(LRect rc, GetWindowRect(self, &rc), rc.left_top());
 public: // Property - Size
-	/* W */ inline auto &Size(LSize szWin) assert_reflect_as_child(SetWindowPos(self, O, 0, 0, szWin.cx - 1, szWin.cy - 1, SWP_NOMOVE));
-	/* R */ inline LSize Size() const assert_reflect_to(LRect rc, GetWindowRect(self, &rc), rc.size());
+	/* W */ inline auto &Size(LSize szWin) assertl_reflect_as_child(SetWindowPos(self, O, 0, 0, szWin.cx - 1, szWin.cy - 1, SWP_NOMOVE | SWP_NOACTIVATE));
+	/* R */ inline LSize Size() const assertl_reflect_to(LRect rc, GetWindowRect(self, &rc), rc.size());
 public: // Property - Rect
-	/* W */ inline auto &Rect(LRect rWin) assert_reflect_to_child(LSize sz = rWin.size(), SetWindowPos(self, O, rWin.top, rWin.left, sz.cx, sz.cy, SWP_NOZORDER));
-	/* R */ inline LRect Rect() const assert_reflect_to(LRect rWin, GetWindowRect(self, rWin), rWin);
+	/* W */ inline auto &Rect(LRect rWin) assertl_reflect_to_child(LSize sz = rWin.size(), SetWindowPos(self, O, rWin.top, rWin.left, sz.cx, sz.cy, SWP_NOZORDER | SWP_NOACTIVATE));
+	/* R */ inline LRect Rect() const assertl_reflect_to(LRect rWin, GetWindowRect(self, rWin), rWin);
 public: // Property - IconBig
 	/* W */ inline auto &IconBig(HICON hIcon) reflect_to_child(Send<HICON>(WM_SETICON, ICON_BIG, hIcon));
 	/* R */ inline CIcon IconBig() const reflect_as(Send<HICON>(WM_GETICON, ICON_BIG));
@@ -906,22 +938,22 @@ public: // Property - IconSmall
 	/* W */ inline auto &IconSmall(HICON hIcon) reflect_to_child(Send<HICON>(WM_SETICON, ICON_SMALL, hIcon));
 	/* R */ inline CIcon IconSmall() const reflect_as(Send<HICON>(WM_GETICON, ICON_SMALL));
 public: // Property - Styles
-	/* W */ inline auto &Styles(Style style) check_reflect_to_child(SetWindowLongPtr(self, GWL_STYLE, style.yield()));
+	/* W */ inline auto &Styles(Style style) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_STYLE, style.yield()));
 	/* R */ inline Style Styles() const reflect_as(force_cast<Style>(GetWindowLongPtr(self, GWL_STYLE)));
 public: // Property - StylesEx 
-	/* W */ inline auto   &StylesEx(StyleEx styleEx) check_reflect_to_child(SetWindowLongPtr(self, GWL_EXSTYLE, styleEx.yield()));
+	/* W */ inline auto   &StylesEx(StyleEx styleEx) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_EXSTYLE, styleEx.yield()));
 	/* R */ inline StyleEx StylesEx() const reflect_as(force_cast<StyleEx>(GetWindowLongPtr(self, GWL_EXSTYLE)));
 public: // Property - ID
-	/* W */ inline auto    &ID(LONG_PTR uId) check_reflect_to_child(SetWindowLongPtr(self, GWLP_ID, uId));
+	/* W */ inline auto    &ID(LONG_PTR uId) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_ID, uId));
 	/* R */ inline LONG_PTR ID() const reflect_as(force_cast<LONG_PTR>(GetWindowLongPtr(self, GWLP_ID)));
 public: // Property - Module
-	/* W */ inline auto   &Module(HINSTANCE hInstance) check_reflect_to_child(SetWindowLongPtr(self, GWLP_HINSTANCE, force_cast<LONG_PTR>(hInstance)));
+	/* W */ inline auto   &Module(HINSTANCE hInstance) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_HINSTANCE, force_cast<LONG_PTR>(hInstance)));
 	/* R */ inline CModule Module() const reflect_as(force_cast<HINSTANCE>(GetWindowLongPtr(self, GWLP_HINSTANCE)));
 public: // Property - UserData
-	/* W */ inline auto &UserData(void *pData) check_reflect_to_child(SetWindowLongPtr(self, GWLP_USERDATA, force_cast<LONG_PTR>(pData)));
+	/* W */ inline auto &UserData(void *pData) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_USERDATA, force_cast<LONG_PTR>(pData)));
 	/* R */ inline void *UserData() const reflect_as(force_cast<void *>(GetWindowLongPtr(self, GWLP_USERDATA)));
 public: // Property - Long 0
-	/* W */ inline auto &HeapPtr(void *lpHeap, int nIndex) check_reflect_to_child(SetWindowLongPtr(self, nIndex, (LONG_PTR)lpHeap));
+	/* W */ inline auto &HeapPtr(void *lpHeap, int nIndex) nt_assertl_reflect_to_child(SetWindowLongPtr(self, nIndex, (LONG_PTR)lpHeap));
 	template<class AnyType = void>
 	/* R */ inline AnyType *HeapPtr(int nIndex) const reflect_as(force_cast<AnyType *>(GetWindowLongPtr(self, nIndex)));
 public: // Property - ClassName
@@ -933,35 +965,35 @@ public: // Property - ClassName
 		return { (size_t)len, lpszClassName };
 	}
 public: // Property - ClassMenuName
-	/* W */ inline auto   &ClassMenuName(UINT uID) check_reflect_to_child(SetClassLongPtr(self, GCLP_MENUNAME, (LONG_PTR)MAKEINTRESOURCE(uID)));
-	/* W */ inline auto   &ClassMenuName(LPCTSTR lpMenuName) check_reflect_to_child(SetClassLongPtr(self, GCLP_MENUNAME, (LONG_PTR)lpMenuName));
+	/* W */ inline auto   &ClassMenuName(UINT uID) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_MENUNAME, (LONG_PTR)MAKEINTRESOURCE(uID)));
+	/* W */ inline auto   &ClassMenuName(LPCTSTR lpMenuName) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_MENUNAME, (LONG_PTR)lpMenuName));
 	/* R */ inline LPCTSTR ClassMenuName() const reflect_as(force_cast<LPCTSTR>(GetClassLongPtr(self, GCLP_MENUNAME)));
 public: // Property - ClassBackground
-	/* W */ inline auto  &ClassBackground(HBRUSH hBrush) check_reflect_to_child(SetClassLongPtr(self, GCLP_HBRBACKGROUND, (LONG_PTR)hBrush));
+	/* W */ inline auto  &ClassBackground(HBRUSH hBrush) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HBRBACKGROUND, (LONG_PTR)hBrush));
 	/* R */ inline CBrush ClassBackground() const reflect_as(force_cast<HBRUSH>(GetClassLongPtr(self, GCLP_HBRBACKGROUND)));
 public: // Property - ClassCursor
-	/* W */ inline auto   &ClassCursor(HCURSOR hCursor) check_reflect_to_child(SetClassLongPtr(self, GCLP_HCURSOR, (LONG_PTR)hCursor));
+	/* W */ inline auto   &ClassCursor(HCURSOR hCursor) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HCURSOR, (LONG_PTR)hCursor));
 	/* R */ inline CCursor ClassCursor() const reflect_as(force_cast<HCURSOR>(GetClassLongPtr(self, GCLP_HCURSOR)));
 public: // Property - ClassIcon
-	/* W */ inline auto &ClassIcon(HICON hIcon) check_reflect_to_child(SetClassLongPtr(self, GCLP_HICON, (LONG_PTR)hIcon));
+	/* W */ inline auto &ClassIcon(HICON hIcon) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HICON, (LONG_PTR)hIcon));
 	/* R */ inline CIcon ClassIcon() const reflect_as(force_cast<HICON>(GetClassLongPtr(self, GCLP_HICON)));
 public: // Property - ClassModule
-	/* W */ inline auto   &ClassModule(HINSTANCE hModule) check_reflect_to_child(SetClassLongPtr(self, GCLP_HMODULE, (LONG_PTR)hModule));
+	/* W */ inline auto   &ClassModule(HINSTANCE hModule) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HMODULE, (LONG_PTR)hModule));
 	/* R */ inline CModule ClassModule() const reflect_as(force_cast<HINSTANCE>(GetClassLongPtr(self, GCLP_HMODULE)));
 public: // Property - ClassWndExtra
-	/* W */ inline auto     &ClassWndExtra(ULONG_PTR hModule) check_reflect_to_child(SetClassLongPtr(self, GCL_CBWNDEXTRA, (LONG_PTR)hModule));
+	/* W */ inline auto     &ClassWndExtra(ULONG_PTR hModule) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCL_CBWNDEXTRA, (LONG_PTR)hModule));
 	/* R */ inline ULONG_PTR ClassWndExtra() const reflect_as(GetClassLongPtr(self, GCL_CBWNDEXTRA));
 public: // Property - ClassClsExtra
-	/* W */ inline auto     &ClassClsExtra(ULONG_PTR hModule) check_reflect_to_child(SetClassLongPtr(self, GCL_CBCLSEXTRA, (LONG_PTR)hModule));
+	/* W */ inline auto     &ClassClsExtra(ULONG_PTR hModule) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCL_CBCLSEXTRA, (LONG_PTR)hModule));
 	/* R */ inline ULONG_PTR ClassClsExtra() const reflect_as(GetClassLongPtr(self, GCL_CBCLSEXTRA));
 public: // Property - ClassWndProc
-	/* W */ inline auto   &ClassWndProc(WNDPROC WndProc) check_reflect_to_child(SetClassLongPtr(self, GCLP_WNDPROC, (LONG_PTR)WndProc));
+	/* W */ inline auto   &ClassWndProc(WNDPROC WndProc) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_WNDPROC, (LONG_PTR)WndProc));
 	/* R */ inline WndProc ClassWndProc() const reflect_as({ force_cast<WNDPROC>(GetClassLongPtr(self, GCLP_WNDPROC)), self });
 public: // Property - ClassIconSm
-	/* W */ inline auto &ClassIconSm(HICON hIcon) check_reflect_to_child(SetClassLongPtr(self, GCLP_HICONSM, (LONG_PTR)hIcon));
+	/* W */ inline auto &ClassIconSm(HICON hIcon) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HICONSM, (LONG_PTR)hIcon));
 	/* R */ inline CIcon ClassIconSm() const reflect_as(force_cast<HICON>(GetClassLongPtr(self, GCLP_HICONSM)));
 public: // Property - ClassAtom
-	/* W */ inline auto &ClassAtom(ATOM atom) check_reflect_to_child(SetClassWord(self, GCW_ATOM, atom));
+	/* W */ inline auto &ClassAtom(ATOM atom) nt_assertl_reflect_to_child(SetClassWord(self, GCW_ATOM, atom));
 	/* R */ inline ATOM  ClassAtom() const reflect_as(GetClassWord(self, GCW_ATOM));
 public: // Property - Handle
 	inline WX::Handle &Handle() reflect_as(WX::Handle::Attach(hWnd));
@@ -969,7 +1001,7 @@ public: // Property - Handle
 #pragma endregion
 
 	inline void *operator new(size_t uSize, void *ptr) reflect_as(ptr);
-	inline void *operator new(size_t uSize) assert_reflect_as(auto lpHeap = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(Child)), lpHeap);
+	inline void *operator new(size_t uSize) assertl_reflect_as(auto lpHeap = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(Child)), lpHeap);
 	inline void operator delete(void *ptr) reflect_to(HeapFree(GetProcessHeap(), 0, ptr));
 
 	static inline Window &Attach(HWND &hWnd) reflect_as(reuse_as<Window>(hWnd));
@@ -1001,31 +1033,43 @@ template<class AnyChild> const String &&WindowBase<AnyChild>::_ClassName = Fits(
 #define WxClass() public: struct xClass : ClassExBase<xClass>
 #pragma endregion
 
-class Console {
+class ConsoleCtl {
+protected:
+	File hIn, hOut, hErr;
 public:
-	Console() {}
-	Console(DWORD pid) reflect_to(Attach(pid));
-	~Console() reflect_to(Free());
+	ConsoleCtl(Null) {}
+	ConsoleCtl() :
+		hIn(force_cast<File>(GetStdHandle(STD_INPUT_HANDLE))),
+		hOut(force_cast<File>(GetStdHandle(STD_OUTPUT_HANDLE))),
+		hErr(force_cast<File>(GetStdHandle(STD_ERROR_HANDLE))) {}
+	ConsoleCtl(DWORD pid) reflect_to(Attach(pid));
+	~ConsoleCtl() reflect_to(Free());
 
 	inline void Select() {
+		hIn = force_cast<File>(GetStdHandle(STD_INPUT_HANDLE));
+		hOut = force_cast<File>(GetStdHandle(STD_OUTPUT_HANDLE));
+		hErr = force_cast<File>(GetStdHandle(STD_ERROR_HANDLE));
+	}
+	inline void Reopen() {
 		static FILE *fout = O, *ferr = O, *fin = O;
-		freopen_s(&fout, "CONOUT$", "w", stdout);
-		freopen_s(&ferr, "CONERR$", "w", stderr);
-		freopen_s(&fin, "CONIN$", "w", stdin);
+		freopen_s(&fout, "CONOUT$", "w+t", stdout);
+		freopen_s(&ferr, "CONERR$", "w+t", stderr);
+		freopen_s(&fin, "CONIN$", "r+t", stdin);
 	}
 
 #pragma region Allocator
-	static inline void Attach(DWORD pid) assert_reflect_as(AttachConsole(pid));
-	static inline void Alloc() assert_reflect_as(AllocConsole());
-	static inline void Free() assert_reflect_as(FreeConsole());
+	static inline void Attach(DWORD pid) assertl_reflect_as(AttachConsole(pid));
+	static inline void Alloc() assertl_reflect_as(AllocConsole());
+	static inline void Free() assertl_reflect_as(FreeConsole());
+	inline operator Window() { return force_cast<Window>(GetConsoleWindow()); }
 #pragma endregion
 
 #pragma region Properties
 public: // Property - Attr
-	/* W */ inline auto &Attr(WORD wAttr) assert_reflect_as_self(SetConsoleTextAttribute(GetStdHandle(STD_OUTPUT_HANDLE), wAttr));
-	/* R */ inline WORD  Attr() const assert_reflect_to(CONSOLE_SCREEN_BUFFER_INFO csbi, GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi), csbi.wAttributes);
+	/* W */ inline auto &Attr(WORD wAttr) assertl_reflect_as_self(SetConsoleTextAttribute(hOut, wAttr));
+	/* R */ inline WORD  Attr() const assertl_reflect_to(CONSOLE_SCREEN_BUFFER_INFO csbi, GetConsoleScreenBufferInfo(hOut, &csbi), csbi.wAttributes);
 public: // Property - Title
-	/* W */ inline auto  &Title(LPCTSTR lpTitle) assert_reflect_as_self(SetConsoleTitle(lpTitle));
+	/* W */ inline auto  &Title(LPCTSTR lpTitle) assertl_reflect_as_self(SetConsoleTitle(lpTitle));
 	/* R */ inline String Title() const {
 		String title((size_t)MaxLenTitle);
 		int len = GetConsoleTitle(title, MaxLenTitle + 1);
@@ -1034,23 +1078,23 @@ public: // Property - Title
 		return title;
 	}
 public: // Property - CurPos
-	/* W */ inline auto  &CurPos(LPoint p) assert_reflect_as_self(SetConsoleCursorPosition(GetStdHandle(STD_OUTPUT_HANDLE), COORD({ (short)p.x, (short)p.y })));
-	/* R */ inline LPoint CurPos() const assert_reflect_to(CONSOLE_SCREEN_BUFFER_INFO csbi, GetConsoleScreenBufferInfo(GetStdHandle(STD_OUTPUT_HANDLE), &csbi), { csbi.dwCursorPosition.X, csbi.dwCursorPosition.Y });
+	/* W */ inline auto  &CurPos(LPoint p) assertl_reflect_as_self(SetConsoleCursorPosition(hOut, COORD({ (short)p.x, (short)p.y })));
+	/* R */ inline LPoint CurPos() const assertl_reflect_to(CONSOLE_SCREEN_BUFFER_INFO csbi, GetConsoleScreenBufferInfo(hOut, &csbi), { csbi.dwCursorPosition.X, csbi.dwCursorPosition.Y });
 public: // Property - CurVis
-	/* W */ inline auto &CurVis(bool bVisible) assert_reflect_to_self(CONSOLE_CURSOR_INFO cci({ 0 }); cci.bVisible = bVisible, SetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cci));
-	/* R */ inline bool  CurVis() const assert_reflect_to(CONSOLE_CURSOR_INFO cci({ 0 }), GetConsoleCursorInfo(GetStdHandle(STD_OUTPUT_HANDLE), &cci), cci.bVisible);
+	/* W */ inline auto &CurVis(bool bVisible) assertl_reflect_to_self(CONSOLE_CURSOR_INFO cci({ 0 }); cci.bVisible = bVisible, SetConsoleCursorInfo(hOut, &cci));
+	/* R */ inline bool  CurVis() const assertl_reflect_to(CONSOLE_CURSOR_INFO cci({ 0 }), GetConsoleCursorInfo(hOut, &cci), cci.bVisible);
 #pragma endregion
 
 #pragma region Read Write
 protected:
-	inline DWORD _Write(HANDLE hOut, LPCWSTR lpszString, DWORD uLength) assert_reflect_as(WriteConsoleW(hOut, lpszString, uLength, &uLength, O), uLength);
-	inline DWORD _Write(HANDLE hOut, LPCSTR lpszString, DWORD uLength) assert_reflect_as(WriteConsoleA(hOut, lpszString, uLength, &uLength, O), uLength);
+	inline DWORD _Write(HANDLE hOut, LPCWSTR lpszString, DWORD uLength) assertl_reflect_as(WriteConsoleW(hOut, lpszString, uLength, &uLength, O), uLength);
+	inline DWORD _Write(HANDLE hOut, LPCSTR lpszString, DWORD uLength) assertl_reflect_as(WriteConsoleA(hOut, lpszString, uLength, &uLength, O), uLength);
 public:
-	inline DWORD Log(const String &s) reflect_as(_Write(GetStdHandle(STD_OUTPUT_HANDLE), s, (DWORD)s.Length()));
+	inline DWORD Log(const String &s) reflect_as(_Write(hOut, s, (DWORD)s.Length()));
 	template<class... Args>
 	inline DWORD Log(const Args& ...args) reflect_as(Log(Cats(args...)));
 public:
-	inline DWORD Err(const String &s) reflect_as(_Write(GetStdHandle(STD_ERROR_HANDLE), s, (DWORD)s.Length()));
+	inline DWORD Err(const String &s) reflect_as(_Write(hErr, s, (DWORD)s.Length()));
 	template<class... Args>
 	inline DWORD Err(const Args& ...args) reflect_as(Err(Cats(args...)));
 public:
@@ -1059,6 +1103,7 @@ public:
 	template<class... Args>
 	inline auto &operator()(const Args& ...args) reflect_to_self(Log(Cats(args...)));
 #pragma endregion
-};
+
+} static inline Console;
 
 }

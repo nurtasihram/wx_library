@@ -184,7 +184,7 @@ public: // Properties - FileExtension
 	/* R */ inline WORD FileExtension() const reflect_as(self->nFileExtension);
 public: // Properties - File
 	/* W */ inline auto &File(const String &strFile) {
-		assert(SUCCEEDED(StringCchCopy(this->strFile, strFile.Length() + 1, strFile)));
+		assertl(SUCCEEDED(StringCchCopy(this->strFile, strFile.Length() + 1, strFile)));
 		retself;
 	}
 	/* R */ inline auto &File() const reflect_as(this->strFile);
@@ -232,7 +232,7 @@ public: // Property - Parent
 #pragma region Dialog Template
 
 inline void PushHeap(void *&pHeap, size_t &maxSize, const void *pData, size_t dataSize) {
-	assert(dataSize <= maxSize);
+	assertl(dataSize <= maxSize);
 	CopyMemory(pHeap, pData, dataSize);
 	maxSize -= dataSize;
 	(uint8_t *&)pHeap += dataSize;
@@ -389,25 +389,25 @@ protected:
 	DialogItem(HWND hDlg, int nIDDlgItem) :
 		hDlg(hDlg), nIDDlgItem(nIDDlgItem) {}
 public: // Property - String
-	/* W */ inline auto &Text(LPTSTR lpText) assert_reflect_as_self(SetDlgItemText(hDlg, nIDDlgItem, lpText));
+	/* W */ inline auto &Text(LPTSTR lpText) assertl_reflect_as_self(SetDlgItemText(hDlg, nIDDlgItem, lpText));
 	/* R */ inline String Text() const {
 		auto len = GetDlgItemText(hDlg, nIDDlgItem, O, 0);
 		if (len <= 0) return O;
 		String text((size_t)len);
-		assert(GetDlgItemText(hDlg, nIDDlgItem, text, len));
+		assertl(GetDlgItemText(hDlg, nIDDlgItem, text, len));
 		return text;
 	}
 public: // Property - Int
 	/* W */ inline auto &Int(int val) {
 		bool bSigned = val < 0;
 		if (bSigned) val = -val;
-		assert(SetDlgItemInt(hDlg, nIDDlgItem, val, bSigned));
+		assertl(SetDlgItemInt(hDlg, nIDDlgItem, val, bSigned));
 		retself;
 	}
 	/* R */ inline int Int(bool bSigned = true) const {
 		BOOL lpTranslated = false;
 		auto val = GetDlgItemInt(hDlg, nIDDlgItem, &lpTranslated, bSigned);
-		assert(lpTranslated);
+		assertl(lpTranslated);
 		return val;
 	}
 public:
@@ -431,7 +431,7 @@ public:
 	}
 	inline auto&Create(HWND hParent = NULL, HINSTANCE hInst = GetModuleHandle(O)) {
 		static_assert(member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>);
-		assert(CreateDialogIndirectParamW(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this));
+		assertl(CreateDialogIndirectParamW(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this));
 		retchild;
 	}
 
@@ -449,7 +449,7 @@ protected:
 				if (!Wnd.UserData(pThis))
 					return (INT_PTR)false;
 				(HWND &)*force_cast<Window *>(pThis) = hDlg;
-				if constexpr (member_InitDialog_of<Child>::existed) {
+				if constexpr (member_InitDialog_of<Child>::callable) {
 					using fn_type = bool();
 					misdef_assert((member_InitDialog_of<Child>::template compatible_to<fn_type>),
 								  "Member InitDialog must be a method compatible to bool()");
@@ -466,7 +466,7 @@ protected:
 #define _CALL_(name) pThis->name
 #define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
 					case msgid: \
-						if constexpr (super::template member_##name##_of<Child>::existed) { \
+						if constexpr (super::template member_##name##_of<Child>::callable) { \
 							using fn_type = ret argslist; \
 							misdef_assert((super::template member_##name##_of<Child>::template compatible_to<fn_type>), \
 										  "Member " #name " must be a method compatible to " #ret #argslist); \
@@ -475,7 +475,7 @@ protected:
 						} break;
 #include "msg.inl"
 			}
-			if constexpr (super::template member_Callback_of<Child>::existed)
+			if constexpr (super::template member_Callback_of<Child>::callable)
 				return ((Child *)pThis)->Callback(msgid, wParam, lParam);
 		} catch (MSG) {}
 		return (INT_PTR)false;

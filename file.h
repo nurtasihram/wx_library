@@ -97,10 +97,10 @@ struct FileTime : protected FILETIME {
 	FileTime() : FILETIME{ 0 } {}
 	FileTime(const FILETIME &ft) : FILETIME(ft) {}
 	FileTime(LARGE_INTEGER li) { reuse_as<LARGE_INTEGER>(self) = li; }
-	FileTime(const SYSTEMTIME &st) assert(SystemTimeToFileTime(&st, this));
-	inline FileTime LocalTime() assert_reflect_to(FILETIME ft, FileTimeToLocalFileTime(this, &ft), ft);
-	inline operator SysTime() const assert_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
-	inline operator SYSTEMTIME() const assert_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
+	FileTime(const SYSTEMTIME &st) assertl(SystemTimeToFileTime(&st, this));
+	inline FileTime LocalTime() assertl_reflect_to(FILETIME ft, FileTimeToLocalFileTime(this, &ft), ft);
+	inline operator SysTime() const assertl_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
+	inline operator SYSTEMTIME() const assertl_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
 	inline operator LARGE_INTEGER() const reflect_as(force_cast<LARGE_INTEGER>(*this));
 	inline LPFILETIME operator &() reflect_as(this);
 	inline const FILETIME *operator &() const reflect_as(this);
@@ -172,7 +172,7 @@ public:
 		inline auto &OpenAlways() reflect_to_self(this->dwCreationDisposition = OPEN_ALWAYS);
 		inline auto &TruncateExisting() reflect_to_self(this->dwCreationDisposition = TRUNCATE_EXISTING);
 	public:
-		inline operator File() assert_reflect_as(auto h = CreateFile(lpFileName, dwDesiredAccess.yield(), dwShareMode.yield(), lpAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile), h);
+		inline operator File() assertl_reflect_as(auto h = CreateFile(lpFileName, dwDesiredAccess.yield(), dwShareMode.yield(), lpAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile), h);
 	};
 	static inline CreateStruct Create(LPCTSTR lpFileName) reflect_as(lpFileName);
 
@@ -194,7 +194,7 @@ public:
 		inline auto &Protect(PageProtect pa) reflect_to_self(this->flProtect = pa.yield());
 		inline auto &Name(LPCTSTR lpName) reflect_to_self(this->lpName = lpName);
 	public:
-		inline operator File() assert_reflect_as(auto h = CreateFileMapping(hFile, lpAttributes, flProtect, dwMaximumSizeHigh, dwMaximumSizeLow, lpName), h);
+		inline operator File() assertl_reflect_as(auto h = CreateFileMapping(hFile, lpAttributes, flProtect, dwMaximumSizeHigh, dwMaximumSizeLow, lpName), h);
 	};
 	inline MappingCreateStruct CreateMapping(LPCTSTR lpName, uint64_t size) reflect_as({ self, lpName, size });
 	inline MappingCreateStruct CreateMapping(uint64_t size) reflect_as({ self, O, size });
@@ -210,7 +210,7 @@ public:
 		inline auto &Inherit(bool bInheritHandle) reflect_to_self(this->bInheritHandle = bInheritHandle);
 		inline auto &Name(LPCTSTR lpName) reflect_to_self(this->lpName = lpName);
 	public:
-		inline operator File() assert_reflect_as(auto h = OpenFileMapping(dwDesiredAccess, bInheritHandle, lpName), h);
+		inline operator File() assertl_reflect_as(auto h = OpenFileMapping(dwDesiredAccess, bInheritHandle, lpName), h);
 	};
 	inline MappingOpenStruct OpenMapping(LPCTSTR lpName) reflect_as(lpName);
 
@@ -237,23 +237,23 @@ public:
 		inline auto &operator=(MapPointer &&m) reflect_to_self(std::swap(m.ptr, ptr));
 		inline auto &operator=(const MapPointer &m) const reflect_to_self(std::swap(m.ptr, ptr));
 	};
-	inline MapPointer MapView(MapAccess acs = MapAccess::All, uint64_t offset = 0, size_t size = 0) assert_reflect_as(auto p = MapViewOfFile(self, acs.yield(), (DWORD)(offset >> 32), (DWORD)offset, size), p);
+	inline MapPointer MapView(MapAccess acs = MapAccess::All, uint64_t offset = 0, size_t size = 0) assertl_reflect_as(auto p = MapViewOfFile(self, acs.yield(), (DWORD)(offset >> 32), (DWORD)offset, size), p);
 
 	static inline bool Delete(LPCTSTR lpFileName) reflect_as(DeleteFile(lpFileName));
 	static inline bool Copy(LPCTSTR lpExistingFileName, LPCTSTR lpNewFileName, bool bFailIfExists = false) reflect_as(CopyFile(lpExistingFileName, lpNewFileName, bFailIfExists));
 
-	inline DWORD Read(LPVOID lpBuffer, DWORD dwNumberOfBytesToRead) assert_reflect_as(ReadFile(self, lpBuffer, dwNumberOfBytesToRead, &dwNumberOfBytesToRead, O), dwNumberOfBytesToRead);
-	inline DWORD Write(LPCVOID lpBuffer, DWORD dwNumberOfBytesToRead) assert_reflect_as(WriteFile(self, lpBuffer, dwNumberOfBytesToRead, &dwNumberOfBytesToRead, O), dwNumberOfBytesToRead);
+	inline DWORD Read(LPVOID lpBuffer, DWORD dwNumberOfBytesToRead) assertl_reflect_as(ReadFile(self, lpBuffer, dwNumberOfBytesToRead, &dwNumberOfBytesToRead, O), dwNumberOfBytesToRead);
+	inline DWORD Write(LPCVOID lpBuffer, DWORD dwNumberOfBytesToRead) assertl_reflect_as(WriteFile(self, lpBuffer, dwNumberOfBytesToRead, &dwNumberOfBytesToRead, O), dwNumberOfBytesToRead);
 	
-	inline void Flush() assert_reflect_as(FlushFileBuffers(self));
+	inline void Flush() assertl_reflect_as(FlushFileBuffers(self));
 
 #pragma region Properties
 public: // Property - Size
-	/* W */ inline uint64_t Size() const assert_reflect_to(uint64_t size = 0, GetFileSizeEx(self, (PLARGE_INTEGER)&size), size);
+	/* W */ inline uint64_t Size() const assertl_reflect_to(uint64_t size = 0, GetFileSizeEx(self, (PLARGE_INTEGER)&size), size);
 public: // Property - Time
-	/* W */ inline FileTimes Times() const assert_reflect_to(FileTimes ts, GetFileTime(self, &ts.Creation, &ts.LastAccess, &ts.LastWrite), ts);
+	/* W */ inline FileTimes Times() const assertl_reflect_to(FileTimes ts, GetFileTime(self, &ts.Creation, &ts.LastAccess, &ts.LastWrite), ts);
 public: // Property - Type
-	/* W */ inline Types Type() const check_reflect_to(auto type = GetFileType(self), force_cast<Types>(type));
+	/* W */ inline Types Type() const nt_assertl_reflect_to(auto type = GetFileType(self), force_cast<Types>(type));
 #pragma endregion
 
 };
@@ -303,7 +303,7 @@ enum_class(CommEvent, DWORD,
 struct CommStates : protected DCB {
 	CommStates() : DCB{ 0 } reflect_to(DCBlength = sizeof(DCB); fBinary = 1);
 	CommStates(const DCB &dcb) : DCB{ dcb } {}
-	CommStates(LPCTSTR lpDef) : DCB{ 0 } assert_reflect_as(BuildCommDCB(lpDef, this));
+	CommStates(LPCTSTR lpDef) : DCB{ 0 } assertl_reflect_as(BuildCommDCB(lpDef, this));
 public: // Property - BaudRate
 	/* W */ inline auto &BaudRate(DWORD baudrate) reflect_to_self(DCB::BaudRate = baudrate);
 	/* R */ inline DWORD BaudRate() const reflect_as(DCB::BaudRate);
@@ -344,7 +344,7 @@ public: // Property - Null
 	/* W */ inline auto &Null(bool bNull) reflect_to_self(DCB::fNull = bNull);
 	/* R */ inline bool  Null() const reflect_as(DCB::fNull);
 public: // Property - AbortOnError
-	/* W */ inline auto &AbortOnError(bool bAbortOnError) reflect_to_self(DCB::fAbortOnError = bAbortOnError);
+	/* W */ inline auto &AbortOnError(bool bAbortCatch) reflect_to_self(DCB::fAbortOnError = bAbortCatch);
 	/* R */ inline bool  AbortOnError() const reflect_as(DCB::fAbortOnError);
 public: // Property - XonLim
 	/* W */ inline auto &XonLim(WORD xonlim) reflect_to_self(DCB::XonLim = xonlim);
@@ -411,7 +411,7 @@ public:
 		GetCommPorts(O, 0, &count);
 		if (!count) return {};
 		std::vector<ULONG> ports(count);
-		assert(GetCommPorts(ports.data(), count, &count) == ERROR_SUCCESS);
+		assertl(GetCommPorts(ports.data(), count, &count) == ERROR_SUCCESS);
 		return ports;
 	}
 
@@ -421,22 +421,22 @@ public:
 
 #endif
 
-	inline auto &Purge(CommClear clr) assert_reflect_as_self(PurgeComm(fCom, clr.yield()));
-	inline auto &Setup(DWORD dwInQueue, DWORD dwOutQueue) assert_reflect_as_self(SetupComm(fCom, dwInQueue, dwOutQueue));
+	inline auto &Purge(CommClear clr) assertl_reflect_as_self(PurgeComm(fCom, clr.yield()));
+	inline auto &Setup(DWORD dwInQueue, DWORD dwOutQueue) assertl_reflect_as_self(SetupComm(fCom, dwInQueue, dwOutQueue));
 
-	inline auto &TransmitChar(char cChar) assert_reflect_as_self(TransmitCommChar(fCom, cChar));
-	inline Event WaitEvents(LPOVERLAPPED lpOverlapped = O) assert_reflect_to(DWORD evt, WaitCommEvent(fCom, &evt, lpOverlapped), force_cast<Event>(evt));
+	inline auto &TransmitChar(char cChar) assertl_reflect_as_self(TransmitCommChar(fCom, cChar));
+	inline Event WaitEvents(LPOVERLAPPED lpOverlapped = O) assertl_reflect_to(DWORD evt, WaitCommEvent(fCom, &evt, lpOverlapped), force_cast<Event>(evt));
 
 #pragma region Properties
 public: // Property - State
-	/* W */ inline auto  &State(States status) assert_reflect_as_self(SetCommState(fCom, &status));
-	/* R */ inline States State() const assert_reflect_to(States dcb, GetCommState(fCom, &dcb), dcb);
+	/* W */ inline auto  &State(States status) assertl_reflect_as_self(SetCommState(fCom, &status));
+	/* R */ inline States State() const assertl_reflect_to(States dcb, GetCommState(fCom, &dcb), dcb);
 public: // Property - Timeouts
-	/* W */ inline auto   &Timeouts(Timeout to) assert_reflect_as_self(SetCommTimeouts(fCom, &to));
-	/* R */ inline Timeout Timeouts() const assert_reflect_to(Timeout to, GetCommTimeouts(fCom, &to), to);
+	/* W */ inline auto   &Timeouts(Timeout to) assertl_reflect_as_self(SetCommTimeouts(fCom, &to));
+	/* R */ inline Timeout Timeouts() const assertl_reflect_to(Timeout to, GetCommTimeouts(fCom, &to), to);
 public: // Property - Events
-	/* W */ inline auto &Events(Event evt) assert_reflect_as_self(SetCommMask(fCom, evt.yield()));
-	/* R */ inline Event Events() const assert_reflect_to(DWORD evt, GetCommMask(fCom, &evt), force_cast<Event>(evt));
+	/* W */ inline auto &Events(Event evt) assertl_reflect_as_self(SetCommMask(fCom, evt.yield()));
+	/* R */ inline Event Events() const assertl_reflect_to(DWORD evt, GetCommMask(fCom, &evt), force_cast<Event>(evt));
 public: // Property - Config
 #pragma endregion
 
