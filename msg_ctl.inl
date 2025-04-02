@@ -45,6 +45,8 @@
 	void, OnKillFocused, (), (),
 	(void)_SEND_(WM_USER + BN_KILLFOCUS, 0L, 0L),
 	((_CALL_(OnKillFocused))(), 0L))
+#elif !defined WX_LISTVIEW
+
 #endif
 
 #undef MSG_TRANS

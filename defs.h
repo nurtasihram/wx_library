@@ -794,17 +794,22 @@ public:
 	inline auto &ymove(LONG dy) reflect_to_self(bottom += dy, top += dy);
 	LRect &align(LAlign a, const LRect &r2);
 public:
-	inline auto &left_top(LPoint lt) reflect_to_self(left = lt.x, top = lt.y);
-
-public:
 	inline auto x0() const reflect_as(left);
 	inline auto y0() const reflect_as(top);
 	inline auto x1() const reflect_as(right);
 	inline auto y1() const reflect_as(bottom);
+public:
 	inline LPoint left_top()     const reflect_as({ left,  top });
-	inline LPoint left_bottom()  const reflect_as({ left,  bottom });
+	inline auto   &left_top(LPoint lt) reflect_to_self(left = lt.x, top = lt.y);
+public:
+	inline LPoint left_bottom()    const reflect_as({ left,  bottom });
+	inline auto  &left_bottom(LPoint lt) reflect_to_self(left = lt.x, bottom = lt.y);
+public:
 	inline LPoint right_top()    const reflect_as({ right, top });
+	inline auto  &right_top(LPoint rt) reflect_to_self(right = rt.x, top = rt.y);
+public:
 	inline LPoint right_bottom() const reflect_as({ right, bottom });
+	inline auto  &right_bottom(LPoint rb) reflect_to_self(right = rb.x, bottom = rb.y);
 public:
 	inline LRect  operator+ ()                const reflect_to_self();
 	inline LRect  operator- ()                const reflect_as({ -left,   -top, -right, -bottom });

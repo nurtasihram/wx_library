@@ -172,9 +172,13 @@ public: // Property - Point
 	/* W */ inline auto &Point(POINT pt) reflect_to_self(self->pt = pt);
 	/* R */ inline LPoint Point() const reflect_as(self->pt);
 public:
-	inline bool Get(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) nt_assertl_reflect_to(auto res = GetMessage(self, O, wMsgFilterMin, wMsgFilterMax), res);
-	inline bool Get(HWND hwnd, UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) nt_assertl_reflect_to(auto res = GetMessage(self, hwnd, wMsgFilterMin, wMsgFilterMax), res);
-	inline bool GetThread(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) nt_assertl_reflect_to(auto res = GetMessage(self, (HWND)-1, wMsgFilterMin, wMsgFilterMax), res);
+	inline bool Get(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_to(auto res = GetMessage(self, O, wMsgFilterMin, wMsgFilterMax), res);
+	inline bool Get(HWND hwnd, UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_to(auto res = GetMessage(self, hwnd, wMsgFilterMin, wMsgFilterMax), res);
+	inline bool GetThread(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_to(auto res = GetMessage(self, (HWND)-1, wMsgFilterMin, wMsgFilterMax), res);
+
+	inline bool GetSafe(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) nt_assertl_reflect_to(auto res = GetMessage(self, O, wMsgFilterMin, wMsgFilterMax), res);
+	inline bool GetSafe(HWND hwnd, UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) nt_assertl_reflect_to(auto res = GetMessage(self, hwnd, wMsgFilterMin, wMsgFilterMax), res);
+	inline bool GetThreadSafe(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) nt_assertl_reflect_to(auto res = GetMessage(self, (HWND)-1, wMsgFilterMin, wMsgFilterMax), res);
 
 	inline bool Translate() const reflect_as(TranslateMessage(self));
 	template<class RetType = LRESULT>
@@ -773,7 +777,7 @@ public:
 			ret(CallDefProc(hwnd, msgid, wparam, lparam))
 #include "msg.inl"
 	};
-	inline CallPack Call() reflect_as((HWND)self);
+	inline CallPack DefProcOf() reflect_as((HWND)self);
 #pragma endregion
 
 #pragma region Message System
@@ -1035,13 +1039,13 @@ template<class AnyChild> const String &&WindowBase<AnyChild>::_ClassName = Fits(
 
 class ConsoleCtl {
 protected:
-	File hIn, hOut, hErr;
+	HANDLE hIn = O, hOut = O, hErr = O;
 public:
 	ConsoleCtl(Null) {}
 	ConsoleCtl() :
-		hIn(force_cast<File>(GetStdHandle(STD_INPUT_HANDLE))),
-		hOut(force_cast<File>(GetStdHandle(STD_OUTPUT_HANDLE))),
-		hErr(force_cast<File>(GetStdHandle(STD_ERROR_HANDLE))) {}
+		hIn(GetStdHandle(STD_INPUT_HANDLE)),
+		hOut(GetStdHandle(STD_OUTPUT_HANDLE)),
+		hErr(GetStdHandle(STD_ERROR_HANDLE)) {}
 	ConsoleCtl(DWORD pid) reflect_to(Attach(pid));
 	~ConsoleCtl() reflect_to(Free());
 

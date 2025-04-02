@@ -6,6 +6,75 @@
 
 namespace WX {
 
+#if 0
+#pragma region ImageList
+class ImageList : public RefStruct<HIMAGELIST> {
+	using super = RefStruct<HIMAGELIST>;
+protected:
+	friend union RefAs<Bitmap>;
+	ImageList(HIMAGELIST h) : super(h) {}
+	ImageList(const ImageList &b) : super(b) {}
+public:
+	ImageList() {}
+	ImageList(Null) {}
+public:
+	~ImageList() reflect_to(Destroy());
+public:
+	class CreateStruct {
+		int cx = 0, cy = 0;
+		UINT flags = 0;
+		int cInitial = 0;
+		int cGrow = 0;
+	public:
+		CreateStruct(LSize sz) : cx(sz.cx), cy(sz.cy) {}
+	public: // Property - Size
+		/* W */ inline auto &Size(LSize sz) reflect_to_self(cx = sz.cx, cy = sz.cy);
+		/* R */ inline LSize Size() const reflect_as({ cx, cy });
+		//	public: // Property - 
+	public:
+		operator ImageList() const assertl_reflect_as(auto h = ImageList_Create(cx, cy, flags, cInitial, cGrow), h);
+	};
+	static inline CreateStruct Create(LSize s = 0) reflect_as(s);
+	inline void Destroy() {
+		if (self) {
+			ImageList_Destroy(self);
+			(HIMAGELIST &)self = O;
+		}
+	}
+public:
+	inline int Add(HBITMAP hbmImage, HBITMAP hbmMask) reflect_as(ImageList_Add(self, hbmImage, hbmMask));
+	inline int Add(HICON hicon) reflect_as(ImageList_AddIcon(self, hicon));
+	inline int Replace(int i, HICON hicon) reflect_as(ImageList_ReplaceIcon(self, i, hicon));
+	inline bool Replace(int i, HBITMAP hbmImage, HBITMAP hbmMask) reflect_as(ImageList_Replace(self, i, hbmImage, hbmMask));
+	inline bool Remove(int i) reflect_as(ImageList_Remove(self, i));
+
+	inline bool Overlay(int iImage, int iOverlay) reflect_as(ImageList_SetOverlayImage(self, iImage, iOverlay));
+
+	//inline bool Draw(int i, HDC hdcDst, int x, int y, UINT fStyle) reflect_as(ImageList_Draw(self, i, hdcDst, x, y, fStyle));
+	//inline bool ImageList_DrawEx(int i, HDC hdcDst, int x, int y, int dx, int dy, COLORREF rgbBk, COLORREF rgbFg, UINT fStyle);
+	//inline bool ImageList_DrawIndirect(IMAGELISTDRAWPARAMS *pimldp);
+
+	///int         WINAPI ImageList_AddMasked(_In_ HIMAGELIST himl, _In_ HBITMAP hbmImage, _In_ COLORREF crMask);
+	//HIMAGELIST  WINAPI ImageList_LoadImageA(HINSTANCE hi, LPCSTR lpbmp, int cx, int cGrow, COLORREF crMask, UINT uType, UINT uFlags);
+	//HIMAGELIST  WINAPI ImageList_LoadImageW(HINSTANCE hi, LPCWSTR lpbmp, int cx, int cGrow, COLORREF crMask, UINT uType, UINT uFlags);
+
+
+#define     ImageList_AddIcon(himl, hicon) ImageList_ReplaceIcon(himl, -1, hicon)
+
+public: // Property - Count
+	/* W */ inline auto &Count(UINT nNewCount) assertl_reflect_as_self(ImageList_SetImageCount(self, nNewCount));
+	/* R */ inline UINT Count() const reflect_as(ImageList_GetImageCount(self));
+public: // Property - BkColor
+	/* W */ inline auto &BkColor(COLORREF clrBk) reflect_to_self(ImageList_SetBkColor(self, clrBk));
+	/* R */ inline auto BkColor() reflect_as(ImageList_GetBkColor(self));
+public: // Property - Icon
+//	/* R */ inline ::CIcon Icon(int i, UINT flags) reflect_as(ImageList_GetIcon(self, i, flags));
+public:
+	inline operator HIMAGELIST() const reflect_to_self();
+};
+#pragma endregion
+#endif
+
 #pragma region CommCtl
 template<class AnyChild>
 class CommCtl : public ChainExtend<CommCtl<AnyChild>, AnyChild>,
@@ -583,6 +652,140 @@ public:
 
 public: // Property - Count
 	/* R */ inline UINT Count() const reflect_as(super::Send(TB_BUTTONCOUNT));
+};
+#pragma endregion
+
+#pragma region ListView
+enum_flags(ListViewStyle, WStyle,
+	Icon                = LVS_ICON,
+	Report              = LVS_REPORT,
+	SmallIcon           = LVS_SMALLICON,
+	List                = LVS_LIST,
+	TypeMask            = LVS_TYPEMASK,
+	SingleSel           = LVS_SINGLESEL,
+	ShowSelAlways       = LVS_SHOWSELALWAYS,
+	SortAscending       = LVS_SORTASCENDING,
+	SortDescending      = LVS_SORTDESCENDING,
+	ShareImageLists     = LVS_SHAREIMAGELISTS,
+	NoLabelWrap         = LVS_NOLABELWRAP,
+	AutoArrange         = LVS_AUTOARRANGE,
+	EditLabels          = LVS_EDITLABELS,
+	OwnerData           = LVS_OWNERDATA,
+	NoScroll            = LVS_NOSCROLL,
+	TypeStyleMask       = LVS_TYPESTYLEMASK,
+	AlignTop            = LVS_ALIGNTOP,
+	AlignLeft           = LVS_ALIGNLEFT,
+	AlignMask           = LVS_ALIGNMASK,
+	OwnerDrawFixed      = LVS_OWNERDRAWFIXED,
+	NoColumnHeader      = LVS_NOCOLUMNHEADER,
+	NoSortHeader        = LVS_NOSORTHEADER);
+struct ListViewIndex : LVFINDINFO {
+	UINT flags;
+	LPCSTR psz;
+	LPARAM lParam;
+	POINT pt;
+	UINT vkDirection;
+};
+struct ListViewItem : public RefStruct<LVITEM> {
+public:
+	ListViewItem() {}
+	ListViewItem(const LVITEM &lvi) : RefStruct<LVITEM>(lvi) {}
+public: // mask;
+public: // iItem;
+public: // iSubItem;
+public: // state;
+public: // stateMask;
+public: // pszText; cchTextMax;
+public: // iImage;
+public: // lParam;
+public: // iIndent;
+public: // iGroupId;
+public: // cColumns; // tile view columns
+public: // puColumns;
+public: // piColFmt;
+public: // iGroup; RO
+};
+struct ListViewColumn : public RefStruct<LVCOLUMNW> {
+public:
+	ListViewColumn() {}
+	ListViewColumn(const LVCOLUMNW &lvc) : RefStruct<LVCOLUMNW>(lvc) {}
+public: // mask;
+public: // fmt;
+public: // cx;
+public: // pszText; cchTextMax;
+public: // iSubItem;
+public: // iImage;
+public: // iOrder;
+public: // cxMin; // min snap point
+public: // cxDefault; // default snap point
+public: // cxIdeal; // read only. ideal may not eqaul current width if auto sized (LVS_EX_AUTOSIZECOLUMNS) to a lesser width.
+};
+template<class AnyChild>
+class ListViewBase;
+using ListView = ListViewBase<void>;
+BaseOf_CommCtl(class ListViewBase) {
+	protected:
+	SFINAE_CommCtl(ListViewBase);
+	def_memberof(wmailBox);
+	static constexpr auto CtlClassName = WC_LISTVIEW;
+public:
+	using super = CommCtl<KChain<ListViewBase<AnyChild>, AnyChild>>;
+	using Style = ListViewStyle;
+public:
+	ListViewBase() {}
+
+//#pragma region Callback
+//protected:
+//#define MSG_TRANS(msgid, ret, name, ...) \
+//	def_memberof(name);
+//#define WX_BUTTON
+//#include "msg_ctl.inl"
+//	inline LRESULT Callback(UINT msgid, WPARAM wParam, LPARAM lParam) {
+//		switch (msgid) {
+//			case WM_NULL:
+//				break;
+//#define _CALL_(name) child.name
+//#define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
+//			case msgid: \
+//				if constexpr (member_##name##_of<AnyChild>::callable) { \
+//					using fn_type = ret argslist; \
+//					misdef_assert(member_##name##_of<AnyChild>:: \
+//						template compatible_to<fn_type>, \
+//						"Member " #name " must be a method compatible to " #ret #argslist); \
+//					return call; \
+//				} break;
+//#define WX_LISTVIEW
+//#include "msg_ctl.inl"
+//		}
+//		if constexpr (member_wmailBox_of<AnyChild>::callable) {
+//			LRESULT res;
+//			if (static_cast<AnyChild * >(this)->wmailBox(res, msgid, wParam, lParam))
+//				return res;
+//		}
+//		return super::HandleNext();
+//	}
+//#pragma endregion
+
+public:
+
+	inline void InsertItem(const ListViewItem &lvi) assertl_reflect_as(ListView_InsertItem(self, &lvi));
+	inline void DeleteItem(int i) assertl_reflect_as(ListView_DeleteItem(self, i));
+	inline void DeleteAllItem()  assertl_reflect_as(ListView_DeleteAllItems(self));
+
+#pragma region Properties
+public: // Property - UnicodeFormat
+	/* W */ inline bool UnicodeFormat() const reflect_as(ListView_GetUnicodeFormat(self));
+	/* R */ inline auto &UnicodeFormat(bool bUnicode) assertl_reflect_as_child(ListView_SetUnicodeFormat(self, bUnicode));
+public: // Property - BkColor
+	/* W */ inline auto &BkColor(DWORD rgb) assertl_reflect_as_child(ListView_SetBkColor(self, rgb));
+	/* R */ inline bool BkColor() const reflect_as(ListView_GetBkColor(self));
+public: // Property - ImageList
+public: // Property - ItemCount
+	/* R */ inline auto ItemCount() const reflect_as(ListView_GetItemCount(self));
+public: // Property - Item
+	/* W */ inline auto &Item(const ListViewItem &lvi) assertl_reflect_as_child(ListView_SetItem(self, &lvi));
+	/* R */ inline auto Item() const assertl_reflect_to(ListViewItem lvi, ListView_GetItem(self, &lvi), lvi);
+#pragma endregion
 };
 #pragma endregion
 

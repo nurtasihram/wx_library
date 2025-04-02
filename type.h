@@ -6,15 +6,15 @@ namespace WX {
 
 #pragma region HandleBase
 enum_flags(HandleAccess, DWORD,
-	Delete             = DELETE,
-	ReadCtl            = READ_CONTROL,
-	WriteDAC           = WRITE_DAC,
-	WriteOwner         = WRITE_OWNER,
-	Sync               = SYNCHRONIZE,
-	GenericRead        = GENERIC_READ,
-	GenericWrite       = GENERIC_WRITE,
-	GenericExecute     = GENERIC_EXECUTE,
-	GenericAll         = GENERIC_ALL);
+		   Delete = DELETE,
+		   ReadCtl = READ_CONTROL,
+		   WriteDAC = WRITE_DAC,
+		   WriteOwner = WRITE_OWNER,
+		   Sync = SYNCHRONIZE,
+		   GenericRead = GENERIC_READ,
+		   GenericWrite = GENERIC_WRITE,
+		   GenericExecute = GENERIC_EXECUTE,
+		   GenericAll = GENERIC_ALL);
 template<class AnyChild>
 class HandleBase;
 using Handle = HandleBase<void>;
@@ -86,7 +86,7 @@ public:
 
 public: // Property - Information
 	/* W */ inline auto &Information(DWORD dwMask, DWORD dwFlags) assertl_reflect_as_child(SetHandleInformation(self, dwMask, dwFlags));
-	/* R */ inline DWORD Information(DWORD dwMask) const assertl_reflect_to(DWORD dwFlags = 0, GetHandleInformation(self, &dwFlags), dwFlags & dwMask);
+	/* R */ inline DWORD Information(DWORD dwMask) const assertl_reflect_to(DWORD dwFlags = 0, GetHandleInformation(self, &dwFlags), dwFlags &dwMask);
 public: // Property - Inherit
 	/* W */ inline auto &Inherit(bool bInherit) reflect_to_child(Information(HANDLE_FLAG_INHERIT, bInherit ? HANDLE_FLAG_INHERIT : 0));
 	/* R */ inline bool  Inherit() const reflect_as(Information(HANDLE_FLAG_INHERIT));
@@ -94,7 +94,7 @@ public: // Property - ProtectFromClose
 	/* W */ inline auto &ProtectFromClose(bool bProtected) reflect_to_child(Information(HANDLE_FLAG_PROTECT_FROM_CLOSE, bProtected ? HANDLE_FLAG_PROTECT_FROM_CLOSE : 0));
 	/* R */ inline bool  ProtectFromClose() const reflect_as(Information(HANDLE_FLAG_PROTECT_FROM_CLOSE));
 
-	inline operator bool() const reflect_as(hObject && hObject != INVALID_HANDLE_VALUE);
+	inline operator bool() const reflect_as(hObject &&hObject != INVALID_HANDLE_VALUE);
 	inline operator HANDLE() const reflect_as(hObject);
 	inline operator const Handle() const reflect_as(reuse_as<Handle>(self));
 
@@ -112,10 +112,10 @@ public: // Property - ProtectFromClose
 
 #pragma region Local
 enum_flags(LocalAllocFlags, UINT,
-	enum_default Fixed = LMEM_FIXED,
-	Modify   = LMEM_MODIFY,
-	Moveable = LMEM_MOVEABLE,
-	ZeroInit = LMEM_ZEROINIT);
+		   enum_default Fixed = LMEM_FIXED,
+		   Modify = LMEM_MODIFY,
+		   Moveable = LMEM_MOVEABLE,
+		   ZeroInit = LMEM_ZEROINIT);
 using LAF = LocalAllocFlags;
 class Local {
 public:
@@ -156,10 +156,10 @@ public:
 	inline LPHEAP_SUMMARY operator&() reflect_as(this);
 };
 enum_flags(HeapAllocFlag, UINT,
-	enum_default Fixed = 0,
-	GenerateExceptions = HEAP_GENERATE_EXCEPTIONS,
-	NoSerialize = HEAP_NO_SERIALIZE,
-	ZeroInit = HEAP_ZERO_MEMORY);
+		   enum_default Fixed = 0,
+		   GenerateExceptions = HEAP_GENERATE_EXCEPTIONS,
+		   NoSerialize = HEAP_NO_SERIALIZE,
+		   ZeroInit = HEAP_ZERO_MEMORY);
 using HAF = HeapAllocFlag;
 class Heap;
 using CHeap = RefAs<Heap>;
@@ -173,8 +173,8 @@ public:
 
 	Heap() : super(GetProcessHeap()) {}
 	Heap(Null) {}
-	Heap(Heap &h) : super(h) {}
-	Heap(Heap &&h) : super(h) {}
+	Heap(Heap & h) : super(h) {}
+	Heap(Heap && h) : super(h) {}
 	Heap(const Heap &) = delete;
 	~Heap() reflect_to(Destroy());
 
@@ -277,19 +277,19 @@ constexpr UINT MaxLenNotice = 32767;
 
 #pragma region String
 
-enum_class(CodePages, UINT, 
-	Active       = CP_ACP,
-	OEM          = CP_OEMCP,
-	Macintosh    = CP_MACCP,
-	ThreadActive = CP_THREAD_ACP,
-	Symbol       = CP_SYMBOL,
-	UTF7         = CP_UTF7,
-	UTF8         = CP_UTF8);
+enum_class(CodePages, UINT,
+		   Active = CP_ACP,
+		   OEM = CP_OEMCP,
+		   Macintosh = CP_MACCP,
+		   ThreadActive = CP_THREAD_ACP,
+		   Symbol = CP_SYMBOL,
+		   UTF7 = CP_UTF7,
+		   UTF8 = CP_UTF8);
 enum StrFlags : size_t {
-	STR_DEF      = 0,
+	STR_DEF = 0,
 	STR_READONLY = 1,
-	STR_MOVABLE  = 2,
-	STR_RELEASE  = 4
+	STR_MOVABLE = 2,
+	STR_RELEASE = 4
 };
 
 template<class CharType> String Fits(const CharType *lpString, size_t MaxLen, CodePages cp = CodePages::Active);
@@ -307,7 +307,7 @@ inline size_t Length(const CharType *lpString, size_t MaxLen) {
 template<class CharType>
 class StringBase {
 	mutable CharType *lpsz = O;
-	mutable size_t Len : sizeof(void*) * 8 - 3;
+	mutable size_t Len : sizeof(void *) * 8 - 3;
 	mutable size_t Flags : 3;
 private:
 	template<class _CharType>
@@ -375,7 +375,7 @@ public:
 	}
 
 	inline const StringBase str_safe() const { ///////////////////
-//		if (!Len || !lpsz) return _T("");
+		//		if (!Len || !lpsz) return _T("");
 		if (!lpsz[Len]) return &*this;
 		return +*this;
 	}
@@ -385,9 +385,9 @@ public:
 	inline CharType *begin() reflect_as(Len ? lpsz : O);
 	inline CharType *end() reflect_as(Len &&lpsz ? lpsz + Len : O);
 	inline const CharType *begin() const reflect_as(Len ? lpsz : O);
-	inline const CharType *end() const reflect_as(Len && lpsz ? lpsz + Len : O);
+	inline const CharType *end() const reflect_as(Len &&lpsz ? lpsz + Len : O);
 public:
-	inline operator bool() const reflect_as(lpsz && Len);
+	inline operator bool() const reflect_as(lpsz &&Len);
 	inline operator CharType *() {
 		if (!(Flags & STR_MOVABLE))
 			self = +self;
@@ -737,7 +737,7 @@ private:
 private:
 	inline uint8_t _radix() const reflect_as(radix_type == Rad::Dec ? 10 : (2 << (uint8_t)radix_type));
 	inline TCHAR _alfa_char() const reflect_as((alfa_type == Cap::Big ? _T('A') : _T('a')) - 10);
-	inline auto _push(uintptr_t uint_part, LPTSTR hpBuffer, 
+	inline auto _push(uintptr_t uint_part, LPTSTR hpBuffer,
 					  uint8_t radix, TCHAR alfa,
 					  bool neg) const {
 		auto lpBuffer = __push(uint_part, hpBuffer, alfa, radix, int_trunc ? int_calign : 32);
@@ -750,9 +750,9 @@ private:
 		}
 		if (neg)
 			*--lpBuffer = _T('-');
-		elif (symbol == Symbol::Pos) 
+		elif(symbol == Symbol::Pos)
 			*--lpBuffer = _T('+');
-		elif (symbol == Symbol::Space)
+		elif(symbol == Symbol::Space)
 			*--lpBuffer = _T(' ');
 		if (right_dir)
 			while (int_len++ < int_calign)
@@ -859,6 +859,17 @@ template<size_t len>
 inline String Cats(const TCHAR(&Chars)[len]) reflect_as(Chars);
 template<class... Args>
 inline String Cats(const Args& ...args) reflect_as(_Cats(Cats(args)...));
+
+static constexpr size_t Len_sprintf_buff = 1024;
+inline String sprintf(LPCTSTR lpszFormat, ...) {
+	va_list argList;
+	va_start(argList, lpszFormat);
+	TCHAR buff[Len_sprintf_buff];
+	size_t remain = 0;
+	assertl(SUCCEEDED(StringCchVPrintfEx(buff, Len_sprintf_buff, O, &remain, STRSAFE_NULL_ON_FAILURE, lpszFormat, argList)));
+	va_end(argList);
+	return +CString(buff, Len_sprintf_buff - remain + 1);
+}
 
 inline const String Exception::File() const reflect_as(CString(szFile, lpszFile));
 inline const String Exception::Function() const reflect_as(CString(szFunc, lpszFunc));;
