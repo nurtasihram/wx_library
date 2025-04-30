@@ -410,9 +410,12 @@ public: // Property - Int
 		assertl(lpTranslated);
 		return val;
 	}
+public: // Property - CheckButton
+	/* W */ inline auto &CheckButton(bool bCheck) assertl_reflect_as_self(CheckDlgButton(hDlg, nIDDlgItem, bCheck ? BST_CHECKED : BST_UNCHECKED));
+	/* R */ inline bool CheckButton() const reflect_as(IsDlgButtonChecked(hDlg, nIDDlgItem) == BST_CHECKED);
 public:
 	template<class AnyWindow>
-	inline operator AnyWindow();
+	inline operator AnyWindow() reflect_as(force_cast<AnyWindow>(GetDlgItem(hDlg, nIDDlgItem)));
 };
 template<class AnyChild>
 class DialogBase : public WindowBase<AnyChild> {
@@ -426,18 +429,33 @@ public:
 	DialogBase() {}
 
 	inline INT_PTR Box(HWND hParent = NULL, HINSTANCE hInst = GetModuleHandle(O)) {
-		static_assert(member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>);
-		return DialogBoxIndirectParamW(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this);
+		if constexpr (member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>)
+			return DialogBoxIndirectParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this);
+		else if constexpr (member_Forming_of<Child>::template compatible_to<LPCTSTR()>)
+			return DialogBoxParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this);
+		else {
+			static_assert(member_Forming_of<Child>::template compatible_to<UINT()>, "requires a valid template");
+			return DialogBoxParam(hInst, MAKEINTRESOURCE(child.Forming()), hParent, DlgProc, (LPARAM)this);
+		}
 	}
 	inline auto&Create(HWND hParent = NULL, HINSTANCE hInst = GetModuleHandle(O)) {
-		static_assert(member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>);
-		assertl(CreateDialogIndirectParamW(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this));
+		if constexpr (member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>)
+			assertl(CreateDialogIndirectParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this))
+		else if constexpr (member_Forming_of<Child>::template compatible_to<LPCTSTR()>)
+			assertl(CreateDialogParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this))
+		else {
+			static_assert(member_Forming_of<Child>::template compatible_to<UINT()>, "requires a valid template");
+			assertl(CreateDialogParam(hInst, MAKEINTRESOURCE(child.Forming()), hParent, DlgProc, (LPARAM)this));
+		}
 		retchild;
 	}
 
 	inline auto&End(INT_PTR nResult) reflect_to_child(::EndDialog(self, nResult));
 
 	inline DialogItem Item(int nIDDlgItem) reflect_as({ self, nIDDlgItem });
+
+	template<class AnyWindow>
+	inline AnyWindow Item(int nIDDlgItem) reflect_as(GetDlgItem(self, nIDDlgItem));
 
 protected:
 	static INT_PTR CALLBACK DlgProc(HWND hDlg, UINT msgid, WPARAM wParam, LPARAM lParam) {

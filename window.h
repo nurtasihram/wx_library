@@ -7,6 +7,15 @@
 
 namespace WX {
 
+struct KEY_FLAGS {
+	uint16_t wScanCode : 8;
+	uint16_t bExtend : 1;
+	uint16_t ___reserved : 4;
+	uint16_t bContext : 1;
+	uint16_t bPrevious : 1;
+	uint16_t bTranslated : 1;
+};
+
 #pragma region WindowBase
 
 template<class AnyChild>
@@ -310,7 +319,8 @@ template<class = void>
 class ClassExBase;
 using ClassEx = ClassExBase<>;
 template<class AnyChild>
-class ClassExBase : public RefStruct<WNDCLASSEX>,
+class ClassExBase :
+	public RefStruct<WNDCLASSEX>,
 	public ChainExtend<ClassExBase<AnyChild>, AnyChild> {
 public:
 	using Child = KChain<ClassExBase, AnyChild>;
@@ -1037,17 +1047,17 @@ template<class AnyChild> const String &&WindowBase<AnyChild>::_ClassName = Fits(
 #define WxClass() public: struct xClass : ClassExBase<xClass>
 #pragma endregion
 
-class ConsoleCtl {
+template<class AnyChild = void>
+class ConsoleItf : public ChainExtend<ConsoleItf<AnyChild>, AnyChild> {
 protected:
 	HANDLE hIn = O, hOut = O, hErr = O;
 public:
-	ConsoleCtl(Null) {}
-	ConsoleCtl() :
+	ConsoleItf(Null) {}
+	ConsoleItf() :
 		hIn(GetStdHandle(STD_INPUT_HANDLE)),
 		hOut(GetStdHandle(STD_OUTPUT_HANDLE)),
 		hErr(GetStdHandle(STD_ERROR_HANDLE)) {}
-	ConsoleCtl(DWORD pid) reflect_to(Attach(pid));
-	~ConsoleCtl() reflect_to(Free());
+	ConsoleItf(DWORD pid) reflect_to(Attach(pid));
 
 	inline void Select() {
 		hIn = force_cast<File>(GetStdHandle(STD_INPUT_HANDLE));
@@ -1073,7 +1083,7 @@ public: // Property - Attr
 	/* W */ inline auto &Attr(WORD wAttr) assertl_reflect_as_self(SetConsoleTextAttribute(hOut, wAttr));
 	/* R */ inline WORD  Attr() const assertl_reflect_to(CONSOLE_SCREEN_BUFFER_INFO csbi, GetConsoleScreenBufferInfo(hOut, &csbi), csbi.wAttributes);
 public: // Property - Title
-	/* W */ inline auto  &Title(LPCTSTR lpTitle) assertl_reflect_as_self(SetConsoleTitle(lpTitle));
+	/* W */ inline auto &Title(LPCTSTR lpTitle) assertl_reflect_as_self(SetConsoleTitle(lpTitle));
 	/* R */ inline String Title() const {
 		String title((size_t)MaxLenTitle);
 		int len = GetConsoleTitle(title, MaxLenTitle + 1);
@@ -1082,7 +1092,7 @@ public: // Property - Title
 		return title;
 	}
 public: // Property - CurPos
-	/* W */ inline auto  &CurPos(LPoint p) assertl_reflect_as_self(SetConsoleCursorPosition(hOut, COORD({ (short)p.x, (short)p.y })));
+	/* W */ inline auto &CurPos(LPoint p) assertl_reflect_as_self(SetConsoleCursorPosition(hOut, COORD({ (short)p.x, (short)p.y })));
 	/* R */ inline LPoint CurPos() const assertl_reflect_to(CONSOLE_SCREEN_BUFFER_INFO csbi, GetConsoleScreenBufferInfo(hOut, &csbi), { csbi.dwCursorPosition.X, csbi.dwCursorPosition.Y });
 public: // Property - CurVis
 	/* W */ inline auto &CurVis(bool bVisible) assertl_reflect_to_self(CONSOLE_CURSOR_INFO cci({ 0 }); cci.bVisible = bVisible, SetConsoleCursorInfo(hOut, &cci));
@@ -1108,6 +1118,13 @@ public:
 	inline auto &operator()(const Args& ...args) reflect_to_self(Log(Cats(args...)));
 #pragma endregion
 
-} static inline Console;
+};
+
+static inline ConsoleItf<> Console;
+
+class ConsoleCtl : public ConsoleItf<ConsoleCtl> {
+public:
+	~ConsoleCtl() reflect_to(Free());
+};
 
 }

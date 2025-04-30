@@ -160,7 +160,8 @@ protected:
 	SFINAE_CommCtl(StaticBase);
 	static constexpr auto CtlClassName = WC_STATIC;
 public:
-	using super = CommCtl<KChain<StaticBase<AnyChild>, AnyChild>>;
+	using Child = KChain<StaticBase<AnyChild>, AnyChild>;
+	using super = CommCtl<Child>;
 	using Style = StaticStyle;
 public:
 	StaticBase() {}
@@ -268,7 +269,8 @@ protected:
 	def_memberof(wmailBox);
 	static constexpr auto CtlClassName = WC_BUTTON;
 public:
-	using super = CommCtl<KChain<ButtonBase<AnyChild>, AnyChild>>;
+	using Child = KChain<ButtonBase<AnyChild>, AnyChild>;
+	using super = CommCtl<Child>;
 	using Style = ButtonStyle;
 	using State = ButtonState;
 	using BSplitInfo = ButtonSplitInfo;
@@ -312,7 +314,7 @@ protected:
 public: // Property - IdealSize
 	/* R */ inline LSize IdealSize() const assertl_reflect_to(LSize sz, Button_GetIdealSize(self, &sz), sz);
 public: // Property - Note // style with BS_COMMANDLINK only
-	/* W */ inline auto  &Note(LPCTSTR lpszNote) assertl_reflect_as_child(Button_SetNote(self, lpszNote));
+	/* W */ inline auto  &Note(LPCTSTR lpszNote) assertl_reflect_as_self(Button_SetNote(self, lpszNote));
 	/* R */ inline String Note() const {
 		auto len = Button_GetNoteLength(self);
 		if (len <= 0) return O;
@@ -321,27 +323,27 @@ public: // Property - Note // style with BS_COMMANDLINK only
 		return note;
 	}
 public: // Property - TextMargin
-	/* W */ inline auto &TextMargin(RECT margin) assertl_reflect_as_child(Button_SetTextMargin(self, &margin));
+	/* W */ inline auto &TextMargin(RECT margin) assertl_reflect_as_self(Button_SetTextMargin(self, &margin));
 	/* R */ inline LRect TextMargin() const assertl_reflect_to(LRect rc, Button_GetTextMargin(self, &rc), rc);
 public: // Property - SplitInfo
-	/* W */ inline auto      &SplitInfo(BUTTON_SPLITINFO bsp) assertl_reflect_as_child(Button_SetSplitInfo(self, &bsp));
+	/* W */ inline auto      &SplitInfo(BUTTON_SPLITINFO bsp) assertl_reflect_as_self(Button_SetSplitInfo(self, &bsp));
 	/* R */ inline BSplitInfo SplitInfo() const assertl_reflect_to(BSplitInfo bsp, Button_GetSplitInfo(self, &bsp), bsp);
 public: // Property - ImageList
-	/* W */ inline auto      &ImageList(BUTTON_IMAGELIST &iml) assertl_reflect_as_child(Button_SetImageList(self, &iml));
+	/* W */ inline auto      &ImageList(BUTTON_IMAGELIST &iml) assertl_reflect_as_self(Button_SetImageList(self, &iml));
 	/* R */ inline BImageList ImageList() const assertl_reflect_to(BImageList iml, Button_GetImageList(self, &iml), iml);
 //public: // Property - Image
-//	/* W */ inline auto &Image() reflect_to_child(super::Send(BM_SETIMAGE));
+//	/* W */ inline auto &Image() reflect_to_self(super::Send(BM_SETIMAGE));
 //	/* R */ inline auto &Image() const {}
 public: // Property - Check
-	/* W */ inline auto &Check(State s) reflect_to_child(super::Send(BM_SETCHECK, s.yield()));
+	/* W */ inline auto &Check(State s) reflect_to_self(super::Send(BM_SETCHECK, s.yield()));
 	/* R */ inline State Check() const reflect_as(super::template Send<State>(BM_GETCHECK));
 public: // Property - States
-	/* W */ inline auto &States(State s) reflect_to_child(super::Send(BM_SETSTATE, s.yield()));
+	/* W */ inline auto &States(State s) reflect_to_self(super::Send(BM_SETSTATE, s.yield()));
 	/* R */ inline State States() const reflect_as(super::template Send<State>(BM_GETSTATE));
 public: // Property - Styles
-	/* W */ inline auto &Styles(Style style, bool bRedraw = true) reflect_to_child(super::Send(BM_SETSTYLE, style.yield(), bRedraw));
+	/* W */ inline auto &Styles(Style style, bool bRedraw = true) reflect_to_self(super::Send(BM_SETSTYLE, style.yield(), bRedraw));
 public: // Property - DontClick
-	/* W */ inline auto &DontClick(bool bDontClick) reflect_to_child(super::Send(BM_SETDONTCLICK, bDontClick));
+	/* W */ inline auto &DontClick(bool bDontClick) reflect_to_self(super::Send(BM_SETDONTCLICK, bDontClick));
 #pragma endregion
 };
 #pragma endregion
@@ -775,15 +777,15 @@ public:
 #pragma region Properties
 public: // Property - UnicodeFormat
 	/* W */ inline bool UnicodeFormat() const reflect_as(ListView_GetUnicodeFormat(self));
-	/* R */ inline auto &UnicodeFormat(bool bUnicode) assertl_reflect_as_child(ListView_SetUnicodeFormat(self, bUnicode));
+	/* R */ inline auto &UnicodeFormat(bool bUnicode) assertl_reflect_as_self(ListView_SetUnicodeFormat(self, bUnicode));
 public: // Property - BkColor
-	/* W */ inline auto &BkColor(DWORD rgb) assertl_reflect_as_child(ListView_SetBkColor(self, rgb));
+	/* W */ inline auto &BkColor(DWORD rgb) assertl_reflect_as_self(ListView_SetBkColor(self, rgb));
 	/* R */ inline bool BkColor() const reflect_as(ListView_GetBkColor(self));
 public: // Property - ImageList
 public: // Property - ItemCount
 	/* R */ inline auto ItemCount() const reflect_as(ListView_GetItemCount(self));
 public: // Property - Item
-	/* W */ inline auto &Item(const ListViewItem &lvi) assertl_reflect_as_child(ListView_SetItem(self, &lvi));
+	/* W */ inline auto &Item(const ListViewItem &lvi) assertl_reflect_as_self(ListView_SetItem(self, &lvi));
 	/* R */ inline auto Item() const assertl_reflect_to(ListViewItem lvi, ListView_GetItem(self, &lvi), lvi);
 #pragma endregion
 };
@@ -996,11 +998,11 @@ public: // Property - BandCount
 	/* R */ inline UINT  BandCount() const reflect_as(super::template Send<UINT>(RB_GETBANDCOUNT));
 
 #pragma region Band
-	inline void  BandDelete(UINT ind) assertl_reflect_as_child(super::Send(RB_DELETEBAND, ind));
+	inline void  BandDelete(UINT ind) assertl_reflect_as_self(super::Send(RB_DELETEBAND, ind));
 	inline auto &BandMinimize(UINT ind) reflect_to_child(super::Send(RB_MINIMIZEBAND, ind));
 	inline auto &BandMaximize(UINT ind) reflect_to_child(super::Send(RB_MAXIMIZEBAND, ind));
 public: // Property - BandVisible
-	/* R */ inline auto &BandVisible(UINT ind, bool bVisible) assertl_reflect_as_child(super::template Send<bool>(RB_SHOWBAND, ind, bVisible));
+	/* R */ inline auto &BandVisible(UINT ind, bool bVisible) assertl_reflect_as_self(super::template Send<bool>(RB_SHOWBAND, ind, bVisible));
 //public: // Property - BandInfo
 //	/* W */ inline bool  BandInfo(UINT ind); // RB_SETBANDINFO
 //	/* R */ inline bool  BandInfo(UINT ind) const; // RB_GETBANDINFO
@@ -1009,7 +1011,7 @@ public: // Property - BandBorders
 public: // Property - BandMargins
 	/* R */ inline LRect BandMargins(UINT ind) const reflect_to(LRect rc; super::Send(RB_GETBANDMARGINS, ind, &rc), rc);
 public: // Property - BandWidth
-	/* W */ inline auto &BandWidth(UINT ind, UINT width) assertl_reflect_as_child(super::template Send<bool>(RB_SETBANDWIDTH, ind, width));
+	/* W */ inline auto &BandWidth(UINT ind, UINT width) assertl_reflect_as_self(super::template Send<bool>(RB_SETBANDWIDTH, ind, width));
 public: // Property - BandRect
 	/* R */ inline bool  BandRect(UINT ind) const assertl_reflect_to(LRect rc, super::template Send<bool>(RB_GETRECT, ind, &rc), rc);
 public: // Property - BandRowHeight
@@ -1122,8 +1124,8 @@ public:
 //#define EM_LINEFROMCHAR         0x00C9
 //#define EM_POSFROMCHAR          0x00D6
 //#define EM_CHARFROMPOS          0x00D7
-	inline auto&BalloonTip(const Balloon &tip) const assertl_reflect_as_child(Edit_ShowBalloonTip(self, &tip));
-	inline auto&BalloonTip() const assertl_reflect_as_child(Edit_HideBalloonTip(self));
+	inline auto&BalloonTip(const Balloon &tip) const assertl_reflect_as_self(Edit_ShowBalloonTip(self, &tip));
+	inline auto&BalloonTip() const assertl_reflect_as_self(Edit_HideBalloonTip(self));
 //#define Edit_GetFileLineFromChar(hwndCtl, characterIndex) \
 //        (DWORD)SNDMSG((hwndCtl), EM_FILELINEFROMCHAR, (WPARAM)(characterIndex), 0)
 #pragma endregion

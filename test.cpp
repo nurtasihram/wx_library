@@ -3,8 +3,6 @@
 
 using namespace WX;
 
-ConsoleCtl con;
-
 class BaseOf_Window(Wnd) {
 	SFINAE_Window(Wnd);
 private:
@@ -22,16 +20,14 @@ private:
 			.Position(100);
 	}
 private:
-	ListView lv;
 	inline bool OnCreate(RefAs<CreateStruct *> pCreate) {
-		assertl(lv.Create(self).Size({ Size().cx, 400 }));
 		return true;
 	}
 };
 
 void test_wnd() {
 	Wnd win;
-	assertl(win.Create().Size({ 80, 500 }));
+	assertl(win.Create().Size({ 500, 350 }));
 	win.Show();
 	Msg msg;
 _ret:
@@ -47,9 +43,6 @@ _ret:
 }
 
 int main() {
-
 	test_wnd();
-
 	return 0;
-
 }

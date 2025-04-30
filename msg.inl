@@ -42,11 +42,11 @@
 /*3*/ MSG_TRANS(WM_MOVE, 
 	void, OnMove, (int x, int y), (x, y), 
 	_SEND_((void), WM_MOVE, 0L, MAKELPARAM((x), (y))), 
-	((_CALL_(OnMove))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam)), 0L))
+	((_CALL_(OnMove))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam)), 0L))
 /*5*/ MSG_TRANS(WM_SIZE, 
 	void, OnSize, (UINT state, int cx, int cy), (state, cx, cy), 
 	_SEND_((void), WM_SIZE, (WPARAM)(UINT)(state), MAKELPARAM((cx), (cy))), 
-	((_CALL_(OnSize))((UINT)(wParam), (int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam)), 0L))
+	((_CALL_(OnSize))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam)), 0L))
 /*6*/ MSG_TRANS(WM_ACTIVATE, 
 	void, OnActivate, (UINT state, HWND hwndActDeact, bool fMinimized), (state, hwndActDeact, fMinimized), 
 	_SEND_((void), WM_ACTIVATE, MAKEWPARAM((state), (fMinimized)), (LPARAM)(HWND)(hwndActDeact)), 
@@ -170,7 +170,7 @@
 /*42*/ MSG_TRANS(WM_SPOOLERSTATUS, 
 	void, OnSpoolerStatus, (UINT status, int cJobInQueue), (status, cJobInQueue), 
 	_SEND_((void), WM_SPOOLERSTATUS, (WPARAM)(status), MAKELPARAM((cJobInQueue), 0)), 
-	((_CALL_(OnSpoolerStatus))((UINT)(wParam), (int)(short)LOWORD(lParam)), 0L))
+	((_CALL_(OnSpoolerStatus))((UINT)(wParam), (int)(int16_t)LOWORD(lParam)), 0L))
 /*43*/ MSG_TRANS(WM_DRAWITEM, 
 	void, OnDrawItem, (const DRAWITEMSTRUCT * lpDrawItem), (lpDrawItem), 
 	_SEND_((void), WM_DRAWITEM, (WPARAM)(((const DRAWITEMSTRUCT *)lpDrawItem)->CtlID), (LPARAM)(const DRAWITEMSTRUCT *)(lpDrawItem)), 
@@ -186,11 +186,11 @@
 /*46*/ MSG_TRANS(WM_VKEYTOITEM, 
 	int, OnVkeyToItem, (UINT vk, HWND hwndListBox, int iCaret), (vk, hwndListBox, iCaret), 
 	_SEND_((int)(DWORD), WM_VKEYTOITEM, MAKEWPARAM((vk), (iCaret)), (LPARAM)(hwndListBox)), 
-	(LRESULT)(DWORD)(int)(_CALL_(OnVkeyToItem))((UINT)LOWORD(wParam), (HWND)(lParam), (int)(short)HIWORD(wParam)))
+	(LRESULT)(DWORD)(int)(_CALL_(OnVkeyToItem))((UINT)LOWORD(wParam), (HWND)(lParam), (int)(int16_t)HIWORD(wParam)))
 /*47*/ MSG_TRANS(WM_CHARTOITEM, 
 	int, OnCharToItem, (UINT ch, HWND hwndListBox, int iCaret), (ch, hwndListBox, iCaret), 
 	_SEND_((int)(DWORD), WM_CHARTOITEM, MAKEWPARAM((UINT)(ch), (UINT)(iCaret)), (LPARAM)(hwndListBox)), 
-	(LRESULT)(DWORD)(int)(_CALL_(OnCharToItem))((UINT)LOWORD(wParam), (HWND)(lParam), (int)(short)HIWORD(wParam)))
+	(LRESULT)(DWORD)(int)(_CALL_(OnCharToItem))((UINT)LOWORD(wParam), (HWND)(lParam), (int)(int16_t)HIWORD(wParam)))
 /*48*/ MSG_TRANS(WM_SETFONT, 
 	void, OnSetFont, (HFONT hfont, bool fRedraw), (hfont, fRedraw), 
 	_SEND_((void), WM_SETFONT, (WPARAM)(HFONT)(hfont), (LPARAM)(bool)(fRedraw)), 
@@ -234,7 +234,7 @@
 /*123*/ MSG_TRANS(WM_CONTEXTMENU, 
 	void, OnContextMenu, (HWND hwndContext, UINT xPos, UINT yPos), (hwndContext, xPos, yPos), 
 	_SEND_((void), WM_CONTEXTMENU, (WPARAM)(HWND)(hwndContext), MAKELPARAM((UINT)(xPos), (UINT)(yPos))), 
-	((_CALL_(OnContextMenu))((HWND)(wParam), (int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam)), 0L))
+	((_CALL_(OnContextMenu))((HWND)(wParam), (int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam)), 0L))
 /*126*/ MSG_TRANS(WM_DISPLAYCHANGE, 
 	void, OnDisplayChange, (UINT bitsPerPixel, UINT cxScreen, UINT cyScreen), (bitsPerPixel, cxScreen, cyScreen), 
 	_SEND_((void), WM_DISPLAYCHANGE, (WPARAM)(UINT)(bitsPerPixel), (LPARAM)MAKELPARAM((UINT)(cxScreen), (UINT)(cyScreen))), 
@@ -254,7 +254,7 @@
 /*132*/ MSG_TRANS(WM_NCHITTEST, 
 	UINT, OnNCHitTest, (int x, int y), (x, y), 
 	_SEND_((UINT)(DWORD), WM_NCHITTEST, 0L, MAKELPARAM((x), (y))), 
-	(LRESULT)(DWORD)(UINT)(_CALL_(OnNCHitTest))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam)))
+	(LRESULT)(DWORD)(UINT)(_CALL_(OnNCHitTest))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam)))
 /*133*/ MSG_TRANS(WM_NCPAINT, 
 	void, OnNCPaint, (HRGN hrgn), (hrgn), 
 	_SEND_((void), WM_NCPAINT, (WPARAM)(HRGN)(hrgn), 0L), 
@@ -270,75 +270,75 @@
 /*160*/ MSG_TRANS(WM_NCMOUSEMOVE, 
 	void, OnNCMouseMove, (int x, int y, UINT codeHitTest), (x, y, codeHitTest), 
 	_SEND_((void), WM_NCMOUSEMOVE, (WPARAM)(UINT)(codeHitTest), MAKELPARAM((x), (y))), 
-	((_CALL_(OnNCMouseMove))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnNCMouseMove))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*161*/ MSG_TRANS(WM_NCLBUTTONDOWN, 
 	void, OnNCLButtonDown, (int x, int y, UINT codeHitTest), (x, y, codeHitTest), 
 	_SEND_((void), WM_NCLBUTTONDOWN, (WPARAM)(UINT)(codeHitTest), MAKELPARAM((x), (y))), 
-	((_CALL_(OnNCLButtonDown))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnNCLButtonDown))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*162*/ MSG_TRANS(WM_NCLBUTTONUP, 
 	void, OnNCLButtonUp, (int x, int y, UINT codeHitTest), (x, y, codeHitTest),
 	_SEND_((void), WM_NCLBUTTONUP, (WPARAM)(UINT)(codeHitTest), MAKELPARAM((x), (y))), 
-	((_CALL_(OnNCLButtonUp))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnNCLButtonUp))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*163*/ MSG_TRANS(WM_NCLBUTTONDBLCLK, 
 	void, OnNCLButtonClick, (int x, int y, UINT codeHitTest), (x, y, codeHitTest), 
 	_SEND_((void), WM_NCLBUTTONDBLCLK, (WPARAM)(UINT)(codeHitTest), MAKELPARAM((x), (y))), 
-	((_CALL_(OnNCLButtonClick))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnNCLButtonClick))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*164*/ MSG_TRANS(WM_NCRBUTTONDOWN, 
 	void, OnNCRButtonDown, (int x, int y, UINT codeHitTest), (x, y, codeHitTest),
 	_SEND_((void), WM_NCRBUTTONDOWN, (WPARAM)(UINT)(codeHitTest), MAKELPARAM((x), (y)) ), 
-	((_CALL_(OnNCRButtonDown))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnNCRButtonDown))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*165*/ MSG_TRANS(WM_NCRBUTTONUP, 
 	void, OnNCRButtonUp, (int x, int y, UINT codeHitTest), (x, y, codeHitTest),
 	_SEND_((void), WM_NCRBUTTONUP, (WPARAM)(UINT)(codeHitTest), MAKELPARAM((x), (y)) ), 
-	((_CALL_(OnNCRButtonUp))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnNCRButtonUp))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*166*/ MSG_TRANS(WM_NCRBUTTONDBLCLK, 
 	void, OnNCRButtonClick, (int x, int y, UINT codeHitTest), (x, y, codeHitTest), 
 	_SEND_((void), WM_NCRBUTTONDBLCLK, (WPARAM)(UINT)(codeHitTest), MAKELPARAM((x), (y)) ), 
-	((_CALL_(OnNCRButtonClick))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnNCRButtonClick))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*167*/ MSG_TRANS(WM_NCMBUTTONDOWN, 
 	void, OnNCMButtonDown, (int x, int y, UINT codeHitTest), (x, y, codeHitTest),
 	_SEND_((void), WM_NCMBUTTONDOWN, (WPARAM)(UINT)(codeHitTest), MAKELPARAM((x), (y)) ), 
-	((_CALL_(OnNCMButtonDown))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnNCMButtonDown))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*168*/ MSG_TRANS(WM_NCMBUTTONUP, 
 	void, OnNCMButtonUp, (int x, int y, UINT codeHitTest), (x, y, codeHitTest),
 	_SEND_((void), WM_NCMBUTTONUP, (WPARAM)(UINT)(codeHitTest), MAKELPARAM((x), (y)) ), 
-	((_CALL_(OnNCMButtonUp))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnNCMButtonUp))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*169*/ MSG_TRANS(WM_NCMBUTTONDBLCLK, 
 	void, OnNCMButtonClick, (int x, int y, UINT codeHitTest), (x, y, codeHitTest), 
 	_SEND_((void), WM_NCMBUTTONDBLCLK, (WPARAM)(UINT)(codeHitTest), MAKELPARAM((x), (y)) ), 
-	((_CALL_(OnNCMButtonClick))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnNCMButtonClick))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*256*/ MSG_TRANS(WM_KEYDOWN, 
-	void, OnKeyDown, (UINT vk, bool fDown, int cRepeat, UINT flags), (vk, cRepeat, flags), 
-	_SEND_((void), WM_KEYDOWN, (WPARAM)(UINT)(vk), MAKELPARAM((cRepeat), (flags))), 
-	((_CALL_(OnKeyDown))((UINT)(wParam), true, (int)(short)LOWORD(lParam), (UINT)HIWORD(lParam)), 0L))
+	void, OnKeyDown, (UINT vk, int16_t wRepeat, KEY_FLAGS flags), (vk, wRepeat, flags),
+	_SEND_((void), WM_KEYDOWN, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), force_cast<WORD>(flags))), 
+	((_CALL_(OnKeyDown))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*257*/ MSG_TRANS(WM_KEYUP, 
-	void, OnKeyUp, (UINT vk, bool fDown, int cRepeat, UINT flags), (vk, cRepeat, flags), 
-	_SEND_((void), WM_KEYUP, (WPARAM)(UINT)(vk), MAKELPARAM((cRepeat), (flags))), 
-	((_CALL_(OnKeyUp))((UINT)(wParam), false, (int)(short)LOWORD(lParam), (UINT)HIWORD(lParam)), 0L))
+	void, OnKeyUp, (UINT vk, int16_t wRepeat, KEY_FLAGS flags), (vk, wRepeat, flags),
+	_SEND_((void), WM_KEYUP, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), force_cast<WORD>(flags))), 
+	((_CALL_(OnKeyUp))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*258*/ MSG_TRANS(WM_CHAR, 
-	void, OnChar, (TCHAR ch, int cRepeat), (ch, cRepeat), 
-	_SEND_((void), WM_CHAR, (WPARAM)(TCHAR)(ch), MAKELPARAM((cRepeat), 0)), 
-	((_CALL_(OnChar))((TCHAR)(wParam), (int)(short)LOWORD(lParam)), 0L))
+	void, OnChar, (TCHAR ch, int16_t wRepeat, KEY_FLAGS flags), (ch, wRepeat, flags),
+	_SEND_((void), WM_CHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), force_cast<WORD>(flags))),
+	((_CALL_(OnChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*259*/ MSG_TRANS(WM_DEADCHAR, 
-	void, OnDeadChar, (TCHAR ch, int cRepeat), (ch, cRepeat), 
-	_SEND_((void), WM_DEADCHAR, (WPARAM)(TCHAR)(ch), MAKELPARAM((cRepeat), 0)), 
-	((_CALL_(OnDeadChar))((TCHAR)(wParam), (int)(short)LOWORD(lParam)), 0L))
+	void, OnDeadChar, (TCHAR ch, int16_t wRepeat, KEY_FLAGS flags), (ch, wRepeat, flags),
+	_SEND_((void), WM_DEADCHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), force_cast<WORD>(flags))),
+	((_CALL_(OnDeadChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*260*/ MSG_TRANS(WM_SYSKEYDOWN, 
-	void, OnSysKeyDown, (UINT vk, bool fDown, int cRepeat, UINT flags), (vk, cRepeat, flags), 
-	_SEND_((void), WM_SYSKEYDOWN, (WPARAM)(UINT)(vk), MAKELPARAM((cRepeat), (flags))), 
-	((_CALL_(OnSysKeyDown))((UINT)(wParam), true, (int)(short)LOWORD(lParam), (UINT)HIWORD(lParam)), 0L))
+	void, OnSysKeyDown, (UINT vk, int16_t wRepeat, KEY_FLAGS flags), (vk, wRepeat, flags),
+	_SEND_((void), WM_SYSKEYDOWN, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), force_cast<WORD>(flags))), 
+	((_CALL_(OnSysKeyDown))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*261*/ MSG_TRANS(WM_SYSKEYUP, 
-	void, OnSysKeyUp, (UINT vk, bool fDown, int cRepeat, UINT flags), (vk, cRepeat, flags), 
-	_SEND_((void), WM_SYSKEYUP, (WPARAM)(UINT)(vk), MAKELPARAM((cRepeat), (flags))), 
-	((_CALL_(OnSysKeyUp))((UINT)(wParam), false, (int)(short)LOWORD(lParam), (UINT)HIWORD(lParam)), 0L))
+	void, OnSysKeyUp, (UINT vk, int16_t wRepeat, KEY_FLAGS flags), (vk, wRepeat, flags),
+	_SEND_((void), WM_SYSKEYUP, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), force_cast<WORD>(flags))), 
+	((_CALL_(OnSysKeyUp))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*262*/ MSG_TRANS(WM_SYSCHAR, 
-	void, OnSysChar, (TCHAR ch, int cRepeat), (ch, cRepeat), 
-	_SEND_((void), WM_SYSCHAR, (WPARAM)(TCHAR)(ch), MAKELPARAM((cRepeat), 0)), 
-	((_CALL_(OnSysChar))((TCHAR)(wParam), (int)(short)LOWORD(lParam)), 0L))
+	void, OnSysChar, (TCHAR ch, int16_t wRepeat, KEY_FLAGS flags), (ch, wRepeat, flags),
+	_SEND_((void), WM_SYSCHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), force_cast<WORD>(flags))),
+	((_CALL_(OnSysChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*263*/ MSG_TRANS(WM_SYSDEADCHAR, 
-	void, OnSysDeadChar, (TCHAR ch, int cRepeat), (ch, cRepeat), 
-	_SEND_((void), WM_SYSDEADCHAR, (WPARAM)(TCHAR)(ch), MAKELPARAM((cRepeat), 0)), 
-	((_CALL_(OnSysDeadChar))((TCHAR)(wParam), (int)(short)LOWORD(lParam)), 0L))
+	void, OnSysDeadChar, (TCHAR ch, int16_t wRepeat, KEY_FLAGS flags), (ch, wRepeat, flags),
+	_SEND_((void), WM_SYSDEADCHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), force_cast<WORD>(flags))),
+	((_CALL_(OnSysDeadChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*272*/ MSG_TRANS(WM_INITDIALOG, 
 	bool, OnInitDialog, (HWND hwndFocus, LPARAM lParam), (hwndFocus, lParam), 
 	_SEND_((bool)(DWORD), WM_INITDIALOG, (WPARAM)(HWND)(hwndFocus), (lParam)), 
@@ -350,7 +350,7 @@
 /*274*/ MSG_TRANS(WM_SYSCOMMAND, 
 	void, OnSysCommand, (UINT cmd, int x, int y), (cmd, x, y), 
 	_SEND_((void), WM_SYSCOMMAND, (WPARAM)(UINT)(cmd), MAKELPARAM((x), (y))), 
-	((_CALL_(OnSysCommand))((UINT)(wParam), (int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam)), 0L))
+	((_CALL_(OnSysCommand))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam)), 0L))
 /*275*/ MSG_TRANS(WM_TIMER, 
 	void, OnTimer, (UINT id), (id), 
 	_SEND_((void), WM_TIMER, (WPARAM)(UINT)(id), 0L), 
@@ -358,11 +358,11 @@
 /*276*/ MSG_TRANS(WM_HSCROLL, 
 	void, OnHScroll, (HWND hwndCtl, UINT code, int pos), (hwndCtl, code, pos), 
 	_SEND_((void), WM_HSCROLL, MAKEWPARAM((UINT)(int)(code), (UINT)(int)(pos)), (LPARAM)(HWND)(hwndCtl)), 
-	((_CALL_(OnHScroll))((HWND)(lParam), (UINT)(LOWORD(wParam)), (int)(short)HIWORD(wParam)), 0L))
+	((_CALL_(OnHScroll))((HWND)(lParam), (UINT)(LOWORD(wParam)), (int)(int16_t)HIWORD(wParam)), 0L))
 /*277*/ MSG_TRANS(WM_VSCROLL, 
 	void, OnVScroll, (HWND hwndCtl, UINT code, int pos), (hwndCtl, code, pos), 
 	_SEND_((void), WM_VSCROLL, MAKEWPARAM((UINT)(int)(code), (UINT)(int)(pos)), (LPARAM)(HWND)(hwndCtl)), 
-	((_CALL_(OnVScroll))((HWND)(lParam), (UINT)(LOWORD(wParam)), (int)(short)HIWORD(wParam)), 0L))
+	((_CALL_(OnVScroll))((HWND)(lParam), (UINT)(LOWORD(wParam)), (int)(int16_t)HIWORD(wParam)), 0L))
 /*278*/ MSG_TRANS(WM_INITMENU, 
 	void, OnInitMenu, (HMENU hMenu), (hMenu), 
 	_SEND_((void), WM_INITMENU, (WPARAM)(HMENU)(hMenu), 0L), 
@@ -374,7 +374,7 @@
 /*287*/ MSG_TRANS(WM_MENUSELECT, 
 	void, OnMenuSelect, (HMENU hmenu, int item, HMENU hmenuPopup, UINT flags), (hmenu, item, hmenuPopup, flags), 
 	_SEND_((void), WM_MENUSELECT, MAKEWPARAM((item), (flags)), (LPARAM)(HMENU)((hmenu) ? (hmenu) : (hmenuPopup))), 
-	((_CALL_(OnMenuSelect))((HMENU)(lParam), (HIWORD(wParam) & MF_POPUP) ? 0L : (int)(LOWORD(wParam)), (HIWORD(wParam) & MF_POPUP) ? GetSubMenu((HMENU)lParam, LOWORD(wParam)) : 0L, (UINT)(((short)HIWORD(wParam) == -1) ? 0xFFFFFFFF : HIWORD(wParam))), 0L))
+	((_CALL_(OnMenuSelect))((HMENU)(lParam), (HIWORD(wParam) & MF_POPUP) ? 0L : (int)(LOWORD(wParam)), (HIWORD(wParam) & MF_POPUP) ? GetSubMenu((HMENU)lParam, LOWORD(wParam)) : 0L, (UINT)(((int16_t)HIWORD(wParam) == -1) ? 0xFFFFFFFF : HIWORD(wParam))), 0L))
 /*288*/ MSG_TRANS(WM_MENUCHAR, 
 	DWORD, OnMenuChar, (UINT ch, UINT flags, HMENU hmenu), (ch, flags, hmenu), 
 	_SEND_((DWORD), WM_MENUCHAR, MAKEWPARAM(flags, (WORD)(ch)), (LPARAM)(HMENU)(hmenu)), 
@@ -418,47 +418,47 @@
 /*512*/ MSG_TRANS(WM_MOUSEMOVE, 
 	void, OnMouseMove, (int x, int y, UINT keyFlags), (x, y, keyFlags), 
 	_SEND_((void), WM_MOUSEMOVE, (WPARAM)(UINT)(keyFlags), MAKELPARAM((x), (y))), 
-	((_CALL_(OnMouseMove))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnMouseMove))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*513*/ MSG_TRANS(WM_LBUTTONDOWN, 
 	void, OnLButtonDown, (int x, int y, UINT keyFlags), (x, y, keyFlags),
 	_SEND_((void), WM_LBUTTONDOWN, (WPARAM)(UINT)(keyFlags), MAKELPARAM((x), (y))), 
-	((_CALL_(OnLButtonDown))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnLButtonDown))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*514*/ MSG_TRANS(WM_LBUTTONUP, 
 	void, OnLButtonUp, (int x, int y, UINT keyFlags), (x, y, keyFlags),
 	_SEND_((void), WM_LBUTTONUP, (WPARAM)(UINT)(keyFlags), MAKELPARAM((x), (y))), 
-	((_CALL_(OnLButtonUp))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnLButtonUp))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*515*/ MSG_TRANS(WM_LBUTTONDBLCLK, 
 	void, OnLButtonClick, (int x, int y, UINT keyFlags), (x, y, keyFlags), 
 	_SEND_((void), WM_LBUTTONDBLCLK, (WPARAM)(UINT)(keyFlags), MAKELPARAM((x), (y))), 
-	((_CALL_(OnLButtonClick))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnLButtonClick))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*516*/ MSG_TRANS(WM_RBUTTONDOWN, 
 	void, OnRButtonDown, (int x, int y, UINT keyFlags), (x, y, keyFlags),
 	_SEND_((void), WM_RBUTTONDOWN, (WPARAM)(UINT)(keyFlags), MAKELPARAM((x), (y))), 
-	((_CALL_(OnRButtonDown))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnRButtonDown))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*517*/ MSG_TRANS(WM_RBUTTONUP, 
 	void, OnRButtonUp, (int x, int y, UINT keyFlags), (x, y, keyFlags),
 	_SEND_((void), WM_RBUTTONUP, (WPARAM)(UINT)(keyFlags), MAKELPARAM((x), (y))), 
-	((_CALL_(OnRButtonUp))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnRButtonUp))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*518*/ MSG_TRANS(WM_RBUTTONDBLCLK, 
 	void, OnRButtonClick, (int x, int y, UINT keyFlags), (x, y, keyFlags), 
 	_SEND_((void), WM_RBUTTONDBLCLK, (WPARAM)(UINT)(keyFlags), MAKELPARAM((x), (y))), 
-	((_CALL_(OnRButtonClick))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnRButtonClick))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*519*/ MSG_TRANS(WM_MBUTTONDOWN, 
 	void, OnMButtonDown, (int x, int y, UINT keyFlags), (x, y, keyFlags),
 	_SEND_((void), WM_MBUTTONDOWN, (WPARAM)(UINT)(keyFlags), MAKELPARAM((x), (y))), 
-	((_CALL_(OnMButtonDown))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnMButtonDown))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*520*/ MSG_TRANS(WM_MBUTTONUP, 
 	void, OnMButtonUp, (int x, int y, UINT keyFlags), (x, y, keyFlags),
 	_SEND_((void), WM_MBUTTONUP, (WPARAM)(UINT)(keyFlags), MAKELPARAM((x), (y))), 
-	((_CALL_(OnMButtonUp))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnMButtonUp))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*521*/ MSG_TRANS(WM_MBUTTONDBLCLK, 
 	void, OnMButtonClick, (int x, int y, UINT keyFlags), (x, y, keyFlags), 
 	_SEND_((void), WM_MBUTTONDBLCLK, (WPARAM)(UINT)(keyFlags), MAKELPARAM((x), (y))), 
-	((_CALL_(OnMButtonClick))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (UINT)(wParam)), 0L))
+	((_CALL_(OnMButtonClick))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*522*/ MSG_TRANS(WM_MOUSEWHEEL, 
 	void, OnMouseWheel, (int xPos, int yPos, int zDelta, UINT fwKeys), (xPos, yPos, zDelta, fwKeys), 
 	_SEND_((void), WM_MOUSEWHEEL, MAKEWPARAM((fwKeys), (zDelta)), MAKELPARAM((xPos), (yPos))), 
-	((_CALL_(OnMouseWheel))((int)(short)LOWORD(lParam), (int)(short)HIWORD(lParam), (int)(short)HIWORD(wParam), (UINT)(short)LOWORD(wParam)), 0L))
+	((_CALL_(OnMouseWheel))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (int)(int16_t)HIWORD(wParam), (UINT)(int16_t)LOWORD(wParam)), 0L))
 /*528*/ MSG_TRANS(WM_PARENTNOTIFY, 
 	void, OnParentNotify, (UINT msg, HWND hwndChild, int idChild), (msg, hwndChild, idChild), 
 	_SEND_((void), WM_PARENTNOTIFY, MAKEWPARAM(msg, idChild), (LPARAM)(hwndChild)), 
@@ -558,7 +558,7 @@
 /*778*/ MSG_TRANS(WM_VSCROLLCLIPBOARD, 
 	void, OnVScrollClipboard, (HWND hwndCBViewer, UINT code, int pos), (hwndCBViewer, code, pos), 
 	_SEND_((void), WM_VSCROLLCLIPBOARD, (WPARAM)(HWND)(hwndCBViewer), MAKELPARAM((code), (pos))), 
-	((_CALL_(OnVScrollClipboard))((HWND)(wParam), (UINT)LOWORD(lParam), (int)(short)HIWORD(lParam)), 0L))
+	((_CALL_(OnVScrollClipboard))((HWND)(wParam), (UINT)LOWORD(lParam), (int)(int16_t)HIWORD(lParam)), 0L))
 /*779*/ MSG_TRANS(WM_SIZECLIPBOARD, 
 	void, OnSizeClipboard, (HWND hwndCBViewer, const LPRECT lprc), (hwndCBViewer, lprc), 
 	_SEND_((void), WM_SIZECLIPBOARD, (WPARAM)(HWND)(hwndCBViewer), (LPARAM)(LPRECT)(lprc)), 
@@ -574,7 +574,7 @@
 /*782*/ MSG_TRANS(WM_HSCROLLCLIPBOARD, 
 	void, OnHScrollClipboard, (HWND hwndCBViewer, UINT code, int pos), (hwndCBViewer, code, pos), 
 	_SEND_((void), WM_HSCROLLCLIPBOARD, (WPARAM)(HWND)(hwndCBViewer), MAKELPARAM((code), (pos))), 
-	((_CALL_(OnHScrollClipboard))((HWND)(wParam), (UINT)LOWORD(lParam), (int)(short)HIWORD(lParam)), 0L))
+	((_CALL_(OnHScrollClipboard))((HWND)(wParam), (UINT)LOWORD(lParam), (int)(int16_t)HIWORD(lParam)), 0L))
 /*783*/ MSG_TRANS(WM_QUERYNEWPALETTE, 
 	bool, OnQueryNewPalette, (), (), 
 	_SEND_((bool)(DWORD), WM_QUERYNEWPALETTE, 0L, 0L), 
