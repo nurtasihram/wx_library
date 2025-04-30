@@ -211,7 +211,7 @@ public:
 	static inline void Exit(DWORD dwExitCode = 0) reflect_to(ExitThread(dwExitCode));
 
 	template<class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
-	inline void Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) assertl_reflect_as(PostThreadMessage(ID(), force_cast<UINT>(msgid), force_cast<WPARAM>(wParam), force_cast<LPARAM>(lParam)));
+	inline void Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) assertl_reflect_as(PostThreadMessage(ID(), reuse_as<UINT>(msgid), small_cast<WPARAM>(wParam), small_cast<LPARAM>(lParam)));
 	inline void Post(const Message &msg) assertl_reflect_as(PostThreadMessage(ID(), msg.ID(), msg.ParamW(), msg.ParamL()));
 
 #pragma region Properties
@@ -668,10 +668,10 @@ public: // Property - FillAttribute
 	/* W */ inline auto &FillAttribute(DWORD dwFillAttribute) reflect_to_self(this->dwFlags |= STARTF_USEFILLATTRIBUTE, this->dwFillAttribute = dwFillAttribute);
 	/* R */ inline auto  FillAttribute() const reflect_as(this->dwFillAttribute);
 public: // Property - Flags
-	/* R */ inline StartupFlag Flags() const reflect_as(force_cast<StartupFlag>(this->dwFlags));
+	/* R */ inline StartupFlag Flags() const reflect_as(reuse_as<StartupFlag>(this->dwFlags));
 public: // Property - Show
 	/* W */ inline auto  &Show(WX::SW wShow) reflect_to_self(this->dwFlags |= STARTF_USESHOWWINDOW, this->wShowWindow = wShow.yield());
-	/* R */ inline WX::SW Show() const reflect_as(force_cast<WX::SW>(this->wShowWindow));
+	/* R */ inline WX::SW Show() const reflect_as(reuse_as<WX::SW>((DWORD)this->wShowWindow));
 public: // Property - StdInput
 	/* W */ inline auto &StdInput(HANDLE hStdInput) reflect_to_self(this->dwFlags |= STARTF_USESTDHANDLES, this->hStdInput = hStdInput);
 	/* R */ inline auto  StdInput() const reflect_as(this->hStdInput);
@@ -841,7 +841,7 @@ public: // Property - CommandLine
 	/* R */ static inline String CommandLine() reflect_as(+CString(GetCommandLine(), MaxLenNotice));
 public: // Property - Environment
 	/* W */ static inline void Environment(LPTCH lpNewEnvironment) assertl_reflect_as(SetEnvironmentStrings(lpNewEnvironment));
-	/* R */ inline Environments Environment() assertl_reflect_to(LPTCH lpEnv, (lpEnv = GetEnvironmentStrings()), force_cast<Environments>(lpEnv));
+	/* R */ inline Environments Environment() assertl_reflect_to(LPTCH lpEnv, (lpEnv = GetEnvironmentStrings()), reuse_as<Environments>(lpEnv));
 
 };
 #pragma endregion

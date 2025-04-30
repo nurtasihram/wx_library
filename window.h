@@ -45,7 +45,7 @@ public: // Property - HoverTime
 	/* R */ inline DWORD HoverTime() const reflect_as(self->dwHoverTime);
 public: // Property - Flags
 	/* W */ inline auto &Flags(Flag flag) reflect_to_self(self->dwFlags = flag.yield());
-	/* R */ inline Flag  Flags() const reflect_as(reuse_as<Flag>(self->dwFlags));
+	/* R */ inline Flag  Flags() const reflect_as(ref_as<Flag>(self->dwFlags));
 public:
 	inline operator bool() reflect_as(TrackMouseEvent(self));
 };
@@ -93,7 +93,7 @@ public: // Property - Rect
 	/* R */ inline LRect Rect() const reflect_as({ Position(), Size() });
 public: // Property - Flags
 	/* W */ inline auto &Flags(Flag flags) reflect_to_self(self->flags = flags.yield());
-	/* R */ inline Flag Flags() const reflect_as(force_cast<Flag>(self->flags));
+	/* R */ inline Flag Flags() const reflect_as(reuse_as<Flag>(self->flags));
 public:
 } ;
 
@@ -128,7 +128,7 @@ public:
 	inline bool operator<=(HWND hWnd) {
 		if (auto lpfnWndProc = GetWindowLongPtr(hWnd, GWLP_WNDPROC)) {
 			this->hWnd = hWnd;
-			this->pfnWndProc = force_cast<WNDPROC>(lpfnWndProc);
+			this->pfnWndProc = reuse_as<WNDPROC>(lpfnWndProc);
 			return true;
 		}
 		return false;
@@ -156,24 +156,24 @@ public: // Property - Window
 	template<class Child = void>
 	/* S */ inline WindowBase<Child> &Window() reflect_as(WindowBase<Child>::Attach(self->hwnd));
 	template<class Child = void>
-	/* R */ inline WindowBase<Child> Window() const reflect_as(force_cast<WX::WindowBase<Child>>(self->hwnd));
+	/* R */ inline WindowBase<Child> Window() const reflect_as(reuse_as<WX::WindowBase<Child>>(self->hwnd));
 public: // Property - ID
 	/* W */ inline auto &ID(UINT msgid) reflect_to_self(self->message = msgid);
 	template<class AnyEnum = UINT>
-	/* R */ inline AnyEnum ID() const reflect_as(force_cast<AnyEnum>(self->message));
+	/* R */ inline AnyEnum ID() const reflect_as(reuse_as<AnyEnum>(self->message));
 public: // Property - ParamW
 	template<class AnyType = WPARAM>
-	/* W */ inline auto  &ParamW(AnyType wParam) reflect_to_self(self->wParam = force_cast<WPARAM>(wParam));
+	/* W */ inline auto  &ParamW(AnyType wParam) reflect_to_self(self->wParam = small_cast<WPARAM>(wParam));
 	template<class AnyType = WPARAM>
-	/* R */ inline AnyType ParamW() const reflect_as(force_cast<AnyType>(self->wParam));
+	/* R */ inline AnyType ParamW() const reflect_as(big_cast<AnyType>(self->wParam));
 public: // Property - ParamL
 	template<class AnyType = WPARAM>
-	/* W */ inline auto &ParamL(AnyType lParam) reflect_to_self(self->lParam = force_cast<LPARAM>(lParam));
+	/* W */ inline auto &ParamL(AnyType lParam) reflect_to_self(self->lParam = small_cast<LPARAM>(lParam));
 	template<class AnyType = WPARAM>
-	/* R */ inline AnyType ParamL() const reflect_as(force_cast<AnyType>(self->lParam));
+	/* R */ inline AnyType ParamL() const reflect_as(big_cast<AnyType>(self->lParam));
 public: // Property - Param
 	template<class WParam = WPARAM, class LParam = LPARAM>
-	/* W */ inline auto &Param(WParam wParam, LParam lParam) reflect_to_self(self->wParam = force_cast<WPARAM>(wParam), self->lParam = force_cast<LPARAM>(lParam));
+	/* W */ inline auto &Param(WParam wParam, LParam lParam) reflect_to_self(self->wParam = small_cast<WPARAM>(wParam), self->lParam = small_cast<LPARAM>(lParam));
 public: // Property - Time
 	/* W */ inline auto &Time(DWORD time) reflect_to_self(self->time = time);
 	/* R */ inline DWORD Time() const reflect_as(self->time);
@@ -267,8 +267,8 @@ public:
 	ClassBase() reflect_to(self->cbClsExtra = sizeof(Child) - sizeof(WNDCLASS));
 public: // Property - Styles
 	/* W */ inline auto  &Styles(Style style) reflect_to_child(self->style = style.yield());
-	/* S */ inline Style &Styles() reflect_as(reuse_as<Style>(self->style));
-	/* R */ inline Style  Styles() const reflect_as(reuse_as<Style>(self->style));
+	/* S */ inline Style &Styles() reflect_as(ref_as<Style>(self->style));
+	/* R */ inline Style  Styles() const reflect_as(ref_as<Style>(self->style));
 public: // Property - WndProc
 	/* W */ inline auto       &WndProc(WNDPROC lpfnWndProc) reflect_to_child(self->lpfnWndProc = lpfnWndProc);
 	/* R */ inline WX::WndProc WndProc() const reflect_as(self->lpfnWndProc);
@@ -294,7 +294,7 @@ public: // Property - Cursor
 	/* R */ inline CCursor     Cursor() const reflect_as(self->hCursor);
 public: // Property - Background
 	/* W */ inline auto  &Background(HBRUSH hbrBackground) reflect_to_child(self->hbrBackground = hbrBackground);
-	/* W */ inline auto  &Background(SysColor sc) reflect_to_child(self->hbrBackground = force_cast<HBRUSH>(sc.yield()));
+	/* W */ inline auto  &Background(SysColor sc) reflect_to_child(self->hbrBackground = reuse_as<HBRUSH>(sc.yield()));
 	/* S */ inline Brush &Background() reflect_as(Brush::Attach(self->hbrBackground));
 	/* R */ inline CBrush Background() const reflect_as(self->hbrBackground);
 public: // Property - Menu
@@ -331,8 +331,8 @@ public:
 	}
 public: // Property - Styles
 	/* W */ inline auto   &Styles(CStyle style) reflect_to_child(self->style = style.yield());
-	/* S */ inline CStyle &Styles() reflect_as(reuse_as<CStyle>(self->style));
-	/* R */ inline CStyle  Styles() const reflect_as(reuse_as<CStyle>(self->style));
+	/* S */ inline CStyle &Styles() reflect_as(ref_as<CStyle>(self->style));
+	/* R */ inline CStyle  Styles() const reflect_as(ref_as<CStyle>(self->style));
 public: // Property - WndProc
 	/* W */ inline auto       &WndProc(WNDPROC lpfnWndProc) reflect_to_child(self->lpfnWndProc = lpfnWndProc);
 	/* R */ inline WX::WndProc WndProc() const reflect_as(self->lpfnWndProc);
@@ -358,7 +358,7 @@ public: // Property - Cursor
 	/* R */ inline CCursor     Cursor() const reflect_as(self->hCursor);
 public: // Property - Background
 	/* W */ inline auto  &Background(HBRUSH hbrBackground) reflect_to_child(self->hbrBackground = hbrBackground);
-	/* W */ inline auto  &Background(SysColor sc) reflect_to_child(self->hbrBackground = force_cast<HBRUSH>(sc.yield()));
+	/* W */ inline auto  &Background(SysColor sc) reflect_to_child(self->hbrBackground = reuse_as<HBRUSH>((uintptr_t)sc.yield()));
 	/* S */ inline Brush &Background() reflect_as(Brush::Attach(self->hbrBackground));
 	/* R */ inline CBrush Background() const reflect_as(self->hbrBackground);
 public: // Property - Menu
@@ -479,8 +479,8 @@ public: // Property - Parent
 	/* R */ inline WindowBase<_AnyChild> Parent() const reflect_as(self->hwndParent);
 public: // Property - Styles
 	/* W */ inline auto  &Styles(Style style) reflect_to_child(self->style = style.yield());
-	/* S */ inline Style &Styles() reflect_as(reuse_as<Style>(self->style));
-	/* R */ inline Style  Styles() const reflect_as(reuse_as<Style>(self->style));
+	/* S */ inline Style &Styles() reflect_as(ref_as<Style>(self->style));
+	/* R */ inline Style  Styles() const reflect_as(ref_as<Style>(self->style));
 public: // Property - Caption
 	/* W */ inline auto        &Caption(LPCTSTR name) reflect_to_child(self->lpszName = name);
 	/* S */ inline LPCTSTR     &Caption() reflect_as(self->lpszName);
@@ -492,8 +492,8 @@ public: // Property - Class
 	/* R */ inline const String Class() const reflect_as(CString(self->lpszClass, MaxLenClass));
 public: // Property - StylesEx
 	/* W */ inline auto    &StylesEx(StyleEx dwExStyle) reflect_to_child(self->dwExStyle = dwExStyle.yield());
-	/* S */ inline StyleEx &StylesEx() reflect_as(reuse_as<StyleEx>(self->dwExStyle));
-	/* R */ inline StyleEx  StylesEx() const reflect_as(reuse_as<StyleEx>(self->dwExStyle));
+	/* S */ inline StyleEx &StylesEx() reflect_as(ref_as<StyleEx>(self->dwExStyle));
+	/* R */ inline StyleEx  StylesEx() const reflect_as(ref_as<StyleEx>(self->dwExStyle));
 public: // Property - Size
 	/* W */ inline auto &Size(LSize size) reflect_to_child(self->cx = size.cx, self->cy = size.cy);
 	/* R */ inline LSize Size() const reflect_as({ self->cx, self->cy });
@@ -702,13 +702,13 @@ protected:
 					auto lpCreate = (LPCREATESTRUCT)lParam;
 					if ((pThis = (Child *)lpCreate->lpCreateParams))
 						if (Wnd.HeapPtr(pThis, index)) {
-							(HWND &)*force_cast<Window *>(pThis) = hWnd;
+							(HWND &)*reuse_as<Window *>(pThis) = hWnd;
 							break;
 						}
 					return -1;
 				}
 				case WM_COMMAND:
-					if (auto wnd = force_cast<Window>(lParam))
+					if (auto wnd = reuse_as<Window>(lParam))
 						wnd.Send(WM_USER + (UINT)HIWORD(wParam));
 					break;
 			}
@@ -794,13 +794,13 @@ public:
 public:
 	template<class RetType = LRESULT, class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
 	inline RetType Send(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const
-		nt_assertl_reflect_to(auto res = force_cast<RetType>(SendMessage(self, force_cast<UINT>(msgid), force_cast<WPARAM>(wParam), force_cast<LPARAM>(lParam))), res);
+		nt_assertl_reflect_to(auto res = SendMessage(self, (UINT)(msgid), small_cast<WPARAM>(wParam), small_cast<LPARAM>(lParam)), small_cast<RetType>(res));
 	//template<class WParam = WPARAM, class LParam = LPARAM>
 	//inline auto &SendTimeout(UINT msgid, WParam wParam = 0, LParam lParam = 0) {
 	//	SendMessageTimeoutW(self, msgid, wParam, lParam, )
 	//}
 	template<class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
-	inline auto &Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const assertl_reflect_as_child(PostMessage(self, force_cast<UINT>(msgid), force_cast<WPARAM>(wParam), force_cast<LPARAM>(lParam)));
+	inline auto &Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const assertl_reflect_as_child(PostMessage(self, reuse_as<UINT>(msgid), reuse_as<WPARAM>(wParam), reuse_as<LPARAM>(lParam)));
 public:
 	class MessageSwitch {
 	protected:
@@ -892,6 +892,8 @@ public:
 	inline auto &RegisterTouch(bool bFine = true, bool bWantPalm = false) assertl_reflect_as_child(RegisterTouchWindow(self, (bFine *TWF_FINETOUCH) | (bWantPalm * TWF_WANTPALM)));
 	inline auto &UnregisterTouch() assertl_reflect_as_child(UnregisterTouchWindow(self));
 
+	inline auto &Invalidate(LPCRECT lpRect = O, bool bErase = false) assertl_reflect_as_child(InvalidateRect(self, lpRect, bErase));
+
 	inline TrackMouseEventBox TrackMouse() const reflect_as((HWND)self);
 
 	class PaintBox : public PaintStruct {
@@ -904,6 +906,14 @@ public:
 		inline void End() const assertl_reflect_as(EndPaint(hwnd, self));
 	};
 	inline PaintBox BeginPaint() reflect_as((HWND)self);
+
+	inline auto &EnumChilds(Function<bool(HWND)> foreach) {
+		EnumChildWindows(self, [](HWND hwnd, LPARAM lParam) -> BOOL {
+			auto &foreach = *(Function<bool(HWND)> *)lParam;
+			return foreach(hwnd);
+		}, (LPARAM)std::addressof(foreach));
+		retchild;
+	}
 #pragma endregion
 
 #pragma region Properties
@@ -953,23 +963,23 @@ public: // Property - IconSmall
 	/* R */ inline CIcon IconSmall() const reflect_as(Send<HICON>(WM_GETICON, ICON_SMALL));
 public: // Property - Styles
 	/* W */ inline auto &Styles(Style style) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_STYLE, style.yield()));
-	/* R */ inline Style Styles() const reflect_as(force_cast<Style>(GetWindowLongPtr(self, GWL_STYLE)));
+	/* R */ inline Style Styles() const reflect_as(reuse_as<Style>((LONG)GetWindowLongPtr(self, GWL_STYLE)));
 public: // Property - StylesEx 
 	/* W */ inline auto   &StylesEx(StyleEx styleEx) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_EXSTYLE, styleEx.yield()));
-	/* R */ inline StyleEx StylesEx() const reflect_as(force_cast<StyleEx>(GetWindowLongPtr(self, GWL_EXSTYLE)));
+	/* R */ inline StyleEx StylesEx() const reflect_as(reuse_as<StyleEx>((DWORD)GetWindowLongPtr(self, GWL_EXSTYLE)));
 public: // Property - ID
 	/* W */ inline auto    &ID(LONG_PTR uId) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_ID, uId));
-	/* R */ inline LONG_PTR ID() const reflect_as(force_cast<LONG_PTR>(GetWindowLongPtr(self, GWLP_ID)));
+	/* R */ inline LONG_PTR ID() const reflect_as(reuse_as<LONG_PTR>(GetWindowLongPtr(self, GWLP_ID)));
 public: // Property - Module
-	/* W */ inline auto   &Module(HINSTANCE hInstance) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_HINSTANCE, force_cast<LONG_PTR>(hInstance)));
-	/* R */ inline CModule Module() const reflect_as(force_cast<HINSTANCE>(GetWindowLongPtr(self, GWLP_HINSTANCE)));
+	/* W */ inline auto   &Module(HINSTANCE hInstance) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_HINSTANCE, reuse_as<LONG_PTR>(hInstance)));
+	/* R */ inline CModule Module() const reflect_as(reuse_as<HINSTANCE>(GetWindowLongPtr(self, GWLP_HINSTANCE)));
 public: // Property - UserData
-	/* W */ inline auto &UserData(void *pData) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_USERDATA, force_cast<LONG_PTR>(pData)));
-	/* R */ inline void *UserData() const reflect_as(force_cast<void *>(GetWindowLongPtr(self, GWLP_USERDATA)));
+	/* W */ inline auto &UserData(void *pData) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_USERDATA, reuse_as<LONG_PTR>(pData)));
+	/* R */ inline void *UserData() const reflect_as(reuse_as<void *>(GetWindowLongPtr(self, GWLP_USERDATA)));
 public: // Property - Long 0
 	/* W */ inline auto &HeapPtr(void *lpHeap, int nIndex) nt_assertl_reflect_to_child(SetWindowLongPtr(self, nIndex, (LONG_PTR)lpHeap));
 	template<class AnyType = void>
-	/* R */ inline AnyType *HeapPtr(int nIndex) const reflect_as(force_cast<AnyType *>(GetWindowLongPtr(self, nIndex)));
+	/* R */ inline AnyType *HeapPtr(int nIndex) const reflect_as(reuse_as<AnyType *>(GetWindowLongPtr(self, nIndex)));
 public: // Property - ClassName
 	/* R */ inline String ClassName() const {
 		auto lpszClassName = String::Alloc(MaxLenClass);
@@ -981,19 +991,19 @@ public: // Property - ClassName
 public: // Property - ClassMenuName
 	/* W */ inline auto   &ClassMenuName(UINT uID) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_MENUNAME, (LONG_PTR)MAKEINTRESOURCE(uID)));
 	/* W */ inline auto   &ClassMenuName(LPCTSTR lpMenuName) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_MENUNAME, (LONG_PTR)lpMenuName));
-	/* R */ inline LPCTSTR ClassMenuName() const reflect_as(force_cast<LPCTSTR>(GetClassLongPtr(self, GCLP_MENUNAME)));
+	/* R */ inline LPCTSTR ClassMenuName() const reflect_as(reuse_as<LPCTSTR>(GetClassLongPtr(self, GCLP_MENUNAME)));
 public: // Property - ClassBackground
 	/* W */ inline auto  &ClassBackground(HBRUSH hBrush) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HBRBACKGROUND, (LONG_PTR)hBrush));
-	/* R */ inline CBrush ClassBackground() const reflect_as(force_cast<HBRUSH>(GetClassLongPtr(self, GCLP_HBRBACKGROUND)));
+	/* R */ inline CBrush ClassBackground() const reflect_as(reuse_as<HBRUSH>(GetClassLongPtr(self, GCLP_HBRBACKGROUND)));
 public: // Property - ClassCursor
 	/* W */ inline auto   &ClassCursor(HCURSOR hCursor) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HCURSOR, (LONG_PTR)hCursor));
-	/* R */ inline CCursor ClassCursor() const reflect_as(force_cast<HCURSOR>(GetClassLongPtr(self, GCLP_HCURSOR)));
+	/* R */ inline CCursor ClassCursor() const reflect_as(reuse_as<HCURSOR>(GetClassLongPtr(self, GCLP_HCURSOR)));
 public: // Property - ClassIcon
 	/* W */ inline auto &ClassIcon(HICON hIcon) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HICON, (LONG_PTR)hIcon));
-	/* R */ inline CIcon ClassIcon() const reflect_as(force_cast<HICON>(GetClassLongPtr(self, GCLP_HICON)));
+	/* R */ inline CIcon ClassIcon() const reflect_as(reuse_as<HICON>(GetClassLongPtr(self, GCLP_HICON)));
 public: // Property - ClassModule
 	/* W */ inline auto   &ClassModule(HINSTANCE hModule) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HMODULE, (LONG_PTR)hModule));
-	/* R */ inline CModule ClassModule() const reflect_as(force_cast<HINSTANCE>(GetClassLongPtr(self, GCLP_HMODULE)));
+	/* R */ inline CModule ClassModule() const reflect_as(reuse_as<HINSTANCE>(GetClassLongPtr(self, GCLP_HMODULE)));
 public: // Property - ClassWndExtra
 	/* W */ inline auto     &ClassWndExtra(ULONG_PTR hModule) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCL_CBWNDEXTRA, (LONG_PTR)hModule));
 	/* R */ inline ULONG_PTR ClassWndExtra() const reflect_as(GetClassLongPtr(self, GCL_CBWNDEXTRA));
@@ -1002,10 +1012,10 @@ public: // Property - ClassClsExtra
 	/* R */ inline ULONG_PTR ClassClsExtra() const reflect_as(GetClassLongPtr(self, GCL_CBCLSEXTRA));
 public: // Property - ClassWndProc
 	/* W */ inline auto   &ClassWndProc(WNDPROC WndProc) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_WNDPROC, (LONG_PTR)WndProc));
-	/* R */ inline WndProc ClassWndProc() const reflect_as({ force_cast<WNDPROC>(GetClassLongPtr(self, GCLP_WNDPROC)), self });
+	/* R */ inline WndProc ClassWndProc() const reflect_as({ reuse_as<WNDPROC>(GetClassLongPtr(self, GCLP_WNDPROC)), self });
 public: // Property - ClassIconSm
 	/* W */ inline auto &ClassIconSm(HICON hIcon) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HICONSM, (LONG_PTR)hIcon));
-	/* R */ inline CIcon ClassIconSm() const reflect_as(force_cast<HICON>(GetClassLongPtr(self, GCLP_HICONSM)));
+	/* R */ inline CIcon ClassIconSm() const reflect_as(reuse_as<HICON>(GetClassLongPtr(self, GCLP_HICONSM)));
 public: // Property - ClassAtom
 	/* W */ inline auto &ClassAtom(ATOM atom) nt_assertl_reflect_to_child(SetClassWord(self, GCW_ATOM, atom));
 	/* R */ inline ATOM  ClassAtom() const reflect_as(GetClassWord(self, GCW_ATOM));
@@ -1018,14 +1028,14 @@ public: // Property - Handle
 	inline void *operator new(size_t uSize) assertl_reflect_as(auto lpHeap = HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, sizeof(Child)), lpHeap);
 	inline void operator delete(void *ptr) reflect_to(HeapFree(GetProcessHeap(), 0, ptr));
 
-	static inline Window &Attach(HWND &hWnd) reflect_as(reuse_as<Window>(hWnd));
+	static inline Window &Attach(HWND &hWnd) reflect_as(ref_as<Window>(hWnd));
 
 	inline auto &operator=(WindowBase &w) reflect_to_child(std::swap(this->hWnd, w.hWnd));
 	inline auto &operator=(const WindowBase &w) const reflect_to_child(std::swap(this->hWnd, w.hWnd));
 
 	inline operator bool() const reflect_as(IsWindow(hWnd));
 	inline operator HWND() const reflect_as(hWnd);
-	inline operator Window &() reflect_as(reuse_as<Window>(hWnd));
+	inline operator Window &() reflect_as(ref_as<Window>(hWnd));
 	inline operator const Window() const reflect_as(hWnd);
 
 	inline operator WX::Handle &() reflect_as(WX::Handle::Attach(hWnd));
@@ -1060,9 +1070,9 @@ public:
 	ConsoleItf(DWORD pid) reflect_to(Attach(pid));
 
 	inline void Select() {
-		hIn = force_cast<File>(GetStdHandle(STD_INPUT_HANDLE));
-		hOut = force_cast<File>(GetStdHandle(STD_OUTPUT_HANDLE));
-		hErr = force_cast<File>(GetStdHandle(STD_ERROR_HANDLE));
+		hIn = reuse_as<File>(GetStdHandle(STD_INPUT_HANDLE));
+		hOut = reuse_as<File>(GetStdHandle(STD_OUTPUT_HANDLE));
+		hErr = reuse_as<File>(GetStdHandle(STD_ERROR_HANDLE));
 	}
 	inline void Reopen() {
 		static FILE *fout = O, *ferr = O, *fin = O;
@@ -1075,7 +1085,7 @@ public:
 	static inline void Attach(DWORD pid) assertl_reflect_as(AttachConsole(pid));
 	static inline void Alloc() assertl_reflect_as(AllocConsole());
 	static inline void Free() assertl_reflect_as(FreeConsole());
-	inline operator Window() { return force_cast<Window>(GetConsoleWindow()); }
+	inline operator Window() { return reuse_as<Window>(GetConsoleWindow()); }
 #pragma endregion
 
 #pragma region Properties

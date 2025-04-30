@@ -17,10 +17,10 @@ class SecurityIdentifiersAuthority {
 public:
 	SecurityIdentifiersAuthority() { static_assert(sizeof(self) == 8, "alignment error"); }
 	SecurityIdentifiersAuthority(Null) {}
-	SecurityIdentifiersAuthority(const arrayof<BYTE, 6> &sia) : sia(reuse_as<const SID_IDENTIFIER_AUTHORITY>(sia)) {}
+	SecurityIdentifiersAuthority(const arrayof<BYTE, 6> &sia) : sia(ref_as<const SID_IDENTIFIER_AUTHORITY>(sia)) {}
 	constexpr SecurityIdentifiersAuthority(const SID_IDENTIFIER_AUTHORITY &sia) : sia(sia) {}
-	inline bool operator==(const SecurityIdentifiersAuthority &s) const reflect_as(force_cast<uint64_t>(self) == force_cast<uint64_t>(s));
-	inline bool operator!=(const SecurityIdentifiersAuthority &s) const reflect_as(force_cast<uint64_t>(self) != force_cast<uint64_t>(s));
+	inline bool operator==(const SecurityIdentifiersAuthority &s) const reflect_as(reuse_as<uint64_t>(self) == reuse_as<uint64_t>(s));
+	inline bool operator!=(const SecurityIdentifiersAuthority &s) const reflect_as(reuse_as<uint64_t>(self) != reuse_as<uint64_t>(s));
 	inline operator String() const reflect_as(Cats(nX("02x", sia.Value[0]), TEXT("-"), nX("02x", sia.Value[1]), TEXT("-"), nX("02x", sia.Value[2]), TEXT("-"), nX("02x", sia.Value[3]), TEXT("-"), nX("02x", sia.Value[4]), TEXT("-"), nX("02x", sia.Value[5])));
 	inline PSID_IDENTIFIER_AUTHORITY operator &() const reflect_as(&sia);
 };
@@ -238,23 +238,23 @@ public:
 
 #pragma region Properties
 public: // Property - Type
-	/* W */ inline auto &Type(Types AceType) reflect_to_self(reuse_as<Types>(pACE->Header.AceType = AceType.yield()));
-	/* R */ inline Types Type() const reflect_as(reuse_as<Types>(pACE->Header.AceType));
+	/* W */ inline auto &Type(Types AceType) reflect_to_self(ref_as<Types>(pACE->Header.AceType = AceType.yield()));
+	/* R */ inline Types Type() const reflect_as(ref_as<Types>(pACE->Header.AceType));
 public: // Property - Flags
-	/* W */ inline auto &Flags(Flag AceFlags) reflect_to_self(reuse_as<Flag>(pACE->Header.AceFlags = AceFlags.yield()));
-	/* R */ inline Flag  Flags() const reflect_as(reuse_as<Flag>(pACE->Header.AceFlags));
+	/* W */ inline auto &Flags(Flag AceFlags) reflect_to_self(ref_as<Flag>(pACE->Header.AceFlags = AceFlags.yield()));
+	/* R */ inline Flag  Flags() const reflect_as(ref_as<Flag>(pACE->Header.AceFlags));
 public: // Property - Size
 	/* R */ inline WORD Size() const reflect_as(pACE->Header.AceSize);
 public: // Property - Access
-	/* W */ inline auto &Access(AccessMask Mask) reflect_to_self(pACE->Mask = reuse_as<ACCESS_MASK>(Mask));
-	/* R */ inline const AccessMask Access() reflect_as(reuse_as<AccessMask>(pACE->Mask));
+	/* W */ inline auto &Access(AccessMask Mask) reflect_to_self(pACE->Mask = ref_as<ACCESS_MASK>(Mask));
+	/* R */ inline const AccessMask Access() reflect_as(ref_as<AccessMask>(pACE->Mask));
 public: // Property - SecurityIdentifier
 	///* W */ inline auto &SecurityIdentifier(const SecID &sid) {
 	//	auto size = sid.Size();
 	//	CopyMemory(&pACE->SidStart, &sid, size);
 	//	retself;
 	//}
-	/* R */ inline const SecID &SecurityIdentifier() const reflect_as(*force_cast<const SecID *>(&pACE->SidStart));
+	/* R */ inline const SecID &SecurityIdentifier() const reflect_as(*reuse_as<const SecID *>(&pACE->SidStart));
 #pragma endregion
 
 	inline PACCESS_ALLOWED_ACE operator&() reflect_as(pACE);
@@ -279,12 +279,12 @@ public:
 		inline bool operator!=(Null) const reflect_as(dwAceIndex <  acl.Count());
 		inline bool operator==(const Iterator &i) const assertl_reflect_as(&acl == &i.acl, dwAceIndex == i.dwAceIndex);
 		inline bool operator!=(const Iterator &i) const assertl_reflect_as(&acl == &i.acl, dwAceIndex != i.dwAceIndex);
-		inline Entry *operator&() assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<Entry *>(lpACE));
-		inline const Entry *operator&() const assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<const Entry *>(lpACE));
-		inline Entry *operator->() assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<Entry *>(lpACE));
-		inline const Entry *operator->() const assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), reuse_as<const Entry *>(lpACE));
-		inline Entry & operator*() assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), *reuse_as<Entry *>(lpACE));
-		inline const Entry & operator*() const assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), *reuse_as<const Entry *>(lpACE));
+		inline Entry *operator&() assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), ref_as<Entry *>(lpACE));
+		inline const Entry *operator&() const assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), ref_as<const Entry *>(lpACE));
+		inline Entry *operator->() assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), ref_as<Entry *>(lpACE));
+		inline const Entry *operator->() const assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), ref_as<const Entry *>(lpACE));
+		inline Entry & operator*() assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), *ref_as<Entry *>(lpACE));
+		inline const Entry & operator*() const assertl_reflect_to(LPVOID lpACE, GetAce(&acl, dwAceIndex, &lpACE), *ref_as<const Entry *>(lpACE));
 		inline Iterator &operator++() reflect_to_self(++dwAceIndex);
 		inline const Iterator &operator++() const reflect_to_self(++dwAceIndex);
 		inline Iterator operator++(int) reflect_as({ acl, dwAceIndex++ });
@@ -398,12 +398,12 @@ class SecurityDescriptor {
 		inline operator bool() const reflect_as(Present());
 		inline bool operator==(Null) const reflect_as(Present() ? pACL == O : true);
 		inline bool operator!=(Null) const reflect_as(Present() ? pACL != O : false);
-		inline AceList &operator*() reflect_as(reuse_as<AceList>(pACL));
-		inline const AceList &operator*() const reflect_as(reuse_as<const AceList>(pACL));
-		inline AceList *operator&() reflect_as(force_cast<AceList *>(&pACL));
-		inline const AceList *operator&() const reflect_as(force_cast<const AceList *>(&pACL));
-		inline AceList *operator->() reflect_as(force_cast<AceList *>(&pACL));
-		inline const AceList *operator->() const reflect_as(force_cast<const AceList *>(&pACL));
+		inline AceList &operator*() reflect_as(ref_as<AceList>(pACL));
+		inline const AceList &operator*() const reflect_as(ref_as<const AceList>(pACL));
+		inline AceList *operator&() reflect_as(reuse_as<AceList *>(&pACL));
+		inline const AceList *operator&() const reflect_as(reuse_as<const AceList *>(&pACL));
+		inline AceList *operator->() reflect_as(reuse_as<AceList *>(&pACL));
+		inline const AceList *operator->() const reflect_as(reuse_as<const AceList *>(&pACL));
 	};
 	template<bool _GSID_1_OSID_0_>
 	class xSID {
@@ -440,12 +440,12 @@ class SecurityDescriptor {
 		inline operator bool() const reflect_as(pSID);
 		inline bool operator==(Null) const reflect_as(!pSID);
 		inline bool operator!=(Null) const reflect_as(pSID);
-		inline SecID &operator*() reflect_as(reuse_as<SecID &>(pSID));
-		inline const SecID &operator*() const reflect_as(reuse_as<SecID &>(pSID));
-		inline SecID *operator&() reflect_as(force_cast<SecID *>(&pSID));
-		inline const SecID *operator&() const reflect_as(force_cast<const SecID *>(&pSID));
-		inline SecID *operator->() reflect_as(force_cast<SecID *>(&pSID));
-		inline const SecID *operator->() const reflect_as(force_cast<const SecID *>(&pSID));
+		inline SecID &operator*() reflect_as(ref_as<SecID &>(pSID));
+		inline const SecID &operator*() const reflect_as(ref_as<SecID &>(pSID));
+		inline SecID *operator&() reflect_as(reuse_as<SecID *>(&pSID));
+		inline const SecID *operator&() const reflect_as(reuse_as<const SecID *>(&pSID));
+		inline SecID *operator->() reflect_as(reuse_as<SecID *>(&pSID));
+		inline const SecID *operator->() const reflect_as(reuse_as<const SecID *>(&pSID));
 	};
 	class Control {
 		friend class SecurityDescriptor;
@@ -566,9 +566,9 @@ public: // Property - Inherit
 	/* R */ inline bool  Inherit() const reflect_as(this->bInheritHandle);
 public: // Property - Descriptor
 	/* W */ inline auto &Descriptor(const SecDesc &sd) reflect_to_self(this->lpSecurityDescriptor = &sd);
-	/* R */ inline SecDesc &Descriptor() const reflect_as(reuse_as<SecDesc>(this->lpSecurityDescriptor));
+	/* R */ inline SecDesc &Descriptor() const reflect_as(ref_as<SecDesc>(this->lpSecurityDescriptor));
 
-	inline PSECURITY_ATTRIBUTES operator&() const reflect_as(force_cast<PSECURITY_ATTRIBUTES>(this));
+	inline PSECURITY_ATTRIBUTES operator&() const reflect_as(reuse_as<PSECURITY_ATTRIBUTES>(this));
 };
 using SecAttr = SecurityAttributes;
 static inline constexpr SecurityAttributes InheritHandle = true;

@@ -39,14 +39,14 @@ public:
 		}
 	}
 
-	inline operator BaseHandle() const reflect_as(reuse_as<BaseHandle>(hobj));
+	inline operator BaseHandle() const reflect_as(ref_as<BaseHandle>(hobj));
 
 	inline Child &operator=(Child &obj) reflect_to_child(std::swap(obj.hobj, hobj));
 	inline Child &operator=(Child &&obj) reflect_to_child(std::swap(obj.hobj, hobj));
 	inline const Child &operator=(const Child &obj) const reflect_to_child(std::swap(obj.hobj, hobj));
 
-	static inline auto &Attach(BaseHandle &hObj) reflect_as(reuse_as<AnyChild>(hObj));
-	static inline const auto &Attach(const BaseHandle &hObj) reflect_as(reuse_as<const AnyChild>(hObj));
+	static inline auto &Attach(BaseHandle &hObj) reflect_as(ref_as<AnyChild>(hObj));
+	static inline const auto &Attach(const BaseHandle &hObj) reflect_as(ref_as<const AnyChild>(hObj));
 };
 using CGObject = RefAs<GObject>;
 #define BaseOf_GDI(name, idt) name : public WX::GObjectBase<name, idt>
@@ -86,7 +86,7 @@ public: // Property - Size
 	/* R */ inline LSize Size() const reflect_as({ bmiHeader.biWidth, bmiHeader.biHeight });
 public: // Property - Compression
 	/* W */ inline auto &Compression(BitmapCompressions biCompression) reflect_to_self(this->bmiHeader.biCompression = biCompression.yield());
-	/* R */ inline BitmapCompressions Compression() const reflect_as(force_cast<BitmapCompressions>(this->bmiHeader.biCompression));
+	/* R */ inline BitmapCompressions Compression() const reflect_as(reuse_as<BitmapCompressions>(this->bmiHeader.biCompression));
 public: // Property - SizeImage
 	/* R */ inline DWORD SizeImage() const reflect_as(this->bmiHeader.biSizeImage);
 public: // Property - PixelsPerMeter
@@ -521,14 +521,14 @@ public: // Property - WindowExt
 	/* R */ inline LSize WindowExt() const assertl_reflect_to(LSize sz, GetWindowExtEx(self, &sz), sz);
 public: // Property - MapMode
 	/* W */ inline auto    &MapMode(MapModes mode) assertl_reflect_as_self(SetMapMode(self, mode.yield()));
-	/* R */ inline MapModes MapMode() const reflect_as(force_cast<MapModes>(GetMapMode(self)));
+	/* R */ inline MapModes MapMode() const reflect_as(reuse_as<MapModes>(GetMapMode(self)));
 public: // Property - Size
 	/* R */ inline LSize Size() const reflect_as({ GetDeviceCaps(self, HORZRES), GetDeviceCaps(self, VERTRES) });
 public: // Property - PaletteRealize
 	/* R */ inline UINT PaletteRealize() const reflect_as(RealizePalette(self));
 public: // Property - StretchMode
 	/* W */ inline auto     &StretchMode(Stretches mode) assertl_reflect_as_self(SetStretchBltMode(self, mode.yield()));
-	/* R */ inline Stretches StretchMode() const assertl_reflect_as(auto mode = GetStretchBltMode(self), force_cast<Stretches>(mode));
+	/* R */ inline Stretches StretchMode() const assertl_reflect_as(auto mode = GetStretchBltMode(self), reuse_as<Stretches>(mode));
 #pragma endregion
 
 	inline auto&operator()(HGDIOBJ ho) reflect_to_self(Select(ho));
@@ -673,8 +673,8 @@ public: // Property - Colors
 	inline auto &operator=(Icon &&i) reflect_to_self(std::swap(hIcon, i.hIcon));
 	inline auto &operator=(const Icon &i) const reflect_to_self(std::swap(hIcon, i.hIcon));
 
-	static inline Icon &Attach(HICON &hIcon) reflect_as(reuse_as<Icon>(hIcon));
-	static inline const Icon &Attach(const HICON &hIcon) reflect_as(reuse_as<const Icon>(hIcon));
+	static inline Icon &Attach(HICON &hIcon) reflect_as(ref_as<Icon>(hIcon));
+	static inline const Icon &Attach(const HICON &hIcon) reflect_as(ref_as<const Icon>(hIcon));
 };
 using CIcon = RefAs<Icon>;
 #pragma endregion
@@ -734,8 +734,8 @@ public: // Property - Hotspot
 	inline auto &operator=(Cursor &&i) reflect_to_self(std::swap(hIcon, i.hIcon));
 	inline auto &operator=(const Cursor &i) const reflect_to_self(std::swap(hIcon, i.hIcon));
 
-	static inline Cursor &Attach(HCURSOR &hCursor) reflect_as(reuse_as<Cursor>(hCursor));
-	static inline const Cursor &Attach(const HCURSOR &hCursor) reflect_as(reuse_as<const Cursor>(hCursor));
+	static inline Cursor &Attach(HCURSOR &hCursor) reflect_as(ref_as<Cursor>(hCursor));
+	static inline const Cursor &Attach(const HCURSOR &hCursor) reflect_as(ref_as<const Cursor>(hCursor));
 };
 using CCursor = RefAs<Cursor>;
 #pragma endregion
@@ -805,9 +805,9 @@ public: // Property - Check
 	/* W */ inline auto &name(type memb) assertl_reflect_to_self(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = mask; mii.memb = in, SetMenuItemInfo(hMenu, uID, flags, &mii)); \
 	/* R */ inline type  name() const assertl_reflect_to(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = mask, GetMenuItemInfo(hMenu, uID, flags, &mii), conv(mii.memb))
 public: // Property - Types
-	MENUITEM_PROPERTY(Types, MIIM_TYPE, fType, Type, fType.yield(), reuse_as<Type>);
+	MENUITEM_PROPERTY(Types, MIIM_TYPE, fType, Type, fType.yield(), ref_as<Type>);
 public: // Property - State
-	MENUITEM_PROPERTY(States, MIIM_STATE, fState, State, fState.yield(), reuse_as<State>);
+	MENUITEM_PROPERTY(States, MIIM_STATE, fState, State, fState.yield(), ref_as<State>);
 public: // Property - ID
 	MENUITEM_PROPERTY(ID, MIIM_ID, wID, UINT, wID, _M_);
 public: // Property - Checked
@@ -818,7 +818,7 @@ public: // Property - Bitmap
 	MENUITEM_PROPERTY(Bitmap, MIIM_BITMAP, hbmpItem, CBitmap, hbmpItem, _M_);
 	/* W */ inline auto &Bitmap(MenuBmp hbmpItem) assertl_reflect_to_self(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = MIIM_BITMAP; mii.hbmpItem = hbmpItem.yield(), SetMenuItemInfo(hMenu, uID, flags, &mii));
 public: // Property - UserData
-	MENUITEM_PROPERTY(UserData, MIIM_DATA, dwItemData, void *, (ULONG_PTR)dwItemData, reuse_as<void *>);
+	MENUITEM_PROPERTY(UserData, MIIM_DATA, dwItemData, void *, (ULONG_PTR)dwItemData, ref_as<void *>);
 public: // Property - SubMenu
 	/* W */ auto &SubMenu(CMenu);
 	/* R */ CMenu SubMenu() const;
@@ -913,7 +913,7 @@ public:
 //	inline auto Count() const reflect_as(GetMenuItemCount(hMenu));
 //#define MENU_PROPERTY(name, mask, memb, type, in) \
 //	/* W */ inline auto &name(type memb) assertl_reflect_to_self(MENUINFO mi({ 0 }); mi.cbSize = sizeof(mi); mi.fMask = mask; mi.memb = in, SetMenuInfo(hMenu, &mi)); \
-//	/* R */ inline type  name() const assertl_reflect_to(MENUINFO mi({ 0 }); mi.cbSize = sizeof(mi); mi.fMask = mask, GetMenuInfo(hMenu, &mi), reuse_as<type>(mi.memb));
+//	/* R */ inline type  name() const assertl_reflect_to(MENUINFO mi({ 0 }); mi.cbSize = sizeof(mi); mi.fMask = mask, GetMenuInfo(hMenu, &mi), ref_as<type>(mi.memb));
 //public: // Property - Styles
 //	MENU_PROPERTY(Styles, MIM_STYLE, dwStyle, Style, dwStyle.yield());
 //public: // Property - MaxY
@@ -940,8 +940,8 @@ public:
 	inline auto &operator=(Menu &m) reflect_to_self(std::swap(hMenu, m.hMenu));
 	inline auto &operator=(const Menu &m) const reflect_to_self(std::swap(hMenu, m.hMenu));
 
-	static inline Menu &Attach(HMENU &hMenu) reflect_as(reuse_as<Menu>(hMenu));
-	static inline const Menu &Attach(const HMENU &hMenu) reflect_as(reuse_as<const Menu>(hMenu));
+	static inline Menu &Attach(HMENU &hMenu) reflect_as(ref_as<Menu>(hMenu));
+	static inline const Menu &Attach(const HMENU &hMenu) reflect_as(ref_as<const Menu>(hMenu));
 };
 MENUITEM_PROPERTY(MenuItem::SubMenu, MIIM_SUBMENU, hSubMenu, CMenu, hSubMenu, _M_);
 inline CMenu MenuItem::Sub(int nPos) reflect_as({ GetSubMenu(hMenu, nPos) });
@@ -1003,8 +1003,8 @@ public:
 	inline auto &operator=(Module &&m) reflect_to_self(std::swap(hInst, m.hInst));
 	inline auto &operator=(const Module &m) const reflect_to_self(std::swap(hInst, m.hInst));
 
-	static inline Module &Attach(HINSTANCE &hInst) reflect_as(reuse_as<Module>(hInst));
-	static inline const Module &Attach(const HINSTANCE &hInst) reflect_as(reuse_as<const Module>(hInst));
+	static inline Module &Attach(HINSTANCE &hInst) reflect_as(ref_as<Module>(hInst));
+	static inline const Module &Attach(const HINSTANCE &hInst) reflect_as(ref_as<const Module>(hInst));
 };
 using CModule = RefAs<Module>;
 #pragma endregion
@@ -1092,7 +1092,7 @@ public: // Properties - CharSet
 	/* R */ inline BYTE  CharSet() const reflect_as(self->lfCharSet);
 public: // Properties - OutPrecision
 	/* W */ inline auto     &OutPrecision(OutPrecis lfOutPrecision) reflect_to_self(self->lfOutPrecision = lfOutPrecision.yield());
-	/* R */ inline OutPrecis OutPrecision() const reflect_as(reuse_as<OutPrecis>(self->lfOutPrecision));
+	/* R */ inline OutPrecis OutPrecision() const reflect_as(ref_as<OutPrecis>(self->lfOutPrecision));
 public: // Properties - ClipPrecision
 	/* W */ inline auto&ClipPrecision(BYTE lfClipPrecision) reflect_to_self(self->lfClipPrecision = lfClipPrecision);
 	/* R */ inline BYTE ClipPrecision() const reflect_as(self->lfClipPrecision);

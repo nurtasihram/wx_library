@@ -77,8 +77,7 @@ public:
 
 #pragma region CommCtl
 template<class AnyChild>
-class CommCtl : public ChainExtend<CommCtl<AnyChild>, AnyChild>,
-	public WindowBase<AnyChild> {
+class CommCtl : public WindowBase<AnyChild> {
 public:
 	using super = WindowBase<AnyChild>;
 protected:
@@ -114,7 +113,7 @@ public:
 };
 template<class AnyChild>
 WndProc CommCtl<AnyChild>::DefProc;
-#define BaseOf_CommCtl(name) template<class AnyChild> name : public WX::ChainExtend<name<AnyChild>, AnyChild>, public CommCtl<KChain<name<AnyChild>, AnyChild>>
+#define BaseOf_CommCtl(name) template<class AnyChild> name : public CommCtl<KChain<name<AnyChild>, AnyChild>>
 #define SFINAE_CommCtl(name) friend class CommCtl<name>
 #pragma endregion
 
@@ -158,8 +157,8 @@ enum_flags(StaticStyle, WStyle,
 BaseOf_CommCtl(class StaticBase) {
 protected:
 	SFINAE_CommCtl(StaticBase);
-	static constexpr auto CtlClassName = WC_STATIC;
 public:
+	static constexpr auto CtlClassName = WC_STATIC;
 	using Child = KChain<StaticBase<AnyChild>, AnyChild>;
 	using super = CommCtl<Child>;
 	using Style = StaticStyle;
@@ -239,10 +238,10 @@ public: // Property - Styles
 		AlignLeft = BCSS_ALIGNLEFT,
 		Image     = BCSS_IMAGE);
 	/* W */ inline auto &Styles(Style style) reflect_to_self(self->uSplitStyle = style.yield());
-	/* R */ inline Style Styles() const reflect_as(reuse_as<Style>(self->uSplitStyle));
+	/* R */ inline Style Styles() const reflect_as(ref_as<Style>(self->uSplitStyle));
 public: // Property - Size
 	/* W */ inline auto &Size(SIZE size) reflect_to_self(self->size = size);
-	/* R */ inline LSize Size() const reflect_as(reuse_as<LSize>(self->size));
+	/* R */ inline LSize Size() const reflect_as(ref_as<LSize>(self->size));
 };
 class ButtonImageList : public RefStruct<BUTTON_IMAGELIST> {
 public:
@@ -258,7 +257,7 @@ public: // Property - Align
 		Bottom   = BUTTON_IMAGELIST_ALIGN_BOTTOM,
 		Center   = BUTTON_IMAGELIST_ALIGN_CENTER);
 	/* W */ inline auto   &Align(Aligns align) reflect_to_self(self->uAlign = align.yield());
-	/* R */ inline Aligns  Align() const reflect_as(reuse_as<Aligns>(self->uAlign));
+	/* R */ inline Aligns  Align() const reflect_as(ref_as<Aligns>(self->uAlign));
 public:
 	inline BUTTON_IMAGELIST *operator&() reflect_as(self);
 	inline const BUTTON_IMAGELIST *operator&() const reflect_as(self);
@@ -267,8 +266,8 @@ BaseOf_CommCtl(class ButtonBase) {
 protected:
 	SFINAE_CommCtl(ButtonBase);
 	def_memberof(wmailBox);
-	static constexpr auto CtlClassName = WC_BUTTON;
 public:
+	static constexpr auto CtlClassName = WC_BUTTON;
 	using Child = KChain<ButtonBase<AnyChild>, AnyChild>;
 	using super = CommCtl<Child>;
 	using Style = ButtonStyle;
@@ -399,8 +398,8 @@ public: // Property -
 BaseOf_CommCtl(class ScrollBarBase) {
 protected:
 	SFINAE_CommCtl(ScrollBarBase);
-	static constexpr auto CtlClassName = WC_SCROLLBAR;
 public:
+	static constexpr auto CtlClassName = WC_SCROLLBAR;
 	using super = CommCtl<KChain<ScrollBarBase<AnyChild>, AnyChild>>;
 	using Style = ScrollBarStyle;
 	using SInfo = ScrollInfo;
@@ -441,8 +440,8 @@ enum_flags(StatusBarTexts, uint16_t,
 BaseOf_CommCtl(class StatusBarBase) {
 protected:
 	SFINAE_CommCtl(StatusBarBase);
-	static constexpr LPCTSTR CtlClassName = STATUSCLASSNAME;
 public:
+	static constexpr LPCTSTR CtlClassName = STATUSCLASSNAME;
 	using super = CommCtl<KChain<StatusBarBase<AnyChild>, AnyChild>>;
 	using Style = WStyle;
 	using StyleEx = WStyleEx;
@@ -560,17 +559,17 @@ public: // Property - ID
 	/* R */ inline int ID() const reflect_as(self->idCommand);
 public: // Property - States
 	/* W */ inline auto &States(ToolBarState tbs) reflect_to_self(self->fsState = tbs.yield());
-	/* R */ inline ToolBarState States() const reflect_as(force_cast<ToolBarState>(self->fsState));
+	/* R */ inline ToolBarState States() const reflect_as(reuse_as<ToolBarState>(self->fsState));
 public: // Property - Styles
 	/* W */ inline auto &Styles(ToolBarButtonStyle tbbs) reflect_to_self(self->fsStyle = tbbs.yield());
-	/* R */ inline ToolBarButtonStyle Styles() const reflect_as(force_cast<ToolBarButtonStyle>(self->fsStyle));
+	/* R */ inline ToolBarButtonStyle Styles() const reflect_as(reuse_as<ToolBarButtonStyle>(self->fsStyle));
 public: // Property - Data
 	template<class AnyType>
 	/* W */ inline auto &Data(AnyType *ptr) reflect_to_self(self->dwData = (DWORD_PTR)ptr);
 	template<class AnyType>
-	/* R */ inline AnyType *Data() reflect_as(force_cast<AnyType *>(self->dwData));
+	/* R */ inline AnyType *Data() reflect_as(reuse_as<AnyType *>(self->dwData));
 	template<class AnyType>
-	/* R */ inline const AnyType *Data() const reflect_as(force_cast<const AnyType *>(self->dwData));
+	/* R */ inline const AnyType *Data() const reflect_as(reuse_as<const AnyType *>(self->dwData));
 public: // Property - String
 	/* W */ inline auto &String(INT_PTR iString) reflect_to_self(self->iString = iString);
 	/* W */ inline auto &String(LPCTSTR lpString) reflect_to_self(self->iString = (INT_PTR)lpString);
@@ -583,8 +582,8 @@ using ToolBar = ToolBarBase<>;
 BaseOf_CommCtl(class ToolBarBase) {
 protected:
 	SFINAE_CommCtl(ToolBarBase);
-	static constexpr LPCTSTR CtlClassName = TOOLBARCLASSNAME;
 public:
+	static constexpr LPCTSTR CtlClassName = TOOLBARCLASSNAME;
 	using super = CommCtl<KChain<ToolBarBase<AnyChild>, AnyChild>>;
 	using Style = ToolBarStyle;
 	using StyleEx = ToolBarStyleEx;
@@ -729,8 +728,8 @@ BaseOf_CommCtl(class ListViewBase) {
 	protected:
 	SFINAE_CommCtl(ListViewBase);
 	def_memberof(wmailBox);
-	static constexpr auto CtlClassName = WC_LISTVIEW;
 public:
+	static constexpr auto CtlClassName = WC_LISTVIEW;
 	using super = CommCtl<KChain<ListViewBase<AnyChild>, AnyChild>>;
 	using Style = ListViewStyle;
 public:
@@ -925,7 +924,7 @@ public:
 	UINT        fMask;
 public: // Property - Styles
 	/* W */ inline auto &Styles(Style style) reflect_to_self(this->fStyle = style.yield());
-	/* R */ inline Style Styles() const reflect_as(force_cast<Style>(this->fStyle));
+	/* R */ inline Style Styles() const reflect_as(reuse_as<Style>(this->fStyle));
 public: // Property - Foreground
 	/* W */ inline auto    &Foreground(COLORREF clrFore) reflect_to_self(this->clrFore = clrFore);
 	/* R */ inline RGBColor Foreground() const reflect_as(this->clrFore);
@@ -1098,7 +1097,7 @@ public: // Property - String
 	/* R */ inline const String Text() const reflect_as(CString(this->pszText, MaxLenNotice));
 public: // Property - Icon
 	/* W */ inline auto &Icon(ToolTipIcons tti) reflect_to_self(this->ttiIcon = tti.yield());
-	/* R */ inline ToolTipIcons Icon()const reflect_as(force_cast<ToolTipIcons>(this->ttiIcon));
+	/* R */ inline ToolTipIcons Icon()const reflect_as(reuse_as<ToolTipIcons>(this->ttiIcon));
 public:
 	inline PEDITBALLOONTIP operator&() reflect_as(this);
 	inline const EDITBALLOONTIP *operator&() const reflect_as(this);
@@ -1106,8 +1105,8 @@ public:
 BaseOf_CommCtl(class EditBase) {
 protected:
 	SFINAE_CommCtl(EditBase);
-	static constexpr auto CtlClassName = WC_EDIT;
 public:
+	static constexpr auto CtlClassName = WC_EDIT;
 	using super = CommCtl<KChain<EditBase<AnyChild>, AnyChild>>;
 	using Style = EditStyle;
 	using Balloon = EditBalloonTip;

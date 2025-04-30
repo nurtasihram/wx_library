@@ -96,12 +96,12 @@ enum_flags(MapAccess, DWORD,
 struct FileTime : protected FILETIME {
 	FileTime() : FILETIME{ 0 } {}
 	FileTime(const FILETIME &ft) : FILETIME(ft) {}
-	FileTime(LARGE_INTEGER li) { reuse_as<LARGE_INTEGER>(self) = li; }
+	FileTime(LARGE_INTEGER li) { ref_as<LARGE_INTEGER>(self) = li; }
 	FileTime(const SYSTEMTIME &st) assertl(SystemTimeToFileTime(&st, this));
 	inline FileTime LocalTime() assertl_reflect_to(FILETIME ft, FileTimeToLocalFileTime(this, &ft), ft);
 	inline operator SysTime() const assertl_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
 	inline operator SYSTEMTIME() const assertl_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
-	inline operator LARGE_INTEGER() const reflect_as(force_cast<LARGE_INTEGER>(*this));
+	inline operator LARGE_INTEGER() const reflect_as(reuse_as<LARGE_INTEGER>(*this));
 	inline LPFILETIME operator &() reflect_as(this);
 	inline const FILETIME *operator &() const reflect_as(this);
 	inline operator String() const reflect_as(((SysTime)self));
@@ -123,7 +123,7 @@ public: // Property - TimeChange
 	/* R */ inline FileTime TimeChange() const reflect_as(this->ChangeTime);
 public: // Property - Attributes
 	/* W */ inline auto &Attributes(FileAttribute fa) reflect_to_self(this->FileAttributes = fa.yield());
-	/* R */ inline FileAttribute Attributes() const reflect_as(force_cast<FileAttribute>(this->FileAttributes));
+	/* R */ inline FileAttribute Attributes() const reflect_as(reuse_as<FileAttribute>(this->FileAttributes));
 public:
 	inline FILE_BASIC_INFO *operator &() reflect_as(this);
 	inline const FILE_BASIC_INFO *operator &() const reflect_as(this);
@@ -253,7 +253,7 @@ public: // Property - Size
 public: // Property - Time
 	/* W */ inline FileTimes Times() const assertl_reflect_to(FileTimes ts, GetFileTime(self, &ts.Creation, &ts.LastAccess, &ts.LastWrite), ts);
 public: // Property - Type
-	/* W */ inline Types Type() const nt_assertl_reflect_to(auto type = GetFileType(self), force_cast<Types>(type));
+	/* W */ inline Types Type() const nt_assertl_reflect_to(auto type = GetFileType(self), reuse_as<Types>(type));
 #pragma endregion
 
 };
@@ -271,11 +271,11 @@ enum_class(StopBit, BYTE,
 	enum_default One = ONESTOPBIT,
 	One5      = ONE5STOPBITS,
 	Two       = TWOSTOPBITS);
-enum_class(DtrCtrl, BYTE,
+enum_class(DtrCtrl, DWORD,
 	enum_default Disable = DTR_CONTROL_DISABLE,
 	Enable    = DTR_CONTROL_ENABLE,
 	HandShake = DTR_CONTROL_HANDSHAKE);
-enum_class(RtsCtrl, BYTE,
+enum_class(RtsCtrl, DWORD,
 	enum_default Disable = RTS_CONTROL_DISABLE,
 	Enable    = RTS_CONTROL_ENABLE,
 	HandShake = RTS_CONTROL_HANDSHAKE,
@@ -312,10 +312,10 @@ public: // Property - ByteSize
 	/* R */ inline BYTE  ByteSize() const reflect_as(DCB::ByteSize);
 public: // Property - Parity
 	/* W */ inline auto    &Parity(Parities parity) reflect_to_self(DCB::Parity = parity.yield(), DCB::fParity = 1);
-	/* R */ inline Parities Parity() const reflect_as(force_cast<Parities>(DCB::Parity));
+	/* R */ inline Parities Parity() const reflect_as(reuse_as<Parities>(DCB::Parity));
 public: // Property - StopBits
 	/* W */ inline auto   &StopBits(StopBit stopbits) reflect_to_self(DCB::StopBits = stopbits.yield());
-	/* R */ inline StopBit StopBits() const reflect_as(force_cast<StopBit>(DCB::StopBits));
+	/* R */ inline StopBit StopBits() const reflect_as(reuse_as<StopBit>(DCB::StopBits));
 public: // Property - OutxCtsFlow
 	/* W */ inline auto &OutxCtsFlow(bool bOutxCtsFlow) reflect_to_self(DCB::fOutxCtsFlow = bOutxCtsFlow);
 	/* R */ inline bool  OutxCtsFlow() const reflect_as(DCB::fOutxCtsFlow);
@@ -324,10 +324,10 @@ public: // Property - OutxDsrFlow
 	/* R */ inline bool  OutxDsrFlow() const reflect_as(DCB::fOutxDsrFlow);
 public: // Property - DtrControl
 	/* W */ inline auto   &DtrControl(DtrCtrl ctl) reflect_to_self(DCB::fDtrControl = ctl.yield());
-	/* R */ inline DtrCtrl DtrControl() const reflect_as(force_cast<DtrCtrl>(DCB::fDtrControl));
+	/* R */ inline DtrCtrl DtrControl() const reflect_as(reuse_as<DtrCtrl>(DCB::fDtrControl));
 public: // Property - RtsControl
 	/* W */ inline auto   &RtsControl(RtsCtrl ctl) reflect_to_self(DCB::fRtsControl = ctl.yield());
-	/* R */ inline RtsCtrl RtsControl() const reflect_as(force_cast<RtsCtrl>(DCB::fRtsControl));
+	/* R */ inline RtsCtrl RtsControl() const reflect_as(reuse_as<RtsCtrl>(DCB::fRtsControl));
 public: // Property - DsrSensitivity
 	/* W */ inline auto &DsrSensitivity(bool bDsrSensitivity) reflect_to_self(DCB::fDsrSensitivity = bDsrSensitivity);
 	/* R */ inline bool  DsrSensitivity() const reflect_as(DCB::fDsrSensitivity);
@@ -425,7 +425,7 @@ public:
 	inline auto &Setup(DWORD dwInQueue, DWORD dwOutQueue) assertl_reflect_as_self(SetupComm(fCom, dwInQueue, dwOutQueue));
 
 	inline auto &TransmitChar(char cChar) assertl_reflect_as_self(TransmitCommChar(fCom, cChar));
-	inline Event WaitEvents(LPOVERLAPPED lpOverlapped = O) assertl_reflect_to(DWORD evt, WaitCommEvent(fCom, &evt, lpOverlapped), force_cast<Event>(evt));
+	inline Event WaitEvents(LPOVERLAPPED lpOverlapped = O) assertl_reflect_to(DWORD evt, WaitCommEvent(fCom, &evt, lpOverlapped), reuse_as<Event>(evt));
 
 #pragma region Properties
 public: // Property - State
@@ -436,7 +436,7 @@ public: // Property - Timeouts
 	/* R */ inline Timeout Timeouts() const assertl_reflect_to(Timeout to, GetCommTimeouts(fCom, &to), to);
 public: // Property - Events
 	/* W */ inline auto &Events(Event evt) assertl_reflect_as_self(SetCommMask(fCom, evt.yield()));
-	/* R */ inline Event Events() const assertl_reflect_to(DWORD evt, GetCommMask(fCom, &evt), force_cast<Event>(evt));
+	/* R */ inline Event Events() const assertl_reflect_to(DWORD evt, GetCommMask(fCom, &evt), reuse_as<Event>(evt));
 public: // Property - Config
 #pragma endregion
 

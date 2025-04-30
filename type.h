@@ -80,7 +80,7 @@ public:
 				hSourceProcessHandle, hSourceHandle,
 				hTargetProcessHandle, &hTargetHandle,
 				dwDesiredAccess, bInheritHandle,
-				dwOptions), force_cast<Child>(hTargetHandle));
+				dwOptions), reuse_as<Child>(hTargetHandle));
 	};
 	inline Duplication Duplicate(HANDLE hTargetProcessHandle) reflect_as({ hObject, hTargetProcessHandle });
 
@@ -96,14 +96,14 @@ public: // Property - ProtectFromClose
 
 	inline operator bool() const reflect_as(hObject &&hObject != INVALID_HANDLE_VALUE);
 	inline operator HANDLE() const reflect_as(hObject);
-	inline operator const Handle() const reflect_as(reuse_as<Handle>(self));
+	inline operator const Handle() const reflect_as(ref_as<Handle>(self));
 
 	inline Child &operator=(Child &obj) reflect_to_child(std::swap(obj.hObject, hObject));
 	inline Child &operator=(Child &&obj) reflect_to_child(std::swap(obj.hObject, hObject));
 	inline const Child &operator=(const Child &obj) const reflect_to_child(std::swap(obj.hObject, hObject));
 
-	static inline auto &Attach(HANDLE &hObj) reflect_as(reuse_as<Child>(hObj));
-	static inline auto &Attach(const HANDLE &hObj) reflect_as(reuse_as<const Child>(hObj));
+	static inline auto &Attach(HANDLE &hObj) reflect_as(ref_as<Child>(hObj));
+	static inline auto &Attach(const HANDLE &hObj) reflect_as(ref_as<const Child>(hObj));
 };
 #define BaseOf_Handle(name) name : public WX::HandleBase<name>
 #pragma endregion

@@ -1,4 +1,4 @@
-#pragma once
+﻿#pragma once
 
 #include <tchar.h>
 
@@ -93,11 +93,46 @@ constexpr bool IsUnicode = true;
 constexpr bool IsUnicode = false;
 #endif
 
+/// @brief 彊制轉換一個類型為另一個類型，並確保兩者的大小相同。
+/// @tparam OutType 傳出類型
+/// @tparam InType 傳入類型
+/// @param in 傳入的類型
+/// @return 傳出的類型
 template<class OutType, class InType>
-static inline OutType force_cast(InType in) reflect_as(*(OutType *)&in);
+static inline OutType reuse_as(InType in) {
+	misuse_assert(sizeof(OutType) == sizeof(InType), "Must fit same size");
+	return *(OutType *)&in;
+}
 
+/// @brief 縮小轉換一個類型為另一個類型，並確保傳入類型的大小小於或等於傳出類型的大小。
+/// @tparam OutType 傳出類型
+/// @tparam InType 傳入類型
+/// @param in 傳入的類型
+/// @return 傳出的類型
 template<class OutType, class InType>
-static inline OutType &reuse_as(InType &in) {
+static inline OutType small_cast(InType in) {
+	misuse_assert(sizeof(OutType) >= sizeof(InType), "sizeof in-type must small or equal to out-type");
+	return *(OutType *)&in;
+}
+
+/// @brief 擴大轉換一個類型為另一個類型，並確保傳入類型的大小大於或等於傳出類型的大小。
+/// @tparam OutType 傳出類型
+/// @tparam InType 傳入類型
+/// @param in 傳入的類型
+/// @return 傳出的類型
+template<class OutType, class InType>
+static inline OutType big_cast(InType in) {
+	misuse_assert(sizeof(OutType) <= sizeof(InType), "sizeof in-type must big or equal to out-type");
+	return *(OutType *)&in;
+}
+
+/// @brief 將一個類型的引用轉換為另一個類型的引用，並確保兩者的大小相同。
+/// @tparam OutType 傳出類型
+/// @tparam InType 傳入類型
+/// @param in 傳入的引用
+/// @return 傳出的引用
+template<class OutType, class InType>
+static inline OutType &ref_as(InType &in) {
 	misuse_assert(sizeof(OutType) == sizeof(InType), "Must fit same size");
 	return *(OutType *)(&in);
 }
@@ -124,8 +159,11 @@ struct SizeOf_t<void> { static constexpr size_t val = 0; };
 template<class AnyType>
 constexpr size_t SizeOf = SizeOf_t<AnyType>::val;
 
+/// @brief 引用類
+///		用扵將原始類型的引用為指針類型，被引用的類的析構函數不會被調用。
+/// @tparam AnyClass 任意類
 template<class AnyClass>
-union RefAs {
+union RefAs final {
 private:
 	AnyClass t;
 public:
@@ -149,22 +187,6 @@ public:
 	template<class AnyType>
 	inline operator AnyType() const reflect_as(t);
 };
-
-template<class AnyStruct>
-struct RefStruct : private AnyStruct {
-	RefStruct() : AnyStruct{ 0 } {}
-	RefStruct(const AnyStruct &s) : AnyStruct(s) {}
-	RefStruct(const AnyStruct &&s) : AnyStruct(s) {}
-	inline operator AnyStruct *() reflect_as(this);
-	inline operator const AnyStruct *() const reflect_as(this);
-	inline AnyStruct &operator*() reflect_as(*this);
-	inline const AnyStruct &operator*() const reflect_as(*this);
-	inline AnyStruct *operator&() reflect_as(this);
-	inline const AnyStruct *operator&() const reflect_as(this);
-	inline AnyStruct *operator->() reflect_as(this);
-	inline const AnyStruct *operator->() const reflect_as(this);
-};
-
 template<class AnyType>
 union RefAs<AnyType *> {
 private:
@@ -172,20 +194,47 @@ private:
 public:
 	template<class OtherType>
 	RefAs(OtherType *ptr) : ptr((AnyType *)ptr) { static_assert(std::is_convertible_v<OtherType, AnyType>); }
-	inline auto&operator*() reflect_as(*ptr);
-	inline auto&operator*() const reflect_as(*ptr);
+	inline auto &operator*() reflect_as(*ptr);
+	inline auto &operator*() const reflect_as(*ptr);
 	inline auto operator->() reflect_as(ptr);
 	inline auto operator->() const reflect_as(ptr);
 	inline operator bool() const reflect_as(ptr);
+};
+
+/// @brief 引用結構體
+///		引用結構體的子類大小必須與原始結構體相同，且為 POD 類型，否則會導致錯誤。
+/// 用扵將原始結構體的引用為指針類型，並通過子類的成員函數來訪問原始結構體的成員。
+/// @tparam ProtoStruct 原始結構體類型
+template<class ProtoStruct>
+struct RefStruct : private ProtoStruct {
+	RefStruct() : ProtoStruct{ 0 } {}
+	RefStruct(const ProtoStruct &s) : ProtoStruct(s) {}
+	RefStruct(const ProtoStruct &&s) : ProtoStruct(s) {}
+	inline operator ProtoStruct *() reflect_as(this);
+	inline operator const ProtoStruct *() const reflect_as(this);
+	inline ProtoStruct &operator*() reflect_as(*this);
+	inline const ProtoStruct &operator*() const reflect_as(*this);
+	inline ProtoStruct *operator&() reflect_as(this);
+	inline const ProtoStruct *operator&() const reflect_as(this);
+	inline ProtoStruct *operator->() reflect_as(this);
+	inline const ProtoStruct *operator->() const reflect_as(this);
 };
 
 #pragma region Type Traits
 
 #pragma region KChain
 
+/// @brief K鏈
+/// 	用於鏈式擴展的類型，當子類為 void 時，返回父類；否則返回子類。
+/// @tparam ParentClass 父類
+/// @tparam ChildClass 子類
 template<class ParentClass, class ChildClass>
 using KChain = std::conditional_t<std::is_void_v<ChildClass>, ParentClass, ChildClass>;
 
+/// @brief 鏈式擴展
+///		旨在擴展父類別並提供對子類別的訪問，使父類成員函數可以調用子類成員函數。
+/// @tparam ParentClass 父類
+/// @tparam ChildClass 子類
 template<class ParentClass, class ChildClass>
 struct ChainExtend {
 	using Child = KChain<ParentClass, ChildClass>;
@@ -208,19 +257,27 @@ struct ChainExtend {
 #pragma endregion
 
 #pragma region Compatible
-template <class AnyType, class Ret, class... Args>
+template <class AnyCallable, class Ret, class... Args>
 static auto _static_compatible(...) -> std::false_type;
-template <class AnyType, class Ret, class... Args>
+template <class AnyCallable, class Ret, class... Args>
 static auto _static_compatible(int) -> std::is_convertible<
-	decltype(std::declval<AnyType>()(std::declval<Args>()...)), Ret>;
-template<class AnyType, class FuncType>
+	decltype(std::declval<AnyCallable>()(std::declval<Args>()...)), Ret>;
+template<class AnyCallable, class FuncType>
 static constexpr bool static_compatible = false;
-template<class AnyType, class Ret, class... Args>
-static constexpr bool static_compatible<AnyType, Ret(Args...)> =
-decltype(_static_compatible<AnyType, Ret, Args...>(0))::value;
+/// @brief 靜態兼容性檢查
+/// 	用於檢查任意可調用類型是否可以作爲指定的函數類型進行調用。
+/// @tparam AnyCallable 任意可調用類型
+/// @tparam Ret 返迴類型
+/// @tparam ...Args 參數類型
+template<class AnyCallable, class Ret, class... Args>
+static constexpr bool static_compatible<AnyCallable, Ret(Args...)> =
+decltype(_static_compatible<AnyCallable, Ret, Args...>(0))::value;
 #pragma endregion
 
 #pragma region SFINAE Type Helper
+/// @brief SFINAE 類型輔助
+/// 	於生成一個模板類，該類可以檢查給定類別中是否存在特定成員函數及其可調用性。
+/// @param name 成員函數名稱
 #define def_memberof(name) \
 template <class AnyClass> class member_##name##_of { \
 	template<class _AnyClass> \
@@ -272,9 +329,9 @@ inline auto __makeResult(EnumType val) {
 	constexpr auto right = chain_is_ext_of_t<Enum2, Enum1>::value();
 	static_assert(left || right, "Convertless");
 	if constexpr (left)
-		return force_cast<Enum1>(val);
+		return reuse_as<Enum1>(val);
 	else if constexpr (right)
-		return force_cast<Enum2>(val);
+		return reuse_as<Enum2>(val);
 }
 #define enum_default
 #define enum_alias
@@ -352,7 +409,7 @@ public: \
 	static inline const Unit __VA_ARGS__; \
 	oprt(Unit); \
 	template<class AnyType> \
-	constexpr name(AnyType val) : val(reuse_as<Unit>(val)) \
+	constexpr name(AnyType val) : val(ref_as<Unit>(val)) \
 	{ static_assert(chain_is_ext_of_t<name, typename AnyType::EnumType>::value(), "enumerate error"); } \
 	constexpr name(Unit val) : val(val.val) {} \
 	static constexpr size_t Count = CountOf({ __VA_ARGS__ }); \
@@ -648,13 +705,16 @@ static std::function<wx_answer(const Exception &)> Catch = [](const Exception &e
 #define assertl_reflect_to_child(defs, line) assertl_reflect_to(defs, line, child)
 
 #define nt_assertl_reflect_to(line, ...) \
-{ SetLastError(0); line; if (auto _err = GetLastError()) throw wx_exception(#line, _err); return __VA_ARGS__; }
+{ SetLastError(0); line; if (GetLastError()) throw wx_exception(#line); return __VA_ARGS__; }
 #define nt_assertl_reflect_to_self(line)  nt_assertl_reflect_to(line, self)
 #define nt_assertl_reflect_to_child(line) nt_assertl_reflect_to(line, child)
 
 #pragma endregion
 
 #pragma region Function
+/// @brief 閉包函數基類
+/// @tparam RetType 返迴類型
+/// @tparam ArgsList 參數列表
 template<class RetType, class ArgsList>
 struct FunctionBase {};
 template<class RetType, class... Args>
@@ -838,7 +898,7 @@ public:
 	inline operator LPRECT()        reflect_as(this);
 	inline operator LPCRECT() const reflect_as(this);
 	inline operator LPARAM()  const reflect_as((LPARAM)this);
-	static inline LRect &Attach(RECT &rc) reflect_as(reuse_as<LRect>(rc));
+	static inline LRect &Attach(RECT &rc) reflect_as(ref_as<LRect>(rc));
 };
 inline LRect operator+(const LPoint &p, const LRect &r) reflect_as(r + p);
 inline LRect operator-(const LPoint &p, const LRect &r) reflect_as(-(r - p));
@@ -881,7 +941,7 @@ public:
 	inline BYTE Blue()  const reflect_as(GetBValue(self));
 
 	template<size_t len>
-	static inline arrayof<RGBColor, len> &Attach(arrayof<COLORREF, len> &ary) reflect_as(reuse_as<arrayof<RGBColor, len>>(ary));
+	static inline arrayof<RGBColor, len> &Attach(arrayof<COLORREF, len> &ary) reflect_as(ref_as<arrayof<RGBColor, len>>(ary));
 	inline operator COLORREF() const { return cr; }
 	static inline RGBColor &Attach(COLORREF &clr) reflect_as(*(RGBColor *)&clr);
 };

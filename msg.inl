@@ -309,36 +309,36 @@
 	((_CALL_(OnNCMButtonClick))((int)(int16_t)LOWORD(lParam), (int)(int16_t)HIWORD(lParam), (UINT)(wParam)), 0L))
 /*256*/ MSG_TRANS(WM_KEYDOWN, 
 	void, OnKeyDown, (UINT vk, int16_t wRepeat, KEY_FLAGS flags), (vk, wRepeat, flags),
-	_SEND_((void), WM_KEYDOWN, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), force_cast<WORD>(flags))), 
-	((_CALL_(OnKeyDown))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
+	_SEND_((void), WM_KEYDOWN, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), reuse_as<WORD>(flags))), 
+	((_CALL_(OnKeyDown))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), reuse_as<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*257*/ MSG_TRANS(WM_KEYUP, 
 	void, OnKeyUp, (UINT vk, int16_t wRepeat, KEY_FLAGS flags), (vk, wRepeat, flags),
-	_SEND_((void), WM_KEYUP, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), force_cast<WORD>(flags))), 
-	((_CALL_(OnKeyUp))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
+	_SEND_((void), WM_KEYUP, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), reuse_as<WORD>(flags))), 
+	((_CALL_(OnKeyUp))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), reuse_as<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*258*/ MSG_TRANS(WM_CHAR, 
 	void, OnChar, (TCHAR ch, int16_t wRepeat, KEY_FLAGS flags), (ch, wRepeat, flags),
-	_SEND_((void), WM_CHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), force_cast<WORD>(flags))),
-	((_CALL_(OnChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
+	_SEND_((void), WM_CHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), reuse_as<WORD>(flags))),
+	((_CALL_(OnChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), reuse_as<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*259*/ MSG_TRANS(WM_DEADCHAR, 
 	void, OnDeadChar, (TCHAR ch, int16_t wRepeat, KEY_FLAGS flags), (ch, wRepeat, flags),
-	_SEND_((void), WM_DEADCHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), force_cast<WORD>(flags))),
-	((_CALL_(OnDeadChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
+	_SEND_((void), WM_DEADCHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), reuse_as<WORD>(flags))),
+	((_CALL_(OnDeadChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), reuse_as<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*260*/ MSG_TRANS(WM_SYSKEYDOWN, 
 	void, OnSysKeyDown, (UINT vk, int16_t wRepeat, KEY_FLAGS flags), (vk, wRepeat, flags),
-	_SEND_((void), WM_SYSKEYDOWN, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), force_cast<WORD>(flags))), 
-	((_CALL_(OnSysKeyDown))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
+	_SEND_((void), WM_SYSKEYDOWN, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), reuse_as<WORD>(flags))), 
+	((_CALL_(OnSysKeyDown))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), reuse_as<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*261*/ MSG_TRANS(WM_SYSKEYUP, 
 	void, OnSysKeyUp, (UINT vk, int16_t wRepeat, KEY_FLAGS flags), (vk, wRepeat, flags),
-	_SEND_((void), WM_SYSKEYUP, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), force_cast<WORD>(flags))), 
-	((_CALL_(OnSysKeyUp))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
+	_SEND_((void), WM_SYSKEYUP, (WPARAM)(UINT)(vk), MAKELPARAM((wRepeat), reuse_as<WORD>(flags))), 
+	((_CALL_(OnSysKeyUp))((UINT)(wParam), (int)(int16_t)LOWORD(lParam), reuse_as<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*262*/ MSG_TRANS(WM_SYSCHAR, 
 	void, OnSysChar, (TCHAR ch, int16_t wRepeat, KEY_FLAGS flags), (ch, wRepeat, flags),
-	_SEND_((void), WM_SYSCHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), force_cast<WORD>(flags))),
-	((_CALL_(OnSysChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
+	_SEND_((void), WM_SYSCHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), reuse_as<WORD>(flags))),
+	((_CALL_(OnSysChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), reuse_as<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*263*/ MSG_TRANS(WM_SYSDEADCHAR, 
 	void, OnSysDeadChar, (TCHAR ch, int16_t wRepeat, KEY_FLAGS flags), (ch, wRepeat, flags),
-	_SEND_((void), WM_SYSDEADCHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), force_cast<WORD>(flags))),
-	((_CALL_(OnSysDeadChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), force_cast<KEY_FLAGS>(HIWORD(lParam))), 0L))
+	_SEND_((void), WM_SYSDEADCHAR, (WPARAM)(UINT)(ch), MAKELPARAM((wRepeat), reuse_as<WORD>(flags))),
+	((_CALL_(OnSysDeadChar))((TCHAR)(wParam), (int)(int16_t)LOWORD(lParam), reuse_as<KEY_FLAGS>(HIWORD(lParam))), 0L))
 /*272*/ MSG_TRANS(WM_INITDIALOG, 
 	bool, OnInitDialog, (HWND hwndFocus, LPARAM lParam), (hwndFocus, lParam), 
 	_SEND_((bool)(DWORD), WM_INITDIALOG, (WPARAM)(HWND)(hwndFocus), (lParam)), 
@@ -390,31 +390,31 @@
 /*306*/ MSG_TRANS(WM_CTLCOLORMSGBOX, 
 	HBRUSH, OnCtlColorMessageBox, (HDC hdc, HWND hwndChild), (hdc, hwndChild), 
 	_SEND_((HBRUSH)(UINT_PTR), WM_CTLCOLORMSGBOX, (WPARAM)(HDC)(hdc), (LPARAM)(HWND)(hwndChild)), 
-	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorMessageBox))((HDC)(wParam), (HWND)(lParam), CTLCOLOR_MSGBOX))
+	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorMessageBox))((HDC)(wParam), (HWND)(lParam)))
 /*307*/ MSG_TRANS(WM_CTLCOLOREDIT, 
 	HBRUSH, OnCtlColorEdit, (HDC hdc, HWND hwndChild), (hdc, hwndChild), 
 	_SEND_((HBRUSH)(UINT_PTR), WM_CTLCOLOREDIT, (WPARAM)(HDC)(hdc), (LPARAM)(HWND)(hwndChild)), 
-	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorEdit))((HDC)(wParam), (HWND)(lParam), CTLCOLOR_EDIT))
+	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorEdit))((HDC)(wParam), (HWND)(lParam)))
 /*308*/ MSG_TRANS(WM_CTLCOLORLISTBOX, 
 	HBRUSH, OnCtlColorListBox, (HDC hdc, HWND hwndChild), (hdc, hwndChild), 
 	_SEND_((HBRUSH)(UINT_PTR), WM_CTLCOLORLISTBOX, (WPARAM)(HDC)(hdc), (LPARAM)(HWND)(hwndChild)), 
-	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorListBox))((HDC)(wParam), (HWND)(lParam), CTLCOLOR_LISTBOX))
+	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorListBox))((HDC)(wParam), (HWND)(lParam)))
 /*309*/ MSG_TRANS(WM_CTLCOLORBTN, 
 	HBRUSH, OnCtlColorButton, (HDC hdc, HWND hwndChild), (hdc, hwndChild), 
 	_SEND_((HBRUSH)(UINT_PTR), WM_CTLCOLORBTN, (WPARAM)(HDC)(hdc), (LPARAM)(HWND)(hwndChild)), 
-	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorButton))((HDC)(wParam), (HWND)(lParam), CTLCOLOR_BTN))
+	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorButton))((HDC)(wParam), (HWND)(lParam)))
 /*310*/ MSG_TRANS(WM_CTLCOLORDLG, 
 	HBRUSH, OnCtlColorDialog, (HDC hdc, HWND hwndChild), (hdc, hwndChild), 
 	_SEND_((HBRUSH)(UINT_PTR), WM_CTLCOLORDLG, (WPARAM)(HDC)(hdc), (LPARAM)(HWND)(hwndChild)), 
-	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorDialog))((HDC)(wParam), (HWND)(lParam), CTLCOLOR_DLG))
+	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorDialog))((HDC)(wParam), (HWND)(lParam)))
 /*311*/ MSG_TRANS(WM_CTLCOLORSCROLLBAR, 
 	HBRUSH, OnCtlColorScrollBar, (HDC hdc, HWND hwndChild), (hdc, hwndChild), 
 	_SEND_((HBRUSH)(UINT_PTR), WM_CTLCOLORSCROLLBAR, (WPARAM)(HDC)(hdc), (LPARAM)(HWND)(hwndChild)), 
-	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorScrollBar))((HDC)(wParam), (HWND)(lParam), CTLCOLOR_SCROLLBAR))
+	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorScrollBar))((HDC)(wParam), (HWND)(lParam)))
 /*312*/ MSG_TRANS(WM_CTLCOLORSTATIC, 
 	HBRUSH, OnCtlColorStatic, (HDC hdc, HWND hwndChild), (hdc, hwndChild), 
 	_SEND_((HBRUSH)(UINT_PTR), WM_CTLCOLORSTATIC, (WPARAM)(HDC)(hdc), (LPARAM)(HWND)(hwndChild)), 
-	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorStatic))((HDC)(wParam), (HWND)(lParam), CTLCOLOR_STATIC))
+	(LRESULT)(UINT_PTR)(HBRUSH)(_CALL_(OnCtlColorStatic))((HDC)(wParam), (HWND)(lParam)))
 /*512*/ MSG_TRANS(WM_MOUSEMOVE, 
 	void, OnMouseMove, (int x, int y, UINT keyFlags), (x, y, keyFlags), 
 	_SEND_((void), WM_MOUSEMOVE, (WPARAM)(UINT)(keyFlags), MAKELPARAM((x), (y))), 

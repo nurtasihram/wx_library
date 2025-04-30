@@ -39,7 +39,7 @@ public: // Property - Parent
 	/* R */ inline CColorSet *CustColors() const reflect_as((CColorSet *)self->lpCustColors);
 public: // Property - Styles
 	/* W */ inline auto &Styles(Style style) reflect_to_self(self->Flags = style.yield());
-	/* R */ inline Style Styles() const reflect_as(force_cast<Style>(self->Flags));
+	/* R */ inline Style Styles() const reflect_as(reuse_as<Style>(self->Flags));
 public: // Property - Name
 	/* W */ inline auto        &Name(LPCTSTR lpTemplateName) reflect_to_self(self->lpTemplateName = lpTemplateName);
 	/* R */ inline const String Name() const reflect_as(CString(self->lpTemplateName, MaxLenTitle));
@@ -99,13 +99,13 @@ public: // Property - Module
 	/* R */ inline CModule Module() const reflect_as((HINSTANCE &)self->hInstance);
 public: // Property - Styles
 	/* W */ inline auto &Styles(Style style) reflect_to_self(self->Flags = style.yield());
-	/* R */ inline Style Styles() const reflect_as(force_cast<Style>(self->Flags));
+	/* R */ inline Style Styles() const reflect_as(reuse_as<Style>(self->Flags));
 public: // Property - Name
 	/* W */ inline auto        &Name(LPCTSTR name) reflect_to_self(self->lpTemplateName = name);
 	/* R */ inline const String Name() const reflect_as(CString(self->lpTemplateName, MaxLenTitle));
 public: // Property - FontTypes
 	/* W */ inline auto    &FontTypes(FontType ft) reflect_to_self(self->nFontType = ft.yield());
-	/* R */ inline FontType FontTypes() const reflect_as(force_cast<FontType>(self->nFontType));
+	/* R */ inline FontType FontTypes() const reflect_as(reuse_as<FontType>(self->nFontType));
 public: // Property - SizeMin
 	/* W */ inline auto &SizeMin(INT nSizeMin) reflect_to_self(self->nSizeMin = nSizeMin);
 	/* R */ inline INT   SizeMin() const reflect_as(self->nSizeMin);
@@ -177,7 +177,7 @@ public: // Property - Module
 	/* R */ inline CModule Module() const reflect_as((HINSTANCE &)self->hInstance);
 public: // Properties - Style
 	/* W */ inline auto &Styles(Style Flags) reflect_to_self(self->Flags = Flags.yield());
-	/* R */ inline Style Styles() const reflect_as(force_cast<Style>(self->Flags));
+	/* R */ inline Style Styles() const reflect_as(reuse_as<Style>(self->Flags));
 public: // Properties - FileOffset
 	/* R */ inline WORD FileOffset() const reflect_as(self->nFileOffset);
 public: // Properties - FileExtension
@@ -415,19 +415,20 @@ public: // Property - CheckButton
 	/* R */ inline bool CheckButton() const reflect_as(IsDlgButtonChecked(hDlg, nIDDlgItem) == BST_CHECKED);
 public:
 	template<class AnyWindow>
-	inline operator AnyWindow() reflect_as(force_cast<AnyWindow>(GetDlgItem(hDlg, nIDDlgItem)));
+	inline operator AnyWindow() reflect_as(reuse_as<AnyWindow>(GetDlgItem(hDlg, nIDDlgItem)));
 };
 template<class AnyChild>
 class DialogBase : public WindowBase<AnyChild> {
-public:
-	using super = WindowBase<AnyChild>;
-	using Child = AnyChild;
-
+private:
 	def_memberof(Forming);
 	def_memberof(InitDialog);
 
+public:
+	using super = WindowBase<AnyChild>;
+	using Child = AnyChild;
+public:
 	DialogBase() {}
-
+public:
 	inline INT_PTR Box(HWND hParent = NULL, HINSTANCE hInst = GetModuleHandle(O)) {
 		if constexpr (member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>)
 			return DialogBoxIndirectParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this);
@@ -450,12 +451,12 @@ public:
 		retchild;
 	}
 
-	inline auto&End(INT_PTR nResult) reflect_to_child(::EndDialog(self, nResult));
+	inline auto&End(INT_PTR nResult) assertl_reflect_as_child(::EndDialog(self, nResult));
 
 	inline DialogItem Item(int nIDDlgItem) reflect_as({ self, nIDDlgItem });
 
 	template<class AnyWindow>
-	inline AnyWindow Item(int nIDDlgItem) reflect_as(GetDlgItem(self, nIDDlgItem));
+	inline AnyWindow Item(int nIDDlgItem) reflect_as(reuse_as<AnyWindow>(GetDlgItem(self, nIDDlgItem)));
 
 protected:
 	static INT_PTR CALLBACK DlgProc(HWND hDlg, UINT msgid, WPARAM wParam, LPARAM lParam) {
@@ -466,7 +467,7 @@ protected:
 				pThis = (Child *)lParam;
 				if (!Wnd.UserData(pThis))
 					return (INT_PTR)false;
-				(HWND &)*force_cast<Window *>(pThis) = hDlg;
+				(HWND &)*reuse_as<Window *>(pThis) = hDlg;
 				if constexpr (member_InitDialog_of<Child>::callable) {
 					using fn_type = bool();
 					misdef_assert((member_InitDialog_of<Child>::template compatible_to<fn_type>),
