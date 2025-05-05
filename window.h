@@ -743,7 +743,7 @@ protected:
 	inline void OnDestroy() reflect_to(PostQuitMessage(0));
 protected:
 	def_memberof(OnCatch);
-	inline wx_answer Catch(const Exception &err) {
+	inline wx_answer Catch(const Exception &err) const {
 		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Exception)>)
 			reflect_as(child.OnCatch(err))
 		else if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
