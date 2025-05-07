@@ -3,8 +3,9 @@
 #include <vector>
 
 #include <winerror.h>
-#include "./type.h"
-#include "./file.h"
+
+#include "wx_type.h"
+#include "wx_file.h"
 
 namespace WX {
 

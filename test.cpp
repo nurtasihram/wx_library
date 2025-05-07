@@ -1,5 +1,5 @@
-#include "window.h"
-#include "control.h"
+#include "wx_window.h"
+#include "wx_control.h"
 
 using namespace WX;
 

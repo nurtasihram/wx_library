@@ -4,45 +4,48 @@
     <Filter Include="wx">
       <UniqueIdentifier>{99f02562-9427-4d7d-8f69-bcb93b380a87}</UniqueIdentifier>
     </Filter>
+    <Filter Include="wx\inl">
+      <UniqueIdentifier>{860f4544-ff33-4809-8c92-2a6f2502db31}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\control.h">
+    <ClInclude Include="..\wx_control.h">
       <Filter>wx</Filter>
     </ClInclude>
-    <ClInclude Include="..\defs.h">
+    <ClInclude Include="..\wx_defs.h">
       <Filter>wx</Filter>
     </ClInclude>
-    <ClInclude Include="..\dialog.h">
+    <ClInclude Include="..\wx_dialog.h">
       <Filter>wx</Filter>
     </ClInclude>
-    <ClInclude Include="..\file.h">
+    <ClInclude Include="..\wx_security.h">
       <Filter>wx</Filter>
     </ClInclude>
-    <ClInclude Include="..\realtime.h">
+    <ClInclude Include="..\wx_type.h">
       <Filter>wx</Filter>
     </ClInclude>
-    <ClInclude Include="..\resource.h">
+    <ClInclude Include="..\wx_window.h">
       <Filter>wx</Filter>
     </ClInclude>
-    <ClInclude Include="..\security.h">
+    <ClInclude Include="..\wx_realtime.h">
       <Filter>wx</Filter>
     </ClInclude>
-    <ClInclude Include="..\type.h">
-      <Filter>wx</Filter>
+    <ClInclude Include="..\wx_file.h">
+      <Filter>wx\inl</Filter>
     </ClInclude>
-    <ClInclude Include="..\window.h">
+    <ClInclude Include="..\wx_resource.h">
       <Filter>wx</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\dll.inl">
-      <Filter>wx</Filter>
+    <None Include="..\wx_msg_ctl.inl">
+      <Filter>wx\inl</Filter>
     </None>
-    <None Include="..\msg.inl">
-      <Filter>wx</Filter>
+    <None Include="..\wx_msg.inl">
+      <Filter>wx\inl</Filter>
     </None>
-    <None Include="..\msg_ctl.inl">
-      <Filter>wx</Filter>
+    <None Include="..\wx_dll.inl">
+      <Filter>wx\inl</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>

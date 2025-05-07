@@ -4,7 +4,7 @@
 #include <aclapi.h>
 #include <sddl.h>
 
-#include "./type.h"
+#include "wx_type.h"
 
 namespace WX {
 

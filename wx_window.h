@@ -3,7 +3,7 @@
 #include <unordered_map>
 #include <typeinfo>
 
-#include "./resource.h"
+#include "wx_resource.h"
 
 namespace WX {
 
@@ -139,7 +139,7 @@ public:
 	ret(Call(msgid, wparam, lparam))
 #define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
 	inline ret name argslist reflect_as(send);
-#include "msg.inl"
+#include "wx_msg.inl"
 
 public:
 	inline operator bool() const reflect_as(pfnWndProc);
@@ -677,7 +677,7 @@ protected:
 	def_memberof(Callback);
 #define MSG_TRANS(msgid, ret, name, ...) \
 	def_memberof(name);
-#include "msg.inl"
+#include "wx_msg.inl"
 	static LRESULT CallDefProc(HWND hWnd, UINT msgid, WPARAM wParam, LPARAM lParam) {
 		if constexpr (member_DefProc_of<Child>::callable) {
 			misdef_assert((!std::is_member_pointer_v<decltype(&Child::DefProc)>),
@@ -725,7 +725,7 @@ protected:
 										"Member " #name " must be a method compatible to " #ret #argslist); \
 						return call; \
 					} break;
-#include "msg.inl"
+#include "wx_msg.inl"
 				}
 			if constexpr (member_Callback_of<Child>::callable)
 				return pThis->Callback(msgid, wParam, lParam);
@@ -785,7 +785,7 @@ public:
 			inline ret name argslist reflect_as(send);
 #define _SEND_(ret, msgid, wparam, lparam) \
 			ret(CallDefProc(hwnd, msgid, wparam, lparam))
-#include "msg.inl"
+#include "wx_msg.inl"
 	};
 	inline CallPack DefProcOf() reflect_as((HWND)self);
 #pragma endregion
@@ -839,7 +839,7 @@ public:
 		inline Indirect<ret> name argslist send
 #define _SEND_(ret, msgid, wparam, lparam) \
 			reflect_as({ hwnd, msgid, wparam, lparam });
-#include "msg.inl"
+#include "wx_msg.inl"
 	};
 	inline MessageSwitch Message() reflect_as(hWnd);
 #pragma endregion

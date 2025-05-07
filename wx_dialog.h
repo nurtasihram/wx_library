@@ -3,7 +3,7 @@
 #include <string>
 #include <vector>
 
-#include "./window.h"
+#include "wx_window.h"
 
 namespace WX {
 
@@ -492,7 +492,7 @@ protected:
 							call; \
 							return (INT_PTR)true; \
 						} break;
-#include "msg.inl"
+#include "wx_msg.inl"
 			}
 			if constexpr (super::template member_Callback_of<Child>::callable)
 				return ((Child *)pThis)->Callback(msgid, wParam, lParam);

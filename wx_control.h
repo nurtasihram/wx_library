@@ -2,7 +2,7 @@
 
 #include <CommCtrl.h>
 
-#include "./window.h"
+#include "wx_window.h"
 
 namespace WX {
 
@@ -282,7 +282,7 @@ protected:
 #define MSG_TRANS(msgid, ret, name, ...) \
 	def_memberof(name);
 #define WX_BUTTON
-#include "msg_ctl.inl"
+#include "wx_msg_ctl.inl"
 	inline LRESULT Callback(UINT msgid, WPARAM wParam, LPARAM lParam) {
 		switch (msgid) {
 			case WM_NULL:
@@ -298,7 +298,7 @@ protected:
 					return call; \
 				} break;
 #define WX_BUTTON
-#include "msg_ctl.inl"
+#include "wx_msg_ctl.inl"
 		}
 		if constexpr (member_wmailBox_of<AnyChild>::callable) {
 			LRESULT res;
@@ -740,7 +740,7 @@ public:
 //#define MSG_TRANS(msgid, ret, name, ...) \
 //	def_memberof(name);
 //#define WX_BUTTON
-//#include "msg_ctl.inl"
+//#include "wx_msg_ctl.inl"
 //	inline LRESULT Callback(UINT msgid, WPARAM wParam, LPARAM lParam) {
 //		switch (msgid) {
 //			case WM_NULL:
@@ -756,7 +756,7 @@ public:
 //					return call; \
 //				} break;
 //#define WX_LISTVIEW
-//#include "msg_ctl.inl"
+//#include "wx_msg_ctl.inl"
 //		}
 //		if constexpr (member_wmailBox_of<AnyChild>::callable) {
 //			LRESULT res;

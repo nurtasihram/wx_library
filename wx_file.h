@@ -1,7 +1,7 @@
 #pragma once
 
-#include "./resource.h"
-#include "./security.h"
+#include "wx_resource.h"
+#include "wx_security.h"
 
 namespace WX {
 

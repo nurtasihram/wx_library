@@ -1,4 +1,4 @@
-#include "./wx/resource.h"
+#include "wx_resource.h"
 
 #ifndef DLL_INL_LIST
 #	error Please define DLL_INL_LIST as list registered functions / variables

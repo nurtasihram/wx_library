@@ -4,8 +4,8 @@
 #include <heapapi.h>
 #include <psapi.h>
 
-#include "./window.h"
-#include "./security.h"
+#include "wx_window.h"
+#include "wx_security.h"
 
 namespace WX {
 

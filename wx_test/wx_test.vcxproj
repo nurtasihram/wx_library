@@ -257,20 +257,20 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="..\control.h" />
-    <ClInclude Include="..\defs.h" />
-    <ClInclude Include="..\dialog.h" />
-    <ClInclude Include="..\file.h" />
-    <ClInclude Include="..\realtime.h" />
-    <ClInclude Include="..\resource.h" />
-    <ClInclude Include="..\security.h" />
-    <ClInclude Include="..\type.h" />
-    <ClInclude Include="..\window.h" />
+    <ClInclude Include="..\wx_control.h" />
+    <ClInclude Include="..\wx_defs.h" />
+    <ClInclude Include="..\wx_dialog.h" />
+    <ClInclude Include="..\wx_file.h" />
+    <ClInclude Include="..\wx_realtime.h" />
+    <ClInclude Include="..\wx_resource.h" />
+    <ClInclude Include="..\wx_security.h" />
+    <ClInclude Include="..\wx_type.h" />
+    <ClInclude Include="..\wx_window.h" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="..\dll.inl" />
-    <None Include="..\msg.inl" />
-    <None Include="..\msg_ctl.inl" />
+    <None Include="..\wx_dll.inl" />
+    <None Include="..\wx_msg.inl" />
+    <None Include="..\wx_msg_ctl.inl" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\test.cpp" />
