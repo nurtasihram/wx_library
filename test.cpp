@@ -23,6 +23,8 @@ private:
 	inline bool OnCreate(RefAs<CreateStruct *> pCreate) {
 		return true;
 	}
+	inline void OnPaint() {
+	}
 };
 
 void test_wnd() {
