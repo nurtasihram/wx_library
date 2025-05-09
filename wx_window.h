@@ -1070,9 +1070,9 @@ public:
 	ConsoleItf(DWORD pid) reflect_to(Attach(pid));
 
 	inline void Select() {
-		hIn = reuse_as<File>(GetStdHandle(STD_INPUT_HANDLE));
-		hOut = reuse_as<File>(GetStdHandle(STD_OUTPUT_HANDLE));
-		hErr = reuse_as<File>(GetStdHandle(STD_ERROR_HANDLE));
+		hIn = GetStdHandle(STD_INPUT_HANDLE);
+		hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+		hErr = GetStdHandle(STD_ERROR_HANDLE);
 	}
 	inline void Reopen() {
 		static FILE *fout = O, *ferr = O, *fin = O;
