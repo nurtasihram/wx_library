@@ -512,7 +512,7 @@ public:
 	static inline Environments From(std::initializer_list<const String> envs) {
 		size_t maxlen = 1;
 		for (const String &env : envs)
-			if (auto len = env.Length())
+			if (env.Length())
 				maxlen += env.Length() + 1;
 		if (maxlen <= 1) return O;
 		LPTCH lpEnv = (LPTCH)Heap::This.Alloc(maxlen * sizeof(TCHAR)), pEnv = lpEnv;

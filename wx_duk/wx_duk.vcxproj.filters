@@ -1,0 +1,83 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Resource">
+      <UniqueIdentifier>{f1f26723-c10a-4a19-8aed-c839abef2d5f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx">
+      <UniqueIdentifier>{34393692-49db-4836-8428-716518cb99b8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="duktape">
+      <UniqueIdentifier>{2338239d-f916-491a-9ad1-876748f168cb}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="Resource.h">
+      <Filter>Resource</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_control.h">
+      <Filter>wx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_defs.h">
+      <Filter>wx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_dialog.h">
+      <Filter>wx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_file.h">
+      <Filter>wx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_realtime.h">
+      <Filter>wx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_resource.h">
+      <Filter>wx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_security.h">
+      <Filter>wx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_type.h">
+      <Filter>wx</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_window.h">
+      <Filter>wx</Filter>
+    </ClInclude>
+    <ClInclude Include="duktape\duk_config.h">
+      <Filter>duktape</Filter>
+    </ClInclude>
+    <ClInclude Include="duktape\duktape.h">
+      <Filter>duktape</Filter>
+    </ClInclude>
+    <ClInclude Include="wx_duk.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="small.ico">
+      <Filter>Resource</Filter>
+    </Image>
+    <Image Include="wx_duk.ico">
+      <Filter>Resource</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="wx_duk.rc">
+      <Filter>Resource</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\wx_dll.inl">
+      <Filter>wx</Filter>
+    </None>
+    <None Include="..\wx_msg.inl">
+      <Filter>wx</Filter>
+    </None>
+    <None Include="..\wx_msg_ctl.inl">
+      <Filter>wx</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="duktape\duktape.c">
+      <Filter>duktape</Filter>
+    </ClCompile>
+    <ClCompile Include="wx_duk.cpp" />
+  </ItemGroup>
+</Project>
