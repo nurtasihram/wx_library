@@ -1,20 +1,20 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Resource">
-      <UniqueIdentifier>{f1f26723-c10a-4a19-8aed-c839abef2d5f}</UniqueIdentifier>
-    </Filter>
     <Filter Include="wx">
       <UniqueIdentifier>{34393692-49db-4836-8428-716518cb99b8}</UniqueIdentifier>
     </Filter>
     <Filter Include="duktape">
       <UniqueIdentifier>{2338239d-f916-491a-9ad1-876748f168cb}</UniqueIdentifier>
     </Filter>
+    <Filter Include="wx_duk">
+      <UniqueIdentifier>{823027d6-2ae8-44af-a198-8ebfe59a544a}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{130edc03-bc42-410b-b3ed-8f092fe5be6a}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="Resource.h">
-      <Filter>Resource</Filter>
-    </ClInclude>
     <ClInclude Include="..\wx_control.h">
       <Filter>wx</Filter>
     </ClInclude>
@@ -48,19 +48,27 @@
     <ClInclude Include="duktape\duktape.h">
       <Filter>duktape</Filter>
     </ClInclude>
-    <ClInclude Include="wx_duk.h" />
+    <ClInclude Include="..\wx_console.h">
+      <Filter>wx</Filter>
+    </ClInclude>
+    <ClInclude Include="wx_duk\wx_duk.h">
+      <Filter>wx_duk</Filter>
+    </ClInclude>
+    <ClInclude Include="resources\Resource.h">
+      <Filter>resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico">
-      <Filter>Resource</Filter>
+    <Image Include="resources\small.ico">
+      <Filter>resources</Filter>
     </Image>
-    <Image Include="wx_duk.ico">
-      <Filter>Resource</Filter>
+    <Image Include="resources\wx_duk.ico">
+      <Filter>resources</Filter>
     </Image>
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="wx_duk.rc">
-      <Filter>Resource</Filter>
+    <ResourceCompile Include="resources\wx_duk.rc">
+      <Filter>resources</Filter>
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
@@ -78,6 +86,24 @@
     <ClCompile Include="duktape\duktape.c">
       <Filter>duktape</Filter>
     </ClCompile>
-    <ClCompile Include="wx_duk.cpp" />
+    <ClCompile Include="wx_duk\wx_duk.cpp">
+      <Filter>wx_duk</Filter>
+    </ClCompile>
+    <ClCompile Include="wx_duk\wx_duk_resource.cpp">
+      <Filter>wx_duk</Filter>
+    </ClCompile>
+    <ClCompile Include="wx_duk\wx_duk_types.cpp">
+      <Filter>wx_duk</Filter>
+    </ClCompile>
+    <ClCompile Include="wx_duk\wx_duk_window.cpp">
+      <Filter>wx_duk</Filter>
+    </ClCompile>
+    <ClCompile Include="wx_duk_cmdl.cpp" />
+    <ClCompile Include="wx_duk\wx_duk_console.cpp">
+      <Filter>wx_duk</Filter>
+    </ClCompile>
+    <ClCompile Include="wx_duk_dialog.cpp">
+      <Filter>wx_duk</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

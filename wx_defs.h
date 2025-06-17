@@ -628,11 +628,12 @@ enum_flags(MB, int,
 	NoFocus              =  MB_NOFOCUS,
 	SetForeground        =  MB_SETFOREGROUND,
 	DefaultDesktopOnly   =  MB_DEFAULT_DESKTOP_ONLY,
-	Topmost              =  MB_TOPMOST,
+	TopMost              =  MB_TOPMOST,
 	Right                =  MB_RIGHT,
 	RtlReading           =  MB_RTLREADING,
 	ServiceNotification  =  MB_SERVICE_NOTIFICATION);
-inline auto MsgBox(LPCTSTR lpCaption = O, LPCTSTR lpText = O, MB type = MB::Ok, HWND hParent = O) reflect_as(MessageBox(hParent, lpText, lpCaption, type.yield()));
+inline auto MsgBox(LPCSTR lpCaption = O, LPCSTR lpText = O, MB type = MB::Ok, HWND hParent = O) reflect_as(MessageBoxA(hParent, lpText, lpCaption, type.yield()));
+inline auto MsgBox(LPCWSTR lpCaption = O, LPCWSTR lpText = O, MB type = MB::Ok, HWND hParent = O) reflect_as(MessageBoxW(hParent, lpText, lpCaption, type.yield()));
 #pragma endregion
 
 #pragma region Exception
@@ -660,7 +661,8 @@ public:
 	inline UINT Line() const reflect_as(uLine);
 	inline DWORD LastError() const reflect_as(dwErrCode);
 	String toString() const;
-	operator String() const;
+	operator StringA() const;
+	operator StringW() const;
 	inline operator bool() const reflect_as(lpszSent);
 };
 int MsgBox(LPCTSTR lpCaption, const Exception &err, HWND hParent = O);
@@ -781,6 +783,8 @@ struct LPoint : public POINT {
 	LPoint(const LPoint &p) : POINT(p) {}
 	LPoint(LONG a) : POINT{ a, a } {}
 	LPoint(LONG x, LONG y) : POINT{ x, y } {}
+	LPoint(const SIZE &s) : POINT{ s.cx, s.cy } {}
+	LPoint(COORD c) : POINT{ c.X, c.Y } {}
 	inline LPoint  operator+ ()                const reflect_to_self();
 	inline LPoint  operator~ ()                const reflect_as({ y,  x });
 	inline LPoint  operator* (double l)        const reflect_as({ LONG((double)x * l), LONG((double)y * l) });
@@ -798,7 +802,7 @@ struct LPoint : public POINT {
 	inline bool    operator==(LPoint pt)       const reflect_as(pt.x == x && pt.y == y);
 	inline bool    operator!=(LPoint pt)       const reflect_as(pt.x != x || pt.y != y);
 	inline operator LPARAM() const reflect_as((LPARAM)this);
-	operator LSize() const;
+	inline operator COORD() const reflect_as({ (SHORT)x, (SHORT)y });
 };
 struct LSize : public SIZE {
 	LSize() : SIZE{ 0 } {}
@@ -806,6 +810,8 @@ struct LSize : public SIZE {
 	LSize(const LSize &s) : SIZE(s) {}
 	LSize(LONG c) : SIZE{ c, c } {}
 	LSize(LONG cx, LONG cy) : SIZE{ cx, cy } {}
+	LSize(const LPoint &p) : SIZE{ p.x, p.y } {}
+	LSize(COORD c) : SIZE{ c.X, c.Y } {}
 	inline LSize  operator+ ()               const reflect_to_self();
 	inline LSize  operator- ()               const reflect_as({ -cx, -cy });
 	inline LSize  operator~ ()               const reflect_as({  cy,  cx });
@@ -824,8 +830,8 @@ struct LSize : public SIZE {
 	inline bool   operator!=(LSize sz)       const reflect_as(sz.cx != cx || sz.cy != cy);
 	inline operator LPARAM() const reflect_as((LPARAM)this);
 	inline operator LPoint() const reflect_as({ cx, cy });
+	inline operator COORD() const reflect_as({ (SHORT)cx, (SHORT)cy });
 };
-inline LPoint::operator LSize() const reflect_as({ x, y });
 enum_flags(LAlign, BYTE,
 	Left	= 1 << 0,
 	Right	= 2 << 0,
@@ -843,6 +849,7 @@ struct LRect : public RECT {
 	LRect(const LSize &sz, const LPoint &pt = 0) : RECT{ pt.x, pt.y, pt.x + sz.cx - 1, pt.y + sz.cy - 1 } {}
 	LRect(LONG a) : RECT{ a, a, a, a } {}
 	LRect(LONG left, LONG top, LONG right, LONG bottom) : RECT{ left, top, right, bottom } {}
+	LRect(SMALL_RECT sr) : RECT{ sr.Left, sr.Top, sr.Right, sr.Bottom } {}
 public:
 	inline auto xsize()        const reflect_as(right - left + 1);
 	inline auto ysize()        const reflect_as(bottom - top + 1);
@@ -892,12 +899,13 @@ public:
 	inline LRect &operator-=(const LRect &r)        reflect_to_self(left -= r.left, top -= r.top, right -= r.right, bottom -= r.bottom);
 	inline LRect &operator+=(const LPoint &p)       reflect_to_self(left += p.x, top += p.y, right += p.x, bottom += p.y);
 	inline LRect &operator-=(const LPoint &p)       reflect_to_self(left -= p.x, top -= p.y, right -= p.x, bottom -= p.y);
-	inline operator MARGINS() const reflect_as({ left, right, top, bottom });
 	inline operator LSize()   const reflect_as({ right - left + 1, bottom - top + 1 });
 	inline operator LPoint()  const reflect_as({ left, top });
 	inline operator LPRECT()        reflect_as(this);
 	inline operator LPCRECT() const reflect_as(this);
 	inline operator LPARAM()  const reflect_as((LPARAM)this);
+	inline operator MARGINS() const reflect_as({ left, right, top, bottom });
+	inline operator SMALL_RECT() const reflect_as({ (SHORT)left, (SHORT)top, (SHORT)right, (SHORT)bottom });
 	static inline LRect &Attach(RECT &rc) reflect_as(ref_as<LRect>(rc));
 };
 inline LRect operator+(const LPoint &p, const LRect &r) reflect_as(r + p);
@@ -969,8 +977,13 @@ struct SysTime : public SYSTEMTIME {
 	SysTime(const FILETIME &ft) assertl(FileTimeToSystemTime(&ft, this));
 	static inline SysTime Local() reflect_to(SysTime st; GetLocalTime(&st), st);
 	String FormatTime(TimeFormat = TimeFormat::Default, Locales = Locales::Default) const;
+	StringA FormatTimeA(TimeFormat = TimeFormat::Default, Locales = Locales::Default) const;
+	StringW FormatTimeW(TimeFormat = TimeFormat::Default, Locales = Locales::Default) const;
 	String FormatDate(DateFormat = DateFormat::Default, Locales = Locales::Default) const;
-	operator String() const;
+	StringA FormatDateA(DateFormat = DateFormat::Default, Locales = Locales::Default) const;
+	StringW FormatDateW(DateFormat = DateFormat::Default, Locales = Locales::Default) const;
+	operator StringA() const;
+	operator StringW() const;
 };
 #pragma endregion
 

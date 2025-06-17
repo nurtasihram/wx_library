@@ -35,6 +35,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\wx_console.h" />
     <ClInclude Include="..\wx_control.h" />
     <ClInclude Include="..\wx_defs.h" />
     <ClInclude Include="..\wx_dialog.h" />
@@ -46,15 +47,15 @@
     <ClInclude Include="..\wx_window.h" />
     <ClInclude Include="duktape\duktape.h" />
     <ClInclude Include="duktape\duk_config.h" />
-    <ClInclude Include="Resource.h" />
-    <ClInclude Include="wx_duk.h" />
+    <ClInclude Include="resources\Resource.h" />
+    <ClInclude Include="wx_duk\wx_duk.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="small.ico" />
-    <Image Include="wx_duk.ico" />
+    <Image Include="resources\small.ico" />
+    <Image Include="resources\wx_duk.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="wx_duk.rc" />
+    <ResourceCompile Include="resources\wx_duk.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\wx_dll.inl" />
@@ -63,7 +64,13 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="duktape\duktape.c" />
-    <ClCompile Include="wx_duk.cpp" />
+    <ClCompile Include="wx_duk\wx_duk.cpp" />
+    <ClCompile Include="wx_duk\wx_duk_console.cpp" />
+    <ClCompile Include="wx_duk\wx_duk_resource.cpp" />
+    <ClCompile Include="wx_duk\wx_duk_types.cpp" />
+    <ClCompile Include="wx_duk\wx_duk_window.cpp" />
+    <ClCompile Include="wx_duk_cmdl.cpp" />
+    <ClCompile Include="wx_duk_dialog.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
@@ -164,7 +171,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -179,7 +186,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -196,7 +203,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -215,7 +222,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -233,7 +240,7 @@
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
       <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -251,7 +258,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -268,7 +275,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -287,7 +294,7 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>

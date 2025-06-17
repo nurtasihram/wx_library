@@ -864,8 +864,10 @@ public:
 
 	inline auto &BringToTop()       assertl_reflect_as_child(::BringWindowToTop(self));
 
-	inline int MsgBox(LPCTSTR lpCaption = O, LPCTSTR lpText = O, MB uType = MB::Ok) const reflect_as(WX::MsgBox(lpCaption, lpText, uType, self));
-	inline int MsgBox(LPCTSTR lpCaption, const Exception &err) reflect_as(WX::MsgBox(lpCaption, err, self));
+	inline int MsgBox(LPCSTR lpCaption, LPCSTR lpText = O, MB uType = MB::Ok) const reflect_as(WX::MsgBox(lpCaption, lpText, uType, self));
+	inline int MsgBox(LPCWSTR lpCaption, LPCWSTR lpText = O, MB uType = MB::Ok) const reflect_as(WX::MsgBox(lpCaption, lpText, uType, self));
+	inline int MsgBox(LPCSTR lpCaption, const Exception &err) reflect_as(WX::MsgBox(lpCaption, err, self));
+	inline int MsgBox(LPCWSTR lpCaption, const Exception &err) reflect_as(WX::MsgBox(lpCaption, err, self));
 
 	inline auto &Focus() reflect_to_child(SetFocus(self));
 	inline bool IsFocus() const reflect_as(GetFocus() == self);
@@ -880,6 +882,7 @@ public:
 
 	inline void Validate(LPCRECT lpRect = O) const assertl_reflect_as(ValidateRect(self, lpRect));
 	inline void Invalidate(LPCRECT lpRect = O, bool fErase = false) const assertl_reflect_as(InvalidateRect(self, lpRect, fErase));
+	inline auto &Invalidate(LPCRECT lpRect = O, bool bErase = false) assertl_reflect_as_child(InvalidateRect(self, lpRect, bErase));
 
 	inline UINT_PTR SetTimer(UINT uElapse, UINT_PTR nIDEvent = 0) assertl_reflect_as((nIDEvent = ::SetTimer(self, nIDEvent, uElapse, O)), nIDEvent);
 	inline void KillTimer(UINT_PTR nIDEvent) assertl_reflect_as(::KillTimer(self, nIDEvent));
@@ -891,8 +894,6 @@ public:
 
 	inline auto &RegisterTouch(bool bFine = true, bool bWantPalm = false) assertl_reflect_as_child(RegisterTouchWindow(self, (bFine *TWF_FINETOUCH) | (bWantPalm * TWF_WANTPALM)));
 	inline auto &UnregisterTouch() assertl_reflect_as_child(UnregisterTouchWindow(self));
-
-	inline auto &Invalidate(LPCRECT lpRect = O, bool bErase = false) assertl_reflect_as_child(InvalidateRect(self, lpRect, bErase));
 
 	inline TrackMouseEventBox TrackMouse() const reflect_as((HWND)self);
 
@@ -925,23 +926,9 @@ public: // Property - Visible
 public: // Proterty - Enabled
 	/* W */ inline auto &Enabled(bool bEnable) assertl_reflect_as_child(EnableWindow(self, bEnable));
 	/* R */ inline bool Enabled() const reflect_as(IsWindowEnabled(self));
-public: // Property - TextLength
-	/* R */ inline int TextLength() const reflect_as(GetWindowTextLength(self));
-public: // Property - String
-	/* W */ inline auto &Text(LPCTSTR lpString) assertl_reflect_as_child(SetWindowText(self, lpString) >= 0);
-	/* R */ inline String Text() const {
-		auto len = TextLength();
-		if (len <= 0) return O;
-		auto lpszName = String::Alloc(len);
-		assertl(len == GetWindowText(self, lpszName, len + 1));
-		return{ (size_t)len, lpszName };
-	}
-public: // Property - Parent
-	/* W */ inline auto  &Parent(HWND hParent) nt_assertl_reflect_to_child(SetParent(self, hParent));
-	/* R */ inline Window Parent() const reflect_as(Parent(self));
-public: // Property - Menu
-	/* W */ inline auto &Menu(HMENU hMenu) assertl_reflect_as_child(SetMenu(self, hMenu));
-	/* R */ inline CMenu Menu() const reflect_as(GetMenu(self));
+public: // Property - ID
+	/* W */ inline auto &ID(LONG_PTR uId) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_ID, uId));
+	/* R */ inline LONG_PTR ID() const reflect_as(reuse_as<LONG_PTR>(GetWindowLongPtr(self, GWLP_ID)));
 public: // Property - ClientRect
 	/* R */ inline LRect ClientRect() const assertl_reflect_to(LRect rc, GetClientRect(self, &rc), rc);
 public: // Property - ClientSize
@@ -955,21 +942,50 @@ public: // Property - Size
 public: // Property - Rect
 	/* W */ inline auto &Rect(LRect rWin) assertl_reflect_to_child(LSize sz = rWin.size(), SetWindowPos(self, O, rWin.top, rWin.left, sz.cx, sz.cy, SWP_NOZORDER | SWP_NOACTIVATE));
 	/* R */ inline LRect Rect() const assertl_reflect_to(LRect rWin, GetWindowRect(self, rWin), rWin);
+public: // Property - Styles
+	/* W */ inline auto &Styles(Style style) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_STYLE, style.yield()));
+	/* R */ inline Style Styles() const reflect_as(reuse_as<Style>((LONG)GetWindowLongPtr(self, GWL_STYLE)));
+public: // Property - StylesEx 
+	/* W */ inline auto &StylesEx(StyleEx styleEx) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_EXSTYLE, styleEx.yield()));
+	/* R */ inline StyleEx StylesEx() const reflect_as(reuse_as<StyleEx>((DWORD)GetWindowLongPtr(self, GWL_EXSTYLE)));
+public: // Property - TextLength
+	/* R */ inline int TextLength() const reflect_as(GetWindowTextLength(self));
+public: // Property - String
+	/* W */ inline auto &Text(LPCSTR lpString) assertl_reflect_as_child(SetWindowTextA(self, lpString) >= 0);
+	/* W */ inline auto &Text(LPCWSTR lpString) assertl_reflect_as_child(SetWindowTextW(self, lpString) >= 0);
+	/* R */ inline StringA TextA() const {
+		auto len = TextLength();
+		if (len <= 0) return O;
+		auto lpszName = StringA::Alloc(len);
+		assertl(len == GetWindowTextA(self, lpszName, len + 1));
+		return{ (size_t)len, lpszName };
+	}
+	/* R */ inline StringW TextW() const {
+		auto len = TextLength();
+		if (len <= 0) return O;
+		auto lpszName = StringW::Alloc(len);
+		assertl(len == GetWindowTextW(self, lpszName, len + 1));
+		return{ (size_t)len, lpszName };
+	}
+	/* R */ inline String Text() const {
+		auto len = TextLength();
+		if (len <= 0) return O;
+		auto lpszName = String::Alloc(len);
+		assertl(len == GetWindowText(self, lpszName, len + 1));
+		return{ (size_t)len, lpszName };
+	}
+public: // Property - Parent
+	/* W */ inline auto &Parent(HWND hParent) nt_assertl_reflect_to_child(SetParent(self, hParent));
+	/* R */ inline Window Parent() const reflect_as(GetParent(self));
+public: // Property - Menu
+	/* W */ inline auto &Menu(HMENU hMenu) assertl_reflect_as_child(SetMenu(self, hMenu));
+	/* R */ inline CMenu Menu() const reflect_as(GetMenu(self));
 public: // Property - IconBig
 	/* W */ inline auto &IconBig(HICON hIcon) reflect_to_child(Send<HICON>(WM_SETICON, ICON_BIG, hIcon));
 	/* R */ inline CIcon IconBig() const reflect_as(Send<HICON>(WM_GETICON, ICON_BIG));
 public: // Property - IconSmall
 	/* W */ inline auto &IconSmall(HICON hIcon) reflect_to_child(Send<HICON>(WM_SETICON, ICON_SMALL, hIcon));
 	/* R */ inline CIcon IconSmall() const reflect_as(Send<HICON>(WM_GETICON, ICON_SMALL));
-public: // Property - Styles
-	/* W */ inline auto &Styles(Style style) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_STYLE, style.yield()));
-	/* R */ inline Style Styles() const reflect_as(reuse_as<Style>((LONG)GetWindowLongPtr(self, GWL_STYLE)));
-public: // Property - StylesEx 
-	/* W */ inline auto   &StylesEx(StyleEx styleEx) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_EXSTYLE, styleEx.yield()));
-	/* R */ inline StyleEx StylesEx() const reflect_as(reuse_as<StyleEx>((DWORD)GetWindowLongPtr(self, GWL_EXSTYLE)));
-public: // Property - ID
-	/* W */ inline auto    &ID(LONG_PTR uId) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_ID, uId));
-	/* R */ inline LONG_PTR ID() const reflect_as(reuse_as<LONG_PTR>(GetWindowLongPtr(self, GWLP_ID)));
 public: // Property - Module
 	/* W */ inline auto   &Module(HINSTANCE hInstance) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_HINSTANCE, reuse_as<LONG_PTR>(hInstance)));
 	/* R */ inline CModule Module() const reflect_as(reuse_as<HINSTANCE>(GetWindowLongPtr(self, GWLP_HINSTANCE)));
@@ -1056,85 +1072,5 @@ template<class AnyChild> const String &&WindowBase<AnyChild>::_ClassName = Fits(
 #define WxCreate() public: struct xCreate : XCreate<xCreate>
 #define WxClass() public: struct xClass : ClassExBase<xClass>
 #pragma endregion
-
-template<class AnyChild = void>
-class ConsoleItf : public ChainExtend<ConsoleItf<AnyChild>, AnyChild> {
-protected:
-	HANDLE hIn = O, hOut = O, hErr = O;
-public:
-	ConsoleItf(Null) {}
-	ConsoleItf() :
-		hIn(GetStdHandle(STD_INPUT_HANDLE)),
-		hOut(GetStdHandle(STD_OUTPUT_HANDLE)),
-		hErr(GetStdHandle(STD_ERROR_HANDLE)) {}
-	ConsoleItf(DWORD pid) reflect_to(Attach(pid));
-
-	inline void Select() {
-		hIn = GetStdHandle(STD_INPUT_HANDLE);
-		hOut = GetStdHandle(STD_OUTPUT_HANDLE);
-		hErr = GetStdHandle(STD_ERROR_HANDLE);
-	}
-	inline void Reopen() {
-		static FILE *fout = O, *ferr = O, *fin = O;
-		freopen_s(&fout, "CONOUT$", "w+t", stdout);
-		freopen_s(&ferr, "CONERR$", "w+t", stderr);
-		freopen_s(&fin, "CONIN$", "r+t", stdin);
-	}
-
-#pragma region Allocator
-	static inline void Attach(DWORD pid) assertl_reflect_as(AttachConsole(pid));
-	static inline void Alloc() assertl_reflect_as(AllocConsole());
-	static inline void Free() assertl_reflect_as(FreeConsole());
-	inline operator Window() { return reuse_as<Window>(GetConsoleWindow()); }
-#pragma endregion
-
-#pragma region Properties
-public: // Property - Attr
-	/* W */ inline auto &Attr(WORD wAttr) assertl_reflect_as_self(SetConsoleTextAttribute(hOut, wAttr));
-	/* R */ inline WORD  Attr() const assertl_reflect_to(CONSOLE_SCREEN_BUFFER_INFO csbi, GetConsoleScreenBufferInfo(hOut, &csbi), csbi.wAttributes);
-public: // Property - Title
-	/* W */ inline auto &Title(LPCTSTR lpTitle) assertl_reflect_as_self(SetConsoleTitle(lpTitle));
-	/* R */ inline String Title() const {
-		String title((size_t)MaxLenTitle);
-		int len = GetConsoleTitle(title, MaxLenTitle + 1);
-		if (len <= 0) return O;
-		title.Resize(len);
-		return title;
-	}
-public: // Property - CurPos
-	/* W */ inline auto &CurPos(LPoint p) assertl_reflect_as_self(SetConsoleCursorPosition(hOut, COORD({ (short)p.x, (short)p.y })));
-	/* R */ inline LPoint CurPos() const assertl_reflect_to(CONSOLE_SCREEN_BUFFER_INFO csbi, GetConsoleScreenBufferInfo(hOut, &csbi), { csbi.dwCursorPosition.X, csbi.dwCursorPosition.Y });
-public: // Property - CurVis
-	/* W */ inline auto &CurVis(bool bVisible) assertl_reflect_to_self(CONSOLE_CURSOR_INFO cci({ 0 }); cci.bVisible = bVisible, SetConsoleCursorInfo(hOut, &cci));
-	/* R */ inline bool  CurVis() const assertl_reflect_to(CONSOLE_CURSOR_INFO cci({ 0 }), GetConsoleCursorInfo(hOut, &cci), cci.bVisible);
-#pragma endregion
-
-#pragma region Read Write
-protected:
-	inline DWORD _Write(HANDLE hOut, LPCWSTR lpszString, DWORD uLength) assertl_reflect_as(WriteConsoleW(hOut, lpszString, uLength, &uLength, O), uLength);
-	inline DWORD _Write(HANDLE hOut, LPCSTR lpszString, DWORD uLength) assertl_reflect_as(WriteConsoleA(hOut, lpszString, uLength, &uLength, O), uLength);
-public:
-	inline DWORD Log(const String &s) reflect_as(_Write(hOut, s, (DWORD)s.Length()));
-	template<class... Args>
-	inline DWORD Log(const Args& ...args) reflect_as(Log(Cats(args...)));
-public:
-	inline DWORD Err(const String &s) reflect_as(_Write(hErr, s, (DWORD)s.Length()));
-	template<class... Args>
-	inline DWORD Err(const Args& ...args) reflect_as(Err(Cats(args...)));
-public:
-	inline auto &operator[](LPoint p) reflect_as(CurPos(p));
-	inline auto &operator[](bool bCurVis) reflect_as(CurVis(bCurVis));
-	template<class... Args>
-	inline auto &operator()(const Args& ...args) reflect_to_self(Log(Cats(args...)));
-#pragma endregion
-
-};
-
-static inline ConsoleItf<> Console;
-
-class ConsoleCtl : public ConsoleItf<ConsoleCtl> {
-public:
-	~ConsoleCtl() reflect_to(Free());
-};
 
 }

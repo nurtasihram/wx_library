@@ -539,6 +539,10 @@ public: // Property - StretchMode
 	inline auto&operator()(const WX::Palette hPal, bool bForceBkgd = false) reflect_to_self(Palette(hPal, bForceBkgd));
 };
 using DC = DeviceCap;
+using DevCap = DeviceCap;
+using CDC = RefAs<DeviceCap>;
+using CDevCap = RefAs<DeviceCap>;
+using CDeviceCap = RefAs<DeviceCap>;
 #pragma endregion
 
 #pragma endregion
@@ -589,10 +593,10 @@ public: // Property - ResourceID
 	/* R */ inline WORD  ResourceID() const reflect_as(self->wResID);
 public: // Property - ModuleName
 	//	WCHAR   szModName[MAX_PATH];
-	/* R */ inline const String ModuleName() const reflect_as(CString(self->szModName, CountOf(self->szModName)));
+	/* R */ inline const String ModuleName() const reflect_as(CString(self->szModName, std::size(self->szModName)));
 public: // Property - ResourceName
 	//	WCHAR   szResName[MAX_PATH];
-	/* R */ inline const String ResourceName() const reflect_as(CString(self->szResName, CountOf(self->szResName)));
+	/* R */ inline const String ResourceName() const reflect_as(CString(self->szResName, std::size(self->szResName)));
 };
 class Icon {
 public:
@@ -799,7 +803,7 @@ public:
 	inline auto&Hilite(HWND hWnd, bool bHilite = true) assertl_reflect_as_self(HiliteMenuItem(hWnd, hMenu, uID, flags | (bHilite ? MF_HILITE : MF_UNHILITE)));
 	CMenu Sub(int nPos);
 public: // Property - Enable
-	/* W */ inline auto &Enable(bool bEnable) assertl_reflect_as_self(EnableMenuItem(hMenu, uID, flags | (bEnable ? MF_ENABLED : MF_DISABLED)) >= 0);
+	/* W */ inline auto &Enable(bool bEnable) assertl_reflect_as_self(EnableMenuItem(hMenu, uID, flags | (bEnable ? MF_ENABLED : (MF_DISABLED | MF_GRAYED))) >= 0);
 public: // Property - Check
 	/* W */ inline auto &Check(bool bChecked) assertl_reflect_as_self(CheckMenuItem(hMenu, uID, flags | (bChecked ? MF_CHECKED : MF_UNCHECKED)) >= 0);
 #define MENUITEM_PROPERTY(name, mask, memb, type, in, conv) \
@@ -853,7 +857,7 @@ protected:
 	Menu(HMENU h) : hMenu(h) {}
 	Menu(const Menu &m) : hMenu(m.hMenu) reflect_to(m.hMenu = O);
 public:
-	Menu() {}
+	Menu() : Menu(Create()) {}
 	Menu(Null) {}
 	Menu(Menu &m) : hMenu(m) reflect_to(m.hMenu = O);
 	Menu(Menu &&m) : hMenu(m) reflect_to(m.hMenu = O);
@@ -870,9 +874,13 @@ public:
 		}
 	}
 
-	inline auto&String(LPCTSTR lpString, UINT_PTR uID = 0, bool bEnable = true) assertl_reflect_as_self(AppendMenu(hMenu, MF_STRING | (bEnable ? MF_ENABLED : MF_DISABLED), uID, lpString));
-	inline auto&Popup(LPCTSTR lpString, HMENU hPopup) assertl_reflect_as_self(AppendMenu(hMenu, MF_POPUP, (UINT_PTR)hPopup, lpString));
-	inline auto&Check(LPCTSTR lpString, UINT_PTR uID = 0, bool bChecked = false) assertl_reflect_as_self(AppendMenu(hMenu, (bChecked ? MF_CHECKED : MF_UNCHECKED), uID, lpString));
+	inline auto&String(LPCSTR lpString, UINT_PTR uID = 0, bool bEnable = true) assertl_reflect_as_self(AppendMenuA(hMenu, MF_STRING | (bEnable ? MF_ENABLED : (MF_DISABLED | MF_GRAYED)), uID, lpString));
+	inline auto&String(LPCWSTR lpString, UINT_PTR uID = 0, bool bEnable = true) assertl_reflect_as_self(AppendMenuW(hMenu, MF_STRING | (bEnable ? MF_ENABLED : (MF_DISABLED | MF_GRAYED)), uID, lpString));
+	inline auto&Popup(LPCSTR lpString, HMENU hPopup, bool bEnable = true) assertl_reflect_as_self(AppendMenuA(hMenu, MF_POPUP | (bEnable ? MF_ENABLED : (MF_DISABLED | MF_GRAYED)), (UINT_PTR)hPopup, lpString));
+	inline auto&Popup(LPCWSTR lpString, HMENU hPopup, bool bEnable = true) assertl_reflect_as_self(AppendMenuW(hMenu, MF_POPUP | (bEnable ? MF_ENABLED : (MF_DISABLED | MF_GRAYED)), (UINT_PTR)hPopup, lpString));
+	inline auto&Check(LPCSTR lpString, UINT_PTR uID = 0, bool bChecked = false, bool bEnable = true) assertl_reflect_as_self(AppendMenuA(hMenu, (bChecked ? MF_CHECKED : MF_UNCHECKED) | (bEnable ? MF_ENABLED : (MF_DISABLED | MF_GRAYED)), uID, lpString));
+	inline auto&Check(LPCWSTR lpString, UINT_PTR uID = 0, bool bChecked = false, bool bEnable = true) assertl_reflect_as_self(AppendMenuW(hMenu, (bChecked ? MF_CHECKED : MF_UNCHECKED) | (bEnable ? MF_ENABLED : (MF_DISABLED | MF_GRAYED)), uID, lpString));
+
 	inline auto&Separator() assertl_reflect_as_self(AppendMenu(hMenu, MF_SEPARATOR, 0, O));
 
 	inline auto&String(UINT uPosition, LPCTSTR lpString, UINT_PTR uID = 0, bool bEnable = true) assertl_reflect_as_self(InsertMenu(hMenu, uPosition, MF_STRING | (bEnable ? MF_ENABLED : MF_DISABLED), uID, lpString));
@@ -946,6 +954,7 @@ public:
 };
 MENUITEM_PROPERTY(MenuItem::SubMenu, MIIM_SUBMENU, hSubMenu, CMenu, hSubMenu, _M_);
 inline CMenu MenuItem::Sub(int nPos) reflect_as({ GetSubMenu(hMenu, nPos) });
+inline static Menu MenuPopup() reflect_as(Menu::CreatePopup());
 #undef MENUITEM_PROPERTY
 #pragma endregion
 
