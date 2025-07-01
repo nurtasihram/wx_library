@@ -93,6 +93,15 @@ constexpr bool IsUnicode = true;
 constexpr bool IsUnicode = false;
 #endif
 
+template<bool IsUnicode>
+using XCHAR = std::conditional_t<IsUnicode, WCHAR, CHAR>;
+template<bool IsUnicode>
+using LPXSTR = std::conditional_t<IsUnicode, LPWSTR, LPSTR>;
+template<bool IsUnicode>
+using LPCXSTR = std::conditional_t<IsUnicode, LPCWSTR, LPCSTR>;
+template<bool IsUnicode>
+using StringX = std::conditional_t<IsUnicode, StringW, StringA>;
+
 /// @brief 彊制轉換一個類型為另一個類型，並確保兩者的大小相同。
 /// @tparam OutType 傳出類型
 /// @tparam InType 傳入類型
@@ -207,7 +216,8 @@ public:
 /// @tparam ProtoStruct 原始結構體類型
 template<class ProtoStruct>
 struct RefStruct : private ProtoStruct {
-	RefStruct() : ProtoStruct{ 0 } {}
+	using Struct = ProtoStruct;
+	RefStruct() : ProtoStruct({ 0 }) {}
 	RefStruct(const ProtoStruct &s) : ProtoStruct(s) {}
 	RefStruct(const ProtoStruct &&s) : ProtoStruct(s) {}
 	inline operator ProtoStruct *() reflect_as(this);

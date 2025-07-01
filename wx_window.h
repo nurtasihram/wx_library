@@ -254,12 +254,17 @@ enum_flags(ClassStyle, UINT,
 	IME                = CS_IME,
 	DropShadow         = CS_DROPSHADOW);
 using CStyle = ClassStyle;
-template<class = void>
+template<bool IsUnicode, class = void>
 class ClassBase;
-using Class = ClassBase<>;
-template<class AnyChild>
-class ClassBase : public RefStruct<WNDCLASS>,
-	public ChainExtend<ClassBase<AnyChild>, AnyChild> {
+using Class = ClassBase<IsUnicode>;
+using ClassA = ClassBase<false>;
+using ClassW = ClassBase<true>;
+template<bool IsUnicode, class AnyChild>
+class ClassBase : public RefStruct<std::conditional_t<IsUnicode, WNDCLASSW, WNDCLASSA>>,
+	public ChainExtend<ClassBase<IsUnicode, AnyChild>, AnyChild> {
+	using LPCTSTR = LPCXSTR<IsUnicode>;
+	using TCHAR = XCHAR<IsUnicode>;
+	using String = StringBase<TCHAR>;
 public:
 	using Child = KChain<ClassBase, AnyChild>;
 	using Style = CStyle;
@@ -453,9 +458,13 @@ using WSEX = WindowStyleEx;
 using WStyleEx = WindowStyleEx;
 #pragma endregion
 
-template<class AnyChild = void, class Style = WStyle, class StyleEx = WStyleEx>
-class CreateStructBase : public RefStruct<CREATESTRUCT>,
-	public ChainExtend<CreateStructBase<AnyChild, Style, StyleEx>, AnyChild> {
+template<bool IsUnicode, class AnyChild = void, class Style = WStyle, class StyleEx = WStyleEx>
+class CreateStructBase :
+	public RefStruct<std::conditional_t<IsUnicode, CREATESTRUCTW, CREATESTRUCTA>>,
+	public ChainExtend<CreateStructBase<IsUnicode, AnyChild, Style, StyleEx>, AnyChild> {
+	using LPCTSTR = LPCXSTR<IsUnicode>;
+	using TCHAR = XCHAR<IsUnicode>;
+	using String = StringBase<TCHAR>;
 public:
 	CreateStructBase() {}
 	CreateStructBase(const CREATESTRUCT &cs) : RefStruct<CREATESTRUCT>(cs) {}
@@ -504,8 +513,8 @@ public: // Property - Rect
 	/* W */ inline auto &Rect(LRect rc) reflect_to_child(auto &&sz = rc.size(); auto &&pt = rc.left_bottom(); self->x = pt.x, self->y = pt.y, self->cx = sz.cx, self->cy = sz.cy);
 	/* R */ inline LRect Rect() const reflect_as({ Position(), Size() });
 public: // Property - ClientRect
-	/* W */ inline auto &ClientRect(LRect rc) assertl_reflect_as(AdjustWindowRectEx(rc, self->style, self->hMenu, self->dwExStyle), self->Rect(rc));
-	/* W */ inline auto &ClientRect(LRect rc, UINT dpi) assertl_reflect_as(AdjustWindowRectExForDpi(rc, self->style, self->hMenu, self->dwExStyle, dpi), self->Rect(rc));
+	/* W */ inline auto &ClientRect(LRect rc) assertl_reflect_as(AdjustWindowRectEx(rc, self->style, self->hMenu ? TRUE : FALSE, self->dwExStyle), Rect(rc));
+	/* W */ inline auto &ClientRect(LRect rc, UINT dpi) assertl_reflect_as(AdjustWindowRectExForDpi(rc, self->style, self->hMenu ? TRUE : FALSE, self->dwExStyle, dpi), Rect(rc));
 public: // Property - ClientSize
 	/* W */ inline auto &ClientSize(LSize sz) reflect_as(ClientRect({ Position(), sz }));
 	/* W */ inline auto &ClientSize(LSize sz, UINT dpi) reflect_as(ClientRect({ Position(), sz }, dpi));
@@ -523,7 +532,9 @@ public:
 		self->hwndParent, self->hMenu, self->hInstance,
 		self->lpCreateParams), h);
 };
-using CreateStruct = CreateStructBase<>;
+using CreateStruct = CreateStructBase<IsUnicode>;
+using CreateStructA = CreateStructBase<false>;
+using CreateStructW = CreateStructBase<true>;
 
 template<class AnyChild>
 class WindowBase : public ChainExtend<WindowBase<AnyChild>, AnyChild> {
@@ -536,7 +547,7 @@ public:
 	using StyleEx = WStyleEx;
 protected:
 	friend union RefAs<WindowBase>;
-	template<class _AnyChild, class Style, class StyleEx>
+	template<bool IsUnicode, class _AnyChild, class Style, class StyleEx>
 	friend class CreateStructBase;
 	WindowBase(const WindowBase &w) : hWnd(w.hWnd) reflect_to(w.hWnd = O);
 	WindowBase(HWND hWnd) : hWnd(hWnd) {}
@@ -556,28 +567,44 @@ public:
 protected:
 	static ATOM _ClassAtom;
 	static HINSTANCE _hClassModule;
-	static const String &&_ClassName;
+	static const StringA &&_ClassNameA;
+	static const StringW &&_ClassNameW;
+public:
+	template<bool IsUnicode>
+	static inline auto &CClassName() {
+		if constexpr (IsUnicode)
+			return _ClassNameW;
+		else
+			return _ClassNameA;
+	}
+	static inline auto &CClassName() {
+		if constexpr (IsUnicode)
+			return _ClassNameW;
+		else
+			return _ClassNameA;
+	}
 protected:
-	template<class = void>
+	template<bool IsUnicode, class = void>
 	class ClassBase;
-	using  Class = ClassBase<>;
-	template<class _AnyChild>
-	class ClassBase : public ChainExtend<ClassBase<_AnyChild>, _AnyChild>,
-		public WX::ClassBase<KChain<ClassBase<_AnyChild>, _AnyChild>> {
+	using Class = ClassBase<IsUnicode>;
+	using ClassA = ClassBase<false>;
+	using ClassW = ClassBase<true>;
+	template<bool IsUnicode, class _AnyChild>
+	class ClassBase : public ChainExtend<ClassBase<IsUnicode, _AnyChild>, _AnyChild>,
+		public WX::ClassBase<IsUnicode, KChain<ClassBase<IsUnicode, _AnyChild>, _AnyChild>> {
+		using LPCTSTR = LPCXSTR<IsUnicode>;
 	public:
-		using Child = KChain<ClassBase<_AnyChild>, _AnyChild>;
-		using super = WX::ClassBase<Child>;
+		using Child = KChain<ClassBase<IsUnicode, _AnyChild>, _AnyChild>;
+		using super = WX::ClassBase<IsUnicode, Child>;
 	public:
 		ClassBase() {
 			super::WndProc(MainProc<0>);
 			super::WndExtra(sizeof(Child));
-			super::Name(_ClassName);
+			super::Name(CClassName());
 		}
-	public: // Property - WndExtra (deleted)
+	public: // Properties
 		/* W */ inline auto &WndExtra(int) = delete;
-	public: // Property - Name (deleted)
 		/* W */ inline auto &Name(LPCTSTR) = delete;
-	public: // Property - WndProc (deleted)
 		/* W */ inline auto &WndProc(WNDPROC) = delete;
 	};
 protected:
@@ -594,13 +621,11 @@ protected:
 		ClassExBase() {
 			super::WndProc(MainProc<0>);
 			super::WndExtra(sizeof(Child));
-			super::Name(_ClassName);
+			super::Name(CClassName());
 		}
-	public: // Property - WndExtra (deleted)
+	public: // Properties
 		/* W */ inline auto &WndExtra(int) = delete;
-	public: // Property - Name (deleted)
 		/* W */ inline auto &Name(LPCTSTR) = delete;
-	public: // Property - WndProc (deleted)
 		/* W */ inline auto &WndProc(WNDPROC) = delete;
 	};
 	subtype_branch(xClass);
@@ -626,15 +651,17 @@ public:
 protected:
 	subtype_branch(xCreate);
 public:
-	using CreateStruct = WX::CreateStructBase<void, Style, StyleEx>;
-	template<class _AnyChild = void, class Style = WStyle, class StyleEx = WStyleEx>
-	class XCreate : public WX::CreateStructBase<KChain<XCreate<_AnyChild, Style, StyleEx>, _AnyChild>, Style, StyleEx> {
+	using CreateStruct = WX::CreateStructBase<IsUnicode, void, Style, StyleEx>;
+	using CreateStructA = WX::CreateStructBase<IsUnicode, void, Style, StyleEx>;
+	using CreateStructW = WX::CreateStructBase<IsUnicode, void, Style, StyleEx>;
+	template<bool IsUnicode, class _AnyChild = void, class Style = WStyle, class StyleEx = WStyleEx>
+	class XCreateBase : public WX::CreateStructBase<IsUnicode, KChain<XCreateBase<IsUnicode, _AnyChild, Style, StyleEx>, _AnyChild>, Style, StyleEx> {
 		WindowBase &_this;
 	public:
-		using Child = KChain<XCreate, _AnyChild>;
-		using super = WX::CreateStructBase<Child, Style, StyleEx>;
+		using Child = KChain<XCreateBase, _AnyChild>;
+		using super = WX::CreateStructBase<IsUnicode, Child, Style, StyleEx>;
 	public:
-		XCreate(WindowBase &_this) : _this(_this) {
+		XCreateBase(WindowBase &_this) : _this(_this) {
 			super::Class(_ClassAtom);
 			super::Param(&_this);
 		}
@@ -651,6 +678,12 @@ public:
 	public:
 		inline operator bool() reflect_as(this->_this ? false : (bool)super::template Create<AnyChild>());
 	};
+	template<class _AnyChild = void, class Style = WStyle, class StyleEx = WStyleEx>
+	using XCreate = XCreateBase<IsUnicode, _AnyChild, Style, StyleEx>;
+	template<class _AnyChild = void, class Style = WStyle, class StyleEx = WStyleEx>
+	using XCreateA = XCreateBase<false, _AnyChild, Style, StyleEx>;
+	template<class _AnyChild = void, class Style = WStyle, class StyleEx = WStyleEx>
+	using XCreateW = XCreateBase<true, _AnyChild, Style, StyleEx>;
 	inline auto Create() {
 		Register();
 		if constexpr (std::is_void_v<subtype_branchof_xCreate<Child, void>>)
@@ -658,7 +691,7 @@ public:
 				.Size(CW_USEDEFAULT)
 				.Position(CW_USEDEFAULT)
 				.Styles(WS::OverlappedWindow)
-				.Caption(_ClassName);
+				.Caption(CClassName());
 		else
 			return typename Child::xCreate(self);
 	}
@@ -698,7 +731,7 @@ protected:
 	retry:
 		try {
 			switch (msgid) {
-				case WM_CREATE: {
+				case WM_NCCREATE: {
 					auto lpCreate = (LPCREATESTRUCT)lParam;
 					if ((pThis = (Child *)lpCreate->lpCreateParams))
 						if (Wnd.HeapPtr(pThis, index)) {
@@ -887,10 +920,9 @@ public:
 	inline UINT_PTR SetTimer(UINT uElapse, UINT_PTR nIDEvent = 0) assertl_reflect_as((nIDEvent = ::SetTimer(self, nIDEvent, uElapse, O)), nIDEvent);
 	inline void KillTimer(UINT_PTR nIDEvent) assertl_reflect_as(::KillTimer(self, nIDEvent));
 
-	inline void Move(LRect rc, bool bRedraw = true) const assertl_reflect_as(::MoveWindow(self, rc.top, rc.left, rc.xsize(), rc.ysize(), bRedraw));
+	inline auto &Move(LRect rc, bool bRedraw = true) const assertl_reflect_as_child(::MoveWindow(self, rc.top, rc.left, rc.xsize(), rc.ysize(), bRedraw));
 
 	inline auto &Update() assertl_reflect_as_child(UpdateWindow(self));
-	inline CDC DC() const reflect_as(GetDC(self));
 
 	inline auto &RegisterTouch(bool bFine = true, bool bWantPalm = false) assertl_reflect_as_child(RegisterTouchWindow(self, (bFine *TWF_FINETOUCH) | (bWantPalm * TWF_WANTPALM)));
 	inline auto &UnregisterTouch() assertl_reflect_as_child(UnregisterTouchWindow(self));
@@ -926,9 +958,6 @@ public: // Property - Visible
 public: // Proterty - Enabled
 	/* W */ inline auto &Enabled(bool bEnable) assertl_reflect_as_child(EnableWindow(self, bEnable));
 	/* R */ inline bool Enabled() const reflect_as(IsWindowEnabled(self));
-public: // Property - ID
-	/* W */ inline auto &ID(LONG_PTR uId) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_ID, uId));
-	/* R */ inline LONG_PTR ID() const reflect_as(reuse_as<LONG_PTR>(GetWindowLongPtr(self, GWLP_ID)));
 public: // Property - ClientRect
 	/* R */ inline LRect ClientRect() const assertl_reflect_to(LRect rc, GetClientRect(self, &rc), rc);
 public: // Property - ClientSize
@@ -942,12 +971,6 @@ public: // Property - Size
 public: // Property - Rect
 	/* W */ inline auto &Rect(LRect rWin) assertl_reflect_to_child(LSize sz = rWin.size(), SetWindowPos(self, O, rWin.top, rWin.left, sz.cx, sz.cy, SWP_NOZORDER | SWP_NOACTIVATE));
 	/* R */ inline LRect Rect() const assertl_reflect_to(LRect rWin, GetWindowRect(self, rWin), rWin);
-public: // Property - Styles
-	/* W */ inline auto &Styles(Style style) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_STYLE, style.yield()));
-	/* R */ inline Style Styles() const reflect_as(reuse_as<Style>((LONG)GetWindowLongPtr(self, GWL_STYLE)));
-public: // Property - StylesEx 
-	/* W */ inline auto &StylesEx(StyleEx styleEx) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_EXSTYLE, styleEx.yield()));
-	/* R */ inline StyleEx StylesEx() const reflect_as(reuse_as<StyleEx>((DWORD)GetWindowLongPtr(self, GWL_EXSTYLE)));
 public: // Property - TextLength
 	/* R */ inline int TextLength() const reflect_as(GetWindowTextLength(self));
 public: // Property - String
@@ -986,12 +1009,27 @@ public: // Property - IconBig
 public: // Property - IconSmall
 	/* W */ inline auto &IconSmall(HICON hIcon) reflect_to_child(Send<HICON>(WM_SETICON, ICON_SMALL, hIcon));
 	/* R */ inline CIcon IconSmall() const reflect_as(Send<HICON>(WM_GETICON, ICON_SMALL));
+public: // Property - WndProc
+	/* W */ inline auto &WndProc(WNDPROC lpfnWndProc) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_WNDPROC, reuse_as<LONG_PTR>(lpfnWndProc)));
+	/* R */ inline WX::WndProc WndProc() const reflect_as({ reuse_as<HINSTANCE>(GetWindowLongPtr(self, GWLP_WNDPROC)), self });
 public: // Property - Module
-	/* W */ inline auto   &Module(HINSTANCE hInstance) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_HINSTANCE, reuse_as<LONG_PTR>(hInstance)));
+	/* W */ inline auto &Module(HINSTANCE hInstance) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_HINSTANCE, reuse_as<LONG_PTR>(hInstance)));
 	/* R */ inline CModule Module() const reflect_as(reuse_as<HINSTANCE>(GetWindowLongPtr(self, GWLP_HINSTANCE)));
+public: // Property - Module
+	/* W */ inline auto &HwndParent(HWND hHwndParent) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_HWNDPARENT, reuse_as<LONG_PTR>(hHwndParent)));
+	/* R */ inline Window HwndParent() const reflect_as(reuse_as<HWND>(GetWindowLongPtr(self, GWLP_HWNDPARENT)));
+public: // Property - Styles
+	/* W */ inline auto &Styles(Style style) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_STYLE, style.yield()));
+	/* R */ inline Style Styles() const reflect_as(reuse_as<Style>((LONG)GetWindowLongPtr(self, GWL_STYLE)));
+public: // Property - StylesEx 
+	/* W */ inline auto &StylesEx(StyleEx styleEx) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWL_EXSTYLE, styleEx.yield()));
+	/* R */ inline StyleEx StylesEx() const reflect_as(reuse_as<StyleEx>((DWORD)GetWindowLongPtr(self, GWL_EXSTYLE)));
 public: // Property - UserData
 	/* W */ inline auto &UserData(void *pData) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_USERDATA, reuse_as<LONG_PTR>(pData)));
 	/* R */ inline void *UserData() const reflect_as(reuse_as<void *>(GetWindowLongPtr(self, GWLP_USERDATA)));
+public: // Property - ID
+	/* W */ inline auto &ID(LONG_PTR uId) nt_assertl_reflect_to_child(SetWindowLongPtr(self, GWLP_ID, uId));
+	/* R */ inline LONG_PTR ID() const reflect_as(reuse_as<LONG_PTR>(GetWindowLongPtr(self, GWLP_ID)));
 public: // Property - Long 0
 	/* W */ inline auto &HeapPtr(void *lpHeap, int nIndex) nt_assertl_reflect_to_child(SetWindowLongPtr(self, nIndex, (LONG_PTR)lpHeap));
 	template<class AnyType = void>
@@ -1048,13 +1086,19 @@ public: // Property - ClassClsExtra
 	/* R */ inline ULONG_PTR ClassClsExtra() const reflect_as(GetClassLongPtr(self, GCL_CBCLSEXTRA));
 public: // Property - ClassWndProc
 	/* W */ inline auto   &ClassWndProc(WNDPROC WndProc) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_WNDPROC, (LONG_PTR)WndProc));
-	/* R */ inline WndProc ClassWndProc() const reflect_as({ reuse_as<WNDPROC>(GetClassLongPtr(self, GCLP_WNDPROC)), self });
+	/* R */ inline WX::WndProc ClassWndProc() const reflect_as({ reuse_as<WNDPROC>(GetClassLongPtr(self, GCLP_WNDPROC)), self });
 public: // Property - ClassIconSm
 	/* W */ inline auto &ClassIconSm(HICON hIcon) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HICONSM, (LONG_PTR)hIcon));
 	/* R */ inline CIcon ClassIconSm() const reflect_as(reuse_as<HICON>(GetClassLongPtr(self, GCLP_HICONSM)));
 public: // Property - ClassAtom
 	/* W */ inline auto &ClassAtom(ATOM atom) nt_assertl_reflect_to_child(SetClassWord(self, GCW_ATOM, atom));
 	/* R */ inline ATOM  ClassAtom() const reflect_as(GetClassWord(self, GCW_ATOM));
+public: // Property - DC
+	/* R */ inline CDC DC() const reflect_as(GetDC(self));
+public: // Property - ProcessId
+	/* R */ inline DWORD ProcessId() const reflect_to(DWORD dwProcessId = 0, GetWindowThreadProcessId(self, &dwProcessId), dwProcessId);
+public: // Property - ThreadId
+	/* R */ inline DWORD ThreadId() const reflect_as(GetWindowThreadProcessId(self, O));
 public: // Property - Handle
 	inline WX::Handle &Handle() reflect_as(WX::Handle::Attach(hWnd));
 	inline const WX::Handle &Handle() const reflect_as(WX::Handle::Attach(hWnd));
@@ -1086,11 +1130,17 @@ template<class AnyChild, class SubXCreate, class Style, class StyleEx>
 using WXCreate = typename WindowBase<AnyChild>::template XCreate<SubXCreate, Style, StyleEx>;
 template<class AnyChild> ATOM WindowBase<AnyChild>::_ClassAtom = 0;
 template<class AnyChild> HINSTANCE WindowBase<AnyChild>::_hClassModule = O;
-template<class AnyChild> const String &&WindowBase<AnyChild>::_ClassName = Fits(typeid(typename WindowBase<AnyChild>::Child).name(), MaxLenClass);
+
+template<class AnyChild> const StringA &&WindowBase<AnyChild>::_ClassNameA = CString(typeid(typename WindowBase<AnyChild>::Child).name(), MaxLenClass);
+template<class AnyChild> const StringW &&WindowBase<AnyChild>::_ClassNameW = FitsW(CString(typeid(typename WindowBase<AnyChild>::Child).name(), MaxLenClass));
+
 #define SFINAE_Window(name) friend class WX::WindowBase<name>
 #define BaseOf_Window(name) name : public WX::WindowBase<name>
 #define WxCreate() public: struct xCreate : XCreate<xCreate>
-#define WxClass() public: struct xClass : ClassExBase<xClass>
+#define WxCreateA() public: struct xCreate : XCreateA<xCreate>
+#define WxCreateW() public: struct xCreate : XCreateW<xCreate>
+#define WxClass() public: struct xClass : ClassBase<IsUnicode, xClass>
+#define WxClassEx() public: struct xClass : ClassExBase<xClass>
 #pragma endregion
 
 }

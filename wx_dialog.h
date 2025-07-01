@@ -17,42 +17,38 @@ enum_flags(ChooserColorStyle, DWORD,
 	EnableTemplateHandle = CC_ENABLETEMPLATEHANDLE,
 	SolidColor           = CC_SOLIDCOLOR,
 	AnyColor             = CC_ANYCOLOR);
-template<class CHOOSECOLORT, class TCHAR>
-class ChooserColorT : public RefStruct<CHOOSECOLORT> {
-protected:
-	COLORREF crCustColors[16] = { 0 };
+template<bool IsUnicode>
+class ChooserColorT : public RefStruct<std::conditional_t<IsUnicode, CHOOSECOLORW, CHOOSECOLORA>> {
+	using LPCTSTR = LPCXSTR<IsUnicode>;
 public:
 	using Style = ChooserColorStyle;
 	using ColorSet = arrayof<RGBColor, 16>;
 	using CColorSet = const arrayof<RGBColor, 16>;
 public:
-	ChooserColorT() {
-		self->lStructSize = sizeof(CHOOSECOLORT);
-		self->lpCustColors = crCustColors;
-	}
+	ChooserColorT() reflect_to(self->lStructSize = sizeof(CHOOSECOLOR));
 public: // Properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = (HWND &)hMod);
 	/* W */ inline auto &Styles(Style style) reflect_to_self(self->Flags = style.yield());
-	/* W */ inline auto &TemplateName(const TCHAR *lpTemplateName) reflect_to_self(self->lpTemplateName = lpTemplateName);
+	/* W */ inline auto &TemplateName(LPCTSTR lpTemplateName) reflect_to_self(self->lpTemplateName = lpTemplateName);
+	/* W */ inline auto &CustColors(ColorSet *lpCustColors) reflect_to_self(self->lpCustColors = (COLORREF *)lpCustColors);
 	/* R */ inline CColorSet *CustColors() const reflect_as((CColorSet *)self->lpCustColors);
 	/* W */ inline auto &Result(COLORREF rgb) reflect_to_self(self->rgbResult = rgb);
 	/* R */ inline RGBColor Result() const reflect_as(self->rgbResult);
+//	LPARAM       lCustData;
 //	LPCCHOOKPROC lpfnHook;
+//	LPEDITMENU   lpEditInfo;
 public:
 	inline bool Choose() {
-		if constexpr (std::is_same_v<TCHAR, CHAR>)
-			reflect_as(ChooseColorA(self))
-		else if constexpr (std::is_same_v<TCHAR, WCHAR>)
+		if constexpr (IsUnicode)
 			reflect_as(ChooseColorW(self))
+		else
+			reflect_as(ChooseColorA(self))
 	}
-public:
-	inline CHOOSECOLORT *operator&() reflect_as(self);
-	inline const CHOOSECOLORT *operator&() const reflect_as(self);
 };
-using ChooserColor = ChooserColorT<CHOOSECOLOR, TCHAR>;
-using ChooserColorA = ChooserColorT<CHOOSECOLORA, CHAR>;
-using ChooserColorW = ChooserColorT<CHOOSECOLORW, WCHAR>;
+using ChooserColor = ChooserColorT<IsUnicode>;
+using ChooserColorA = ChooserColorT<false>;
+using ChooserColorW = ChooserColorT<true>;
 
 enum_flags(ChooserFontStyle, DWORD,
 	ScreenFonts          = CF_SCREENFONTS,
@@ -81,46 +77,47 @@ enum_flags(ChooserFontStyle, DWORD,
 	NoScriptSel          = CF_NOSCRIPTSEL,
 	NoVertFonts          = CF_NOVERTFONTS,
 	InActiveFonts        = CF_INACTIVEFONTS);
-class ChooserFont : public RefStruct<CHOOSEFONT> {
+template<bool IsUnicode>
+class ChooserFontT : public RefStruct<std::conditional_t<IsUnicode, CHOOSEFONTW, CHOOSEFONTA>> {
+	using LPCTSTR = LPCXSTR<IsUnicode>;
 protected:
-	FontLogic crLogFont;
+	FontLogicT<IsUnicode> crLogFont;
 public:
 	using Style = ChooserFontStyle;
 public:
-	ChooserFont() {
-		self->lStructSize = sizeof(CHOOSEFONT);
-		self->lpLogFont = &crLogFont;
-	}
-public: // Property - Parent
+	ChooserFontT() reflect_to(self->lStructSize = sizeof(CHOOSEFONT));
+public: // Properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = hMod);
 	/* W */ inline auto &Styles(Style style) reflect_to_self(self->Flags = style.yield());
 	/* W */ inline auto &TemplateName(LPCTSTR lpTemplateName) reflect_to_self(self->lpTemplateName = lpTemplateName);
-public: // Property - FontTypes
 	/* W */ inline auto    &FontTypes(FontType ft) reflect_to_self(self->nFontType = ft.yield());
 	/* R */ inline FontType FontTypes() const reflect_as(reuse_as<FontType>(self->nFontType));
-public: // Property - SizeMin
 	/* W */ inline auto &SizeMin(INT nSizeMin) reflect_to_self(self->nSizeMin = nSizeMin);
 	/* R */ inline INT   SizeMin() const reflect_as(self->nSizeMin);
-public: // Property - SizeMax
 	/* W */ inline auto &SizeMax(INT nSizeMax) reflect_to_self(self->nSizeMax = nSizeMax);
 	/* R */ inline INT   SizeMax() const reflect_as(self->nSizeMax);
-public: // Property - PointSize
 	/* W */ inline auto &PointSize(INT iPointSize) reflect_to_self(self->iPointSize = iPointSize);
 	/* R */ inline INT   PointSize() const reflect_as(self->iPointSize);
-public: // Property - Color
 	/* W */ inline auto    &Color(COLORREF rgbColors) reflect_to_self(self->rgbColors = rgbColors);
 	/* R */ inline RGBColor Color() const reflect_as(self->rgbColors);
-public: // Property - 
 	// LPCFHOOKPROC    lpfnHook;
 	// LPARAM          lCustData;
 	// HDC             hDC;
 	// LPWSTR          lpszStyle;
-public: // Property - LogFont
-	/* R */ inline const FontLogic &LogFont() const reflect_as(crLogFont);
+	/* R */ inline auto &LogFont() reflect_as(crLogFont);
+	/* R */ inline auto &LogFont() const reflect_as(crLogFont);
 public:
-	inline bool Choose() reflect_as(ChooseFont(self));
+	inline bool Choose() {
+		if constexpr (IsUnicode)
+			reflect_as(ChooseFontW(self))
+		else
+			reflect_as(ChooseFontA(self))
+	}
 };
+using ChooserFont = ChooserFontT<IsUnicode>;
+using ChooserFontA = ChooserFontT<false>;
+using ChooserFontW = ChooserFontT<true>;
 
 enum_flags(ChooserFileStyle, DWORD,
 	ReadOnly             = OFN_READONLY,
@@ -149,64 +146,74 @@ enum_flags(ChooserFileStyle, DWORD,
 	EnableSizing         = OFN_ENABLESIZING,
 	DontAddToRecent      = OFN_DONTADDTORECENT,
 	ForcesHowHidden      = OFN_FORCESHOWHIDDEN);
-template<class OPENFILENAMET, class TCHAR>
-class ChooserFileT : public RefStruct<OPENFILENAMET> {
-protected:
-	TCHAR strCustomFilter[MaxLenPath]{ 0 };
-	TCHAR strFile[MaxLenPath]{ 0 };
-	TCHAR strFileTitle[MaxLenPath]{ 0 };
+template<bool IsUnicode>
+class ChooserFileT : public RefStruct<std::conditional_t<IsUnicode, OPENFILENAMEW, OPENFILENAMEA>> {
+	using LPTSTR = LPXSTR<IsUnicode>;
+	using LPCTSTR = LPCXSTR<IsUnicode>;
+	using TCHAR = XCHAR<IsUnicode>;
+	using String = StringBase<TCHAR>;
 public:
 	using Style = ChooserFileStyle;
 	using String = StringBase<TCHAR>;
 public:
-	ChooserFileT() {
-		self->lStructSize = sizeof(OPENFILENAMET);
-		self->lpstrFile = strFile;
-		self->nMaxFile = CountOf(strFile);
-		self->lpstrFileTitle = strFileTitle;
-		self->nMaxFileTitle = CountOf(strFileTitle);
-		self->lpstrCustomFilter = strCustomFilter;
-		self->nMaxCustFilter = CountOf(strCustomFilter);
-	}
-public: // Properties
+	ChooserFileT() reflect_to(self->lStructSize = sizeof(OPENFILENAME));
+public: // Property - Parent
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
+public: // Property - Module
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = hMod);
+public: // Property - Styles
 	/* W */ inline auto &Styles(Style Flags) reflect_to_self(self->Flags = Flags.yield());
-	/* W */ inline auto &TemplateName(const TCHAR *lpTemplateName) reflect_to_self(self->lpTemplateName = lpTemplateName);
+public: // Property - TemplateName
+	/* W */ inline auto &TemplateName(LPCTSTR lpTemplateName) reflect_to_self(self->lpTemplateName = lpTemplateName);
+public: // Property - FileOffset
 	/* R */ inline WORD FileOffset() const reflect_as(self->nFileOffset);
+public: // Property - FileExtension
 	/* R */ inline WORD FileExtension() const reflect_as(self->nFileExtension);
-	/* W */ inline auto &File(const String &strFile) {
-		if constexpr (std::is_same_v<TCHAR, CHAR>)
-			assertl(SUCCEEDED(StringCchCopyA(this->strFile, strFile.Length() + 1, strFile)))
-		else
-			assertl(SUCCEEDED(StringCchCopyW(this->strFile, strFile.Length() + 1, strFile)))
-		retself;
-	}
-	/* R */ inline const String File() const reflect_as(CString(this->strFile, CountOf(this->strFile)));
-	/* R */ inline const String FileTitle() const reflect_as(CString(strFileTitle, CountOf(strFileTitle)));
-	/* R */ inline const String CustomFilter() const reflect_as(CString(strCustomFilter, CountOf(strCustomFilter)));
-	/* W */ inline auto &Filter(const TCHAR *lpstrFilter) reflect_to_self(self->lpstrFilter = lpstrFilter);
+public: // Property - File
+	/* W */ inline auto &File(LPTSTR lpstrFile) reflect_to_self(self->lpstrFile = lpstrFile);
+	/* R */ inline const String File() const reflect_as(CString(self->lpstrFile, self->nMaxFile));
+public: // Property - FileMaxLen
+	/* W */ inline auto &FileMaxLen(DWORD nMaxFile) reflect_to_self(self->nMaxFile = nMaxFile);
+	/* R */ inline auto  FileMaxLen() const reflect_as(self->nMaxFile);
+public: // Property - FileTitle
+	/* W */ inline auto &FileTitle(LPTSTR lpstrFileTitle) reflect_as(self->lpstrFileTitle);
+	/* R */ inline const String FileTitle() const reflect_as(CString(self->lpstrFileTitle, self->nMaxFileTitle));
+public: // Property - FileTitleMaxLen
+	/* W */ inline auto &FileTitleMaxLen(DWORD nMaxFileTitle) reflect_to_self(self->nMaxFileTitle = nMaxFileTitle);
+	/* W */ inline auto  FileTitleMaxLen() const reflect_as(self->nMaxFileTitle = nMaxFileTitle);
+public: // Property - CustomFilter
+	/* W */ inline auto &CustomFilter(LPTSTR lpstrCustomFilter) reflect_to_self(self->lpstrCustomFilter);
+	/* R */ inline const String CustomFilter() const reflect_as(CString(self->lpstrCustomFilter, self->nMaxCustomFilter));
+public: // Property - CustomFilterMaxLen
+	/* W */ inline auto &CustomFilterMaxLen(DWORD nMaxCustomFilter) reflect_to_self(self->nMaxCustomFilter = nMaxCustomFilter);
+	/* R */ inline auto  CustomFilterMaxLen() const reflect_as(self->nMaxCustomFilter);
+public: // Property - Filter
+	/* W */ inline auto &Filter(LPCTSTR lpstrFilter) reflect_to_self(self->lpstrFilter = lpstrFilter);
+public: // Property - FilterIndex
 	/* R */ inline DWORD FilterIndex() const reflect_as(self->nFilterIndex);
-	/* W */ inline auto &InitialDir(const TCHAR *lpstrInitialDir) reflect_to_self(self->lpstrInitialDir = lpstrInitialDir);
-	/* W */ inline auto &Title(const TCHAR *lpstrTitle) reflect_to_self(self->lpstrTitle = lpstrTitle);
-	/* W */ inline auto &DefExt(const TCHAR *lpstrDefExt) reflect_to_self(self->lpstrDefExt = lpstrDefExt);
+public: // Property - InitialDir
+	/* W */ inline auto &InitialDir(LPCTSTR lpstrInitialDir) reflect_to_self(self->lpstrInitialDir = lpstrInitialDir);
+public: // Property - Title
+	/* W */ inline auto &Title(LPCTSTR lpstrTitle) reflect_to_self(self->lpstrTitle = lpstrTitle);
+public: // Property - DefExt
+	/* W */ inline auto &DefExt(LPCTSTR lpstrDefExt) reflect_to_self(self->lpstrDefExt = lpstrDefExt);
 public:
 	inline bool OpenFile() {
-		if constexpr (std::is_same_v<TCHAR, CHAR>)
-			reflect_as(GetOpenFileNameA(self))
-		else
+		if constexpr (IsUnicode)
 			reflect_as(GetOpenFileNameW(self))
+		else
+			reflect_as(GetOpenFileNameA(self))
 	}
 	inline bool SaveFile() {
-		if constexpr (std::is_same_v<TCHAR, CHAR>)
-			reflect_as(GetSaveFileNameA(self))
-		else
+		if constexpr (IsUnicode)
 			reflect_as(GetSaveFileNameW(self))
+		else
+			reflect_as(GetSaveFileNameA(self))
 	}
 };
-using ChooserFile = ChooserFileT<OPENFILENAME, TCHAR>;
-using ChooserFileA = ChooserFileT<OPENFILENAMEA, CHAR>;
-using ChooserFileW = ChooserFileT<OPENFILENAMEW, WCHAR>;
+using ChooserFile = ChooserFileT<IsUnicode>;
+using ChooserFileA = ChooserFileT<false>;
+using ChooserFileW = ChooserFileT<true>;
 
 enum_flags(FindReplaceStyle, DWORD,
 	Down                 = FR_DOWN,
@@ -245,16 +252,14 @@ public: // Properties
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = hMod);
 	/* W */ inline auto &Styles(Style Flags) reflect_to_self(self->Flags = Flags.yield());
 	/* W */ inline auto &TemplateName(const TCHAR *lpTemplateName) reflect_to_self(self->lpTemplateName = lpTemplateName);
-	///* R */ inline const String FindWhat() reflect_as
-	///* R */ inline const String ReplaceWith() reflect_as
-	//LPSTR        lpstrFindWhat;      // ptr. to search string
-	//LPSTR        lpstrReplaceWith;   // ptr. to replace string
-	//WORD         wFindWhatLen;       // size of find buffer
-	//WORD         wReplaceWithLen;    // size of replace buffer
+	/* R */ inline const String FindWhat() reflect_as(CString(self->lpstrFindWhat, self->wFindWhatLen));
+	/* R */ inline const String ReplaceWith() reflect_as(CString(self->lpstrReplaceWith, self->wReplaceWithLen));
 	//LPARAM       lCustData;          // data passed to hook fn.
 	//LPFRHOOKPROC lpfnHook;           // ptr. to hook fn. or NULL
 public:
-//	inline void Find() reflect_to(FindTextA(self)x)
+	inline HWND Find() {
+		reflect_as(FindText(self));
+	}
 };
 
 //class ConfigComm : public RefStruct<COMMCONFIG> {

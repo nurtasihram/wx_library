@@ -501,7 +501,7 @@ inline StringW Fits(const StringA &str, CodePages cp = CodePages::Active) {
 	LPCSTR lpString = str;
 	assertl((tLen = MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, O, 0)) > 0);
 	// if (tLen != uLen) warnning glyphs missing 
-	auto lpsz = String::Alloc(tLen);
+	auto lpsz = StringW::Alloc(tLen);
 	assertl(tLen == MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen));
 	lpsz[tLen] = 0;
 	return{ (size_t)tLen, lpsz };
@@ -873,6 +873,8 @@ public:
 		return lpBuffer;
 	}
 public:
+	template<class AnyType>
+	inline String operator()(AnyType i) reflect_as(toString(i));
 	static constexpr size_t maxLength = 64;
 	template<class AnyType>
 	inline String toString(AnyType i) const {
@@ -940,7 +942,8 @@ inline String Cats(uint16_t i) reflect_as(nX("d", i));
 inline String Cats(uint32_t i) reflect_as(nX("d", i));
 inline String Cats(uint64_t i) reflect_as(nX("d", i));
 inline String Cats(DWORD i) reflect_as(nX("d", i));
-inline String Cats(TCHAR chs) reflect_as((TCHAR)chs);
+inline String Cats(CHAR chs) reflect_as((TCHAR)chs);
+inline String Cats(WCHAR chs) reflect_as((TCHAR)chs);
 inline String Cats(LPCTSTR lpsz) reflect_as(+CString(lpsz, 1024));
 inline String Cats(const Exception &err) reflect_as(err);
 inline const String &Cats(const String &str) reflect_as(str);
@@ -966,6 +969,7 @@ inline StringA CatsA(uint32_t i) reflect_as(nXA("d", i));
 inline StringA CatsA(uint64_t i) reflect_as(nXA("d", i));
 inline StringA CatsA(DWORD i) reflect_as(nXA("d", i));
 inline StringA CatsA(CHAR chs) reflect_as((CHAR)chs);
+inline StringA CatsA(WCHAR chs) reflect_as((CHAR)chs);
 inline StringA CatsA(LPCSTR lpsz) reflect_as(+CString(lpsz, 1024));
 inline StringA CatsA(const Exception &err) reflect_as(err);
 inline const StringA &CatsA(const StringA &str) reflect_as(str);
@@ -990,6 +994,7 @@ inline StringW CatsW(uint16_t i) reflect_as(nXW("d", i));
 inline StringW CatsW(uint32_t i) reflect_as(nXW("d", i));
 inline StringW CatsW(uint64_t i) reflect_as(nXW("d", i));
 inline StringW CatsW(DWORD i) reflect_as(nXW("d", i));
+inline StringW CatsW(CHAR chs) reflect_as((WCHAR)chs);
 inline StringW CatsW(WCHAR chs) reflect_as((WCHAR)chs);
 inline StringW CatsW(LPCWSTR lpsz) reflect_as(+CString(lpsz, 1024));
 inline StringW CatsW(const Exception &err) reflect_as(err);

@@ -126,12 +126,13 @@ public:
 
 #pragma region Read Write
 protected:
-	inline DWORD _Write(HANDLE hOutput, LPCWSTR lpszString, DWORD uLength) assertl_reflect_as(WriteConsoleW(hOutput, lpszString, uLength, &uLength, O), uLength);
 	inline DWORD _Write(HANDLE hOutput, LPCSTR lpszString, DWORD uLength) assertl_reflect_as(WriteConsoleA(hOutput, lpszString, uLength, &uLength, O), uLength);
+	inline DWORD _Write(HANDLE hOutput, LPCWSTR lpszString, DWORD uLength) assertl_reflect_as(WriteConsoleW(hOutput, lpszString, uLength, &uLength, O), uLength);
 public:
+	inline DWORD Log(const String &s) reflect_as(_Write(hOutput, s, (DWORD)s.Length()));
 	inline DWORD LogA(const StringA &s) reflect_as(_Write(hOutput, s, (DWORD)s.Length()));
 	inline DWORD LogW(const StringW &s) reflect_as(_Write(hOutput, s, (DWORD)s.Length()));
-	inline DWORD Log(const String &s) reflect_as(_Write(hOutput, s, (DWORD)s.Length()));
+public:
 	template<class... Args>
 	inline DWORD Log(const Args& ...args) reflect_as(Log(Cats(args...)));
 	template<class... Args>
@@ -139,9 +140,10 @@ public:
 	template<class... Args>
 	inline DWORD LogW(const Args& ...args) reflect_as(LogW(CatsW(args...)));
 public:
+	inline DWORD Err(const String &s) reflect_as(_Write(hError, s, (DWORD)s.Length()));
 	inline DWORD ErrA(const StringA &s) reflect_as(_Write(hError, s, (DWORD)s.Length()));
 	inline DWORD ErrW(const StringW &s) reflect_as(_Write(hError, s, (DWORD)s.Length()));
-	inline DWORD Err(const String &s) reflect_as(_Write(hError, s, (DWORD)s.Length()));
+public:
 	template<class... Args>
 	inline DWORD Err(const Args& ...args) reflect_as(Err(Cats(args...)));
 	template<class... Args>

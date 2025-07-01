@@ -50,13 +50,45 @@ static bool bEcho = true;
 static bool bExit = false;
 static bool bCmdl = false;
 static bool bReset = false;
-static char js_code[1024]{ 0 };
-static UINT duk_cmdl_count = 0;
-static duk_context *ctx = O;
+
+duk_ret_t load_duk_cmdl(duk_context *ctx) {
+	duk_push_global_object(ctx);
+	duk_property(ctx, "echo",
+		duk_fn() {
+			bEcho = duk_to_boolean(ctx, 0);
+			return 0;
+		},
+		duk_fn() {
+			duk_push_boolean(ctx, bEcho);
+			return 1;
+		}
+	);
+	duk_property_r(ctx, "exit", duk_fn() {
+		bExit = true;
+		return 0;
+	});
+	duk_property_r(ctx, "cmdl", duk_fn() {
+		bCmdl = true;
+		return 0;
+	});
+	duk_property_r(ctx, "reset", duk_fn() {
+		bReset = true;
+		return 0;
+	});
+	duk_property_r(ctx, "clear", duk_fn() {
+		Console.Clear();
+		return 0;
+	});
+	duk_push_c_function(ctx, print_mem, 0);
+	duk_put_global_string(ctx, "print_mem");
+	return 0;
+}
 
 Event proc_ok = Event::Create().AutoReset();
 static constexpr auto WX_DUK_ON_CMD = WM_USER + 1;
-static constexpr auto WX_DUK_ON_EXIT = WM_USER + 1;
+
+static char js_code[1024]{ 0 };
+static UINT duk_cmdl_count = 0;
 
 duk_ret_t eval_cmdl(duk_context *ctx) {
 	++duk_cmdl_count;
@@ -89,35 +121,36 @@ _ret:
 					--duk_cmdl_count;
 					return 0;
 				}
-				if (bCmdl) {
-					bCmdl = false;
-				__reset:
-					duk_push_c_function(ctx, eval_cmdl, 0);
-					duk_call(ctx, 0);
-					duk_pop(ctx);
-					if (bReset) {
-						bReset = false;
-						goto __reset;
-					}
-					continue;
-				}
 				if (bExit) {
 					Console.Log(_T("exit\n\n"));
-					bExit = false;
 					--duk_cmdl_count;
-					proc_ok.Set();
 					return 0;
+				}
+				if (bCmdl) {
+					bCmdl = false;
+					do {
+						bReset = false;
+						duk_push_c_function(ctx, eval_cmdl, 0);
+						duk_call(ctx, 0);
+						duk_pop(ctx);
+					} while (bReset);
+					continue;
 				}
 				proc_ok.Set();
 			}
 		}
+		--duk_cmdl_count;
+		proc_ok.Set();
+		return 0;
 	} catch (duk_exception err) {
 		Console.ErrA(
 			"FATAL: ", err.MsgId, '\n',
 			"CODE:  ", err.code, '\n');
+		duk_pop(ctx);
 		proc_ok.Set();
-	} catch (WX::Exception err) {
+	} catch (Exception err) {
 		duk_errout(ctx, err);
+		duk_pop(ctx);
 		proc_ok.Set();
 	} catch (...) {
 		Console.Err(_T("Other exception\n"));
@@ -128,60 +161,45 @@ _ret:
 	goto _ret;
 }
 
+static duk_context *ctx = O;
 LThread msg_proc = [] {
 __reset:
 	duk_push_c_function(ctx, eval_cmdl, 0);
 	duk_call(ctx, 0);
 	duk_pop(ctx);
+	duk_gc(ctx, 0);
 	if (bReset) {
 		bReset = false;
 		goto __reset;
 	}
+	proc_ok.Set();
 };
 
-inline void ProcCmd() {
+inline bool ProcCmd() {
+	if (!msg_proc.StillActive())
+		return false;
 	msg_proc.Post(WX_DUK_ON_CMD);
 	proc_ok.WaitForSignal();
+	return true;
 }
 
 void commandline(duk_context *ctx) {
-	duk_push_global_object(ctx);
-	duk_property(ctx, "echo",
-		[](duk_context *ctx) -> duk_ret_t {
-			bEcho = duk_to_boolean(ctx, 0);
-			return 0;
-		},
-		[](duk_context *ctx) -> duk_ret_t {
-			duk_push_boolean(ctx, bEcho);
-			return 1;
-		}
-	);
-	duk_property_r(ctx, "exit", [](duk_context *ctx) -> duk_ret_t {
-		bExit = true;
-		return 0;
-	});
-	duk_property_r(ctx, "cmdl", [](duk_context *ctx) -> duk_ret_t {
-		bCmdl = true;
-		return 0;
-	});
-	duk_property_r(ctx, "reset", [](duk_context *ctx) -> duk_ret_t {
-		bReset = true;
-		return 0;
-	});
-	duk_property_r(ctx, "clear", [](duk_context *ctx) -> duk_ret_t {
-		Console.Clear();
-		return 0;
-	});
-	duk_push_c_function(ctx, print_mem, 0);
-	duk_put_global_string(ctx, "print_mem");
+
 	duk_push_c_function(ctx, load_duk, 0);
 	duk_call(ctx, 0);
 	duk_pop(ctx);
+
+	duk_push_c_function(ctx, load_duk_cmdl, 0);
+	duk_call(ctx, 0);
+	duk_pop(ctx);
+
+	assertl(msg_proc.Create());
+	proc_ok.WaitForSignal();
+
 	duk_eval_string(ctx, "Console.Reopen()");
 	Console.Log(_T("\n - Duktape symbols loaded -\n"));
 	print_mem();
-	assertl(msg_proc.Create());
-	proc_ok.WaitForSignal();
+
 	while (duk_cmdl_count) {
 		auto &&cur_pos = Console.CursorPosition();
 		++cur_pos.x;
@@ -189,7 +207,10 @@ void commandline(duk_context *ctx) {
 		cur_pos.x += duk_cmdl_count + 1;
 		Console.CursorPosition(cur_pos);
 		std::cin.getline(js_code, sizeof(js_code));
-		ProcCmd();
+		if (!ProcCmd()) {
+			Console.Log(_T("Message procedurer had exited\n"));
+			break;
+		}
 	}
 }
 

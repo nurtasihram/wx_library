@@ -7,14 +7,12 @@ bool duk_get_point(duk_context *ctx, LPoint &point, duk_idx_t idx) {
 		point.x = duk_get_int(ctx, -1);
 		duk_get_prop_index(ctx, -2, 1);
 		point.y = duk_get_int(ctx, -1);
-	}
-	else if (duk_is_object(ctx, idx)) {
+	} else if (duk_is_object(ctx, idx)) {
 		duk_get_prop_string(ctx, -1, "x");
 		point.x = duk_get_int(ctx, -1);
 		duk_get_prop_string(ctx, -2, "y");
 		point.y = duk_get_int(ctx, -1);
-	}
-	else if (duk_is_number(ctx, idx))
+	} else if (duk_is_number(ctx, idx))
 		point = duk_get_int(ctx, idx);
 	else
 		return false;
@@ -38,8 +36,7 @@ bool duk_get_rect(duk_context *ctx, LRect &rect, duk_idx_t idx) {
 		rect.right = duk_get_int(ctx, -1);
 		duk_get_prop_index(ctx, -4, 3);
 		rect.bottom = duk_get_int(ctx, -1);
-	}
-	else if (duk_is_object(ctx, idx)) {
+	} else if (duk_is_object(ctx, idx)) {
 		duk_get_prop_string(ctx, -1, "x0");
 		rect.left = duk_get_int(ctx, -1);
 		duk_get_prop_string(ctx, -2, "y0");
@@ -48,8 +45,7 @@ bool duk_get_rect(duk_context *ctx, LRect &rect, duk_idx_t idx) {
 		rect.right = duk_get_int(ctx, -1);
 		duk_get_prop_string(ctx, -4, "y1");
 		rect.bottom = duk_get_int(ctx, -1);
-	}
-	else if (duk_is_number(ctx, idx))
+	} else if (duk_is_number(ctx, idx))
 		rect = duk_get_int(ctx, idx);
 	else
 		return false;
@@ -100,7 +96,7 @@ void duk_flags(duk_context *ctx,
 			   const char *type,
 			   const char *name, const char *parent_name,
 			   const duk_constant_struct* dcs, uint32_t len) {
-	duk_function_global(ctx, name, [](duk_context *ctx) -> duk_ret_t {
+	duk_function_global(ctx, name, duk_fn() {
 		if (duk_reflect_constructor(ctx))
 			return 1;
 		auto val = duk_to_int(ctx, 0);
@@ -119,7 +115,7 @@ void duk_flags(duk_context *ctx,
 				 | DUK_DEFPROP_HAVE_CONFIGURABLE | 0	// configurable : false
 	);
 	duk_constant(ctx, dcs, len);
-	duk_method(ctx, "toString", 0, [](duk_context *ctx) -> duk_ret_t {
+	duk_method(ctx, "toString", 0, duk_fn() {
 		duk_push_this(ctx);
 		enum_inf ei;
 		if (enum_inf::get_static(ctx, ei))
@@ -162,8 +158,7 @@ void load_duk_enum(duk_context *ctx) {
 			if (duk_is_undefined(ctx, -1)) {
 				duk_pop_3(ctx);
 				duk_push_sprintf(ctx, "0x%x", val);
-			}
-			else {
+			} else {
 				duk_push_int(ctx, val);
 				duk_new(ctx, 1);
 				duk_to_string(ctx, -1);
@@ -194,8 +189,7 @@ void load_duk_enum(duk_context *ctx) {
 				duk_pop_3(ctx);
 				duk_push_sprintf(ctx, "0x%x", val);
 				++concats;
-			}
-			else {
+			} else {
 				duk_push_int(ctx, val);
 				duk_new(ctx, 1);
 				duk_to_string(ctx, -1);
@@ -210,7 +204,7 @@ void load_duk_enum(duk_context *ctx) {
 	static auto __pushEnum = [](duk_context *ctx, duk_int_t val, const enum_inf &ei) -> duk_ret_t {
 		for (int i = 0; i < ei.count; ++i) {
 			auto &e = ei.pEnums[i];
-			if (e.value == 0) {
+			if (e.value == val) {
 				duk_push_sprintf(ctx, "%s.%s", ei.name, e.name);
 				return 1;
 			}
@@ -220,9 +214,8 @@ void load_duk_enum(duk_context *ctx) {
 		duk_get_prop_string(ctx, -1, "__l");
 		if (duk_is_undefined(ctx, -1)) {
 			duk_pop_3(ctx);
-			duk_push_sprintf(ctx, "0x%x", val);
-		}
-		else {
+			duk_push_sprintf(ctx, "%d", val);
+		} else {
 			duk_push_int(ctx, val);
 			duk_new(ctx, 1);
 			duk_to_string(ctx, -1);
@@ -231,57 +224,48 @@ void load_duk_enum(duk_context *ctx) {
 		}
 		return DUK_RET_INTERNAL_ERROR;
 	};
-	static auto _toString = [](duk_context *ctx) -> duk_ret_t {
-		duk_push_this(ctx);
-		duk_get_prop_string(ctx, -1, "val");
-		auto val = duk_to_int(ctx, -1);
-		duk_pop(ctx);
-		duk_get_prop_string(ctx, -1, "stringOf");
-		duk_push_this(ctx);
-		duk_push_int(ctx, val);
-		duk_call_method(ctx, 1);
-		return 1;
-	};
-	duk_struct_global(ctx, "FlagsObj", [](duk_context *ctx) -> duk_ret_t {
+	duk_struct_global(ctx, "FlagsObj", duk_fn() {
 		duk_member_int(ctx, "val", 0);
-		duk_method(ctx, "valueOf", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "valueOf", 0, duk_fn() {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "val");
 			return 1;
 		});
-		duk_method(ctx, "stringOf", 1, [](duk_context *ctx) -> duk_ret_t {
-			duk_int_t val = duk_to_int(ctx, 0);
+		duk_method(ctx, "toString", 0, duk_fn() {
+			duk_push_this(ctx);
+			duk_get_prop_string(ctx, -1, "val");
+			auto val = duk_to_int(ctx, -1);
 			enum_inf ei;
 			if (enum_inf::get(ctx, ei))
 				return DUK_RET_TYPE_ERROR;
 			return __pushFlags(ctx, val, ei);
 		});
-		duk_method(ctx, "toString", 0, _toString);
 		return 0;
 	});
-	duk_struct_global(ctx, "EnumObj", [](duk_context *ctx) -> duk_ret_t {
+	duk_struct_global(ctx, "EnumObj", duk_fn() {
 		duk_member_int(ctx, "val", 0);
-		duk_method(ctx, "valueOf", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "valueOf", 0, duk_fn() {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "val");
 			return 1;
 		});
-		duk_method(ctx, "stringOf", 1, [](duk_context *ctx) -> duk_ret_t {
-			auto val = duk_to_int(ctx, 0);
+		duk_method(ctx, "toString", 0, duk_fn() {
+			duk_push_this(ctx);
+			duk_get_prop_string(ctx, -1, "val");
+			auto val = duk_to_int(ctx, -1);
 			enum_inf ei;
 			if (enum_inf::get(ctx, ei))
 				return DUK_RET_TYPE_ERROR;
 			return __pushEnum(ctx, val, ei);
 		});
-		duk_method(ctx, "toString", 0, _toString);
 		return 0;
 	});
 }
 void load_duk_point(duk_context *ctx) {
-	duk_struct_global(ctx, "PointObj", [](duk_context *ctx) -> duk_ret_t {
+	duk_struct_global(ctx, "PointObj", duk_fn() {
 		duk_member_int(ctx, "x", 0);
 		duk_member_int(ctx, "y", 0);
-		duk_method(ctx, "toString", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "toString", 0, duk_fn() {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "x");
 			auto x = duk_get_int(ctx, -1);
@@ -292,7 +276,7 @@ void load_duk_point(duk_context *ctx) {
 		});
 		return 0;
 	});
-	duk_function_global(ctx, "Point", [](duk_context *ctx) -> duk_ret_t {
+	duk_function_global(ctx, "Point", duk_fn() {
 		if (duk_reflect_constructor(ctx))
 			return 1;
 		LPoint p;
@@ -321,12 +305,12 @@ void load_duk_point(duk_context *ctx) {
 }
 
 void load_duk_rect(duk_context *ctx) {
-	duk_struct_global(ctx, "RectObj", [](duk_context *ctx) -> duk_ret_t {
+	duk_struct_global(ctx, "RectObj", duk_fn() {
 		duk_member_int(ctx, "x0", 0);
 		duk_member_int(ctx, "y0", 0);
 		duk_member_int(ctx, "x1", 0);
 		duk_member_int(ctx, "y1", 0);
-		duk_property_r(ctx, "SizeX", [](duk_context *ctx) -> duk_ret_t {
+		duk_property_r(ctx, "SizeX", duk_fn() {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "x0");
 			auto x0 = duk_get_int(ctx, -1);
@@ -335,7 +319,7 @@ void load_duk_rect(duk_context *ctx) {
 			duk_push_int(ctx, x1 - x0 + 1);
 			return 1;
 		});
-		duk_property_r(ctx, "SizeY", [](duk_context *ctx) -> duk_ret_t {
+		duk_property_r(ctx, "SizeY", duk_fn() {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "y0");
 			auto y0 = duk_get_int(ctx, -1);
@@ -345,7 +329,7 @@ void load_duk_rect(duk_context *ctx) {
 			return 1;
 		}
 		);
-		duk_property_r(ctx, "Size", [](duk_context *ctx) -> duk_ret_t {
+		duk_property_r(ctx, "Size", duk_fn() {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "x0");
 			auto x0 = duk_get_int(ctx, -1);
@@ -361,7 +345,7 @@ void load_duk_rect(duk_context *ctx) {
 			duk_new(ctx, 2);
 			return 1;
 		});
-		duk_method(ctx, "toString", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "toString", 0, duk_fn() {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "x0");
 			auto x0 = duk_get_int(ctx, -1);
@@ -376,7 +360,7 @@ void load_duk_rect(duk_context *ctx) {
 		});
 		return 0;
 	});
-	duk_function_global(ctx, "Rect", [](duk_context *ctx) -> duk_ret_t {
+	duk_function_global(ctx, "Rect", duk_fn() {
 		if (duk_reflect_constructor(ctx))
 			return 1;
 		LRect r;
@@ -414,10 +398,10 @@ static void load_duk_color(duk_context *ctx) {
 						 GetGValue(val),
 						 GetBValue(val));
 	};
-	duk_struct_global(ctx, "RGBObj", [](duk_context *ctx) -> duk_ret_t {
+	duk_struct_global(ctx, "RGBObj", duk_fn() {
 		duk_member_int(ctx, "val", 0);
 		duk_property(ctx, "red",
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				auto red = duk_to_int(ctx, 0) & 0xFF;
 				duk_push_this(ctx);
 				duk_get_prop_string(ctx, -1, "val");
@@ -428,7 +412,7 @@ static void load_duk_color(duk_context *ctx) {
 				duk_member_int(ctx, "val", val);
 				return 0;
 			},
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				duk_push_this(ctx);
 				duk_get_prop_string(ctx, -1, "val");
 				auto val = duk_to_int(ctx, -1);
@@ -437,7 +421,7 @@ static void load_duk_color(duk_context *ctx) {
 			}
 		);
 		duk_property(ctx, "green",
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				auto green = duk_to_int(ctx, 0) & 0xFF;
 				duk_push_this(ctx);
 				duk_get_prop_string(ctx, -1, "val");
@@ -448,7 +432,7 @@ static void load_duk_color(duk_context *ctx) {
 				duk_member_int(ctx, "val", val);
 				return 0;
 			},
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				duk_push_this(ctx);
 				duk_get_prop_string(ctx, -1, "val");
 				auto val = duk_to_int(ctx, -1);
@@ -457,7 +441,7 @@ static void load_duk_color(duk_context *ctx) {
 			}
 		);
 		duk_property(ctx, "blue",
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				auto blue = duk_to_int(ctx, 0) & 0xFF;
 				duk_push_this(ctx);
 				duk_get_prop_string(ctx, -1, "val");
@@ -468,7 +452,7 @@ static void load_duk_color(duk_context *ctx) {
 				duk_member_int(ctx, "val", val);
 				return 0;
 			},
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				duk_push_this(ctx);
 				duk_get_prop_string(ctx, -1, "val");
 				auto val = duk_to_int(ctx, -1);
@@ -476,12 +460,12 @@ static void load_duk_color(duk_context *ctx) {
 				return 1;
 			}
 		);
-		duk_method(ctx, "valueOf", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "valueOf", 0, duk_fn() {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "val");
 			return 1;
 		});
-		duk_method(ctx, "toString", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "toString", 0, duk_fn() {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "val");
 			auto val = duk_to_int(ctx, -1);
@@ -490,7 +474,7 @@ static void load_duk_color(duk_context *ctx) {
 		});
 		return 0;
 	});
-	duk_function_global(ctx, "RGB", [](duk_context *ctx) -> duk_ret_t {
+	duk_function_global(ctx, "RGB", duk_fn() {
 		auto nargs = duk_get_top(ctx);
 		if (!duk_is_constructor_call(ctx)) {
 			switch (nargs) {
@@ -541,21 +525,21 @@ static void load_duk_time(duk_context *ctx) {
 		{ "NoTimeMarker", TIME_NOTIMEMARKER },
 		{ "Force24H", TIME_FORCE24HOURFORMAT },
 	};
-	duk_flags(ctx, "EnumObj", "TimeFormat", nullptr, time_formats);
+	duk_enums(ctx, "TimeFormat", nullptr, time_formats);
 	static const duk_constant_struct date_formats[] = {
 		{ "Default", 0 },
 		{ "ShortDate", DATE_SHORTDATE },
 		{ "LongDate", DATE_LONGDATE },
 		{ "CalendarAlt", DATE_USE_ALT_CALENDAR }
 	};
-	duk_flags(ctx, "EnumObj", "DateFormat", nullptr, date_formats);
-	duk_struct_global(ctx, "SysTimeObj", [](duk_context *ctx) -> duk_ret_t {
-		//duk_method(ctx, "valueOf", 0, [](duk_context *ctx) -> duk_ret_t {
+	duk_enums(ctx, "DateFormat", nullptr, date_formats);
+	duk_struct_global(ctx, "SysTimeObj", duk_fn() {
+		//duk_method(ctx, "valueOf", 0, duk_fn() {
 		//	duk_push_this(ctx);
 		//	duk_get_prop_string(ctx, -1, "val");
 		//	return 1;
 		//});
-		duk_method(ctx, "FormatTime", 2, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "FormatTime", 2, duk_fn() {
 			auto pobj = (SysTime *)duk_get_buffer(ctx, sizeof(SysTime));
 			if (!pobj)
 				return DUK_RET_INTERNAL_ERROR;
@@ -564,7 +548,7 @@ static void load_duk_time(duk_context *ctx) {
 			duk_push_string(ctx, str);
 			return 1;
 		});
-		duk_method(ctx, "FormatDate", 2, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "FormatDate", 2, duk_fn() {
 			auto pobj = (SysTime *)duk_get_buffer(ctx, sizeof(SysTime));
 			if (!pobj)
 				return DUK_RET_INTERNAL_ERROR;
@@ -573,7 +557,7 @@ static void load_duk_time(duk_context *ctx) {
 			duk_push_string(ctx, str);
 			return 1;
 		});
-		duk_method(ctx, "toString", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "toString", 0, duk_fn() {
 			auto pobj = (SysTime *)duk_get_buffer(ctx, sizeof(SysTime));
 			if (!pobj)
 				return DUK_RET_INTERNAL_ERROR;
@@ -582,7 +566,7 @@ static void load_duk_time(duk_context *ctx) {
 		});
 		return 0;
 	});
-	duk_function_global(ctx, "SysTime", [](duk_context *ctx) -> duk_ret_t {
+	duk_function_global(ctx, "SysTime", duk_fn() {
 		if (duk_reflect_constructor(ctx))
 			return 1;
 		SysTime st = O;
@@ -597,8 +581,7 @@ static void load_duk_time(duk_context *ctx) {
 					if (!pobj || read_size != sizeof(SysTime))
 						return DUK_RET_INTERNAL_ERROR;
 					st = *pobj;
-				}
-				else if (duk_is_null(ctx, 0))
+				} else if (duk_is_null(ctx, 0))
 					break;
 				else
 					return DUK_RET_TYPE_ERROR;

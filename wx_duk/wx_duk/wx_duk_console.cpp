@@ -2,6 +2,24 @@
 
 #include "wx_duk.h"
 
+static bool _logout = false;
+void duk_enable_logout(bool bLogout) {
+	_logout = bLogout;
+}
+
+void duk_logout(duk_context *ctx, const char *err_fmt, ...) {
+	if (!_logout)
+		return;
+	char buf[2048];
+	va_list args;
+	va_start(args, err_fmt);
+	vsprintf_s(buf, err_fmt, args);
+	va_end(args);
+	auto atr = Console.Attribute();
+	Console.Attribute(0x0B).LogA(CString(buf, sizeof(buf)));
+	Console.Attribute(atr);
+}
+
 void duk_errout(duk_context *ctx, const char *err_fmt, ...) {
 	char buf[2048];
 	va_list args;
@@ -29,8 +47,8 @@ void duk_errout(duk_context *ctx, const WX::Exception &err) {
 }
 
 void load_duk_console(duk_context *ctx) {
-	duk_struct_global(ctx, "Console", [](duk_context *ctx) -> duk_ret_t {
-		duk_method(ctx, "Attach", 1, [](duk_context *ctx) -> duk_ret_t {
+	duk_struct_global(ctx, "Console", duk_fn() {
+		duk_method(ctx, "Attach", 1, duk_fn() {
 			DWORD pid = 0;
 			if (duk_is_number(ctx, 0))
 				pid = duk_to_int(ctx, 0);
@@ -42,42 +60,42 @@ void load_duk_console(duk_context *ctx) {
 				return DUK_RET_INTERNAL_ERROR;
 			return 0;
 		});
-		duk_method(ctx, "Alloc", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "Alloc", 0, duk_fn() {
 			if (wx_try(ctx, [&]() { Console.Alloc(); }))
 				return DUK_RET_INTERNAL_ERROR;
 			return 0;
 		});
-		duk_method(ctx, "Reopen", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "Reopen", 0, duk_fn() {
 			if (wx_try(ctx, [&]() { Console.Reopen(); }))
 				return DUK_RET_INTERNAL_ERROR;
 			return 0;
 		});
-		duk_method(ctx, "Select", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "Select", 0, duk_fn() {
 			if (wx_try(ctx, [&]() { Console.Select(); }))
 				return DUK_RET_INTERNAL_ERROR;
 			return 0;
 		});
-		duk_method(ctx, "Clear", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "Clear", 0, duk_fn() {
 			if (wx_try(ctx, [&]() { Console.Clear(); }))
 				return DUK_RET_INTERNAL_ERROR;
 			return 0;
 		});
-		duk_method(ctx, "Free", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "Free", 0, duk_fn() {
 			if (wx_try(ctx, [&]() { Console.Free(); }))
 				return DUK_RET_INTERNAL_ERROR;
 			return 0;
 		});
-		duk_method(ctx, "Out", 1, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "Out", 1, duk_fn() {
 			if (wx_try(ctx, [&]() { Console.LogA(CString(duk_to_string(ctx, 0), 2048)); }))
 				return DUK_RET_INTERNAL_ERROR;
 			return 0;
 		});
-		duk_method(ctx, "ErrOut", DUK_VARARGS, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "ErrOut", DUK_VARARGS, duk_fn() {
 			if (wx_try(ctx, [&]() { Console.ErrA(CString(duk_to_string(ctx, 0), 2048)); }))
 				return DUK_RET_INTERNAL_ERROR;
 			return 0;
 		});
-		duk_method(ctx, "Log", DUK_VARARGS, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "Log", DUK_VARARGS, duk_fn() {
 			auto nargs = duk_get_top(ctx);
 			for (int i = 0; i < nargs; ++i)
 				if (wx_try(ctx, [&]() { Console.LogA(CString(duk_to_string(ctx, i), 2048)); }))
@@ -85,7 +103,7 @@ void load_duk_console(duk_context *ctx) {
 			Console.LogA('\n');
 			return 0;
 		});
-		duk_method(ctx, "Err", DUK_VARARGS, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "Err", DUK_VARARGS, duk_fn() {
 			auto nargs = duk_get_top(ctx);
 			auto atr = Console.Attribute();
 			Console.Attribute(0x0C);
@@ -99,24 +117,24 @@ void load_duk_console(duk_context *ctx) {
 			return 0;
 		});
 		duk_property_r(ctx, "Window",
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				duk_get_global_string(ctx, "Window");
 				duk_push_pointer(ctx, Console.Window());
 				duk_new(ctx, 1);
 				return 1;
 			}
 		);
-		duk_method(ctx, "ActiveScreenBuffer", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "ActiveScreenBuffer", 0, duk_fn() {
 			if (wx_try(ctx, [&]() { Console.ActiveScreenBuffer(); }))
 				return DUK_RET_INTERNAL_ERROR;
 			return 0;
 		});
-		duk_method(ctx, "FlushInputBuffer", 0, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "FlushInputBuffer", 0, duk_fn() {
 			if (wx_try(ctx, [&]() { Console.FlushInputBuffer(); }))
 				return DUK_RET_INTERNAL_ERROR;
 			return 0;
 		});
-		duk_method(ctx, "FillCharacter", 3, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "FillCharacter", 3, duk_fn() {
 			auto cCharacter = duk_to_string(ctx, 0);
 			auto nLength = duk_to_int(ctx, 1);
 			LPoint dwWriteCoord;
@@ -126,7 +144,7 @@ void load_duk_console(duk_context *ctx) {
 				return DUK_RET_INTERNAL_ERROR;
 			return 1;
 		});
-		duk_method(ctx, "FillAttribute", 3, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "FillAttribute", 3, duk_fn() {
 			auto wAttribute = duk_to_int(ctx, 0);
 			auto nLength = duk_to_int(ctx, 1);
 			LPoint dwWriteCoord;
@@ -136,7 +154,7 @@ void load_duk_console(duk_context *ctx) {
 				return DUK_RET_INTERNAL_ERROR;
 			return 1;
 		});
-		duk_method(ctx, "WriteCharacter", 3, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "WriteCharacter", 3, duk_fn() {
 			auto lpCharacters = duk_to_string(ctx, 0);
 			auto nLength = duk_to_int(ctx, 1);
 			LPoint dwWriteCoord;
@@ -146,7 +164,7 @@ void load_duk_console(duk_context *ctx) {
 				return DUK_RET_INTERNAL_ERROR;
 			return 1;
 		});
-		duk_method(ctx, "WriteAttribute", 3, [](duk_context *ctx) -> duk_ret_t {
+		duk_method(ctx, "WriteAttribute", 3, duk_fn() {
 			auto lpCharacters = duk_to_string(ctx, 0);
 			auto nLength = duk_to_int(ctx, 1) / 2;
 			LPoint dwWriteCoord;
@@ -158,58 +176,58 @@ void load_duk_console(duk_context *ctx) {
 		});
 #pragma region Properties
 		duk_property(ctx, "Title", 
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				if (auto lpTitle = duk_to_string(ctx, 0))
 					if (wx_try(ctx, [&]() { Console.Title(lpTitle); }))
 						return DUK_RET_INTERNAL_ERROR;
 				return 0;
 			},
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				if (wx_try(ctx, [&]() { duk_push_string(ctx, Console.TitleA()); }))
 					return DUK_RET_INTERNAL_ERROR;
 				return 1;
 			}
 		);
-		duk_property_r(ctx, "OrigalTitle", [](duk_context *ctx) -> duk_ret_t {
+		duk_property_r(ctx, "OrigalTitle", duk_fn() {
 			if (wx_try(ctx, [&]() { duk_push_string(ctx, Console.OriginalTitleA()); }))
 				return DUK_RET_INTERNAL_ERROR;
 			return 1;
 		});
 		duk_property(ctx, "CodePage",
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				if (auto cp = duk_to_int(ctx, 0))
 					if (wx_try(ctx, [&]() { Console.CodePage(cp); }))
 						return DUK_RET_INTERNAL_ERROR;
 				return 0;
 			},
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				if (wx_try(ctx, [&]() { duk_push_int(ctx, Console.CodePage()); }))
 					return DUK_RET_INTERNAL_ERROR;
 				return 1;
 			}
 		);
 		duk_property(ctx, "Attribute", 
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				if (auto chAtr = duk_to_int(ctx, 0))
 					if (wx_try(ctx, [&]() { Console.Attribute(chAtr & 0xFFFF); }))
 						return DUK_RET_INTERNAL_ERROR;
 				return 0;
 			},
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				if (wx_try(ctx, [&]() { duk_push_int(ctx, Console.Attribute()); }))
 					return DUK_RET_INTERNAL_ERROR;
 				return 1;
 			}
 		);
 		duk_property(ctx, "CursorPosition",
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				LPoint pos;
 				if (duk_get_point(ctx, pos))
 					if (wx_try(ctx, [&]() { Console.CursorPosition(pos); }))
 						return DUK_RET_INTERNAL_ERROR;
 				return 0;
 			},
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				LPoint pos;
 				if (wx_try(ctx, [&]() { duk_push_point(ctx, Console.CursorPosition()); }))
 					return DUK_RET_INTERNAL_ERROR;
@@ -217,13 +235,13 @@ void load_duk_console(duk_context *ctx) {
 			}
 		);
 		duk_property(ctx, "CursorVisible",
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				bool vis = duk_to_boolean(ctx, 0);
 				if (wx_try(ctx, [&]() { Console.CursorVisible(vis); }))
 					return DUK_RET_INTERNAL_ERROR;
 				return 0;
 			},
-			[](duk_context *ctx) -> duk_ret_t {
+			duk_fn() {
 				bool vis = false;
 				if (wx_try(ctx, [&]() { vis = Console.CursorVisible(); }))
 					return DUK_RET_INTERNAL_ERROR;

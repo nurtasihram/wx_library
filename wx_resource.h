@@ -259,7 +259,7 @@ public:
 #pragma endregion
 
 #pragma region Brush
-enum_class(SysColor, int,
+enum_class(SysColor, intptr_t,
 	ScrollBar               = COLOR_SCROLLBAR,
 	Background              = COLOR_BACKGROUND,
 	ActiveCaption           = COLOR_ACTIVECAPTION,
@@ -314,7 +314,7 @@ public:
 	
 	using super::operator=;
 
-	static inline Brush SysColor(WX::SysColor sc) assertl_reflect_as(auto hbr = GetSysColorBrush(sc.yield()), hbr);
+	static inline Brush SysColor(WX::SysColor sc) assertl_reflect_as(auto hbr = GetSysColorBrush((int)sc.yield()), hbr);
 
 	static inline Brush White()   reflect_as((HBRUSH)::GetStockObject(WHITE_BRUSH));
 	static inline Brush LitGray() reflect_as((HBRUSH)::GetStockObject(LTGRAY_BRUSH));
@@ -498,8 +498,8 @@ public:
 	inline auto&DrawEllipse(LRect rc) assertl_reflect_as_self(Ellipse(self, rc.left, rc.top, rc.right, rc.bottom));
 	inline auto&DrawFocus(LRect rc) assertl_reflect_as_self(DrawFocusRect(self, rc));
 	inline auto&Invert(LRect rc) assertl_reflect_as_self(InvertRect(self, rc));
-	inline auto&Fill(LRect rc, HBRUSH hbr) assertl_reflect_as_self(FillRect(self, rc, hbr));
-	inline auto&Fill(HBRUSH hbr) reflect_as(Fill(Size(), hbr));
+	inline auto&Fill(HBRUSH hbr, LRect rc) assertl_reflect_as_self(FillRect(self, rc, hbr));
+	inline auto&Fill(HBRUSH hbr) reflect_as(Fill(hbr, Size()));
 
 #pragma region Properties
 public: // Property - PenColor
@@ -523,13 +523,13 @@ public: // Property - WindowExt
 public: // Property - MapMode
 	/* W */ inline auto    &MapMode(MapModes mode) assertl_reflect_as_self(SetMapMode(self, mode.yield()));
 	/* R */ inline MapModes MapMode() const reflect_as(reuse_as<MapModes>(GetMapMode(self)));
+public: // Property - StretchMode
+	/* W */ inline auto     &StretchMode(Stretches mode) assertl_reflect_as_self(SetStretchBltMode(self, mode.yield()));
+	/* R */ inline Stretches StretchMode() const assertl_reflect_as(auto mode = GetStretchBltMode(self), reuse_as<Stretches>(mode));
 public: // Property - Size
 	/* R */ inline LSize Size() const reflect_as({ GetDeviceCaps(self, HORZRES), GetDeviceCaps(self, VERTRES) });
 public: // Property - PaletteRealize
 	/* R */ inline UINT PaletteRealize() const reflect_as(RealizePalette(self));
-public: // Property - StretchMode
-	/* W */ inline auto     &StretchMode(Stretches mode) assertl_reflect_as_self(SetStretchBltMode(self, mode.yield()));
-	/* R */ inline Stretches StretchMode() const assertl_reflect_as(auto mode = GetStretchBltMode(self), reuse_as<Stretches>(mode));
 #pragma endregion
 
 	inline auto&operator()(HGDIOBJ ho) reflect_to_self(Select(ho));
@@ -966,14 +966,19 @@ protected:
 	Module(HINSTANCE h) : hInst(h) {}
 	Module(const Module &m) : hInst(m.hInst) reflect_to(m.hInst = O);
 public:
+	Module() : hInst(GetModuleHandle(O)) {}
 	Module(Null) {}
 	Module(Module &m) : hInst(m) reflect_to(m.hInst = O);
 	Module(Module &&m) : hInst(m) reflect_to(m.hInst = O);
-	Module(LPCTSTR lpModuleName = O) : hInst(GetModuleHandle(lpModuleName)) {}
+	Module(LPCSTR lpModuleName) : hInst(GetModuleHandleA(lpModuleName)) {}
+	Module(LPCWSTR lpModuleName) : hInst(GetModuleHandleW(lpModuleName)) {}
 	~Module() reflect_to(Free());
 
-	static inline Module Handle(LPCTSTR lpModuleName) reflect_as(GetModuleHandle(lpModuleName));
-	static inline Module Library(LPCTSTR lpLibFileName) assertl_reflect_as(auto hInst = LoadLibrary(lpLibFileName), hInst);
+	static inline Module Handle(LPCSTR lpModuleName) reflect_as(GetModuleHandleA(lpModuleName));
+	static inline Module Handle(LPCWSTR lpModuleName) reflect_as(GetModuleHandleW(lpModuleName));
+	static inline Module Library(LPCSTR lpLibFileName) assertl_reflect_as(auto hInst = LoadLibraryA(lpLibFileName), hInst);
+	static inline Module Library(LPCWSTR lpLibFileName) assertl_reflect_as(auto hInst = LoadLibraryW(lpLibFileName), hInst);
+//	static inline Module Load(LPCSTR lpModuleName, LPVOID lpParameterBlock = O) reflect_as(LoadModule(lpModuleName, lpParameterBlock));
 
 	inline void Free() {
 		if (self) {
@@ -982,24 +987,41 @@ public:
 		}
 	}
 
-	inline CMenu Menu(LPCTSTR lpszName) const reflect_as(LoadMenu(self, lpszName));
+	inline CMenu Menu(LPCSTR lpszName) const reflect_as(LoadMenuA(self, lpszName));
+	inline CMenu Menu(LPCWSTR lpszName) const reflect_as(LoadMenuW(self, lpszName));
 	inline CMenu Menu(WORD wID) const reflect_as(LoadMenu(self, MAKEINTRESOURCE(wID)));
 
-	inline CBitmap Bitmap(LPCTSTR lpszName) const reflect_as(LoadBitmap(self, lpszName));
+	inline CBitmap Bitmap(LPCSTR lpszName) const reflect_as(LoadBitmapA(self, lpszName));
+	inline CBitmap Bitmap(LPCWSTR lpszName) const reflect_as(LoadBitmapW(self, lpszName));
 	inline CBitmap Bitmap(WORD wID) const reflect_as(LoadBitmap(self, MAKEINTRESOURCE(wID)));
 
-	inline CIcon Icon(LPCTSTR lpszName) const reflect_as(LoadIcon(self, lpszName));
+	inline CIcon Icon(LPCSTR lpszName) const reflect_as(LoadIconA(self, lpszName));
+	inline CIcon Icon(LPCWSTR lpszName) const reflect_as(LoadIconW(self, lpszName));
 	inline CIcon Icon(WORD wID) const reflect_as(LoadIcon(self, MAKEINTRESOURCE(wID)));
 
-	inline CCursor Cursor(LPCTSTR lpszName) const reflect_as(LoadCursor(self, lpszName));
+	inline CCursor Cursor(LPCSTR lpszName) const reflect_as(LoadCursorA(self, lpszName));
+	inline CCursor Cursor(LPCWSTR lpszName) const reflect_as(LoadCursorW(self, lpszName));
 	inline CCursor Cursor(WORD wID) const reflect_as(LoadCursor(self, MAKEINTRESOURCE(wID)));
 
 	inline WX::String String(WORD wID) const {
-		auto len = LoadString(self, wID, O, 0);
+		WX::String str(StringW(wID).Length());
+		auto len = LoadString(self, wID, str, (int)str.Length() + 1);
 		assertl(len >= 0);
-		WX::String str((size_t)len);
-		LoadString(self, wID, str, len);
+		assertl(len == str.Length());
 		return str;
+	}
+	inline WX::StringA StringA(WORD wID) const {
+		WX::StringA str(StringW(wID).Length());
+		auto len = LoadStringA(self, wID, str, (int)str.Length() + 1);
+		assertl(len >= 0);
+		assertl(len == str.Length());
+		return str;
+	}
+	inline const WX::StringW StringW(WORD wID) const {
+		LPCWSTR lpString = O;
+		auto len = LoadStringW(self, wID, (LPWSTR)&lpString, 0);
+		assertl(len >= 0);
+		return CString(len, lpString);
 	}
 
 	template<class AnyFunc>
@@ -1027,7 +1049,7 @@ enum_flags(FontType, WORD,
 	Bold      = BOLD_FONTTYPE,
 	Italic    = ITALIC_FONTTYPE,
 	Regular   = REGULAR_FONTTYPE);
-enum_class(CharSet, int,
+enum_class(CharSets, BYTE,
 	ANSI           = ANSI_CHARSET,
 	Default        = DEFAULT_CHARSET,
 	Symbol         = SYMBOL_CHARSET,
@@ -1060,19 +1082,43 @@ enum_class(OutPrecis, BYTE,
 	Outline        = OUT_OUTLINE_PRECIS,
 	ScreenOutline  = OUT_SCREEN_OUTLINE_PRECIS,
 	PostScriptOnly = OUT_PS_ONLY_PRECIS);
-enum_class(ClipPrecis, BYTE, 
+enum_flags(ClipPrecis, BYTE,
 	Default        = CLIP_DEFAULT_PRECIS,
 	Character      = CLIP_CHARACTER_PRECIS,
 	Stroke         = CLIP_STROKE_PRECIS,
 	Mask           = CLIP_MASK,
 	LH_Angles      = CLIP_LH_ANGLES,
 	TT_Always      = CLIP_TT_ALWAYS,
-	DFAbDisable    = CLIP_DFA_DISABLE,
+	DFA_Disable    = CLIP_DFA_DISABLE,
 	Embedded       = CLIP_EMBEDDED);
-struct FontLogic: public RefStruct<LOGFONT> {
+enum_class(Qualities, BYTE,
+	Default          = DEFAULT_QUALITY,
+	Draf             = DRAFT_QUALITY,
+	Proof            = PROOF_QUALITY,
+	NonAntiAliased   = NONANTIALIASED_QUALITY,
+	AntiAliased      = ANTIALIASED_QUALITY,
+	ClearType        = CLEARTYPE_QUALITY,
+	ClearTypeNatural = CLEARTYPE_NATURAL_QUALITY);
+enum_class(FontPitches, BYTE,
+	Default  = DEFAULT_PITCH,
+	Fixed    = FIXED_PITCH,
+	Variable = VARIABLE_PITCH,
+	Mono     = MONO_FONT);
+enum_class(FontFamilies, BYTE,
+	DontCare   = FF_DONTCARE,
+	Roman      = FF_ROMAN,
+	Swiss      = FF_SWISS,
+	Modern     = FF_MODERN,
+	Script     = FF_SCRIPT,
+	Decorative = FF_DECORATIVE);
+template<bool IsUnicode>
+class FontLogicT : public RefStruct<std::conditional_t<IsUnicode, LOGFONTW, LOGFONTA>> {
+	using TCHAR = XCHAR<IsUnicode>;
+	using String = StringBase<TCHAR>;
+	using LOGFONT = std::conditional_t<IsUnicode, LOGFONTW, LOGFONTA>;
 public:
-	FontLogic() {}
-	FontLogic(const LOGFONT &lf) : RefStruct<LOGFONT>(lf) {}
+	FontLogicT() {}
+	FontLogicT(const LOGFONT &lf) : RefStruct<LOGFONT>(lf) {}
 public: // Properties - Height
 	/* W */ inline auto &Height(LONG lfHeight) reflect_to_self(self->lfHeight = lfHeight);
 	/* R */ inline LONG  Height() const reflect_as(self->lfHeight);
@@ -1092,47 +1138,63 @@ public: // Properties - Italic
 	/* W */ inline auto &Italic(bool lfItalic) reflect_to_self(self->lfItalic = lfItalic);
 	/* R */ inline bool  Italic() const reflect_as(self->lfItalic);
 public: // Properties - Underline
-	/* W */ inline auto &Underline(BYTE lfUnderline) reflect_to_self(self->lfUnderline = lfUnderline);
+	/* W */ inline auto &Underline(bool lfUnderline) reflect_to_self(self->lfUnderline = lfUnderline);
 	/* R */ inline bool  Underline() const reflect_as(self->lfUnderline);
 public: // Properties - StrikeOut
-	/* W */ inline auto &StrikeOut(BYTE lfStrikeOut) reflect_to_self(self->lfStrikeOut = lfStrikeOut);
+	/* W */ inline auto &StrikeOut(bool lfStrikeOut) reflect_to_self(self->lfStrikeOut = lfStrikeOut);
 	/* R */ inline bool  StrikeOut() const reflect_as(self->lfStrikeOut);
 public: // Properties - CharSet
-	/* W */ inline auto &CharSet(BYTE lfCharSet) reflect_to_self(self->lfCharSet = lfCharSet);
-	/* R */ inline BYTE  CharSet() const reflect_as(self->lfCharSet);
+	/* W */ inline auto    &CharSet(CharSets lfCharSet) reflect_to_self(self->lfCharSet = lfCharSet.yield());
+	/* R */ inline CharSets CharSet() const reflect_as(reuse_as<CharSets>(self->lfCharSet));
 public: // Properties - OutPrecision
 	/* W */ inline auto     &OutPrecision(OutPrecis lfOutPrecision) reflect_to_self(self->lfOutPrecision = lfOutPrecision.yield());
-	/* R */ inline OutPrecis OutPrecision() const reflect_as(ref_as<OutPrecis>(self->lfOutPrecision));
+	/* R */ inline OutPrecis OutPrecision() const reflect_as(reuse_as<OutPrecis>(self->lfOutPrecision));
 public: // Properties - ClipPrecision
-	/* W */ inline auto&ClipPrecision(BYTE lfClipPrecision) reflect_to_self(self->lfClipPrecision = lfClipPrecision);
-	/* R */ inline BYTE ClipPrecision() const reflect_as(self->lfClipPrecision);
+	/* W */ inline auto      &ClipPrecision(ClipPrecis lfClipPrecision) reflect_to_self(self->lfClipPrecision = lfClipPrecision.yield());
+	/* R */ inline ClipPrecis ClipPrecision() const reflect_as(reuse_as<ClipPrecis>(self->lfClipPrecision));
 public: // Properties - Quality
-	/* W */ inline auto&Quality(BYTE lfQuality) reflect_to_self(self->lfQuality = lfQuality);
-	/* R */ inline BYTE Quality() const reflect_as(self->lfQuality);
-public: // Properties - PitchAndFamily
-	/* W */ inline auto&PitchAndFamily(BYTE lfPitchAndFamily) reflect_to_self(self->lfPitchAndFamily = lfPitchAndFamily);
-	/* R */ inline BYTE PitchAndFamily() const reflect_as(self->lfPitchAndFamily);
+	/* W */ inline auto     &Quality(Qualities lfQuality) reflect_to_self(self->lfQuality = lfQuality.yield());
+	/* R */ inline Qualities Quality() const reflect_as(reuse_as<Qualities>(self->lfQuality));
+public: // Properties - Pitch
+	/* W */ inline auto&Pitch(FontPitches lfPitch) reflect_to_self(self->lfPitchAndFamily &= 0xF0, self->lfPitchAndFamily |= lfPitch.yield());
+	/* R */ inline FontPitches Pitch() const reflect_as(reuse_as<FontPitches>((BYTE)(self->lfPitchAndFamily & 0x0F)));
+public: // Properties - Family
+	/* W */ inline auto&Family(FontFamilies lfFamily) reflect_to_self(self->lfPitchAndFamily &= 0x0F, self->lfPitchAndFamily |= lfFamily.yield());
+	/* R */ inline FontFamilies Family() const reflect_as(reuse_as<FontFamilies>((BYTE)(self->lfPitchAndFamily & 0xF0)));
 public: // Properties - FaceName
-	/* W */ inline auto &FaceName(String name) assertl_reflect_as_self(SUCCEEDED(StringCchCopy(self->lfFaceName, name.Length() + 1, name)));
+	/* W */ inline auto &FaceName(String name) {
+		if constexpr (IsUnicode)
+			assertl_reflect_as_self(SUCCEEDED(StringCchCopyW(self->lfFaceName, name.Length() + 1, name)))
+		else
+			assertl_reflect_as_self(SUCCEEDED(StringCchCopyA(self->lfFaceName, name.Length() + 1, name)))
+	}
 	/* R */ inline const String FaceName() const reflect_as(CString(self->lfFaceName, LF_FACESIZE));
-public:
-	inline LPLOGFONT operator&() reflect_as(self);
-	inline const LOGFONT *operator&() const reflect_as(self);
 };
+using FontLogic = FontLogicT<IsUnicode>;
+using FontLogicA = FontLogicT<false>;
+using FontLogicW = FontLogicT<true>;
+
 class BaseOf_GDI(Font, HFONT) {
 public:
 	using super = GObjectBase<Font, HFONT>;
 	using Logic = FontLogic;
+	using LogicA = FontLogicA;
+	using LogicW = FontLogicW;
 protected:
+	Font(HFONT hFont) : super(hFont) {}
 	Font(const Font &f) : super(f) {}
 public:
 	Font() {}
+	Font(Null) {}
 	Font(Font &f) : super(f) {}
 	Font(Font &&f) : super(f) {}
+	Font(const LogicA &LogFont) : Font(Create(LogFont)) {}
+	Font(const LogicW &LogFont) : Font(Create(LogFont)) {}
 
 	using super::operator=;
 
-	inline auto&Create(const Logic &LogFont) reflect_to_self(this->hobj = CreateFontIndirect(&LogFont));
+	static inline Font Create(const LogicA &LogFont) assertl_reflect_as(auto hfont = CreateFontIndirectA(&LogFont), hfont);
+	static inline Font Create(const LogicW &LogFont) assertl_reflect_as(auto hfont = CreateFontIndirectW(&LogFont), hfont);
 
 //#define OEM_FIXED_FONT      10
 //#define ANSI_FIXED_FONT     11
@@ -1142,6 +1204,7 @@ public:
 //#define SYSTEM_FIXED_FONT   16
 //#define DEFAULT_GUI_FONT    17
 };
+using CFont = RefAs<Font>;
 #pragma endregion
 
 inline Bitmap ClipBitmap(const Bitmap &bmp, LRect rc) {
