@@ -100,6 +100,7 @@ public:
 		freopen_s(&fin, "CONIN$", "r+t", stdin);
 		retchild;
 	}
+	inline auto &Clear() reflect_to_self(FillCharacter(_T(' '), ScreenBufferInfo().Size().Square()), CursorPosition(0));
 
 #pragma region Allocator
 	static inline void Attach(DWORD pid) assertl_reflect_as(AttachConsole(pid));
@@ -112,14 +113,14 @@ public:
 	inline void FlushInputBuffer() assertl_reflect_as(FlushConsoleInputBuffer(hInput));
 
 #pragma region Constants
-	inline DWORD FillCharacter(TCHAR cCharacter, DWORD nLength, COORD dwWriteCoord) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacter(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
-	inline DWORD FillCharacterA(CHAR cCharacter, DWORD nLength, COORD dwWriteCoord) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacterA(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
-	inline DWORD FillCharacterW(WCHAR cCharacter, DWORD nLength, COORD dwWriteCoord) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacterW(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
-	inline DWORD FillAttribute(WORD wAttribute, DWORD nLength, COORD dwWriteCoord) assertl_reflect_to(DWORD written = 0, FillConsoleOutputAttribute(hOutput, wAttribute, nLength, dwWriteCoord, &written), written);
-	inline DWORD WriteCharacter(LPCTSTR lpCharacters, DWORD nLength, COORD dwWriteCoord) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacter(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
-	inline DWORD WriteCharacterA(LPCSTR lpCharacters, DWORD nLength, COORD dwWriteCoord) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacterA(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
-	inline DWORD WriteCharacterW(LPCWSTR lpCharacters, DWORD nLength, COORD dwWriteCoord) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacterW(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
-	inline DWORD WriteAttribute(const WORD *lpAttributes, DWORD nLength, COORD dwWriteCoord) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputAttribute(hOutput, lpAttributes, nLength, dwWriteCoord, &written), written);
+	inline DWORD FillCharacter(TCHAR cCharacter, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacter(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
+	inline DWORD FillCharacterA(CHAR cCharacter, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacterA(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
+	inline DWORD FillCharacterW(WCHAR cCharacter, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacterW(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
+	inline DWORD FillAttribute(WORD wAttribute, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputAttribute(hOutput, wAttribute, nLength, dwWriteCoord, &written), written);
+	inline DWORD WriteCharacter(LPCTSTR lpCharacters, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacter(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
+	inline DWORD WriteCharacterA(LPCSTR lpCharacters, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacterA(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
+	inline DWORD WriteCharacterW(LPCWSTR lpCharacters, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacterW(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
+	inline DWORD WriteAttribute(const WORD *lpAttributes, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputAttribute(hOutput, lpAttributes, nLength, dwWriteCoord, &written), written);
 //	inline String ReadCharacter(LPoint pos, LSize size) assertl_reflect_to(String s, ReadConsoleOutputCharacter(hOutput, s, size.Area(), pos, &size), s);
 #pragma endregion
 

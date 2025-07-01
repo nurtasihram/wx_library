@@ -5,6 +5,8 @@
 
 #include "wx_type.h"
 
+using namespace WX;
+
 struct duk_exception {
 	duk_errcode_t code;
 	const char *MsgId;
@@ -36,6 +38,8 @@ void duk_finalizer(duk_context *ctx, duk_c_function finalizer);
 void duk_function_global(duk_context *ctx, const char *name, duk_c_function constructor, duk_idx_t nargs = DUK_VARARGS);
 void duk_struct_global(duk_context *ctx, const char *name, duk_c_function constuctor);
 void duk_method(duk_context *ctx, const char *name, duk_idx_t nargs, duk_c_function func);
+
+void duk_class(duk_context *ctx, const char *name, const char *extends, duk_c_function cstr_struct, duk_c_function cstr_class, duk_c_function cstr_static = O);
 
 void duk_constant(duk_context *ctx, const char *name, duk_uint_t value);
 void duk_constant(duk_context *ctx, const duk_constant_struct *c, uint32_t len);

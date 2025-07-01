@@ -1,7 +1,5 @@
 #include "wx_duk.h"
 
-using namespace WX;
-
 bool duk_get_point(duk_context *ctx, LPoint &point, duk_idx_t idx) {
 	if (duk_is_array(ctx, idx)) {
 		duk_dup(ctx, idx);
@@ -68,7 +66,7 @@ void duk_push_rect(duk_context *ctx, const LRect &rect) {
 
 struct enum_inf {
 	const duk_constant_struct *pEnums = O;
-	uint32_t count = 0;
+	int count = 0;
 	const char *name = O;
 	static bool get_static(duk_context *ctx, enum_inf &ei) {
 		duk_get_prop_string(ctx, -1, "__p");

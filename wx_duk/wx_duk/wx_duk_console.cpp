@@ -2,8 +2,6 @@
 
 #include "wx_duk.h"
 
-using namespace WX;
-
 void duk_errout(duk_context *ctx, const char *err_fmt, ...) {
 	char buf[2048];
 	va_list args;
@@ -56,6 +54,11 @@ void load_duk_console(duk_context *ctx) {
 		});
 		duk_method(ctx, "Select", 0, [](duk_context *ctx) -> duk_ret_t {
 			if (wx_try(ctx, [&]() { Console.Select(); }))
+				return DUK_RET_INTERNAL_ERROR;
+			return 0;
+		});
+		duk_method(ctx, "Clear", 0, [](duk_context *ctx) -> duk_ret_t {
+			if (wx_try(ctx, [&]() { Console.Clear(); }))
 				return DUK_RET_INTERNAL_ERROR;
 			return 0;
 		});

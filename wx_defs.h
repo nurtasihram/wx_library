@@ -812,6 +812,7 @@ struct LSize : public SIZE {
 	LSize(LONG cx, LONG cy) : SIZE{ cx, cy } {}
 	LSize(const LPoint &p) : SIZE{ p.x, p.y } {}
 	LSize(COORD c) : SIZE{ c.X, c.Y } {}
+	inline auto Square() const reflect_as(cx * cy);
 	inline LSize  operator+ ()               const reflect_to_self();
 	inline LSize  operator- ()               const reflect_as({ -cx, -cy });
 	inline LSize  operator~ ()               const reflect_as({  cy,  cx });

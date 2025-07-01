@@ -1004,10 +1004,30 @@ public: // Property - ClassName
 		lpszClassName = String::Realloc(len, lpszClassName);
 		return { (size_t)len, lpszClassName };
 	}
+	/* R */ inline StringA ClassNameA() const {
+		auto lpszClassName = StringA::Alloc(MaxLenClass);
+		int len = GetClassNameA(self, lpszClassName, MaxLenClass);
+		if (len <= 0) return O;
+		lpszClassName = StringA::Realloc(len, lpszClassName);
+		return { (size_t)len, lpszClassName };
+	}
+	/* R */ inline StringW ClassNameW() const {
+		auto lpszClassName = StringW::Alloc(MaxLenClass);
+		int len = GetClassNameW(self, lpszClassName, MaxLenClass);
+		if (len <= 0) return O;
+		lpszClassName = StringW::Realloc(len, lpszClassName);
+		return { (size_t)len, lpszClassName };
+	}
 public: // Property - ClassMenuName
 	/* W */ inline auto   &ClassMenuName(UINT uID) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_MENUNAME, (LONG_PTR)MAKEINTRESOURCE(uID)));
-	/* W */ inline auto   &ClassMenuName(LPCTSTR lpMenuName) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_MENUNAME, (LONG_PTR)lpMenuName));
+	/* W */ inline auto   &ClassMenuName(LPCSTR lpMenuName) nt_assertl_reflect_to_child(SetClassLongPtrA(self, GCLP_MENUNAME, (LONG_PTR)lpMenuName));
+	/* W */ inline auto   &ClassMenuName(LPCWSTR lpMenuName) nt_assertl_reflect_to_child(SetClassLongPtrW(self, GCLP_MENUNAME, (LONG_PTR)lpMenuName));
 	/* R */ inline LPCTSTR ClassMenuName() const reflect_as(reuse_as<LPCTSTR>(GetClassLongPtr(self, GCLP_MENUNAME)));
+	/* R */ inline LPCSTR  ClassMenuNameA() const reflect_as(reuse_as<LPCSTR>(GetClassLongPtrA(self, GCLP_MENUNAME)));
+	/* R */ inline LPCWSTR ClassMenuNameW() const reflect_as(reuse_as<LPCWSTR>(GetClassLongPtrW(self, GCLP_MENUNAME)));
+public: // Property - ClassStyles
+	/* W */ inline auto      &ClassStyles(ClassStyle style) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCL_STYLE, style.yield()));
+	/* R */ inline ClassStyle ClassStyles() const reflect_as(reuse_as<ClassStyle>((DWORD)GetClassLongPtr(self, GCL_STYLE)));
 public: // Property - ClassBackground
 	/* W */ inline auto  &ClassBackground(HBRUSH hBrush) nt_assertl_reflect_to_child(SetClassLongPtr(self, GCLP_HBRBACKGROUND, (LONG_PTR)hBrush));
 	/* R */ inline CBrush ClassBackground() const reflect_as(reuse_as<HBRUSH>(GetClassLongPtr(self, GCLP_HBRBACKGROUND)));

@@ -39,23 +39,29 @@ void duk_onfatal(duk_context *, duk_errcode_t code, const char *MsgId) {
 duk_ret_t print_mem(duk_context * = O) {
 	auto &&sum = duk_mem_heap.Summaries();
 	Console.Log(
-		_T("\nAllocated: "), sum.Allocated(),
-		_T("\nCommitted: "), sum.Committed(),
-		_T("\nCount: "), duk_alloc_count, _T("\n"));
+		_T("   Allocated: "), sum.Allocated(),
+		_T("\n   Committed: "), sum.Committed(),
+		_T("\n   Count: "), duk_alloc_count, _T("\n"));
 	return 0;
 }
 #pragma endregion
 
 static bool bEcho = true;
 static bool bExit = false;
+static bool bCmdl = false;
+static bool bReset = false;
 static char js_code[1024]{ 0 };
+static UINT duk_cmdl_count = 0;
 static duk_context *ctx = O;
 
 Event proc_ok = Event::Create().AutoReset();
 static constexpr auto WX_DUK_ON_CMD = WM_USER + 1;
 static constexpr auto WX_DUK_ON_EXIT = WM_USER + 1;
 
-LThread msg_proc = [] {
+duk_ret_t eval_cmdl(duk_context *ctx) {
+	++duk_cmdl_count;
+	Console.Log(_T("\n -- JavaScript --\n"));
+	proc_ok.Set();
 _ret:
 	Msg msg;
 	try {
@@ -78,11 +84,31 @@ _ret:
 					duk_call(ctx, 1);
 				}
 				duk_gc(ctx, 0);
-				proc_ok.Set();
-				if (bExit) {
-					Console.Log(_T("Exiting...\n"));
-					return;
+				if (bReset) {
+					Console.Log(_T("reset\n"));
+					--duk_cmdl_count;
+					return 0;
 				}
+				if (bCmdl) {
+					bCmdl = false;
+				__reset:
+					duk_push_c_function(ctx, eval_cmdl, 0);
+					duk_call(ctx, 0);
+					duk_pop(ctx);
+					if (bReset) {
+						bReset = false;
+						goto __reset;
+					}
+					continue;
+				}
+				if (bExit) {
+					Console.Log(_T("exit\n\n"));
+					bExit = false;
+					--duk_cmdl_count;
+					proc_ok.Set();
+					return 0;
+				}
+				proc_ok.Set();
 			}
 		}
 	} catch (duk_exception err) {
@@ -97,13 +123,23 @@ _ret:
 		Console.Err(_T("Other exception\n"));
 		proc_ok.Set();
 		bExit = true;
-		return;
+		return 0;
 	}
 	goto _ret;
+}
+
+LThread msg_proc = [] {
+__reset:
+	duk_push_c_function(ctx, eval_cmdl, 0);
+	duk_call(ctx, 0);
+	duk_pop(ctx);
+	if (bReset) {
+		bReset = false;
+		goto __reset;
+	}
 };
 
 inline void ProcCmd() {
-	proc_ok.Reset();
 	msg_proc.Post(WX_DUK_ON_CMD);
 	proc_ok.WaitForSignal();
 }
@@ -120,8 +156,20 @@ void commandline(duk_context *ctx) {
 			return 1;
 		}
 	);
-	duk_method(ctx, "exit", 0, [](duk_context *ctx) -> duk_ret_t {
+	duk_property_r(ctx, "exit", [](duk_context *ctx) -> duk_ret_t {
 		bExit = true;
+		return 0;
+	});
+	duk_property_r(ctx, "cmdl", [](duk_context *ctx) -> duk_ret_t {
+		bCmdl = true;
+		return 0;
+	});
+	duk_property_r(ctx, "reset", [](duk_context *ctx) -> duk_ret_t {
+		bReset = true;
+		return 0;
+	});
+	duk_property_r(ctx, "clear", [](duk_context *ctx) -> duk_ret_t {
+		Console.Clear();
 		return 0;
 	});
 	duk_push_c_function(ctx, print_mem, 0);
@@ -130,12 +178,16 @@ void commandline(duk_context *ctx) {
 	duk_call(ctx, 0);
 	duk_pop(ctx);
 	duk_eval_string(ctx, "Console.Reopen()");
-	Console.Log(_T("\n - Duktape symbols loaded -"));
+	Console.Log(_T("\n - Duktape symbols loaded -\n"));
 	print_mem();
 	assertl(msg_proc.Create());
-	Console.Log(_T("\n -- JavaScript --\n"));
-	while (!bExit) {
-		Console.Log(_T(" > "));
+	proc_ok.WaitForSignal();
+	while (duk_cmdl_count) {
+		auto &&cur_pos = Console.CursorPosition();
+		++cur_pos.x;
+		Console.FillCharacter(_T('>'), duk_cmdl_count, cur_pos);
+		cur_pos.x += duk_cmdl_count + 1;
+		Console.CursorPosition(cur_pos);
 		std::cin.getline(js_code, sizeof(js_code));
 		ProcCmd();
 	}
@@ -146,13 +198,13 @@ int main() {
 	Console.Log(_T("\n -- Duktape x WindowX --\n\n"));
 
 	ctx = duk_create_heap(duk_alloc, duk_realloc, duk_free, O, duk_onfatal);
-	Console.Log(_T("\n - Duktape heap craeted -"));
+	Console.Log(_T("\n - Duktape heap craeted -\n"));
 	print_mem();
 
 	commandline(ctx);
 
 	duk_destroy_heap(ctx);
-	Console.Log(_T("\n - Duktape destroyed -"));
+	Console.Log(_T("\n - Duktape destroyed -\n"));
 	print_mem();
 
 	system("pause");

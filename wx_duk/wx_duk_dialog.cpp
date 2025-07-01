@@ -2,8 +2,6 @@
 
 #include "wx_duk.h"
 
-using namespace WX;
-
 const char *duk_tmpl_string(duk_context *ctx, const char *name, const char *val) {
 	duk_push_this(ctx);
 	duk_push_string(ctx, val);

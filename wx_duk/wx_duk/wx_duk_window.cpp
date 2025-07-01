@@ -2,8 +2,6 @@
 
 #include "wx_duk.h"
 
-using namespace WX;
-
 template<class AnyClosure>
 static bool _try_method(duk_context *ctx, const AnyClosure &closure) {
 	if (auto obj = reuse_as<CWindow>(duk_member_handle(ctx))) 
@@ -57,6 +55,24 @@ void load_duk_window(duk_context *ctx) {
 		duk_push_int(ctx, res);
 		return 1;
 	}, 3);
+
+	static const duk_constant_struct _ClassStyle_constant[]{
+		{ "VRedraw", CS_VREDRAW },
+		{ "HRedraw", CS_HREDRAW },
+		{ "Redraw", CS_VREDRAW | CS_HREDRAW },
+		{ "DoubleClick", CS_DBLCLKS },
+		{ "OwnDC", CS_OWNDC },
+		{ "ClassDC", CS_CLASSDC },
+		{ "ParentDC", CS_PARENTDC },
+		{ "NoClose", CS_NOCLOSE },
+		{ "SaveBits", CS_SAVEBITS },
+		{ "ByteAlignClient", CS_BYTEALIGNCLIENT },
+		{ "ByteAlignWindow", CS_BYTEALIGNWINDOW },
+		{ "GlobalClass", CS_GLOBALCLASS },
+		{ "IME", CS_IME },
+		{ "DropShadow", CS_DROPSHADOW }
+	};
+	duk_flags(ctx, "FlagsObj", "ClassStyle", O, _ClassStyle_constant);
 
 #pragma region Window
 	static const duk_constant_struct _WS_constant[]{
@@ -423,7 +439,9 @@ void load_duk_window(duk_context *ctx) {
 				WStyle styles = WStyle::Overlapped;
 				if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { styles = obj->Styles(); }))
 					return DUK_RET_INTERNAL_ERROR;
+				duk_get_global_string(ctx, "WS");
 				duk_push_int(ctx, styles.yield());
+				duk_call(ctx, 1);
 				return 1;
 			}
 		);
@@ -439,7 +457,9 @@ void load_duk_window(duk_context *ctx) {
 				WStyleEx styles = WStyleEx::No;
 				if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { styles = obj->StylesEx(); }))
 					return DUK_RET_INTERNAL_ERROR;
+				duk_get_global_string(ctx, "WSEX");
 				duk_push_int(ctx, styles.yield());
+				duk_call(ctx, 1);
 				return 1;
 			}
 		);
@@ -527,6 +547,83 @@ void load_duk_window(duk_context *ctx) {
 				if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { hIcon = obj->IconSmall(); }))
 					return DUK_RET_INTERNAL_ERROR;
 				duk_new_handle(ctx, "Icon", hIcon);
+				return 1;
+			}
+		);
+		/* WR Module Module */
+		duk_property(ctx, "Module",
+			[](duk_context *ctx) -> duk_ret_t {
+				HANDLE hModule = O;
+				if (duk_class_handle(ctx, "Module", hModule))
+					return DUK_RET_TYPE_ERROR;
+				if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { obj->Module((HINSTANCE)hModule); }))
+					return DUK_RET_INTERNAL_ERROR;
+				return 0;
+			},
+			[](duk_context *ctx) -> duk_ret_t {
+				HINSTANCE hModule = O;
+				if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { hModule = obj->Module(); }))
+					return DUK_RET_INTERNAL_ERROR;
+				duk_new_handle(ctx, "Module", hModule);
+				return 1;
+			}
+		);
+		/* R String ClassName */
+		duk_property_r(ctx, "ClassName", [](duk_context *ctx) -> duk_ret_t {
+			StringA res = O;
+			if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { res = obj->ClassNameA(); }))
+				return DUK_RET_INTERNAL_ERROR;
+			duk_push_string(ctx, res);
+			return 1;
+		});
+		/* WR ClassMenuName */
+		duk_property(ctx, "ClassMenuName", ///////////////
+			[](duk_context *ctx) -> duk_ret_t {
+				if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { obj->ClassMenuName(duk_to_string(ctx, 0)); }))
+					return DUK_RET_INTERNAL_ERROR;
+				return 0;
+			},
+			[](duk_context *ctx) -> duk_ret_t {
+				LPCSTR res = O;
+				if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { res = obj->ClassMenuNameA(); }))
+					return DUK_RET_INTERNAL_ERROR;
+				duk_push_string(ctx, res);
+				return 1;
+			}
+		);
+		/* WR ClassStyle ClassStyles */
+		duk_property(ctx, "ClassStyles",
+			[](duk_context *ctx) -> duk_ret_t {
+				auto styles = duk_to_int(ctx, 0);
+				if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { obj->ClassStyles(reuse_as<ClassStyle>(styles)); }))
+					return DUK_RET_INTERNAL_ERROR;
+				return 0;
+			},
+			[](duk_context *ctx) -> duk_ret_t {
+				ClassStyle styles = ClassStyle::VRedraw;
+				if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { styles = obj->ClassStyles(); }))
+					return DUK_RET_INTERNAL_ERROR;
+				duk_get_global_string(ctx, "ClassStyle");
+				duk_push_int(ctx, styles.yield());
+				duk_call(ctx, 1);
+				return 1;
+			}
+		);
+		/* WR Brush ClassBackground */
+		duk_property(ctx, "ClassBackground",
+			[](duk_context *ctx) -> duk_ret_t {
+				HANDLE hBrush = O;
+				if (duk_class_handle(ctx, "Brush", hBrush))
+					return DUK_RET_TYPE_ERROR;
+				if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { obj->ClassBackground((HBRUSH)hBrush); }))
+					return DUK_RET_INTERNAL_ERROR;
+				return 0;
+			},
+			[](duk_context *ctx) -> duk_ret_t {
+				HBRUSH hBrush = O;
+				if (_try_method(ctx, [&](duk_context *ctx, CWindow &obj) { hBrush = obj->ClassBackground(); }))
+					return DUK_RET_INTERNAL_ERROR;
+				duk_new_handle(ctx, "Brush", hBrush);
 				return 1;
 			}
 		);

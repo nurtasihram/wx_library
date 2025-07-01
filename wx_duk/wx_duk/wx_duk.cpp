@@ -3,8 +3,6 @@
 //#define DUK_USE_DEBUG
 #include "wx_duk.h"
 
-using namespace WX;
-
 #pragma region Duktape
 void duk_property(duk_context *ctx, const char *name, duk_c_function setter, duk_c_function getter) {
 	duk_push_string(ctx, name);
@@ -65,6 +63,18 @@ void duk_method(duk_context *ctx, const char *name, duk_idx_t nargs, duk_c_funct
 	duk_push_string(ctx, name);
 	duk_push_c_function(ctx, func, nargs);
 	duk_put_prop(ctx, -3);
+}
+
+void duk_class(duk_context *ctx,
+			   const char *name, const char *extends,
+			   duk_c_function cstr_struct, duk_c_function cstr_class,
+			   duk_c_function cstr_static) {
+	auto &&obj_name = sprintf("%sObj", name);
+	duk_struct_global(ctx, obj_name, cstr_struct);
+	duk_function_global(ctx, name, cstr_class);
+	duk_extends(ctx, name, obj_name);
+	if (cstr_static)
+		cstr_static(ctx);
 }
 
 bool duk_reflect_constructor(duk_context *ctx) {
