@@ -27,11 +27,11 @@ public:
 using SecAuthorID = SecurityIdentifiersAuthority;
 
 enum_class_explicit(SecurityIdentifiersAuthorities, SecAuthorID,
-	Null    = SecAuthorID __braceO SECURITY_NULL_SID_AUTHORITY Obrace__,
-	World   = SecAuthorID __braceO SECURITY_WORLD_SID_AUTHORITY Obrace__,
-	Local   = SecAuthorID __braceO SECURITY_LOCAL_SID_AUTHORITY Obrace__,
-	Creator = SecAuthorID __braceO SECURITY_CREATOR_SID_AUTHORITY Obrace__,
-	NT      = SecAuthorID __braceO SECURITY_NT_AUTHORITY Obrace__);
+	Null    = SecAuthorID(SECURITY_NULL_SID_AUTHORITY),
+	World   = SecAuthorID(SECURITY_WORLD_SID_AUTHORITY),
+	Local   = SecAuthorID(SECURITY_LOCAL_SID_AUTHORITY),
+	Creator = SecAuthorID(SECURITY_CREATOR_SID_AUTHORITY),
+	NT      = SecAuthorID(SECURITY_NT_AUTHORITY));
 using SecAuthorIDs = SecurityIdentifiersAuthorities;
 class SecurityIdentifier {
 	friend class SecurityDescriptor;
@@ -104,7 +104,8 @@ public: //
 	inline bool operator==(PSID pSID) const reflect_as(EqualSid(this->pSID, pSID));
 	inline bool operator!=(PSID pSID) const reflect_as(EqualSid(this->pSID, pSID));
 
-	inline operator String() const assertl_reflect_to(AutoPointer<_M_(Local, TCHAR)> szSID(LocalHeap), ConvertSidToStringSid(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
+	inline operator StringA() const assertl_reflect_to(AutoPointer<_M_(Local, CHAR)> szSID(LocalHeap), ConvertSidToStringSidA(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
+	inline operator StringW() const assertl_reflect_to(AutoPointer<_M_(Local, WCHAR)> szSID(LocalHeap), ConvertSidToStringSidW(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
 	inline PSID operator&() const reflect_as(this->pSID);
 	inline operator bool() const reflect_as(this->pSID ? IsValidSid(this->pSID) : false);
 };
@@ -122,10 +123,10 @@ enum_flags(AccessPermission, DWORD,
 	Wow6432key          = KEY_WOW64_32KEY,
 	Wow6464key          = KEY_WOW64_64KEY,
 	Wow64Res            = KEY_WOW64_RES,
-	enum_complex Read       = KEY_READ,
-	enum_complex Write      = KEY_WRITE,
-	enum_complex Execute    = KEY_EXECUTE,
-	enum_complex AllAccess  = KEY_ALL_ACCESS);
+	Read       = KEY_READ,
+	Write      = KEY_WRITE,
+	Execute    = KEY_EXECUTE,
+	AllAccess  = KEY_ALL_ACCESS);
 enum_class(TrustForms, TRUSTEE_FORM,
 	SID            = TRUSTEE_IS_SID,
 	Name           = TRUSTEE_IS_NAME,
@@ -133,7 +134,7 @@ enum_class(TrustForms, TRUSTEE_FORM,
 	ObjectsAndSID  = TRUSTEE_IS_OBJECTS_AND_SID,
 	ObjectsAndName = TRUSTEE_IS_OBJECTS_AND_NAME);
 enum_class(TrustTypes, TRUSTEE_TYPE,
-	enum_default Unknown = TRUSTEE_IS_UNKNOWN,
+	Unknown        = TRUSTEE_IS_UNKNOWN,
 	User           = TRUSTEE_IS_USER,
 	Group          = TRUSTEE_IS_GROUP,
 	Domain         = TRUSTEE_IS_DOMAIN,
@@ -143,13 +144,13 @@ enum_class(TrustTypes, TRUSTEE_TYPE,
 	Invalid        = TRUSTEE_IS_INVALID,
 	Computer       = TRUSTEE_IS_COMPUTER);
 enum_flags(AccessInherit, DWORD,
-	enum_default No = NO_INHERITANCE,
+	No          = NO_INHERITANCE,
 	Objects     = SUB_OBJECTS_ONLY_INHERIT,
 	Containers  = SUB_CONTAINERS_ONLY_INHERIT,
 	NoPropagate = INHERIT_NO_PROPAGATE,
 	Only        = INHERIT_ONLY);
 enum_class(AccessModes, ACCESS_MODE,
-	enum_default NoUsed = NOT_USED_ACCESS,
+	NoUsed          = NOT_USED_ACCESS,
 	Grant           = GRANT_ACCESS,
 	Set             = SET_ACCESS,
 	Deny            = DENY_ACCESS,
@@ -212,7 +213,7 @@ enum_class(AccessControlEntryFlag, BYTE,
 	Critical                        = CRITICAL_ACE_FLAG,
 	SuccessfulAccess                = SUCCESSFUL_ACCESS_ACE_FLAG,
 	FailedAccess                    = FAILED_ACCESS_ACE_FLAG,
-	enum_alias TrustProtectedFilter = TRUST_PROTECTED_FILTER_ACE_FLAG);
+	TrustProtectedFilter            = TRUST_PROTECTED_FILTER_ACE_FLAG);
 using AceFlag = AccessControlEntryFlag;
 class AccessControlEntry {
 	PACCESS_ALLOWED_ACE pACE = O;
@@ -501,7 +502,8 @@ public:
 	SecurityDescriptor(SecurityDescriptor &sd) : pSD(sd.pSD) reflect_to(sd.pSD = O);
 	SecurityDescriptor(SecurityDescriptor &&sd) : pSD(sd.pSD) reflect_to(sd.pSD = O);
 	SecurityDescriptor(const SecurityDescriptor &sd) = delete;
-	SecurityDescriptor(LPCTSTR lpszDesc) assertl_reflect_to(ULONG size, ConvertStringSecurityDescriptorToSecurityDescriptor(lpszDesc, SDDL_REVISION_1, &pSD, &size));
+	SecurityDescriptor(LPCSTR lpszDesc) assertl_reflect_to(ULONG size, ConvertStringSecurityDescriptorToSecurityDescriptorA(lpszDesc, SDDL_REVISION_1, &pSD, &size));
+	SecurityDescriptor(LPCWSTR lpszDesc) assertl_reflect_to(ULONG size, ConvertStringSecurityDescriptorToSecurityDescriptorW(lpszDesc, SDDL_REVISION_1, &pSD, &size));
 
 	inline void Delete() reflect_to(Local::Free(pSD); pSD = O);
 	inline SecurityDescriptor operator+() const {
@@ -550,7 +552,7 @@ public: // Property - Owner
 using SecDesc = SecurityDescriptor;
 #pragma endregion
 
-#pragma region Security Attribute
+#pragma region Security Attributes
 class SecurityAttributes : protected SECURITY_ATTRIBUTES {
 public:
 	SecurityAttributes() : SECURITY_ATTRIBUTES{ 0 } reflect_to(this->nLength = sizeof(*this));

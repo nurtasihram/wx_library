@@ -25,9 +25,7 @@ public:
 	Event(Null) {}
 	Event(Event &evt) : super(evt) {}
 	Event(Event &&evt) : super(evt) {}
-
-	using super::operator=;
-
+public:
 	class CreateStruct {
 		friend class Event;
 		LPSECURITY_ATTRIBUTES lpAttributes = O;
@@ -46,7 +44,6 @@ public:
 		inline operator Event() const assertl_reflect_as(auto h = CreateEvent(lpAttributes, bManualReset, bInitialState, lpName), h);
 	};
 	static inline CreateStruct Create(LPCTSTR lpName = O) reflect_as(lpName);
-
 	class OpenStruct {
 		friend class Event;
 		Access dwDesiredAccess = Access::Modify;
@@ -61,12 +58,15 @@ public:
 		inline operator Event() const assertl_reflect_as(auto h = OpenEvent(dwDesiredAccess.yield(), bInheritHandle, lpName), h);
 	};
 	static inline OpenStruct Open(LPCTSTR lpName = O) reflect_as(lpName);
-
+public:
 	inline Event&Set() assertl_reflect_as_self(SetEvent(self));
 	inline Event&Reset() assertl_reflect_as_self(ResetEvent(self));
-
+	inline Event&Pulse() assertl_reflect_as_self(PulseEvent(self));
+public:
+	using super::operator=;
 	inline auto&operator=(bool bState) reflect_as(bState ? Set() : Reset());
 };
+using CEvent = RefAs<Event>;
 #pragma endregion
 
 #pragma region Mutex
@@ -85,11 +85,7 @@ public:
 	Mutex(Null) {}
 	Mutex(Mutex &m) : super(m) {}
 	Mutex(Mutex &&m) : super(m) {}
-
-	using super::operator=;
-
-	inline auto &Release() assertl_reflect_as_self(ReleaseMutex(self));
-
+public:
 	class CreateStruct {
 		friend class Mutex;
 		LPSECURITY_ATTRIBUTES lpMutexAttributes = O;
@@ -105,7 +101,6 @@ public:
 		inline operator Mutex() const assertl_reflect_as(auto h = CreateMutex(lpMutexAttributes, bInitialState, lpName), h);
 	};
 	static inline CreateStruct Create(LPCTSTR lpName = O) reflect_as(lpName);
-
 	class OpenStruct {
 		friend class Mutex;
 		Access dwDesiredAccess = Access::Modify;
@@ -120,8 +115,15 @@ public:
 		inline operator Mutex() const assertl_reflect_as(auto h = OpenMutex(dwDesiredAccess.yield(), bInheritHandle, lpName), h);
 	};
 	static inline OpenStruct Open(LPCTSTR lpName = O) reflect_as(lpName);
+public:
+	inline auto &Release() assertl_reflect_as_self(ReleaseMutex(self));
+public:
+	using super::operator=;
 };
+using CMutex = RefAs<Mutex>;
 #pragma endregion
+
+struct PTTimes { FileTime CreationTime, ExitTime, KernelTime, UserTime; };
 
 #pragma region ThreadBase
 enum_flags(ThreadAccess, Handle::Access,
@@ -148,7 +150,7 @@ public:
 	using super = HandleBase<ThreadBase<>>;
 	using Access = ThreadAccess;
 protected:
-	friend union RefAs<Thread>;
+	friend class RefAs<Thread>;
 	friend class Process;
 	ThreadBase(HANDLE h) : super(h) {}
 	ThreadBase(const ThreadBase &t) : super(t.hObject) reflect_to(t.hObject = O);
@@ -157,9 +159,7 @@ public:
 	ThreadBase(Null) {}
 	ThreadBase(ThreadBase &t) : super(t.hObject) reflect_to(t.hObject = O);
 	ThreadBase(ThreadBase &&t) : super(t.hObject) reflect_to(t.hObject = O);
-
-	using super::operator=;
-
+public:
 	template<class AnyChild = void>
 	class CreateStruct : public ChainExtend<CreateStruct<AnyChild>, AnyChild> {
 		friend class ThreadBase;
@@ -181,7 +181,6 @@ public:
 		inline ThreadBase<_Child> Create() assertl_reflect_as(auto h = CreateThread(this->lpThreadAttributes, this->dwStackSize, this->lpStartAddress, this->lpParameter, this->dwCreationFlags, O), h);
 	};
 	static inline CreateStruct<> Create(LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter = O) reflect_as({ lpStartAddress, lpParameter });
-
 	class OpenStruct {
 		friend class ThreadBase;
 		Access dwDesiredAccess = Access::All;
@@ -195,25 +194,20 @@ public:
 		inline operator ThreadBase() const reflect_as(OpenThread(dwDesiredAccess.yield(), bInheritHandle, dwThreadId));
 	};
 	static inline OpenStruct Open(DWORD dwProcessId) reflect_as(dwProcessId);
-
 	static inline Thread Current() reflect_as(GetCurrentThread());
-
+public:
 	inline void Suspend() assertl_reflect_as(SuspendThread(self));
 	inline void Resume()  assertl_reflect_as(ResumeThread(self));
-
 	inline void Terminate(DWORD dwExitCode = 0) assertl_reflect_as(TerminateThread(this->hObject, dwExitCode));
 	inline bool TerminateWait(DWORD dwMilliSec, DWORD dwExitCode = 0) {
 		if (WaitForSignal(dwMilliSec)) return false;
 		Terminate(dwExitCode);
 		return true;
 	}
-
 	static inline void Exit(DWORD dwExitCode = 0) reflect_to(ExitThread(dwExitCode));
-
 	template<class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
 	inline void Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) assertl_reflect_as(PostThreadMessage(ID(), reuse_as<UINT>(msgid), small_cast<WPARAM>(wParam), small_cast<LPARAM>(lParam)));
 	inline void Post(const Message &msg) assertl_reflect_as(PostThreadMessage(ID(), msg.ID(), msg.ParamW(), msg.ParamL()));
-
 #pragma region Properties
 public: // Property - ID
 	/* W */ inline DWORD ID() const assertl_reflect_as(auto id = GetThreadId(self), id);
@@ -230,11 +224,22 @@ public: // Property - StillActive
 	}
 public: // Property - ProcessID
 	/* R */ inline DWORD ProcessID() const nt_assertl_reflect_to(DWORD dwID = GetProcessIdOfThread(self), dwID);
+public: // Property - Times
+	/* R */ inline PTTimes Times() assertl_reflect_to(PTTimes t, GetThreadTimes(self, &t.CreationTime, &t.ExitTime, &t.KernelTime, &t.UserTime), t);
+public: // Property - 
+	///* R */ inline StringW DescriptionW() {
+	//	LPWSTR lpDesc = O;
+	//	assertl(SUCCEEDED(GetThreadDescription(self, &lpDesc)));
+	//	if (!lpDesc) return O;
+	//	return CString(lpDesc, MaxLenNotice);
+	//}
 #pragma endregion
+public:
+	using super::operator=;
 };
 template<class AnyChild>
-class ThreadBase : public ChainExtend<ThreadBase<AnyChild>, AnyChild>,
-	public Thread {
+class ThreadBase : public Thread,
+	public ChainExtend<ThreadBase<AnyChild>, AnyChild> {
 public:
 	using super = Thread;
 protected:
@@ -257,7 +262,7 @@ protected:
 	inline DWORD Start() {
 		if constexpr (member_OnStart_of<AnyChild>::template compatible_to<DWORD()>)
 			reflect_as(child.OnStart())
-		else if constexpr (member_OnStart_of<AnyChild>::template compatible_to<void()>)
+		elif  constexpr (member_OnStart_of<AnyChild>::template compatible_to<void()>)
 			reflect_to(child.OnStart(), 0)
 		else {
 			static_assert(member_OnStart_of<AnyChild>::callable, "OnStart uncallable or unexisted");
@@ -269,11 +274,11 @@ protected:
 	inline wx_answer Catch(const Exception &err) {
 		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Exception)>)
 			reflect_as(child.OnCatch(err))
-		else if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
+		elif  constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
 			reflect_as(child.OnCatch())
-		else if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Exception)>)
+		elif  constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Exception)>)
 			reflect_to(child.OnCatch(err), false)
-		else if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
+		elif  constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
 			reflect_to(child.OnCatch(), false)
 		else {
 			static_assert(!member_OnCatch_of<AnyChild>::callable, "OnCatch uncompatible");
@@ -292,7 +297,7 @@ protected:
 	inline DWORD Final() {
 		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<DWORD()>)
 			reflect_as(child.OnFinal())
-		else if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
+		elif  constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
 			reflect_to(child.OnFinal(), -1)
 		else {
 			static_assert(!member_OnFinal_of<AnyChild>::callable, "OnFinal uncallable");
@@ -300,10 +305,6 @@ protected:
 		}
 	}
 protected:
-	inline auto &operator=(ThreadBase &t) reflect_to_child(std::swap(this->hObject, t.hObject));
-	inline auto &operator=(ThreadBase &&t) reflect_to_child(std::swap(this->hObject, t.hObject));
-	inline auto &operator=(const ThreadBase &t) const reflect_to_child(std::swap(this->hObject, t.hObject));
-
 	ThreadBase(HANDLE h) : super(h) {}
 	ThreadBase(const ThreadBase &t) : super(t) {}
 public:
@@ -312,7 +313,7 @@ public:
 	ThreadBase(ThreadBase &t) : super(t) {}
 	ThreadBase(ThreadBase &&t) : super(t) {}
 	~ThreadBase() reflect_to(if (StillActive()) super::WaitForSignal());
-
+public:
 	class CreateStruct : public Thread::CreateStruct<CreateStruct> {
 	public:
 		using super = Thread::CreateStruct<CreateStruct>;
@@ -325,10 +326,13 @@ public:
 		inline operator bool() reflect_as(this->_this.StillActive() ? false : Create());
 	};
 	inline CreateStruct Create() reflect_to_self();
+protected:
+	inline auto &operator=(ThreadBase &t) reflect_to_child(std::swap(this->hObject, t.hObject));
+	inline auto &operator=(ThreadBase &&t) reflect_to_child(std::swap(this->hObject, t.hObject));
+	inline auto &operator=(const ThreadBase &t) const reflect_to_child(std::swap(this->hObject, t.hObject));
 };
 #define SFINAE_Thread(name) friend class WX::ThreadBase<name>; using super = WX::ThreadBase<name>
 #define BaseOf_Thread(name) name : public WX::ThreadBase<name>
-
 class BaseOf_Thread(LThread) {
 	SFINAE_Thread(LThread);
 protected:
@@ -363,9 +367,9 @@ protected:
 		bool OnCatch(const Exception &err) override {
 			if constexpr (static_compatible<AnyCatch, wx_answer(Exception)>)
 				reflect_as(lOnCatch(err))
-			else if constexpr (static_compatible<AnyCatch, wx_answer()>)
+			elif  constexpr (static_compatible<AnyCatch, wx_answer()>)
 				reflect_as(lOnCatch())
-			else if constexpr (static_compatible<AnyCatch, void(Exception)>)
+			elif  constexpr (static_compatible<AnyCatch, void(Exception)>)
 				reflect_to(lOnCatch(err), false)
 			else {
 				static_assert(static_compatible<AnyCatch, void()>, "OnCatch uncompatible");
@@ -394,64 +398,7 @@ public:
 };
 #pragma endregion
 
-#pragma region Process
-enum_flags(ProccessCreateFlag, DWORD,
-	enum_default Default         = 0,
-
-	DebugProcess                 = DEBUG_PROCESS,
-	DebugOnlyThisProcess         = DEBUG_ONLY_THIS_PROCESS,
-	CreateSuspended              = CREATE_SUSPENDED,
-	DetachedProcess              = DETACHED_PROCESS,
-
-	CreateNewConsole             = CREATE_NEW_CONSOLE,
-	NormalPriorityClass          = NORMAL_PRIORITY_CLASS,
-	IdlePriorityClass            = IDLE_PRIORITY_CLASS,
-	HighPriorityClass            = HIGH_PRIORITY_CLASS,
-
-	RealtimePriorityClass        = REALTIME_PRIORITY_CLASS,
-	CreateNewProcessGroup        = CREATE_NEW_PROCESS_GROUP,
-	CreateUnicodeEnvironment     = CREATE_UNICODE_ENVIRONMENT,
-	CreateSeparateWowVdm         = CREATE_SEPARATE_WOW_VDM,
-
-	CreateSharedWowVdm           = CREATE_SHARED_WOW_VDM,
-	CreateForceDos               = CREATE_FORCEDOS,
-	BelowNormalPriorityClass     = BELOW_NORMAL_PRIORITY_CLASS,
-	AboveNormalPriorityClass     = ABOVE_NORMAL_PRIORITY_CLASS,
-
-	InheritParentAffinity        = INHERIT_PARENT_AFFINITY,
-	InheritCallerPriority        = INHERIT_CALLER_PRIORITY,
-	CreateProtectedProcess       = CREATE_PROTECTED_PROCESS,
-	ExtendedStartupInfoPresent   = EXTENDED_STARTUPINFO_PRESENT,
-
-	ProcessModeBackgroundBegin   = PROCESS_MODE_BACKGROUND_BEGIN,
-	ProcessModeBackgroundEnd     = PROCESS_MODE_BACKGROUND_END,
-	CreateSecureProcess          = CREATE_SECURE_PROCESS,
-
-	CreateBreakawayFromJob       = CREATE_BREAKAWAY_FROM_JOB,
-	CreatePreserveCodeAuthzLevel = CREATE_PRESERVE_CODE_AUTHZ_LEVEL,
-	CreateDefaultErrorMode       = CREATE_DEFAULT_ERROR_MODE,
-	CreateNoWindow               = CREATE_NO_WINDOW,
-
-	ProfileUser                  = PROFILE_USER,
-	ProfileKernel                = PROFILE_KERNEL,
-	ProfileServer                = PROFILE_SERVER,
-	CreateIgnoreSystemDefault    = CREATE_IGNORE_SYSTEM_DEFAULT);
-enum_flags(ProcessAccess, DWORD,
-	Terminate                 = PROCESS_TERMINATE,
-	CreateThread              = PROCESS_CREATE_THREAD,
-	SetSessionid              = PROCESS_SET_SESSIONID,
-	VmOperation               = PROCESS_VM_OPERATION,
-	VmRead                    = PROCESS_VM_READ,
-	VmWrite                   = PROCESS_VM_WRITE,
-	DupHandle                 = PROCESS_DUP_HANDLE,
-	CreateProcess             = PROCESS_CREATE_PROCESS,
-	SetQuota                  = PROCESS_SET_QUOTA,
-	SetInformation            = PROCESS_SET_INFORMATION,
-	QueryInformation          = PROCESS_QUERY_INFORMATION,
-	SuspendResume             = PROCESS_SUSPEND_RESUME,
-	QueryLimitedInformation   = PROCESS_QUERY_LIMITED_INFORMATION,
-	SetLimitedInformation     = PROCESS_SET_LIMITED_INFORMATION,
-	enum_complex All          = PROCESS_ALL_ACCESS);
+#pragma region Environment
 class Environments {
 	LPTCH lpEnv = O;
 public:
@@ -501,14 +448,7 @@ public:
 	Environments(Environments &env) : lpEnv(env.lpEnv) reflect_to(env.lpEnv = O);
 	Environments(Environments &&env) : lpEnv(env.lpEnv) reflect_to(env.lpEnv = O);
 	~Environments() reflect_to(Free());
-
-	inline void Free() {
-		if (lpEnv) {
-			assertl(FreeEnvironmentStrings(lpEnv));
-			lpEnv = O;
-		}
-	}
-
+public:
 	static inline Environments From(std::initializer_list<const String> envs) {
 		size_t maxlen = 1;
 		for (const String &env : envs)
@@ -545,9 +485,16 @@ public:
 		return lpEnv;
 	}
 	static inline Environments Current() assertl_reflect_as(auto lpEnv = GetEnvironmentStrings(), lpEnv);
-
+public:
+	inline void Free() {
+		if (lpEnv) {
+			assertl(FreeEnvironmentStrings(lpEnv));
+			lpEnv = O;
+		}
+	}
+public:
 	inline void Use() const assertl_reflect_as(SetEnvironmentStrings(lpEnv));
-
+#pragma region Properties
 public: // Property - Count
 	/* R */ inline size_t Count() const {
 		if (!lpEnv) return 0;
@@ -581,7 +528,7 @@ public: // Property - Variables
 		}
 		return list;
 	}
-
+#pragma endregion
 public:
 	inline operator bool() const reflect_as(lpEnv);
 	inline operator LPTCH() const reflect_as(lpEnv);
@@ -628,6 +575,9 @@ public:
 	inline Variable operator[](const String &str) reflect_as(str);
 	inline CurrentEnvironment &operator=(const Environments &env) reflect_to_self(env.Use());
 } inline Environment;
+#pragma endregion
+
+#pragma region Process
 enum_flags(StartupFlag, DWORD,
 	UseShowWindow       = STARTF_USESHOWWINDOW,
 	UseSize             = STARTF_USESIZE,
@@ -636,56 +586,100 @@ enum_flags(StartupFlag, DWORD,
 	UseFillAttribute    = STARTF_USEFILLATTRIBUTE,
 	UseStdHandles       = STARTF_USESTDHANDLES,
 	UseHotKey           = STARTF_USEHOTKEY,
-
 	RunFullScreen       = STARTF_RUNFULLSCREEN,
-
 	ForceOnFeedback     = STARTF_FORCEONFEEDBACK,
 	ForceOffFeedback    = STARTF_FORCEOFFFEEDBACK,
-
 	TitleIsLinkName     = STARTF_TITLEISLINKNAME,
 	TitleIsAppID        = STARTF_TITLEISAPPID,
 	PreventPinning      = STARTF_PREVENTPINNING,
 	UntrustedSource     = STARTF_UNTRUSTEDSOURCE);
-class StartupInfo : protected STARTUPINFO {
+class StartupInfo : public RefAs<STARTUPINFO> {
 public:
-	StartupInfo() : STARTUPINFO{ 0 } reflect_to(this->cb = sizeof(*this));
+	using super = RefAs<STARTUPINFO>;
+public:
+	StartupInfo() reflect_to(self->cb = sizeof(*self));
 // public: // Property - Desktop
-// 	/* W */ inline auto &Desktop(LPWSTR lpDesktop) reflect_to_self(this->lpDesktop = lpDesktop);
-// 	/* R */ inline auto  Desktop() const reflect_as(this->lpDesktop);
+// 	/* W */ inline auto &Desktop(LPWSTR lpDesktop) reflect_to_self(self->lpDesktop = lpDesktop);
+// 	/* R */ inline auto  Desktop() const reflect_as(self->lpDesktop);
 // public: // Property - Title
-// 	/* W */ inline auto &Title(LPWSTR lpTitle) reflect_to_self(this->lpTitle = lpTitle);
-// 	/* R */ inline auto  Title() const reflect_as(this->lpTitle);
+// 	/* W */ inline auto &Title(LPWSTR lpTitle) reflect_to_self(self->lpTitle = lpTitle);
+// 	/* R */ inline auto  Title() const reflect_as(self->lpTitle);
 public: // Property - Position
-	/* W */ inline auto  &Position(LPoint pos) reflect_to_self(this->dwFlags |= STARTF_USEPOSITION, this->dwX = pos.x, this->dwY = pos.y);
-	/* R */ inline LPoint Position() const reflect_as({ (LONG)this->dwX, (LONG)this->dwY });
+	/* W */ inline auto  &Position(LPoint pos) reflect_to_self(self->dwFlags |= STARTF_USEPOSITION, self->dwX = pos.x, self->dwY = pos.y);
+	/* R */ inline LPoint Position() const reflect_as({ (LONG)self->dwX, (LONG)self->dwY });
 public: // Property - Size
-	/* W */ inline auto &Size(LSize size) reflect_to_self(this->dwFlags |= STARTF_USESIZE, this->dwXSize = size.cx, this->dwYSize = size.cy);
-	/* R */ inline LSize Size() const reflect_as({ (LONG)this->dwXSize, (LONG)this->dwYSize });
+	/* W */ inline auto &Size(LSize size) reflect_to_self(self->dwFlags |= STARTF_USESIZE, self->dwXSize = size.cx, self->dwYSize = size.cy);
+	/* R */ inline LSize Size() const reflect_as({ (LONG)self->dwXSize, (LONG)self->dwYSize });
 public: // Property - CountCmhars
-	/* W */ inline auto &CountChars(LSize size) reflect_to_self(this->dwFlags |= STARTF_USECOUNTCHARS, this->dwXCountChars = size.cx, this->dwYCountChars = size.cy);
-	/* R */ inline LSize CountChars() const reflect_as({ (LONG)this->dwXCountChars, (LONG)this->dwYCountChars });
+	/* W */ inline auto &CountChars(LSize size) reflect_to_self(self->dwFlags |= STARTF_USECOUNTCHARS, self->dwXCountChars = size.cx, self->dwYCountChars = size.cy);
+	/* R */ inline LSize CountChars() const reflect_as({ (LONG)self->dwXCountChars, (LONG)self->dwYCountChars });
 public: // Property - FillAttribute
-	/* W */ inline auto &FillAttribute(DWORD dwFillAttribute) reflect_to_self(this->dwFlags |= STARTF_USEFILLATTRIBUTE, this->dwFillAttribute = dwFillAttribute);
-	/* R */ inline auto  FillAttribute() const reflect_as(this->dwFillAttribute);
+	/* W */ inline auto &FillAttribute(DWORD dwFillAttribute) reflect_to_self(self->dwFlags |= STARTF_USEFILLATTRIBUTE, self->dwFillAttribute = dwFillAttribute);
+	/* R */ inline auto  FillAttribute() const reflect_as(self->dwFillAttribute);
 public: // Property - Flags
-	/* R */ inline StartupFlag Flags() const reflect_as(reuse_as<StartupFlag>(this->dwFlags));
+	/* R */ inline StartupFlag Flags() const reflect_as(reuse_as<StartupFlag>(self->dwFlags));
 public: // Property - Show
-	/* W */ inline auto  &Show(WX::SW wShow) reflect_to_self(this->dwFlags |= STARTF_USESHOWWINDOW, this->wShowWindow = wShow.yield());
-	/* R */ inline WX::SW Show() const reflect_as(reuse_as<WX::SW>((DWORD)this->wShowWindow));
+	/* W */ inline auto  &Show(WX::SW wShow) reflect_to_self(self->dwFlags |= STARTF_USESHOWWINDOW, self->wShowWindow = wShow.yield());
+	/* R */ inline WX::SW Show() const reflect_as(reuse_as<WX::SW>((DWORD)self->wShowWindow));
 public: // Property - StdInput
-	/* W */ inline auto &StdInput(HANDLE hStdInput) reflect_to_self(this->dwFlags |= STARTF_USESTDHANDLES, this->hStdInput = hStdInput);
-	/* R */ inline auto  StdInput() const reflect_as(this->hStdInput);
+	/* W */ inline auto &StdInput(HANDLE hStdInput) reflect_to_self(self->dwFlags |= STARTF_USESTDHANDLES, self->hStdInput = hStdInput);
+	/* R */ inline auto  StdInput() const reflect_as(self->hStdInput);
 public: // Property - StdOutput
-	/* W */ inline auto &StdOutput(HANDLE hStdOutput) reflect_to_self(this->dwFlags |= STARTF_USESTDHANDLES, this->hStdOutput = hStdOutput);
-	/* R */ inline auto  StdOutput() const reflect_as(this->hStdOutput);
+	/* W */ inline auto &StdOutput(HANDLE hStdOutput) reflect_to_self(self->dwFlags |= STARTF_USESTDHANDLES, self->hStdOutput = hStdOutput);
+	/* R */ inline auto  StdOutput() const reflect_as(self->hStdOutput);
 public: // Property - StdError
-	/* W */ inline auto &StdError(HANDLE hStdError) reflect_to_self(this->dwFlags |= STARTF_USESTDHANDLES, this->hStdError = hStdError);
-	/* R */ inline auto  StdError() const reflect_as(this->hStdError);
-public:
-	inline LPSTARTUPINFO operator&() reflect_as(this);
+	/* W */ inline auto &StdError(HANDLE hStdError) reflect_to_self(self->dwFlags |= STARTF_USESTDHANDLES, self->hStdError = hStdError);
+	/* R */ inline auto  StdError() const reflect_as(self->hStdError);
 };
-class Process;
-using CProcess = RefAs<Process>;
+enum_flags(ProccessCreateFlag, DWORD,
+	Default         = 0,
+	DebugProcess                 = DEBUG_PROCESS,
+	DebugOnlyThisProcess         = DEBUG_ONLY_THIS_PROCESS,
+	CreateSuspended              = CREATE_SUSPENDED,
+	DetachedProcess              = DETACHED_PROCESS,
+	CreateNewConsole             = CREATE_NEW_CONSOLE,
+	NormalPriorityClass          = NORMAL_PRIORITY_CLASS,
+	IdlePriorityClass            = IDLE_PRIORITY_CLASS,
+	HighPriorityClass            = HIGH_PRIORITY_CLASS,
+	RealtimePriorityClass        = REALTIME_PRIORITY_CLASS,
+	CreateNewProcessGroup        = CREATE_NEW_PROCESS_GROUP,
+	CreateUnicodeEnvironment     = CREATE_UNICODE_ENVIRONMENT,
+	CreateSeparateWowVdm         = CREATE_SEPARATE_WOW_VDM,
+	CreateSharedWowVdm           = CREATE_SHARED_WOW_VDM,
+	CreateForceDos               = CREATE_FORCEDOS,
+	BelowNormalPriorityClass     = BELOW_NORMAL_PRIORITY_CLASS,
+	AboveNormalPriorityClass     = ABOVE_NORMAL_PRIORITY_CLASS,
+	InheritParentAffinity        = INHERIT_PARENT_AFFINITY,
+	InheritCallerPriority        = INHERIT_CALLER_PRIORITY,
+	CreateProtectedProcess       = CREATE_PROTECTED_PROCESS,
+	ExtendedStartupInfoPresent   = EXTENDED_STARTUPINFO_PRESENT,
+	ProcessModeBackgroundBegin   = PROCESS_MODE_BACKGROUND_BEGIN,
+	ProcessModeBackgroundEnd     = PROCESS_MODE_BACKGROUND_END,
+	CreateSecureProcess          = CREATE_SECURE_PROCESS,
+	CreateBreakawayFromJob       = CREATE_BREAKAWAY_FROM_JOB,
+	CreatePreserveCodeAuthzLevel = CREATE_PRESERVE_CODE_AUTHZ_LEVEL,
+	CreateDefaultErrorMode       = CREATE_DEFAULT_ERROR_MODE,
+	CreateNoWindow               = CREATE_NO_WINDOW,
+	ProfileUser                  = PROFILE_USER,
+	ProfileKernel                = PROFILE_KERNEL,
+	ProfileServer                = PROFILE_SERVER,
+	CreateIgnoreSystemDefault    = CREATE_IGNORE_SYSTEM_DEFAULT);
+enum_flags(ProcessAccess, DWORD,
+	Terminate                 = PROCESS_TERMINATE,
+	CreateThread              = PROCESS_CREATE_THREAD,
+	SetSessionid              = PROCESS_SET_SESSIONID,
+	VmOperation               = PROCESS_VM_OPERATION,
+	VmRead                    = PROCESS_VM_READ,
+	VmWrite                   = PROCESS_VM_WRITE,
+	DupHandle                 = PROCESS_DUP_HANDLE,
+	CreateProcess             = PROCESS_CREATE_PROCESS,
+	SetQuota                  = PROCESS_SET_QUOTA,
+	SetInformation            = PROCESS_SET_INFORMATION,
+	QueryInformation          = PROCESS_QUERY_INFORMATION,
+	SuspendResume             = PROCESS_SUSPEND_RESUME,
+	QueryLimitedInformation   = PROCESS_QUERY_LIMITED_INFORMATION,
+	SetLimitedInformation     = PROCESS_SET_LIMITED_INFORMATION,
+	All          = PROCESS_ALL_ACCESS);
 class BaseOf_Handle(Process) {
 public:
 	using super = HandleBase<Process>;
@@ -699,9 +693,7 @@ public:
 	Process(Null) {}
 	Process(Process &p) : super(p) {}
 	Process(Process &&p) : super(p) {}
-
-	using super::operator=;
-
+public:
 	class CreateStruct {
 		LPCTSTR lpApplicationName;
 		mutable LPTSTR lpCommandLine;
@@ -779,7 +771,6 @@ public:
 		inline operator Thread() reflect_as(processInfo.hProcess ? processInfo.hThread : Create().hThread);
 	};
 	static inline CreateStruct Create(LPCTSTR lpApplicationName, const String &CommandLine = O) reflect_as({lpApplicationName, CommandLine});
-
 	class OpenStruct {
 		friend class Process;
 		Access dwDesiredAccess = Access::All;
@@ -793,10 +784,9 @@ public:
 		inline operator Process() reflect_as(OpenProcess(dwDesiredAccess.yield(), bInheritHandle, dwProcessId));
 	};
 	static inline OpenStruct Open(DWORD dwProcessId) reflect_as(dwProcessId);
-
 	static inline Process Current() reflect_as(GetCurrentProcess());
 	static inline void Exit(UINT uExitCode = 0) reflect_to(ExitProcess(uExitCode));
-
+public:
 	inline bool Terminate(UINT uExitCode = 0) {
 		if (super::hObject)
 			if (!TerminateProcess(super::hObject, uExitCode))
@@ -809,13 +799,15 @@ public:
 		Terminate(dwExitCode);
 		return true;
 	}
-
+#pragma region Properties
 public: // Property - ExitCode
 	/* R */ inline auto ExitCode() const reflect_to(DWORD dwCode, (dwCode = GetExitCodeProcess(self, &dwCode)), dwCode);
 public: // Property - ID
 	/* R */ inline auto ID() const reflect_as(GetProcessId(self));
 public: // Property - Memory
 	/* W */ inline auto Memory() const assertl_reflect_to(PROCESS_MEMORY_COUNTERS pmc, GetProcessMemoryInfo(self, &pmc, sizeof(pmc)), pmc);
+public: // Property - Times
+	/* R */ inline PTTimes Times() assertl_reflect_to(PTTimes t, GetProcessTimes(self, &t.CreationTime, &t.ExitTime, &t.KernelTime, &t.UserTime), t);
 public: // Property - WorkingSetSize
 	/* W */ inline auto &WorkingSetSize(SIZE_T Min, SIZE_T Max) assertl_reflect_as_self(SetProcessWorkingSetSize(self, Min, Max));
 	/* R */ inline auto  WorkingSetSize() const assertl_reflect_to(struct _B_(SIZE_T Min, Max;) size, GetProcessWorkingSetSize(self, &size.Min, &size.Max), size);
@@ -836,14 +828,16 @@ public: // Property - ShutdownParameters
 public: // Property - MitigationPolicy
 	//GetProcessMitigationPolicy
 	//SetProcessMitigationPolicy
-
 public: // Property - CommandLine
 	/* R */ static inline String CommandLine() reflect_as(+CString(GetCommandLine(), MaxLenNotice));
 public: // Property - Environment
 	/* W */ static inline void Environment(LPTCH lpNewEnvironment) assertl_reflect_as(SetEnvironmentStrings(lpNewEnvironment));
 	/* R */ inline Environments Environment() assertl_reflect_to(LPTCH lpEnv, (lpEnv = GetEnvironmentStrings()), reuse_as<Environments>(lpEnv));
-
+#pragma endregion
+public:
+	using super::operator=;
 };
+using CProcess = RefAs<Process>;
 #pragma endregion
 
 }

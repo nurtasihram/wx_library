@@ -7,7 +7,7 @@ namespace WX {
 
 #pragma region File
 enum_flags(FileAccess, HandleAccess,
-	enum_default No      = 0,
+	Default = 0,
 	ReadData             = FILE_READ_DATA,        // file & pipe
 	ListDirectory        = FILE_LIST_DIRECTORY,   // directory
 	WriteData            = FILE_WRITE_DATA,       // file & pipe
@@ -22,10 +22,10 @@ enum_flags(FileAccess, HandleAccess,
 	DeleteChild          = FILE_DELETE_CHILD,     // directory
 	ReadAttributes       = FILE_READ_ATTRIBUTES,  // all
 	WriteAttributes      = FILE_WRITE_ATTRIBUTES, // all
-	enum_complex GenericRead    = FILE_GENERIC_READ,
-	enum_complex GenericWrite   = FILE_GENERIC_WRITE,
-	enum_complex GenericExecute = FILE_GENERIC_EXECUTE,
-	enum_complex All            = FILE_ALL_ACCESS);
+	GenericRead    = FILE_GENERIC_READ,
+	GenericWrite   = FILE_GENERIC_WRITE,
+	GenericExecute = FILE_GENERIC_EXECUTE,
+	All            = FILE_ALL_ACCESS);
 enum_flags(FileAttribute, DWORD,
 	ReadOnly              = FILE_ATTRIBUTE_READONLY,
 	Hidden                = FILE_ATTRIBUTE_HIDDEN,
@@ -65,12 +65,12 @@ enum_flags(FileFlag, DWORD,
 	OpenRequiringOplock   = FILE_FLAG_OPEN_REQUIRING_OPLOCK);//,
 //	IgnoreImpersonatedDevicemap  = FILE_FLAG_IGNORE_IMPERSONATED_DEVICEMAP);
 enum_flags(FileShares, DWORD,
-	enum_default No = 0,
+	No = 0,
 	Read   = FILE_SHARE_READ,
 	Write  = FILE_SHARE_WRITE,
 	Delete = FILE_SHARE_DELETE);
 enum_class(FileTypes, DWORD, 
-	enum_default Unknown = FILE_TYPE_UNKNOWN,
+	Unknown = FILE_TYPE_UNKNOWN,
 	Disk      = FILE_TYPE_DISK,
 	Char      = FILE_TYPE_CHAR,
 	Pipe      = FILE_TYPE_PIPE,
@@ -92,20 +92,7 @@ enum_flags(MapAccess, DWORD,
 	Copy       = FILE_MAP_COPY,
 	Targets    = FILE_MAP_TARGETS_INVALID,
 	LargePages = FILE_MAP_LARGE_PAGES,
-	enum_complex ReadWrite = FILE_MAP_WRITE | FILE_MAP_READ);
-struct FileTime : protected FILETIME {
-	FileTime() : FILETIME{ 0 } {}
-	FileTime(const FILETIME &ft) : FILETIME(ft) {}
-	FileTime(LARGE_INTEGER li) { ref_as<LARGE_INTEGER>(self) = li; }
-	FileTime(const SYSTEMTIME &st) assertl(SystemTimeToFileTime(&st, this));
-	inline FileTime LocalTime() assertl_reflect_to(FILETIME ft, FileTimeToLocalFileTime(this, &ft), ft);
-	inline operator SysTime() const assertl_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
-	inline operator SYSTEMTIME() const assertl_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
-	inline operator LARGE_INTEGER() const reflect_as(reuse_as<LARGE_INTEGER>(*this));
-	inline LPFILETIME operator &() reflect_as(this);
-	inline const FILETIME *operator &() const reflect_as(this);
-	inline operator String() const reflect_as(((SysTime)self));
-};
+	ReadWrite = FILE_MAP_WRITE | FILE_MAP_READ);
 struct FileTimes { FileTime Creation, LastAccess, LastWrite; };
 struct FileBaseInfo : protected FILE_BASIC_INFO {
 	FileBaseInfo() {}
@@ -133,7 +120,7 @@ public:
 	using super = HandleBase<File>;
 	using Access = FileAccess;
 	using Shares = FileShares;
-	using Attribute = FileAttribute;
+	using Attributes = FileAttribute;
 	using Flag = FileFlag;
 	using Types = FileTypes;
 protected:
@@ -149,7 +136,7 @@ public:
 
 	class CreateStruct {
 		LPCTSTR lpFileName;
-		Access dwDesiredAccess = Access::No;
+		Access dwDesiredAccess = Access::Default;
 		Shares dwShareMode = Shares::No;
 		LPSECURITY_ATTRIBUTES lpAttributes = O;
 		DWORD dwCreationDisposition = 0;
@@ -163,7 +150,7 @@ public:
 		inline auto &Security(const SecAttr &SA) reflect_to_self(this->lpAttributes = &SA);
 		inline auto &Security(LPSECURITY_ATTRIBUTES lpAttributes) reflect_to_self(this->lpAttributes = lpAttributes);
 		inline auto &Template(HANDLE hTemplateFile) reflect_to_self(this->hTemplateFile = hTemplateFile);
-		inline auto &Attributes(Attribute dwAttributes) reflect_to_self(this->dwFlagsAndAttributes = dwAttributes.yield());
+		inline auto &Attributes(Attributes dwAttributes) reflect_to_self(this->dwFlagsAndAttributes = dwAttributes.yield());
 		inline auto &Flags(Flag dwFlags) reflect_to_self(this->dwFlagsAndAttributes = dwFlags.yield());
 	public:
 		inline auto &CreateNew() reflect_to_self(this->dwCreationDisposition = CREATE_NEW);
@@ -262,21 +249,21 @@ using CFile = RefAs<File>;
 
 #pragma region Comm
 enum_class(Parities, BYTE,
-	enum_default No = NOPARITY,
+	No        = NOPARITY,
 	Odd       = ODDPARITY,
 	Even      = EVENPARITY,
 	Mark      = MARKPARITY,
 	Space     = SPACEPARITY);
 enum_class(StopBit, BYTE,
-	enum_default One = ONESTOPBIT,
-	One5      = ONE5STOPBITS,
-	Two       = TWOSTOPBITS);
+	One  = ONESTOPBIT,
+	One5 = ONE5STOPBITS,
+	Two  = TWOSTOPBITS);
 enum_class(DtrCtrl, DWORD,
-	enum_default Disable = DTR_CONTROL_DISABLE,
+	Disable   = DTR_CONTROL_DISABLE,
 	Enable    = DTR_CONTROL_ENABLE,
 	HandShake = DTR_CONTROL_HANDSHAKE);
 enum_class(RtsCtrl, DWORD,
-	enum_default Disable = RTS_CONTROL_DISABLE,
+	Disable   = RTS_CONTROL_DISABLE,
 	Enable    = RTS_CONTROL_ENABLE,
 	HandShake = RTS_CONTROL_HANDSHAKE,
 	Toggle    = RTS_CONTROL_TOGGLE);
@@ -285,7 +272,7 @@ enum_class(CommClear, DWORD,
 	RxAbort   = PURGE_RXABORT,
 	TxClear   = PURGE_TXCLEAR,
 	RxClear   = PURGE_RXCLEAR,
-	enum_complex All = PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
+	All       = PURGE_TXABORT | PURGE_RXABORT | PURGE_TXCLEAR | PURGE_RXCLEAR);
 enum_class(CommEvent, DWORD,
 	RxChar    = EV_RXCHAR,
 	RxFlag    = EV_RXFLAG,
@@ -300,92 +287,91 @@ enum_class(CommEvent, DWORD,
 	Rx80Full  = EV_RX80FULL,
 	Event1    = EV_EVENT1,
 	Event2    = EV_EVENT2);
-struct CommStates : protected DCB {
-	CommStates() : DCB{ 0 } reflect_to(DCBlength = sizeof(DCB); fBinary = 1);
-	CommStates(const DCB &dcb) : DCB{ dcb } {}
-	CommStates(LPCTSTR lpDef) : DCB{ 0 } assertl_reflect_as(BuildCommDCB(lpDef, this));
-public: // Property - BaudRate
-	/* W */ inline auto &BaudRate(DWORD baudrate) reflect_to_self(DCB::BaudRate = baudrate);
-	/* R */ inline DWORD BaudRate() const reflect_as(DCB::BaudRate);
-public: // Property - ByteSize
-	/* W */ inline auto &ByteSize(BYTE bytesize) reflect_to_self(DCB::ByteSize = bytesize);
-	/* R */ inline BYTE  ByteSize() const reflect_as(DCB::ByteSize);
-public: // Property - Parity
-	/* W */ inline auto    &Parity(Parities parity) reflect_to_self(DCB::Parity = parity.yield(), DCB::fParity = 1);
-	/* R */ inline Parities Parity() const reflect_as(reuse_as<Parities>(DCB::Parity));
-public: // Property - StopBits
-	/* W */ inline auto   &StopBits(StopBit stopbits) reflect_to_self(DCB::StopBits = stopbits.yield());
-	/* R */ inline StopBit StopBits() const reflect_as(reuse_as<StopBit>(DCB::StopBits));
-public: // Property - OutxCtsFlow
-	/* W */ inline auto &OutxCtsFlow(bool bOutxCtsFlow) reflect_to_self(DCB::fOutxCtsFlow = bOutxCtsFlow);
-	/* R */ inline bool  OutxCtsFlow() const reflect_as(DCB::fOutxCtsFlow);
-public: // Property - OutxDsrFlow
-	/* W */ inline auto &OutxDsrFlow(bool bOutxDsrFlow) reflect_to_self(DCB::fOutxDsrFlow = bOutxDsrFlow);
-	/* R */ inline bool  OutxDsrFlow() const reflect_as(DCB::fOutxDsrFlow);
-public: // Property - DtrControl
-	/* W */ inline auto   &DtrControl(DtrCtrl ctl) reflect_to_self(DCB::fDtrControl = ctl.yield());
-	/* R */ inline DtrCtrl DtrControl() const reflect_as(reuse_as<DtrCtrl>(DCB::fDtrControl));
-public: // Property - RtsControl
-	/* W */ inline auto   &RtsControl(RtsCtrl ctl) reflect_to_self(DCB::fRtsControl = ctl.yield());
-	/* R */ inline RtsCtrl RtsControl() const reflect_as(reuse_as<RtsCtrl>(DCB::fRtsControl));
-public: // Property - DsrSensitivity
-	/* W */ inline auto &DsrSensitivity(bool bDsrSensitivity) reflect_to_self(DCB::fDsrSensitivity = bDsrSensitivity);
-	/* R */ inline bool  DsrSensitivity() const reflect_as(DCB::fDsrSensitivity);
-public: // Property - TXContinueOnXoff
-	/* W */ inline auto &TXContinueOnXoff(bool bTXContinueOnXoff) reflect_to_self(DCB::fTXContinueOnXoff = bTXContinueOnXoff);
-	/* R */ inline bool  TXContinueOnXoff() const reflect_as(DCB::fTXContinueOnXoff);
-public: // Property - OutX
-	/* W */ inline auto &OutX(bool bOutX) reflect_to_self(DCB::fOutX = bOutX);
-	/* R */ inline bool  OutX() const reflect_as(DCB::fOutX);
-public: // Property - InX
-	/* W */ inline auto &InX(bool bInX) reflect_to_self(DCB::fInX = bInX);
-	/* R */ inline bool  InX() const reflect_as(DCB::fInX);
-public: // Property - Null
-	/* W */ inline auto &Null(bool bNull) reflect_to_self(DCB::fNull = bNull);
-	/* R */ inline bool  Null() const reflect_as(DCB::fNull);
-public: // Property - AbortOnError
-	/* W */ inline auto &AbortOnError(bool bAbortCatch) reflect_to_self(DCB::fAbortOnError = bAbortCatch);
-	/* R */ inline bool  AbortOnError() const reflect_as(DCB::fAbortOnError);
-public: // Property - XonLim
-	/* W */ inline auto &XonLim(WORD xonlim) reflect_to_self(DCB::XonLim = xonlim);
-	/* R */ inline WORD  XonLim() const reflect_as(DCB::XonLim);
-public: // Property - XoffLim
-	/* W */ inline auto &XoffLim(WORD xofflim) reflect_to_self(DCB::XoffLim = xofflim);
-	/* R */ inline WORD  XoffLim() const reflect_as(DCB::XoffLim);
-public: // Property - XonChar
-	/* W */ inline auto &XonChar(char xonchar) reflect_to_self(DCB::XonChar = xonchar);
-	/* R */ inline char  XonChar() const reflect_as(DCB::XonChar);
-public: // Property - XoffChar
-	/* W */ inline auto &XoffChar(char xoffchar) reflect_to_self(DCB::XoffChar = xoffchar);
-	/* R */ inline char  XoffChar() const reflect_as(DCB::XoffChar);
-public: // Property - ErrorChar
-	/* W */ inline auto &ErrorChar(char errorchar) reflect_to_self(DCB::ErrorChar = errorchar);
-	/* R */ inline char  ErrorChar() const reflect_as(DCB::ErrorChar);
-public: // Property - EofChar
-	/* W */ inline auto &EofChar(char eofchar) reflect_to_self(DCB::EofChar = eofchar);
-	/* R */ inline char  EofChar() const reflect_as(DCB::EofChar);
-public: // Property - EvtChar
-	/* W */ inline auto &EvtChar(char evtchar) reflect_to_self(DCB::EvtChar = evtchar);
-	/* R */ inline char  EvtChar() const reflect_as(DCB::EvtChar);
+struct CommStates : public RefAs<DCB> {
+	using super = RefAs<DCB>;
 public:
-	inline DCB *operator &() reflect_as(this);
-	inline const DCB *operator &() const reflect_as(this);
+	CommStates() : super(0) reflect_to(self->DCBlength = sizeof(DCB); self->fBinary = 1);
+	CommStates(const DCB &dcb) : super(dcb) {}
+	CommStates(LPCSTR lpDef) : CommStates() assertl_reflect_as(BuildCommDCBA(lpDef, &self));
+	CommStates(LPCWSTR lpDef) : CommStates() assertl_reflect_as(BuildCommDCBW(lpDef, &self));
+public: // Property - BaudRate
+	/* W */ inline auto &BaudRate(DWORD baudrate) reflect_to_self(self->BaudRate = baudrate);
+	/* R */ inline DWORD BaudRate() const reflect_as(self->BaudRate);
+public: // Property - ByteSize
+	/* W */ inline auto &ByteSize(BYTE bytesize) reflect_to_self(self->ByteSize = bytesize);
+	/* R */ inline BYTE  ByteSize() const reflect_as(self->ByteSize);
+public: // Property - Parity
+	/* W */ inline auto    &Parity(Parities parity) reflect_to_self(self->Parity = parity.yield(), self->fParity = 1);
+	/* R */ inline Parities Parity() const reflect_as(reuse_as<Parities>(self->Parity));
+public: // Property - StopBits
+	/* W */ inline auto   &StopBits(StopBit stopbits) reflect_to_self(self->StopBits = stopbits.yield());
+	/* R */ inline StopBit StopBits() const reflect_as(reuse_as<StopBit>(self->StopBits));
+public: // Property - OutxCtsFlow
+	/* W */ inline auto &OutxCtsFlow(bool bOutxCtsFlow) reflect_to_self(self->fOutxCtsFlow = bOutxCtsFlow);
+	/* R */ inline bool  OutxCtsFlow() const reflect_as(self->fOutxCtsFlow);
+public: // Property - OutxDsrFlow
+	/* W */ inline auto &OutxDsrFlow(bool bOutxDsrFlow) reflect_to_self(self->fOutxDsrFlow = bOutxDsrFlow);
+	/* R */ inline bool  OutxDsrFlow() const reflect_as(self->fOutxDsrFlow);
+public: // Property - DtrControl
+	/* W */ inline auto   &DtrControl(DtrCtrl ctl) reflect_to_self(self->fDtrControl = ctl.yield());
+	/* R */ inline DtrCtrl DtrControl() const reflect_as(reuse_as<DtrCtrl>(self->fDtrControl));
+public: // Property - RtsControl
+	/* W */ inline auto   &RtsControl(RtsCtrl ctl) reflect_to_self(self->fRtsControl = ctl.yield());
+	/* R */ inline RtsCtrl RtsControl() const reflect_as(reuse_as<RtsCtrl>(self->fRtsControl));
+public: // Property - DsrSensitivity
+	/* W */ inline auto &DsrSensitivity(bool bDsrSensitivity) reflect_to_self(self->fDsrSensitivity = bDsrSensitivity);
+	/* R */ inline bool  DsrSensitivity() const reflect_as(self->fDsrSensitivity);
+public: // Property - TXContinueOnXoff
+	/* W */ inline auto &TXContinueOnXoff(bool bTXContinueOnXoff) reflect_to_self(self->fTXContinueOnXoff = bTXContinueOnXoff);
+	/* R */ inline bool  TXContinueOnXoff() const reflect_as(self->fTXContinueOnXoff);
+public: // Property - OutX
+	/* W */ inline auto &OutX(bool bOutX) reflect_to_self(self->fOutX = bOutX);
+	/* R */ inline bool  OutX() const reflect_as(self->fOutX);
+public: // Property - InX
+	/* W */ inline auto &InX(bool bInX) reflect_to_self(self->fInX = bInX);
+	/* R */ inline bool  InX() const reflect_as(self->fInX);
+public: // Property - Null
+	/* W */ inline auto &Null(bool bNull) reflect_to_self(self->fNull = bNull);
+	/* R */ inline bool  Null() const reflect_as(self->fNull);
+public: // Property - AbortOnError
+	/* W */ inline auto &AbortOnError(bool bAbortCatch) reflect_to_self(self->fAbortOnError = bAbortCatch);
+	/* R */ inline bool  AbortOnError() const reflect_as(self->fAbortOnError);
+public: // Property - XonLim
+	/* W */ inline auto &XonLim(WORD xonlim) reflect_to_self(self->XonLim = xonlim);
+	/* R */ inline WORD  XonLim() const reflect_as(self->XonLim);
+public: // Property - XoffLim
+	/* W */ inline auto &XoffLim(WORD xofflim) reflect_to_self(self->XoffLim = xofflim);
+	/* R */ inline WORD  XoffLim() const reflect_as(self->XoffLim);
+public: // Property - XonChar
+	/* W */ inline auto &XonChar(char xonchar) reflect_to_self(self->XonChar = xonchar);
+	/* R */ inline char  XonChar() const reflect_as(self->XonChar);
+public: // Property - XoffChar
+	/* W */ inline auto &XoffChar(char xoffchar) reflect_to_self(self->XoffChar = xoffchar);
+	/* R */ inline char  XoffChar() const reflect_as(self->XoffChar);
+public: // Property - ErrorChar
+	/* W */ inline auto &ErrorChar(char errorchar) reflect_to_self(self->ErrorChar = errorchar);
+	/* R */ inline char  ErrorChar() const reflect_as(self->ErrorChar);
+public: // Property - EofChar
+	/* W */ inline auto &EofChar(char eofchar) reflect_to_self(self->EofChar = eofchar);
+	/* R */ inline char  EofChar() const reflect_as(self->EofChar);
+public: // Property - EvtChar
+	/* W */ inline auto &EvtChar(char evtchar) reflect_to_self(self->EvtChar = evtchar);
+	/* R */ inline char  EvtChar() const reflect_as(self->EvtChar);
 };
-struct CommTimeout : protected COMMTIMEOUTS {
-	CommTimeout() : COMMTIMEOUTS{ 0 } {}
+struct CommTimeout : public RefAs<COMMTIMEOUTS> {
+	using super = RefAs<COMMTIMEOUTS>;
+public:
+	CommTimeout() {}
 public: // Property - ReadInterval
-	/* W */ inline auto &ReadInterval(DWORD ms) reflect_as(this->ReadIntervalTimeout = ms);
-	/* R */ inline DWORD ReadInterval() const reflect_as(this->ReadIntervalTimeout);
+	/* W */ inline auto &ReadInterval(DWORD ms) reflect_as(self->ReadIntervalTimeout = ms);
+	/* R */ inline DWORD ReadInterval() const reflect_as(self->ReadIntervalTimeout);
 public: // Property - ReadTotal
 	struct Time { DWORD msMultiplier, msConstant; };
-	/* W */ inline auto &ReadTotal(Time t) reflect_to_self(this->ReadTotalTimeoutMultiplier = t.msMultiplier, this->ReadTotalTimeoutConstant = t.msConstant);
-	/* R */ inline Time  ReadTotal() const reflect_as({ this->ReadTotalTimeoutMultiplier, this->ReadTotalTimeoutConstant });
+	/* W */ inline auto &ReadTotal(Time t) reflect_to_self(self->ReadTotalTimeoutMultiplier = t.msMultiplier, self->ReadTotalTimeoutConstant = t.msConstant);
+	/* R */ inline Time  ReadTotal() const reflect_as({ self->ReadTotalTimeoutMultiplier, self->ReadTotalTimeoutConstant });
 public: // Property - WriteTotal
-	/* W */ inline auto &WriteTotal(Time t) reflect_to_self(this->WriteTotalTimeoutMultiplier = t.msMultiplier, this->WriteTotalTimeoutConstant = t.msConstant);
-	/* R */ inline Time  WriteTotal() const reflect_as({ this->WriteTotalTimeoutMultiplier, this->WriteTotalTimeoutConstant });
-public:
-	inline COMMTIMEOUTS *operator&() reflect_as(this);
-	inline const COMMTIMEOUTS *operator&() const reflect_as(this);
+	/* W */ inline auto &WriteTotal(Time t) reflect_to_self(self->WriteTotalTimeoutMultiplier = t.msMultiplier, self->WriteTotalTimeoutConstant = t.msConstant);
+	/* R */ inline Time  WriteTotal() const reflect_as({ self->WriteTotalTimeoutMultiplier, self->WriteTotalTimeoutConstant });
 };
 class Comm {
 	File fCom;
@@ -393,7 +379,6 @@ public:
 	using States = CommStates;
 	using Timeout = CommTimeout;
 	using Event = CommEvent;
-protected:
 public:
 	Comm() {}
 	Comm(File fCom) : fCom(fCom) {}
@@ -405,7 +390,6 @@ public:
 						  .Attributes(FileAttribute::Normal)) {}
 
 #if (NTDDI_VERSION >= NTDDI_WIN10_RS3) // NTDDI_WIN10_RS4NTDDI_WIN10_RS4
-
 	static inline std::vector<ULONG> Ports() {
 		ULONG count = 0;
 		GetCommPorts(O, 0, &count);
@@ -414,11 +398,7 @@ public:
 		assertl(GetCommPorts(ports.data(), count, &count) == ERROR_SUCCESS);
 		return ports;
 	}
-
 #else
-
-
-
 #endif
 
 	inline auto &Purge(CommClear clr) assertl_reflect_as_self(PurgeComm(fCom, clr.yield()));
@@ -429,14 +409,14 @@ public:
 
 #pragma region Properties
 public: // Property - State
-	/* W */ inline auto  &State(States status) assertl_reflect_as_self(SetCommState(fCom, &status));
-	/* R */ inline States State() const assertl_reflect_to(States dcb, GetCommState(fCom, &dcb), dcb);
+	/* W */ inline auto &State(States dcb) assertl_reflect_as_self(SetCommState(fCom, &dcb));
+//	/* R */ inline auto State() const assertl_reflect_to(States dcb, GetCommState(fCom, &dcb), dcb);
 public: // Property - Timeouts
-	/* W */ inline auto   &Timeouts(Timeout to) assertl_reflect_as_self(SetCommTimeouts(fCom, &to));
-	/* R */ inline Timeout Timeouts() const assertl_reflect_to(Timeout to, GetCommTimeouts(fCom, &to), to);
+	/* W */ inline auto &Timeouts(Timeout to) assertl_reflect_as_self(SetCommTimeouts(fCom, &to));
+//	/* R */ inline auto Timeouts() const assertl_reflect_to(Timeout to, GetCommTimeouts(fCom, &to), to);
 public: // Property - Events
 	/* W */ inline auto &Events(Event evt) assertl_reflect_as_self(SetCommMask(fCom, evt.yield()));
-	/* R */ inline Event Events() const assertl_reflect_to(DWORD evt, GetCommMask(fCom, &evt), reuse_as<Event>(evt));
+	/* R */ inline auto Events() const assertl_reflect_to(DWORD evt, GetCommMask(fCom, &evt), reuse_as<Event>(evt));
 public: // Property - Config
 #pragma endregion
 
