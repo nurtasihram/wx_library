@@ -93,19 +93,6 @@ enum_flags(MapAccess, DWORD,
 	Targets    = FILE_MAP_TARGETS_INVALID,
 	LargePages = FILE_MAP_LARGE_PAGES,
 	enum_complex ReadWrite = FILE_MAP_WRITE | FILE_MAP_READ);
-struct FileTime : protected FILETIME {
-	FileTime() : FILETIME{ 0 } {}
-	FileTime(const FILETIME &ft) : FILETIME(ft) {}
-	FileTime(LARGE_INTEGER li) { ref_as<LARGE_INTEGER>(self) = li; }
-	FileTime(const SYSTEMTIME &st) assertl(SystemTimeToFileTime(&st, this));
-	inline FileTime LocalTime() assertl_reflect_to(FILETIME ft, FileTimeToLocalFileTime(this, &ft), ft);
-	inline operator SysTime() const assertl_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
-	inline operator SYSTEMTIME() const assertl_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
-	inline operator LARGE_INTEGER() const reflect_as(reuse_as<LARGE_INTEGER>(*this));
-	inline LPFILETIME operator &() reflect_as(this);
-	inline const FILETIME *operator &() const reflect_as(this);
-	inline operator String() const reflect_as(((SysTime)self));
-};
 struct FileTimes { FileTime Creation, LastAccess, LastWrite; };
 struct FileBaseInfo : protected FILE_BASIC_INFO {
 	FileBaseInfo() {}
@@ -133,7 +120,7 @@ public:
 	using super = HandleBase<File>;
 	using Access = FileAccess;
 	using Shares = FileShares;
-	using Attribute = FileAttribute;
+	using Attributes = FileAttribute;
 	using Flag = FileFlag;
 	using Types = FileTypes;
 protected:
@@ -163,7 +150,7 @@ public:
 		inline auto &Security(const SecAttr &SA) reflect_to_self(this->lpAttributes = &SA);
 		inline auto &Security(LPSECURITY_ATTRIBUTES lpAttributes) reflect_to_self(this->lpAttributes = lpAttributes);
 		inline auto &Template(HANDLE hTemplateFile) reflect_to_self(this->hTemplateFile = hTemplateFile);
-		inline auto &Attributes(Attribute dwAttributes) reflect_to_self(this->dwFlagsAndAttributes = dwAttributes.yield());
+		inline auto &Attributes(Attributes dwAttributes) reflect_to_self(this->dwFlagsAndAttributes = dwAttributes.yield());
 		inline auto &Flags(Flag dwFlags) reflect_to_self(this->dwFlagsAndAttributes = dwFlags.yield());
 	public:
 		inline auto &CreateNew() reflect_to_self(this->dwCreationDisposition = CREATE_NEW);

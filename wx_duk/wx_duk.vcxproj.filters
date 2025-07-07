@@ -57,6 +57,9 @@
     <ClInclude Include="resources\Resource.h">
       <Filter>resources</Filter>
     </ClInclude>
+    <ClInclude Include="..\wx_gdi.h">
+      <Filter>wx</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\small.ico">
@@ -102,7 +105,13 @@
     <ClCompile Include="wx_duk\wx_duk_console.cpp">
       <Filter>wx_duk</Filter>
     </ClCompile>
-    <ClCompile Include="wx_duk_dialog.cpp">
+    <ClCompile Include="wx_duk\wx_duk_dialog.cpp">
+      <Filter>wx_duk</Filter>
+    </ClCompile>
+    <ClCompile Include="wx_duk\wx_duk_realtime.cpp">
+      <Filter>wx_duk</Filter>
+    </ClCompile>
+    <ClCompile Include="wx_duk_gdi.cpp">
       <Filter>wx_duk</Filter>
     </ClCompile>
   </ItemGroup>

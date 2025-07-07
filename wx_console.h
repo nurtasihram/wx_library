@@ -26,9 +26,9 @@ public: // Property - Size
 public: // Property - CursorPosition
 	/* W */ inline auto &CursorPosition(LPoint pos) reflect_to_self(self->dwCursorPosition = COORD{ (SHORT)pos.x, (SHORT)pos.y });
 	/* R */ inline LPoint CursorPosition() const reflect_as(self->dwCursorPosition);
-public: // Property - Attribute
-	/* W */ inline auto &Attribute(WORD wAttributes) reflect_to_self(self->wAttributes = wAttributes);
-	/* R */ inline WORD Attribute() const reflect_as(self->wAttributes);
+public: // Property - Attributes
+	/* W */ inline auto &Attributes(WORD wAttributes) reflect_to_self(self->wAttributes = wAttributes);
+	/* R */ inline WORD Attributes() const reflect_as(self->wAttributes);
 public: // Property - WindowRect
 	/* W */ inline auto &WindowRect(LRect rc) reflect_to_self(self->srWindow = rc);
 	/* R */ inline LRect WindowRect() const reflect_as(self->srWindow);
@@ -47,9 +47,9 @@ public: // Property - Size
 public: // Property - CursorPosition
 	/* W */ inline auto &CursorPosition(LPoint pos) reflect_to_self(self->dwCursorPosition = COORD{ (SHORT)pos.x, (SHORT)pos.y });
 	/* R */ inline LPoint CursorPosition() const reflect_as(self->dwCursorPosition);
-public: // Property - Attribute
-	/* W */ inline auto &Attribute(WORD wAttributes) reflect_to_self(self->wAttributes = wAttributes);
-	/* R */ inline WORD Attribute() const reflect_as(self->wAttributes);
+public: // Property - Attributes
+	/* W */ inline auto &Attributes(WORD wAttributes) reflect_to_self(self->wAttributes = wAttributes);
+	/* R */ inline WORD Attributes() const reflect_as(self->wAttributes);
 public: // Property - WindowRect
 	/* W */ inline auto &WindowRect(LRect rc) reflect_to_self(self->srWindow = rc);
 	/* R */ inline LRect WindowRect() const reflect_as(self->srWindow);
@@ -70,6 +70,7 @@ public: // Property - ColorTable
 	}
 	/* R */ inline const COLORREF *ColorTable() const { return self->ColorTable; }
 };
+
 template<class AnyChild = void>
 class ConsoleItf : public ChainExtend<ConsoleItf<AnyChild>, AnyChild> {
 protected:
@@ -101,6 +102,7 @@ public:
 		retchild;
 	}
 	inline auto &Clear() reflect_to_self(FillCharacter(_T(' '), ScreenBufferInfo().Size().Square()), CursorPosition(0));
+	inline auto &Color(WORD wAttributes) reflect_to_self(FillAttributes(wAttributes, ScreenBufferInfo().Size().Square()), Attributes(wAttributes));
 
 #pragma region Allocator
 	static inline void Attach(DWORD pid) assertl_reflect_as(AttachConsole(pid));
@@ -116,11 +118,11 @@ public:
 	inline DWORD FillCharacter(TCHAR cCharacter, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacter(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
 	inline DWORD FillCharacterA(CHAR cCharacter, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacterA(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
 	inline DWORD FillCharacterW(WCHAR cCharacter, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacterW(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
-	inline DWORD FillAttribute(WORD wAttribute, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputAttribute(hOutput, wAttribute, nLength, dwWriteCoord, &written), written);
+	inline DWORD FillAttributes(WORD wAttributes, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputAttribute(hOutput, wAttributes, nLength, dwWriteCoord, &written), written);
 	inline DWORD WriteCharacter(LPCTSTR lpCharacters, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacter(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
 	inline DWORD WriteCharacterA(LPCSTR lpCharacters, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacterA(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
 	inline DWORD WriteCharacterW(LPCWSTR lpCharacters, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacterW(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
-	inline DWORD WriteAttribute(const WORD *lpAttributes, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputAttribute(hOutput, lpAttributes, nLength, dwWriteCoord, &written), written);
+	inline DWORD WriteAttributes(const WORD *lpAttributes, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputAttribute(hOutput, lpAttributes, nLength, dwWriteCoord, &written), written);
 //	inline String ReadCharacter(LPoint pos, LSize size) assertl_reflect_to(String s, ReadConsoleOutputCharacter(hOutput, s, size.Area(), pos, &size), s);
 #pragma endregion
 
@@ -150,11 +152,6 @@ public:
 	inline DWORD ErrA(const Args& ...args) reflect_as(ErrA(CatsA(args...)));
 	template<class... Args>
 	inline DWORD ErrW(const Args& ...args) reflect_as(ErrW(CatsW(args...)));
-public:
-	inline auto &operator[](LPoint p) reflect_as(CursorPosition(p));
-	inline auto &operator[](bool bCurVis) reflect_as(CursorVisible(bCurVis));
-	template<class... Args>
-	inline auto &operator()(const Args& ...args) reflect_to_child(Log(Cats(args...)));
 #pragma endregion
 
 #pragma region Properties
@@ -217,9 +214,9 @@ public: // Property - ScreenBufferSize
 public: // Property - WindowSize
 //	/* W */ inline auto &WindowSize(LRect rect) assertl_reflect_as_child(SetConsoleWindowInfo(hOutput, TRUE, ));
 	/* R */ inline auto  WindowSize() const reflect_as(ScreenBufferInfo().WindowRect().size());
-public: // Property - Attribute
-	/* W */ inline auto &Attribute(WORD wAttr) assertl_reflect_as_child(SetConsoleTextAttribute(hOutput, wAttr));
-	/* R */ inline WORD  Attribute() const reflect_as(ScreenBufferInfo().Attribute());
+public: // Property - Attributes
+	/* W */ inline auto &Attributes(WORD wAttributes) assertl_reflect_as_child(SetConsoleTextAttribute(hOutput, wAttributes));
+	/* R */ inline WORD  Attributes() const reflect_as(ScreenBufferInfo().Attributes());
 public: // Property - CursorInfo
 	/* W */ inline auto &CursorInfo(const CONSOLE_CURSOR_INFO &cci) assertl_reflect_as_child(SetConsoleCursorInfo(hOutput, &cci));
 	/* R */ inline auto  CursorInfo() const assertl_reflect_to(CursorInf ci, GetConsoleCursorInfo(hOutput, &ci), ci);
@@ -230,7 +227,11 @@ public: // Property - CurVis
 	/* W */ inline auto &CursorVisible(bool bVisible) reflect_to_child(CursorInfo(*CursorInfo().Visible(bVisible)));
 	/* R */ inline bool  CursorVisible() const reflect_as(CursorInfo().Visible());
 #pragma endregion
-
+public:
+	inline auto &operator[](LPoint p) reflect_as(CursorPosition(p));
+	inline auto &operator[](bool bCurVis) reflect_as(CursorVisible(bCurVis));
+	template<class... Args>
+	inline auto &operator()(const Args& ...args) reflect_to_child(Log(Cats(args...)));
 };
 static inline ConsoleItf<> Console;
 

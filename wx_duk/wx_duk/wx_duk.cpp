@@ -3,8 +3,6 @@
 //#define DUK_USE_DEBUG
 #include "wx_duk.h"
 
-#pragma region Duktape
-
 const char *smpl_to_string(bool b) {
 	return b ? "true" : "false";
 }
@@ -15,19 +13,105 @@ const char *duk_this_prop_to_string(duk_context *ctx, const char *name) {
 	return duk_to_string(ctx, -1);
 }
 
-void duk_member_int(duk_context *ctx, const char *name, duk_idx_t i) {
-	duk_push_int(ctx, i);;
+void duk_put_global_function(duk_context *ctx, const char *name, duk_idx_t nargs, duk_c_function constructor) {
+	duk_push_c_function(ctx, constructor, nargs);
+	duk_push_string(ctx, "name");
+	duk_push_string(ctx, name);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+	duk_put_global_string(ctx, name);
+}
+void duk_put_global_object(duk_context *ctx, const char *name, duk_c_function constuctor) {
+	duk_push_global_object(ctx);
+	duk_push_string(ctx, name);
+	duk_push_object(ctx);
+	constuctor(ctx);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+	duk_pop(ctx);
+}
+
+void duk_int_prop(duk_context *ctx, const char *name, duk_int_t val) {
+	duk_push_int(ctx, val);
 	duk_put_prop_string(ctx, -2, name);
 }
-void duk_member_str(duk_context *ctx, const char *name, const char *i) {
-	duk_push_string(ctx, i);
-	duk_put_prop_string(ctx, -2, name);
+void duk_put_prop(duk_context *ctx, const char *name, duk_c_function setter, duk_c_function getter) {
+	duk_push_string(ctx, name);
+	duk_push_c_function(ctx, getter, 0);
+	duk_push_c_function(ctx, setter, 1);
+	duk_def_prop(ctx, -4,
+					DUK_DEFPROP_HAVE_GETTER |		// getter
+					DUK_DEFPROP_HAVE_SETTER |		// setter
+					DUK_DEFPROP_CLEAR_CONFIGURABLE	// unconfigurable 
+	);
 }
-void duk_extends(duk_context *ctx, const char *child_name, const char *parent_name) {
-	duk_get_global_string(ctx, child_name);
+void duk_put_prop_w(duk_context *ctx, const char *name, duk_c_function setter) {
+	duk_push_string(ctx, name);
+	duk_push_c_function(ctx, setter, 1);
+	duk_def_prop(ctx, -3,
+					DUK_DEFPROP_HAVE_SETTER |		// setter
+					DUK_DEFPROP_CLEAR_CONFIGURABLE	// unconfigurable
+	);
+}
+void duk_put_prop_r(duk_context *ctx, const char *name, duk_c_function getter) {
+	duk_push_string(ctx, name);
+	duk_push_c_function(ctx, getter, 0);
+	duk_def_prop(ctx, -3,
+					DUK_DEFPROP_HAVE_GETTER |		// getter
+					DUK_DEFPROP_CLEAR_CONFIGURABLE	// unconfigurable
+	);
+}
+void duk_put_const(duk_context *ctx, const char *name, duk_uint_t value) {
+	duk_push_string(ctx, name);
+	duk_push_uint(ctx, value);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+}
+void duk_put_const(duk_context *ctx, const duk_constant *c, uint32_t len) {
+	for (; len--; ++c)
+		duk_put_const(ctx, c->name, c->value);
+}
+void duk_put_method(duk_context *ctx, const char *name, duk_idx_t nargs, duk_c_function func) {
+	duk_push_string(ctx, name);
+	duk_push_c_function(ctx, func, nargs);
+	duk_push_string(ctx, "name");
+	duk_push_string(ctx, name);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+}
+void duk_put_destructor(duk_context *ctx, duk_c_function finalizer) {
+	if (finalizer)
+		duk_push_c_function(ctx, finalizer, 1);
+	else
+		duk_push_null(ctx);
+	duk_set_finalizer(ctx, -2);
+}
+void duk_put_global_class(duk_context *ctx,
+						  const char *class_name, const char *extends_name,
+						  duk_c_function put_member, duk_c_function constructor,
+						  duk_c_function put_static) {
+	duk_push_global_object(ctx);
+	// [global]
+	duk_push_string(ctx, class_name);
+	// [global] [class_name]
+	duk_push_c_function(ctx, constructor, DUK_VARARGS);
+	// [global] [class_name] [constructor]
+	duk_push_string(ctx, "name");
+	// [global] [class_name] [constructor] [.name]
+	duk_push_string(ctx, class_name);
+	// [global] [class_name] [constructor] [.name] [class_name]
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+	// [global] [class_name] [constructor] (.name = class_name)
 	duk_push_string(ctx, "prototype");
-	duk_get_global_string(ctx, parent_name);
-	duk_put_prop(ctx, -3);
+	// [global] [class_name] [constructor] [.prototype]
+	duk_push_object(ctx);
+	// [global] [class_name] [constructor] [.prototype] [object]
+	put_member(ctx);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+	// [global] [class_name] [constructor] (.prototype = object)
+	if (put_static)
+		put_static(ctx);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+	// [global] (.class_name = constructor)
+	duk_pop(ctx);
+	// []
 }
 bool duk_reflect_constructor(duk_context *ctx) {
 	auto nargs = duk_get_top(ctx);
@@ -38,146 +122,78 @@ bool duk_reflect_constructor(duk_context *ctx) {
 	duk_new(ctx, nargs);
 	return true;
 }
-
-void duk_property(duk_context *ctx, const char *name, duk_c_function setter, duk_c_function getter) {
-	duk_push_string(ctx, name);
-	duk_push_c_function(ctx, getter, 0);
-	duk_push_c_function(ctx, setter, 1);
-	duk_def_prop(ctx, -4,
-					/* getter */ DUK_DEFPROP_HAVE_GETTER |
-					/* setter */ DUK_DEFPROP_HAVE_SETTER |
-					/* configurable : false */	DUK_DEFPROP_CLEAR_CONFIGURABLE
-	);
-}
-void duk_property_w(duk_context *ctx, const char *name, duk_c_function setter) {
-	duk_push_string(ctx, name);
-	duk_push_c_function(ctx, setter, 1);
-	duk_def_prop(ctx, -3,
-					/* setter */ DUK_DEFPROP_HAVE_SETTER |
-					/* configurable : false */ DUK_DEFPROP_CLEAR_CONFIGURABLE
-	);
-}
-void duk_property_r(duk_context *ctx, const char *name, duk_c_function getter) {
-	duk_push_string(ctx, name);
-	duk_push_c_function(ctx, getter, 0);
-	duk_def_prop(ctx, -3,
-					/* getter */ DUK_DEFPROP_HAVE_GETTER |
-					/* configurable : false */ DUK_DEFPROP_CLEAR_CONFIGURABLE
-	);
+void duk_set_extends(duk_context *ctx, const char *child_name, const char *parent_name) {
+	duk_get_global_string(ctx, child_name);
+	duk_push_string(ctx, "prototype");
+	duk_get_global_string(ctx, parent_name);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
 }
 
-void duk_finalizer(duk_context *ctx, duk_c_function finalizer) {
-	if (finalizer)
-		duk_push_c_function(ctx, finalizer, 1);
-	else
-		duk_push_null(ctx);
-	duk_set_finalizer(ctx, -2);
-}
-
-void duk_constant(duk_context *ctx, const char *name, duk_uint_t value) {
-	duk_push_string(ctx, name);
-	duk_push_uint(ctx, value);
-	duk_def_prop(ctx, -3,
-					/* value */				DUK_DEFPROP_HAVE_VALUE |
-					/* enumerable : true */	DUK_DEFPROP_SET_ENUMERABLE |
-					/* configurable : false */	DUK_DEFPROP_CLEAR_CONFIGURABLE
-	);
-}
-void duk_constant(duk_context *ctx, const duk_constant_struct *c, uint32_t len) {
-	for (; len--; ++c)
-		duk_constant(ctx, c->name, c->value);
-}
-
-void duk_function_global(duk_context *ctx, const char *name, duk_c_function constructor, duk_idx_t nargs) {
-	duk_push_c_function(ctx, constructor, nargs);
-	duk_put_global_string(ctx, name);
-}
-void duk_struct_global(duk_context *ctx, const char *name, duk_c_function constuctor) {
-	duk_push_object(ctx);
-	constuctor(ctx);
-	duk_put_global_string(ctx, name);
-}
-void duk_method(duk_context *ctx, const char *name, duk_idx_t nargs, duk_c_function func) {
-	duk_push_string(ctx, name);
-	duk_push_c_function(ctx, func, nargs);
-	duk_put_prop(ctx, -3);
-}
-
-void duk_push_new_int_obj(duk_context *ctx, const char *name, duk_int_t i) {
-	duk_get_global_string(ctx, name);
-	duk_push_int(ctx, i);
-	duk_call(ctx, 1);
-}
-
-void duk_class(duk_context *ctx,
-			   const char *name, const char *extends,
-			   duk_c_function cstr_struct, duk_c_function cstr_class,
-			   duk_c_function cstr_static) {
-	auto &&obj_name = sprintf("%sObj", name);
-	duk_struct_global(ctx, obj_name, cstr_struct);
-	duk_function_global(ctx, name, cstr_class);
-	duk_extends(ctx, name, obj_name);
-	if (cstr_static)
-		cstr_static(ctx);
-}
-
-HANDLE duk_member_handle(duk_context *ctx) {
-	duk_push_this(ctx);
-	duk_get_prop_string(ctx, -1, "__p");
-	if (duk_get_type(ctx, -1) != DUK_TYPE_POINTER)
-		return O; // pointer lost
-	return (HANDLE)duk_get_pointer(ctx, -1);
-}
-void duk_member_handle(duk_context *ctx, HANDLE hd) {
+void *duk_put_cstruct(duk_context *ctx, duk_size_t size) {
 	duk_push_this(ctx);
 	duk_push_string(ctx, "__p");
-	duk_push_pointer(ctx, hd);
-	duk_put_prop(ctx, -3);
-	//duk_def_prop(ctx, -3,
-	//			 DUK_DEFPROP_HAVE_VALUE |
-	//			 DUK_DEFPROP_CLEAR_WRITABLE |	// writable : false
-	//			 DUK_DEFPROP_CLEAR_CONFIGURABLE	// configurable : false
-	//);
-}
-
-void *duk_get_buffer(duk_context *ctx, duk_size_t size) {
-	duk_push_this(ctx);
-	duk_get_prop_string(ctx, -1, "__p");
-	duk_size_t read_size = 0;
-	auto pobj = duk_get_buffer(ctx, -1, &read_size);
-	if (size != read_size) {
-		duk_errout(ctx, "Buffer invalid\n");
-		return O;
-	}
+	auto pobj = duk_push_fixed_buffer(ctx, size);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+	duk_pop(ctx);
 	return pobj;
 }
 
-bool duk_class_handle(duk_context *ctx, const char *class_name, HANDLE &hd, duk_idx_t idx) {
-	if (duk_is_null(ctx, idx))
-		return false;
-	duk_get_global_string(ctx, class_name);
-	if (!duk_instanceof(ctx, idx, -1))
-		return true;
+bool duk_get__p(duk_context *ctx, void *&ptr, duk_size_t size, duk_idx_t idx) {
 	duk_get_prop_string(ctx, idx, "__p");
-	if (duk_get_type(ctx, -1) != DUK_TYPE_POINTER)
+	bool res = false;
+	switch (duk_get_type(ctx, -1)) {
+		case DUK_TYPE_POINTER:
+			ptr = duk_get_pointer(ctx, -1);
+			res = true;
+			break;
+		case DUK_TYPE_BUFFER: {
+			duk_size_t read_size = 0;
+			ptr = duk_get_buffer(ctx, -1, &read_size);
+			if (size != read_size) {
+				duk_errout(ctx, "buffer size %d invalid, should be %d",
+						   read_size, size);
+				break;
+			}
+			res = true;
+			break;
+		}
+		case DUK_TYPE_UNDEFINED:
+			duk_errout(ctx, "__p must be defined as a pointer or buffer");
+			break;
+		default:
+			duk_errout(ctx, "__p must be a pointer or buffer");
+	}
+	duk_pop(ctx);
+	return res;
+}
+void *duk_get_this__p(duk_context *ctx, duk_size_t size) {
+	void *ptr = O;
+	duk_push_this(ctx);
+	duk_get__p(ctx, ptr, size, -1);
+	return ptr;
+}
+void duk_put_this__p(duk_context *ctx, HANDLE hd) {
+	duk_push_this(ctx);
+	duk_push_string(ctx, "__p");
+	duk_push_pointer(ctx, hd);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+	duk_pop(ctx);
+}
+
+bool duk_get_class__p(duk_context *ctx, const char *class_name, void *&ptr, duk_size_t size, duk_idx_t idx) {
+	if (duk_is_null(ctx, idx))
 		return true;
-	hd = (HANDLE)duk_get_pointer(ctx, -1);
-	return false;
+	bool res = false;
+	duk_get_global_string(ctx, class_name);
+	if (duk_instanceof(ctx, idx, -1))
+		res = duk_get__p(ctx, ptr, size, idx);
+	else
+		duk_errout(ctx, "argument is not a instance of %s", class_name);
+	duk_pop(ctx);
+	return res;
 }
-//bool duk_class_takeoff_handle(duk_context *ctx, const char *class_name, HANDLE &hd, duk_idx_t idx) {
-//	if (duk_is_null(ctx, idx))
-//		return false;
-//	duk_get_global_string(ctx, class_name);
-//	if (!duk_instanceof(ctx, idx, -1))
-//		return true;
-//	duk_get_prop_string(ctx, idx, "__p");
-//	if (duk_get_type(ctx, -1) != DUK_TYPE_POINTER)
-//		return true;
-//	hd = (HANDLE)duk_get_pointer(ctx, -1);
-//	duk_put_prop_string(ctx, idx, )
-//	return false;
-//}
-void duk_new_handle(duk_context *ctx, const char *class_name, HANDLE hd) {
+
+void duk_push_new_handle(duk_context *ctx, const char *class_name, HANDLE hd) {
 	if (!hd) {
 		duk_push_null(ctx);
 		return;
@@ -186,7 +202,7 @@ void duk_new_handle(duk_context *ctx, const char *class_name, HANDLE hd) {
 	duk_push_pointer(ctx, hd);
 	duk_new(ctx, 1);
 }
-void duk_new_handle_proxy(duk_context *ctx, const char *class_name, HANDLE hd) {
+void duk_push_new_cclass(duk_context *ctx, const char *class_name, HANDLE hd) {
 	if (!hd) {
 		duk_push_null(ctx);
 		return;
@@ -194,15 +210,16 @@ void duk_new_handle_proxy(duk_context *ctx, const char *class_name, HANDLE hd) {
 	duk_get_global_string(ctx, class_name);
 	duk_push_pointer(ctx, hd);
 	duk_new(ctx, 1);
-	duk_finalizer(ctx, O);
+	duk_put_destructor(ctx, O);
 }
-#pragma endregion
 
 duk_ret_t load_duk(duk_context *ctx) {
 	load_duk_types(ctx);
 	load_duk_resource(ctx);
+	load_duk_gdi(ctx);
 	load_duk_dialog(ctx);
 	load_duk_window(ctx);
 	load_duk_console(ctx);
+	load_duk_realtime(ctx);
 	return 0;
 }

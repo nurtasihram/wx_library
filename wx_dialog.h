@@ -18,26 +18,27 @@ enum_flags(ChooserColorStyle, DWORD,
 	SolidColor           = CC_SOLIDCOLOR,
 	AnyColor             = CC_ANYCOLOR);
 template<bool IsUnicode>
-class ChooserColorT : public RefStruct<std::conditional_t<IsUnicode, CHOOSECOLORW, CHOOSECOLORA>> {
+class ChooserColorX : public RefStruct<std::conditional_t<IsUnicode, CHOOSECOLORW, CHOOSECOLORA>> {
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 public:
 	using Style = ChooserColorStyle;
 	using ColorSet = arrayof<RGBColor, 16>;
 	using CColorSet = const arrayof<RGBColor, 16>;
 public:
-	ChooserColorT() reflect_to(self->lStructSize = sizeof(CHOOSECOLOR));
-public: // Properties
+	ChooserColorX() reflect_to(self->lStructSize = sizeof(CHOOSECOLOR));
+public: // Common properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = (HWND &)hMod);
 	/* W */ inline auto &Styles(Style style) reflect_to_self(self->Flags = style.yield());
 	/* W */ inline auto &TemplateName(LPCTSTR lpTemplateName) reflect_to_self(self->lpTemplateName = lpTemplateName);
+	//	LPARAM       lCustData;
+	//	LPCCHOOKPROC lpfnHook;
+public: // Property - CustColors
 	/* W */ inline auto &CustColors(ColorSet *lpCustColors) reflect_to_self(self->lpCustColors = (COLORREF *)lpCustColors);
 	/* R */ inline CColorSet *CustColors() const reflect_as((CColorSet *)self->lpCustColors);
+public: // Property - Result
 	/* W */ inline auto &Result(COLORREF rgb) reflect_to_self(self->rgbResult = rgb);
 	/* R */ inline RGBColor Result() const reflect_as(self->rgbResult);
-//	LPARAM       lCustData;
-//	LPCCHOOKPROC lpfnHook;
-//	LPEDITMENU   lpEditInfo;
 public:
 	inline bool Choose() {
 		if constexpr (IsUnicode)
@@ -46,9 +47,9 @@ public:
 			reflect_as(ChooseColorA(self))
 	}
 };
-using ChooserColor = ChooserColorT<IsUnicode>;
-using ChooserColorA = ChooserColorT<false>;
-using ChooserColorW = ChooserColorT<true>;
+using ChooserColor = ChooserColorX<IsUnicode>;
+using ChooserColorA = ChooserColorX<false>;
+using ChooserColorW = ChooserColorX<true>;
 
 enum_flags(ChooserFontStyle, DWORD,
 	ScreenFonts          = CF_SCREENFONTS,
@@ -78,35 +79,43 @@ enum_flags(ChooserFontStyle, DWORD,
 	NoVertFonts          = CF_NOVERTFONTS,
 	InActiveFonts        = CF_INACTIVEFONTS);
 template<bool IsUnicode>
-class ChooserFontT : public RefStruct<std::conditional_t<IsUnicode, CHOOSEFONTW, CHOOSEFONTA>> {
+class ChooserFontX : public RefStruct<std::conditional_t<IsUnicode, CHOOSEFONTW, CHOOSEFONTA>> {
 	using LPCTSTR = LPCXSTR<IsUnicode>;
-protected:
-	FontLogicT<IsUnicode> crLogFont;
+	using FontLogic = std::conditional_t<IsUnicode, FontLogicW, FontLogicA>;
+	using LOGFONT = std::conditional_t<IsUnicode, LOGFONTW, LOGFONTA>;
 public:
 	using Style = ChooserFontStyle;
+	using Log = FontLogic;
 public:
-	ChooserFontT() reflect_to(self->lStructSize = sizeof(CHOOSEFONT));
-public: // Properties
+	ChooserFontX() reflect_to(self->lStructSize = sizeof(CHOOSEFONT));
+public: // Common properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = hMod);
 	/* W */ inline auto &Styles(Style style) reflect_to_self(self->Flags = style.yield());
 	/* W */ inline auto &TemplateName(LPCTSTR lpTemplateName) reflect_to_self(self->lpTemplateName = lpTemplateName);
-	/* W */ inline auto    &FontTypes(FontType ft) reflect_to_self(self->nFontType = ft.yield());
-	/* R */ inline FontType FontTypes() const reflect_as(reuse_as<FontType>(self->nFontType));
-	/* W */ inline auto &SizeMin(INT nSizeMin) reflect_to_self(self->nSizeMin = nSizeMin);
-	/* R */ inline INT   SizeMin() const reflect_as(self->nSizeMin);
-	/* W */ inline auto &SizeMax(INT nSizeMax) reflect_to_self(self->nSizeMax = nSizeMax);
-	/* R */ inline INT   SizeMax() const reflect_as(self->nSizeMax);
-	/* W */ inline auto &PointSize(INT iPointSize) reflect_to_self(self->iPointSize = iPointSize);
-	/* R */ inline INT   PointSize() const reflect_as(self->iPointSize);
-	/* W */ inline auto    &Color(COLORREF rgbColors) reflect_to_self(self->rgbColors = rgbColors);
-	/* R */ inline RGBColor Color() const reflect_as(self->rgbColors);
 	// LPCFHOOKPROC    lpfnHook;
 	// LPARAM          lCustData;
+public: // Property - FontTypes
+	/* W */ inline auto    &FontTypes(FontType ft) reflect_to_self(self->nFontType = ft.yield());
+	/* R */ inline FontType FontTypes() const reflect_as(reuse_as<FontType>(self->nFontType));
+public: // Property - SizeMin
+	/* W */ inline auto &SizeMin(INT nSizeMin) reflect_to_self(self->nSizeMin = nSizeMin);
+	/* R */ inline INT   SizeMin() const reflect_as(self->nSizeMin);
+public: // Property - SizeMax
+	/* W */ inline auto &SizeMax(INT nSizeMax) reflect_to_self(self->nSizeMax = nSizeMax);
+	/* R */ inline INT   SizeMax() const reflect_as(self->nSizeMax);
+public: // Property - PointSize
+	/* W */ inline auto &PointSize(INT iPointSize) reflect_to_self(self->iPointSize = iPointSize);
+	/* R */ inline INT   PointSize() const reflect_as(self->iPointSize);
+public: // Property - Color
+	/* W */ inline auto    &Color(COLORREF rgbColors) reflect_to_self(self->rgbColors = rgbColors);
+	/* R */ inline RGBColor Color() const reflect_as(self->rgbColors);
 	// HDC             hDC;
 	// LPWSTR          lpszStyle;
-	/* R */ inline auto &LogFont() reflect_as(crLogFont);
-	/* R */ inline auto &LogFont() const reflect_as(crLogFont);
+public: // Property - LogFont
+	/* W */ inline auto &LogFont(LOGFONT *lpLogFont) reflect_to_self(self->lpLogFont = lpLogFont);
+	/* W */ inline auto &LogFont(Log *lpLogFont) reflect_to_self(self->lpLogFont = (LOGFONT *)lpLogFont);
+	/* R */ inline auto LogFont() const reflect_as(self->lpLogFont);
 public:
 	inline bool Choose() {
 		if constexpr (IsUnicode)
@@ -115,9 +124,9 @@ public:
 			reflect_as(ChooseFontA(self))
 	}
 };
-using ChooserFont = ChooserFontT<IsUnicode>;
-using ChooserFontA = ChooserFontT<false>;
-using ChooserFontW = ChooserFontT<true>;
+using ChooserFont = ChooserFontX<IsUnicode>;
+using ChooserFontA = ChooserFontX<false>;
+using ChooserFontW = ChooserFontX<true>;
 
 enum_flags(ChooserFileStyle, DWORD,
 	ReadOnly             = OFN_READONLY,
@@ -147,46 +156,46 @@ enum_flags(ChooserFileStyle, DWORD,
 	DontAddToRecent      = OFN_DONTADDTORECENT,
 	ForcesHowHidden      = OFN_FORCESHOWHIDDEN);
 template<bool IsUnicode>
-class ChooserFileT : public RefStruct<std::conditional_t<IsUnicode, OPENFILENAMEW, OPENFILENAMEA>> {
+class ChooserFileX : public RefStruct<std::conditional_t<IsUnicode, OPENFILENAMEW, OPENFILENAMEA>> {
 	using LPTSTR = LPXSTR<IsUnicode>;
 	using LPCTSTR = LPCXSTR<IsUnicode>;
-	using TCHAR = XCHAR<IsUnicode>;
-	using String = StringBase<TCHAR>;
+	using String = StringX<IsUnicode>;
 public:
 	using Style = ChooserFileStyle;
-	using String = StringBase<TCHAR>;
 public:
-	ChooserFileT() reflect_to(self->lStructSize = sizeof(OPENFILENAME));
-public: // Property - Parent
+	ChooserFileX() reflect_to(self->lStructSize = sizeof(OPENFILENAME));
+public: // Common properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
-public: // Property - Module
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = hMod);
-public: // Property - Styles
 	/* W */ inline auto &Styles(Style Flags) reflect_to_self(self->Flags = Flags.yield());
-public: // Property - TemplateName
 	/* W */ inline auto &TemplateName(LPCTSTR lpTemplateName) reflect_to_self(self->lpTemplateName = lpTemplateName);
+	// LPCFHOOKPROC    lpfnHook;
+	// LPARAM          lCustData;
 public: // Property - FileOffset
 	/* R */ inline WORD FileOffset() const reflect_as(self->nFileOffset);
 public: // Property - FileExtension
 	/* R */ inline WORD FileExtension() const reflect_as(self->nFileExtension);
 public: // Property - File
 	/* W */ inline auto &File(LPTSTR lpstrFile) reflect_to_self(self->lpstrFile = lpstrFile);
+	/* W */ inline auto &File(String &strFile) reflect_to_self(self->lpstrFile = strFile, self->nMaxFile = (DWORD)strFile.Length());
 	/* R */ inline const String File() const reflect_as(CString(self->lpstrFile, self->nMaxFile));
 public: // Property - FileMaxLen
 	/* W */ inline auto &FileMaxLen(DWORD nMaxFile) reflect_to_self(self->nMaxFile = nMaxFile);
 	/* R */ inline auto  FileMaxLen() const reflect_as(self->nMaxFile);
 public: // Property - FileTitle
-	/* W */ inline auto &FileTitle(LPTSTR lpstrFileTitle) reflect_as(self->lpstrFileTitle);
+	/* W */ inline auto &FileTitle(LPTSTR lpstrFileTitle) reflect_as(self->lpstrFileTitle = lpstrFileTitle);
+	/* W */ inline auto &FileTitle(String &strFileTitle) reflect_to_self(self->lpstrFileTitle = strFileTitle, self->nMaxFileTitle = (DWORD)strFileTitle.Length());
 	/* R */ inline const String FileTitle() const reflect_as(CString(self->lpstrFileTitle, self->nMaxFileTitle));
 public: // Property - FileTitleMaxLen
 	/* W */ inline auto &FileTitleMaxLen(DWORD nMaxFileTitle) reflect_to_self(self->nMaxFileTitle = nMaxFileTitle);
-	/* W */ inline auto  FileTitleMaxLen() const reflect_as(self->nMaxFileTitle = nMaxFileTitle);
+	/* W */ inline auto  FileTitleMaxLen() const reflect_as(self->nMaxFileTitle);
 public: // Property - CustomFilter
-	/* W */ inline auto &CustomFilter(LPTSTR lpstrCustomFilter) reflect_to_self(self->lpstrCustomFilter);
-	/* R */ inline const String CustomFilter() const reflect_as(CString(self->lpstrCustomFilter, self->nMaxCustomFilter));
+	/* W */ inline auto &CustomFilter(LPTSTR lpstrCustomFilter) reflect_to_self(self->lpstrCustomFilter = lpstrCustomFilter);
+	/* W */ inline auto &CustomFilter(String &strCustFilter) reflect_to_self(self->lpstrCustomFilter = strCustFilter, self->nMaxCustFilter = (DWORD)strCustFilter.Length());
+	/* R */ inline const String CustomFilter() const reflect_as(CString(self->lpstrCustomFilter, self->nMaxCustFilter));
 public: // Property - CustomFilterMaxLen
-	/* W */ inline auto &CustomFilterMaxLen(DWORD nMaxCustomFilter) reflect_to_self(self->nMaxCustomFilter = nMaxCustomFilter);
-	/* R */ inline auto  CustomFilterMaxLen() const reflect_as(self->nMaxCustomFilter);
+	/* W */ inline auto &CustomFilterMaxLen(DWORD nMaxCustFilter) reflect_to_self(self->nMaxCustFilter = nMaxCustFilter);
+	/* R */ inline auto  CustomFilterMaxLen() const reflect_as(self->nMaxCustFilter);
 public: // Property - Filter
 	/* W */ inline auto &Filter(LPCTSTR lpstrFilter) reflect_to_self(self->lpstrFilter = lpstrFilter);
 public: // Property - FilterIndex
@@ -211,9 +220,9 @@ public:
 			reflect_as(GetSaveFileNameA(self))
 	}
 };
-using ChooserFile = ChooserFileT<IsUnicode>;
-using ChooserFileA = ChooserFileT<false>;
-using ChooserFileW = ChooserFileT<true>;
+using ChooserFile = ChooserFileX<IsUnicode>;
+using ChooserFileA = ChooserFileX<false>;
+using ChooserFileW = ChooserFileX<true>;
 
 enum_flags(FindReplaceStyle, DWORD,
 	Down                 = FR_DOWN,
@@ -323,9 +332,9 @@ public: // Property - Size
 	/* W */ inline auto &Size(LSize sz) reflect_to_self(dit.cx = (SHORT)sz.cx, dit.cy = (SHORT)sz.cy);
 public: // Property - ID
 	/* W */ inline auto &ID(WORD id) reflect_to_self(dit.id = id);
-public: // Property - Class
-	/* W */ inline auto &Class(std::wstring className) reflect_to_self(this->className = className);
-	/* W */ inline auto &Class(WORD classId) reflect_to_self(this->className = { (wchar_t)classId });
+public: // Property - WindowClass
+	/* W */ inline auto &WindowClass(std::wstring className) reflect_to_self(this->className = className);
+	/* W */ inline auto &WindowClass(WORD classId) reflect_to_self(this->className = { (wchar_t)classId });
 public: // Property - Caption
 	/* W */ inline auto &Caption(LPCWSTR lpszCaption) reflect_to_self(this->caption = lpszCaption);
 #pragma endregion
@@ -377,9 +386,9 @@ public: // Property - Size
 public: // Property - Menu
 	/* W */ inline auto &Menu(std::wstring menuName) reflect_to_self(this->menuName = menuName);
 	/* W */ inline auto &Menu(WORD menuId) reflect_to_self(this->menuName = { (wchar_t)menuId });
-public: // Property - Class
-	/* W */ inline auto &Class(std::wstring className) reflect_to_self(this->className = className);
-	/* W */ inline auto &Class(WORD classId) reflect_to_self(this->className = { (wchar_t)classId });
+public: // Property - WindowClass
+	/* W */ inline auto &WindowClass(std::wstring className) reflect_to_self(this->className = className);
+	/* W */ inline auto &WindowClass(WORD classId) reflect_to_self(this->className = { (wchar_t)classId });
 public: // Property - Caption
 	/* W */ inline auto &Caption(std::wstring caption) reflect_to_self(this->caption = caption);
 #pragma endregion

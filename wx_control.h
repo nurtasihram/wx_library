@@ -88,13 +88,14 @@ public:
 	CommCtl() { static_assert(!std::is_void_v<AnyChild>); }
 protected:
 	static WndProc DefProc;
-	struct xClass : super::template ClassBase<IsUnicode, xClass> {
+	struct xClass : super::template XClass<xClass> {
 		xClass() {
 			self->lpszClassName = AnyChild::CtlClassName;
 			this->GetInfo();
 			self->lpszClassName = AnyChild::CClassName();
 			DefProc = self->lpfnWndProc;
-			self->lpfnWndProc = AnyChild::template MainProc<GWLP_USERDATA>;
+			self->lpfnWndProc = AnyChild::MainProc;
+			//self->lpfnWndProc = AnyChild::template MainProc<GWLP_USERDATA>;
 		}
 	};
 public:

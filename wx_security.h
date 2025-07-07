@@ -27,11 +27,11 @@ public:
 using SecAuthorID = SecurityIdentifiersAuthority;
 
 enum_class_explicit(SecurityIdentifiersAuthorities, SecAuthorID,
-	Null    = SecAuthorID __braceO SECURITY_NULL_SID_AUTHORITY Obrace__,
-	World   = SecAuthorID __braceO SECURITY_WORLD_SID_AUTHORITY Obrace__,
-	Local   = SecAuthorID __braceO SECURITY_LOCAL_SID_AUTHORITY Obrace__,
-	Creator = SecAuthorID __braceO SECURITY_CREATOR_SID_AUTHORITY Obrace__,
-	NT      = SecAuthorID __braceO SECURITY_NT_AUTHORITY Obrace__);
+	Null    = SecAuthorID(SECURITY_NULL_SID_AUTHORITY),
+	World   = SecAuthorID(SECURITY_WORLD_SID_AUTHORITY),
+	Local   = SecAuthorID(SECURITY_LOCAL_SID_AUTHORITY),
+	Creator = SecAuthorID(SECURITY_CREATOR_SID_AUTHORITY),
+	NT      = SecAuthorID(SECURITY_NT_AUTHORITY));
 using SecAuthorIDs = SecurityIdentifiersAuthorities;
 class SecurityIdentifier {
 	friend class SecurityDescriptor;
@@ -104,7 +104,8 @@ public: //
 	inline bool operator==(PSID pSID) const reflect_as(EqualSid(this->pSID, pSID));
 	inline bool operator!=(PSID pSID) const reflect_as(EqualSid(this->pSID, pSID));
 
-	inline operator String() const assertl_reflect_to(AutoPointer<_M_(Local, TCHAR)> szSID(LocalHeap), ConvertSidToStringSid(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
+	inline operator StringA() const assertl_reflect_to(AutoPointer<_M_(Local, CHAR)> szSID(LocalHeap), ConvertSidToStringSidA(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
+	inline operator StringW() const assertl_reflect_to(AutoPointer<_M_(Local, WCHAR)> szSID(LocalHeap), ConvertSidToStringSidW(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
 	inline PSID operator&() const reflect_as(this->pSID);
 	inline operator bool() const reflect_as(this->pSID ? IsValidSid(this->pSID) : false);
 };
@@ -501,7 +502,8 @@ public:
 	SecurityDescriptor(SecurityDescriptor &sd) : pSD(sd.pSD) reflect_to(sd.pSD = O);
 	SecurityDescriptor(SecurityDescriptor &&sd) : pSD(sd.pSD) reflect_to(sd.pSD = O);
 	SecurityDescriptor(const SecurityDescriptor &sd) = delete;
-	SecurityDescriptor(LPCTSTR lpszDesc) assertl_reflect_to(ULONG size, ConvertStringSecurityDescriptorToSecurityDescriptor(lpszDesc, SDDL_REVISION_1, &pSD, &size));
+	SecurityDescriptor(LPCSTR lpszDesc) assertl_reflect_to(ULONG size, ConvertStringSecurityDescriptorToSecurityDescriptorA(lpszDesc, SDDL_REVISION_1, &pSD, &size));
+	SecurityDescriptor(LPCWSTR lpszDesc) assertl_reflect_to(ULONG size, ConvertStringSecurityDescriptorToSecurityDescriptorW(lpszDesc, SDDL_REVISION_1, &pSD, &size));
 
 	inline void Delete() reflect_to(Local::Free(pSD); pSD = O);
 	inline SecurityDescriptor operator+() const {
@@ -550,7 +552,7 @@ public: // Property - Owner
 using SecDesc = SecurityDescriptor;
 #pragma endregion
 
-#pragma region Security Attribute
+#pragma region Security Attributes
 class SecurityAttributes : protected SECURITY_ATTRIBUTES {
 public:
 	SecurityAttributes() : SECURITY_ATTRIBUTES{ 0 } reflect_to(this->nLength = sizeof(*this));

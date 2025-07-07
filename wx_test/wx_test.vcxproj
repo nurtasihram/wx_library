@@ -34,54 +34,12 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\wx_console.h" />
-    <ClInclude Include="..\wx_control.h" />
-    <ClInclude Include="..\wx_defs.h" />
-    <ClInclude Include="..\wx_dialog.h" />
-    <ClInclude Include="..\wx_file.h" />
-    <ClInclude Include="..\wx_gdi.h" />
-    <ClInclude Include="..\wx_realtime.h" />
-    <ClInclude Include="..\wx_resource.h" />
-    <ClInclude Include="..\wx_security.h" />
-    <ClInclude Include="..\wx_type.h" />
-    <ClInclude Include="..\wx_window.h" />
-    <ClInclude Include="duktape\duktape.h" />
-    <ClInclude Include="duktape\duk_config.h" />
-    <ClInclude Include="resources\Resource.h" />
-    <ClInclude Include="wx_duk\wx_duk.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="resources\small.ico" />
-    <Image Include="resources\wx_duk.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="resources\wx_duk.rc" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\wx_dll.inl" />
-    <None Include="..\wx_msg.inl" />
-    <None Include="..\wx_msg_ctl.inl" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="duktape\duktape.c" />
-    <ClCompile Include="wx_duk\wx_duk.cpp" />
-    <ClCompile Include="wx_duk\wx_duk_console.cpp" />
-    <ClCompile Include="wx_duk\wx_duk_dialog.cpp" />
-    <ClCompile Include="wx_duk\wx_duk_realtime.cpp" />
-    <ClCompile Include="wx_duk\wx_duk_resource.cpp" />
-    <ClCompile Include="wx_duk\wx_duk_types.cpp" />
-    <ClCompile Include="wx_duk\wx_duk_window.cpp" />
-    <ClCompile Include="wx_duk_cmdl.cpp" />
-    <ClCompile Include="wx_duk_gdi.cpp" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>17.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{5a2a2e60-ca70-4edd-a383-2d93d18cf668}</ProjectGuid>
+    <ProjectGuid>{92fa7c65-5d4f-4e47-82ee-5bd392cf96a5}</ProjectGuid>
     <RootNamespace>wxtest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
-    <ProjectName>wx_duk</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -170,11 +128,11 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\resources;$(ProjectDir)..\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -185,11 +143,11 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)\resources;$(ProjectDir)..\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -202,16 +160,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\resources;$(ProjectDir)..\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -221,16 +177,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)\resources;$(ProjectDir)..\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -238,30 +192,26 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <BrowseInformation>true</BrowseInformation>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\resources;$(ProjectDir)..\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
-    <Bscmake>
-      <PreserveSbr>true</PreserveSbr>
-    </Bscmake>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug LLVM|x64'">
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)\resources;$(ProjectDir)..\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -274,16 +224,14 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)\resources;$(ProjectDir)..\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -293,19 +241,45 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <LanguageStandard>stdcpp17</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
+      <AdditionalIncludeDirectories>$(ProjectDir)\resources;$(ProjectDir)..\</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\wx_console.h" />
+    <ClInclude Include="..\wx_control.h" />
+    <ClInclude Include="..\wx_defs.h" />
+    <ClInclude Include="..\wx_dialog.h" />
+    <ClInclude Include="..\wx_duk\resources\Resource.h" />
+    <ClInclude Include="..\wx_file.h" />
+    <ClInclude Include="..\wx_realtime.h" />
+    <ClInclude Include="..\wx_resource.h" />
+    <ClInclude Include="..\wx_security.h" />
+    <ClInclude Include="..\wx_type.h" />
+    <ClInclude Include="..\wx_window.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\wx_dll.inl" />
+    <None Include="..\wx_msg.inl" />
+    <None Include="..\wx_msg_ctl.inl" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="..\wx_duk\resources\wx_duk.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="..\wx_duk\resources\small.ico" />
+    <Image Include="..\wx_duk\resources\wx_duk.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="wx_test.cpp" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

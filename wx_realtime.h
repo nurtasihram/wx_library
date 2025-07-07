@@ -64,9 +64,11 @@ public:
 
 	inline Event&Set() assertl_reflect_as_self(SetEvent(self));
 	inline Event&Reset() assertl_reflect_as_self(ResetEvent(self));
+	inline Event&Pulse() assertl_reflect_as_self(PulseEvent(self));
 
 	inline auto&operator=(bool bState) reflect_as(bState ? Set() : Reset());
 };
+using CEvent = RefAs<Event>;
 #pragma endregion
 
 #pragma region Mutex
@@ -121,7 +123,10 @@ public:
 	};
 	static inline OpenStruct Open(LPCTSTR lpName = O) reflect_as(lpName);
 };
+using CMutex = RefAs<Mutex>;
 #pragma endregion
+
+struct PTTimes { FileTime CreationTime, ExitTime, KernelTime, UserTime; };
 
 #pragma region ThreadBase
 enum_flags(ThreadAccess, Handle::Access,
@@ -157,7 +162,7 @@ public:
 	ThreadBase(Null) {}
 	ThreadBase(ThreadBase &t) : super(t.hObject) reflect_to(t.hObject = O);
 	ThreadBase(ThreadBase &&t) : super(t.hObject) reflect_to(t.hObject = O);
-
+public:
 	using super::operator=;
 
 	template<class AnyChild = void>
@@ -195,25 +200,20 @@ public:
 		inline operator ThreadBase() const reflect_as(OpenThread(dwDesiredAccess.yield(), bInheritHandle, dwThreadId));
 	};
 	static inline OpenStruct Open(DWORD dwProcessId) reflect_as(dwProcessId);
-
 	static inline Thread Current() reflect_as(GetCurrentThread());
-
+public:
 	inline void Suspend() assertl_reflect_as(SuspendThread(self));
 	inline void Resume()  assertl_reflect_as(ResumeThread(self));
-
 	inline void Terminate(DWORD dwExitCode = 0) assertl_reflect_as(TerminateThread(this->hObject, dwExitCode));
 	inline bool TerminateWait(DWORD dwMilliSec, DWORD dwExitCode = 0) {
 		if (WaitForSignal(dwMilliSec)) return false;
 		Terminate(dwExitCode);
 		return true;
 	}
-
 	static inline void Exit(DWORD dwExitCode = 0) reflect_to(ExitThread(dwExitCode));
-
 	template<class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
 	inline void Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) assertl_reflect_as(PostThreadMessage(ID(), reuse_as<UINT>(msgid), small_cast<WPARAM>(wParam), small_cast<LPARAM>(lParam)));
 	inline void Post(const Message &msg) assertl_reflect_as(PostThreadMessage(ID(), msg.ID(), msg.ParamW(), msg.ParamL()));
-
 #pragma region Properties
 public: // Property - ID
 	/* W */ inline DWORD ID() const assertl_reflect_as(auto id = GetThreadId(self), id);
@@ -230,6 +230,15 @@ public: // Property - StillActive
 	}
 public: // Property - ProcessID
 	/* R */ inline DWORD ProcessID() const nt_assertl_reflect_to(DWORD dwID = GetProcessIdOfThread(self), dwID);
+public: // Property - Times
+	/* R */ inline PTTimes Times() assertl_reflect_to(PTTimes t, GetThreadTimes(self, &t.CreationTime, &t.ExitTime, &t.KernelTime, &t.UserTime), t);
+public: // Property - 
+	/* R */ inline StringW DescriptionW() {
+		LPWSTR lpDesc = O;
+		assertl(SUCCEEDED(GetThreadDescription(self, &lpDesc)));
+		if (!lpDesc) return O;
+		return CString(lpDesc, MaxLenNotice);
+	}
 #pragma endregion
 };
 template<class AnyChild>
@@ -816,6 +825,8 @@ public: // Property - ID
 	/* R */ inline auto ID() const reflect_as(GetProcessId(self));
 public: // Property - Memory
 	/* W */ inline auto Memory() const assertl_reflect_to(PROCESS_MEMORY_COUNTERS pmc, GetProcessMemoryInfo(self, &pmc, sizeof(pmc)), pmc);
+public: // Property - Times
+	/* R */ inline PTTimes Times() assertl_reflect_to(PTTimes t, GetProcessTimes(self, &t.CreationTime, &t.ExitTime, &t.KernelTime, &t.UserTime), t);
 public: // Property - WorkingSetSize
 	/* W */ inline auto &WorkingSetSize(SIZE_T Min, SIZE_T Max) assertl_reflect_as_self(SetProcessWorkingSetSize(self, Min, Max));
 	/* R */ inline auto  WorkingSetSize() const assertl_reflect_to(struct _B_(SIZE_T Min, Max;) size, GetProcessWorkingSetSize(self, &size.Min, &size.Max), size);
