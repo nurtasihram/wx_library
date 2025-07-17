@@ -190,10 +190,10 @@ private:
 private:
 	HeaderArray(HWND hHeader) : header(hHeader) {}
 public:
-	inline int Insert(int index, const HDITEMA &hdi) reflect_as(header->Send(HDM_INSERTITEMA, index, (LPARAM)&hdi));
-	inline int Insert(int index, const HDITEMW &hdi) reflect_as(header->Send(HDM_INSERTITEMW, index, (LPARAM)&hdi));
+	inline int Insert(int index, const HDITEMA &hdi) reflect_as(header->Send<int>(HDM_INSERTITEMA, index, (LPARAM)&hdi));
+	inline int Insert(int index, const HDITEMW &hdi) reflect_as(header->Send<int>(HDM_INSERTITEMW, index, (LPARAM)&hdi));
 public: // Property - Count
-	/* R */ inline int Count() const reflect_as(header->Send(HDM_GETITEMCOUNT));
+	/* R */ inline int Count() const reflect_as(header->Send<int>(HDM_GETITEMCOUNT));
 public:
 	inline ItemIndex operator[](int index) reflect_as({ header, index });
 	inline const ItemIndex operator[](int index) const reflect_as({ header, index });
@@ -201,7 +201,7 @@ public:
 BaseOf_CommCtl(class HeaderBase) {
 	SFINAE_CommCtl(HeaderBase);
 public:
-	static constexpr LPCTSTR CtlClassName = WC_HEADER;
+	static constexpr TCHAR CtlClassName[] = WC_HEADER;
 	using super = ControlCommon<Chain<HeaderBase<AnyChild>, AnyChild>>;
 	using Style = HeaderStyle;
 public:
@@ -292,7 +292,7 @@ public:
 BaseOf_CommCtl(class ToolBarBase) {
 	SFINAE_CommCtl(ToolBarBase);
 public:
-	static constexpr LPCTSTR CtlClassName = TOOLBARCLASSNAME;
+	static constexpr TCHAR CtlClassName[] = TOOLBARCLASSNAME;
 	using super = ControlCommon<Chain<ToolBarBase<AnyChild>, AnyChild>>;
 	using Style = ToolBarStyle;
 	using StyleEx = ToolBarStyleEx;
@@ -337,7 +337,7 @@ enum_flags(StatusBarTextStyle, uint16_t,
 BaseOf_CommCtl(class StatusBarBase) {
 	SFINAE_CommCtl(StatusBarBase);
 public:
-	static constexpr LPCTSTR CtlClassName = STATUSCLASSNAME;
+	static constexpr TCHAR CtlClassName[] = STATUSCLASSNAME;
 	using super = ControlCommon<Chain<StatusBarBase<AnyChild>, AnyChild>>;
 	using Style = WStyle;
 	using StyleEx = WStyleEx;
@@ -437,14 +437,14 @@ enum_flags(UpDownStyle, WStyle,
 BaseOf_CommCtl(class UpDownBase) {
 	SFINAE_CommCtl(UpDownBase);
 public:
-	static constexpr LPCTSTR CtlClassName = UPDOWN_CLASS;
+	static constexpr TCHAR CtlClassName[] = UPDOWN_CLASS;
 	using super = ControlCommon<Chain<UpDownBase<AnyChild>, AnyChild>>;
 	using Style = UpDownStyle;
 public:
 	UpDownBase() {}
 };
 using UpDown = UpDownBase<void>;
-using CUpDown = RefAs<CUpDown>;
+using CUpDown = RefAs<UpDown>;
 #pragma endregion
 
 #pragma region Control Progress
@@ -478,7 +478,7 @@ public:
 	HotKeyInfo(WORD LoWord = 0) : mod(reuse_as<HotKeyFlag>(LOBYTE(LoWord))), vk(HIBYTE(LoWord)) {}
 	HotKeyInfo(WPARAM wParam) : HotKeyInfo(LOWORD(wParam)) {}
 public: // Property - Modifiers
-	/* W */ inline auto &Modifiers(HotKeyFlag mod) reflect_to_self(this->mod = mod.yield());
+//	/* W */ inline auto &Modifiers(HotKeyFlag mod) reflect_to_self(this->mod = mod.yield());
 	/* R */ inline HotKeyFlag Modifiers() const reflect_as(this->mod);
 public: // Property - VirtualKey
 	/* W */ inline auto &VirtualKey(BYTE vk) reflect_to_self(this->vk = vk);
@@ -489,7 +489,7 @@ public:
 BaseOf_CommCtl(class HotKeyBase) {
 	SFINAE_CommCtl(HotKeyBase);
 public:
-	static constexpr LPCTSTR CtlClassName = WC_HOTKEY;
+	static constexpr TCHAR CtlClassName[] = HOTKEY_CLASS;
 	using super = ControlCommon<Chain<HotKeyBase<AnyChild >, AnyChild >>;
 	using Info = HotKeyInfo;
 	using Rule = HotKeyRule;
@@ -556,7 +556,7 @@ public:
 BaseOf_CommCtl(class ListViewBase) {
 	SFINAE_CommCtl(ListViewBase);
 public:
-	static constexpr auto CtlClassName = WC_LISTVIEW;
+	static constexpr TCHAR CtlClassName[] = WC_LISTVIEW;
 	using super = ControlCommon<Chain<ListViewBase<AnyChild>, AnyChild>>;
 	using Style = ListViewStyle;
 public:
@@ -618,7 +618,7 @@ enum_flags(TreeViewStyleEx, WStyleEx,
 BaseOf_CommCtl(class TreeViewBase) {
 	SFINAE_CommCtl(TreeViewBase);
 public:
-	static constexpr LPCTSTR CtlClassName = WC_TREEVIEW;
+	static constexpr TCHAR CtlClassName[] = WC_TREEVIEW;
 	using super = ControlCommon<Chain<TreeViewBase<AnyChild>, AnyChild>>;
 	using Style = TreeViewStyle;
 	using StyleEx = TreeViewStyleEx;
@@ -654,7 +654,7 @@ enum_flags(TabControlStyle, WStyle,
 BaseOf_CommCtl(class TabControlBase) {
 	SFINAE_CommCtl(TabControlBase);
 public:
-	static constexpr LPCTSTR CtlClassName = WC_TABCONTROL;
+	static constexpr TCHAR CtlClassName[] = WC_TABCONTROL;
 	using super = ControlCommon<Chain<TabControlBase<AnyChild>, AnyChild>>;
 	using Style = TabControlStyle;
 public:
@@ -673,7 +673,7 @@ enum_flags(AnimateStyle, WStyle,
 BaseOf_CommCtl(class AnimateBase) {
 	SFINAE_CommCtl(AnimateBase);
 public:
-	static constexpr LPCTSTR CtlClassName = ANIMATE_CLASS;
+	static constexpr TCHAR CtlClassName[] = ANIMATE_CLASS;
 	using super = ControlCommon<Chain<AnimateBase<AnyChild>, AnyChild>>;
 	using Style = AnimateStyle;
 public:
@@ -696,8 +696,8 @@ enum_flags(MonthCalStyle, WStyle,
 BaseOf_CommCtl(class MonthCalBase) {
 	SFINAE_CommCtl(MonthCalBase);
 public:
-	static constexpr LPCTSTR CtlClassName = MONTHCAL_CLASS;
-	using super = ControlCommon<Chain<MonthCal<AnyChild>, AnyChild>>;
+	static constexpr TCHAR CtlClassName[] = MONTHCAL_CLASS;
+	using super = ControlCommon<Chain<MonthCalBase<AnyChild>, AnyChild>>;
 	using Style = MonthCalStyle;
 public:
 	MonthCalBase() {}
@@ -788,19 +788,19 @@ public:
 	/* W */ inline auto &Margin(LRect margin) reflect_to_self(self->margin = margin);
 	/* R */ inline LRect Margin() const reflect_as(self->margin);
 public: 
-	enum_class(Aligns, UINT, 
-		Left     = BUTTON_IMAGELIST_ALIGN_LEFT,
-		Right    = BUTTON_IMAGELIST_ALIGN_RIGHT,
-		Top      = BUTTON_IMAGELIST_ALIGN_TOP,
-		Bottom   = BUTTON_IMAGELIST_ALIGN_BOTTOM,
-		Center   = BUTTON_IMAGELIST_ALIGN_CENTER);
-	/* W */ inline auto   &Align(Aligns align) reflect_to_self(self->uAlign = align.yield());
-	/* R */ inline Aligns  Align() const reflect_as(ref_as<Aligns>(self->uAlign));
+	//enum_class(Aligns, UINT, 
+	//	Left     = BUTTON_IMAGELIST_ALIGN_LEFT,
+	//	Right    = BUTTON_IMAGELIST_ALIGN_RIGHT,
+	//	Top      = BUTTON_IMAGELIST_ALIGN_TOP,
+	//	Bottom   = BUTTON_IMAGELIST_ALIGN_BOTTOM,
+	//	Center   = BUTTON_IMAGELIST_ALIGN_CENTER);
+	///* W */ inline auto   &Align(Aligns align) reflect_to_self(self->uAlign = align.yield());
+	///* R */ inline Aligns  Align() const reflect_as(ref_as<Aligns>(self->uAlign));
 };
 BaseOf_CommCtl(class ButtonBase) {
 	SFINAE_CommCtl(ButtonBase);
 public:
-	static constexpr auto CtlClassName = WC_BUTTON;
+	static constexpr TCHAR CtlClassName[] = WC_BUTTON;
 	using Child = Chain<ButtonBase<AnyChild>, AnyChild>;
 	using super = ControlCommon<Child>;
 	using Style = ButtonStyle;
@@ -910,7 +910,7 @@ enum_flags(StaticStyle, WStyle,
 BaseOf_CommCtl(class StaticBase) {
 	SFINAE_CommCtl(StaticBase);
 public:
-	static constexpr auto CtlClassName = WC_STATIC;
+	static constexpr TCHAR CtlClassName[] = WC_STATIC;
 	using Child = Chain<StaticBase<AnyChild>, AnyChild>;
 	using super = ControlCommon<Child>;
 	using Style = StaticStyle;
@@ -921,10 +921,10 @@ public: // Property - Icon
 	/* W */ inline auto &Icon(HICON hIcon) reflect_to_child(super::Send(STM_SETICON, hIcon));
 	/* R */ inline CIcon Icon() const reflect_as(super::template Send<HICON>(STM_GETICON));
 public: // Property - Image
-	/* W */ inline auto &Image(HBITMAP hBitmap) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_BITMAP, hBitmap));
-	/* W */ inline auto &Image(HICON hIcon) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_BITMAP, hIcon));
-	/* W */ inline auto &Image(HCURSOR hCursor) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_CURSOR, hCursor));
-	/* W */ inline auto &Image(HENHMETAFILE hMeta) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_ENHMETAFILE, hMeta));
+	/* W */ inline auto &ImageBitmap(HBITMAP hBitmap) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_BITMAP, hBitmap));
+	/* W */ inline auto &ImageIcon(HICON hIcon) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_ICON, hIcon));
+	/* W */ inline auto &ImageCursor(HCURSOR hCursor) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_CURSOR, hCursor));
+	/* W */ inline auto &ImageEnhMeta(HENHMETAFILE hMeta) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_ENHMETAFILE, hMeta));
 #pragma endregion
 };
 using Static = StaticBase<void>;
@@ -954,7 +954,7 @@ class EditBalloonTip : private RefAs<EDITBALLOONTIP> {};
 BaseOf_CommCtl(class EditBase) {
 	SFINAE_CommCtl(EditBase);
 public:
-	static constexpr auto CtlClassName = WC_EDIT;
+	static constexpr TCHAR CtlClassName[] = WC_EDIT;
 	using super = ControlCommon<Chain<EditBase<AnyChild>, AnyChild>>;
 	using Style = EditStyle;
 	using Balloon = EditBalloonTip;
@@ -968,7 +968,7 @@ public:
 	inline bool  Undo() reflect_as(super::Send(EM_UNDO));
 	inline auto &EmptyUndoBuffer() reflect_to_child(super::Send(EM_EMPTYUNDOBUFFER));
 
-	inline auto&BalloonTip(const Balloon &tip) const assertl_reflect_as_self(Edit_ShowBalloonTip(self, &tip));
+//	inline auto&BalloonTip(const Balloon &tip) const assertl_reflect_as_self(Edit_ShowBalloonTip(self, &tip));
 	inline auto&BalloonTip() const assertl_reflect_as_self(Edit_HideBalloonTip(self));
 #pragma endregion
 
@@ -1089,7 +1089,7 @@ enum_flags(ComboBoxStyle, WStyle,
 BaseOf_CommCtl(class ComboBoxBase) {
 	SFINAE_CommCtl(ComboBoxBase);
 public:
-	static constexpr auto CtlClassName = WC_COMBOBOX;
+	static constexpr TCHAR CtlClassName[] = WC_COMBOBOX;
 	using super = ControlCommon<Chain<ComboBoxBase<AnyChild>, AnyChild>>;
 	using Style = ComboBoxStyle;
 public:
@@ -1099,105 +1099,78 @@ using ComboBox = ComboBoxBase<void>;
 using CComboBox = RefAs<ComboBox>;
 #pragma endregion
 
-#pragma region Control DateTimePick
-enum_flags(DateTimePickStyle, WStyle,
-	UpDown                 = DTS_UPDOWN,
-	ShowNone               = DTS_SHOWNONE,
-	ShortDateFormat        = DTS_SHORTDATEFORMAT,
-	LongDateFormat         = DTS_LONGDATEFORMAT,
-	ShortDateCenturyFormat = DTS_SHORTDATECENTURYFORMAT,
-	TimeFormat             = DTS_TIMEFORMAT,
-	AppCanParse            = DTS_APPCANPARSE,
-	RightAlign             = DTS_RIGHTALIGN);
-enum_class(DateTimePickFlags, DWORD,
-	Error = GDT_ERROR,
-	Valid = GDT_VALID,
-	None  = GDT_NONE);
-struct DateTimePickInfo : public RefAs<DATETIMEPICKERINFO> {
-	using super = RefAs<DATETIMEPICKERINFO>;
-public:
-	DateTimePickInfo() reflect_to(self->cbSize = sizeof(DATETIMEPICKERINFO));
-	DateTimePickInfo(const DATETIMEPICKERINFO &dtpi) : super(dtpi) {}
-public: // Property - CheckRect
-	/* W */ inline auto &CheckRect(LRect rc) reflect_to_self(self->rcCheck = rc);
-	/* R */ inline LRect CheckRect() const reflect_as(self->rcCheck);
-public: // Property - CheckState
-	/* W */ inline auto &CheckState(SystemState state) reflect_to_self(self->stateCheck = state.yield());
-	/* R */ inline auto  CheckState() const reflect_as(reuse_as<SystemState>(self->stateCheck));
-public: // Property - ButtonRect
-	/* W */ inline auto &ButtonRect(LRect rc) reflect_to_self(self->rcButton = rc);
-	/* R */ inline LRect ButtonRect() const reflect_as(self->rcButton);
-public: // Property - ButtonState
-	/* W */ inline auto &ButtonState(SystemState state) reflect_to_self(self->stateButton = state.yield());
-	/* R */ inline auto  ButtonState() const reflect_as(reuse_as<SystemState>(self->stateButton));
-public: // Property - Edit
-	/* W */ inline auto &Edit(HWND hEdit) reflect_to_self(self->hwndEdit = hEdit);
-	/* R */ inline CEdit Edit() const reflect_as(self->hwndEdit);
-public: // Property - UpDown
-	/* W */ inline auto &UpDown(HWND hUpDown) reflect_to_self(self->hwndUD = hUpDown);
-	/* R */ inline CUpDown UpDown() const reflect_as(self->hwndUD);
-public: // Property - DropDown
-	/* W */ inline auto &DropDown(HWND hDropDown) reflect_to_self(self->hwndDropDown = hDropDown);
-	/* R */ inline CComboBox DropDown() const reflect_as(self->hwndDropDown);
-};
-BaseOf_CommCtl(class DateTimePickBase) {
-	SFINAE_CommCtl(DateTimePickBase);
-public:
-	static constexpr auto CtlClassName = DATETIMEPICK_CLASS;
-	using super = ControlCommon<Chain<DateTimePickBase<AnyChild>, AnyChild>>;
-	using Style = DateTimePickStyle;
-	using Flags = DateTimePickFlags;
-	using Info = DateTimePickInfo;
-public:
-	DateTimePickBase() {}
-public:
-#pragma region Properties
-public: // Property - SystemTime
-	/* W */ inline auto &SystemTime(const SYSTEMTIME &st) assertl_reflect_as_self(Send(DTM_GETSYSTEMTIME, &st));
-	/* R */ inline auto  SystemTime() const assertl_reflect_to(SystemTime st, Send(self, DTM_SETSYSTEMTIME, &st), st);
-public: // Property - Range
-	/* W */ inline auto &Range(const SYSTEMTIME &st) assertl_reflect_as_self(DateTime_SetRange(self, GD_DEFAULT, &st));
-	/* R */ inline auto Range() const assertl_reflect_to(SystemTime st, DateTime_GetRange(self, &st), st);
-#define DTM_GETRANGE (DTM_FIRST + 3)
-#define DateTime_GetRange(hdp, rgst)  (DWORD)SNDMSG(hdp, DTM_GETRANGE, 0, (LPARAM)(rgst))
-#define DTM_SETRANGE (DTM_FIRST + 4)
-#define DateTime_SetRange(hdp, gd, rgst)  (BOOL)SNDMSG(hdp, DTM_SETRANGE, (WPARAM)(gd), (LPARAM)(rgst))
-public: // Property - Format
-#define DTM_SETFORMATA (DTM_FIRST + 5)
-#define DTM_SETFORMATW (DTM_FIRST + 50)
-#define DateTime_SetFormat(hdp, sz)  (BOOL)SNDMSG(hdp, DTM_SETFORMAT, 0, (LPARAM)(sz))
-public: // Property - MonthCalColor
-	/* W */ inline auto &MonthCalColor(int iColor, COLORREF clr) assertl_reflect_as_self(DateTime_SetMonthCalColor(self, iColor, clr));
-	/* R */ inline auto  MonthCalColor(int iColor) const assertl_reflect_as(DateTime_GetMonthCalColor(self, iColor));
-#define DTM_SETMCCOLOR    (DTM_FIRST + 6)
-#define DateTime_SetMonthCalColor(hdp, iColor, clr) SNDMSG(hdp, DTM_SETMCCOLOR, iColor, clr)
-#define DTM_GETMCCOLOR    (DTM_FIRST + 7)
-#define DateTime_GetMonthCalColor(hdp, iColor) SNDMSG(hdp, DTM_GETMCCOLOR, iColor, 0)
-public: // Property - MonthCal
-	/* R */ 
-#define DTM_GETMONTHCAL   (DTM_FIRST + 8)
-#define DateTime_GetMonthCal(hdp) (HWND)SNDMSG(hdp, DTM_GETMONTHCAL, 0, 0)
-public: // 
-#define DTM_SETMCFONT     (DTM_FIRST + 9)
-#define DateTime_SetMonthCalFont(hdp, hfont, fRedraw) SNDMSG(hdp, DTM_SETMCFONT, (WPARAM)(hfont), (LPARAM)(fRedraw))
-#define DTM_GETMCFONT     (DTM_FIRST + 10)
-#define DateTime_GetMonthCalFont(hdp) SNDMSG(hdp, DTM_GETMCFONT, 0, 0)
-#define DTM_SETMCSTYLE    (DTM_FIRST + 11)
-#define DateTime_SetMonthCalStyle(hdp, dwStyle) SNDMSG(hdp, DTM_SETMCSTYLE, 0, (LPARAM)dwStyle)
-#define DTM_GETMCSTYLE    (DTM_FIRST + 12)
-#define DateTime_GetMonthCalStyle(hdp) SNDMSG(hdp, DTM_GETMCSTYLE, 0, 0)
-#define DTM_CLOSEMONTHCAL (DTM_FIRST + 13)
-#define DateTime_CloseMonthCal(hdp) SNDMSG(hdp, DTM_CLOSEMONTHCAL, 0, 0)
-#define DTM_GETDATETIMEPICKERINFO (DTM_FIRST + 14)
-#define DateTime_GetDateTimePickerInfo(hdp, pdtpi) SNDMSG(hdp, DTM_GETDATETIMEPICKERINFO, 0, (LPARAM)(pdtpi))
-#define DTM_GETIDEALSIZE (DTM_FIRST + 15)
-#define DateTime_GetIdealSize(hdp, psize) (BOOL)SNDMSG((hdp), DTM_GETIDEALSIZE, 0, (LPARAM)(psize))
-#pragma endregion
-
-};
-using DateTimePick = DateTimePickBase<void>;
-using CDateTimePick = RefAs<DateTimePick>;
-#pragma endregion
+//#pragma region Control DateTimePick
+//enum_flags(DateTimePickStyle, WStyle,
+//	UpDown                 = DTS_UPDOWN,
+//	ShowNone               = DTS_SHOWNONE,
+//	ShortDateFormat        = DTS_SHORTDATEFORMAT,
+//	LongDateFormat         = DTS_LONGDATEFORMAT,
+//	ShortDateCenturyFormat = DTS_SHORTDATECENTURYFORMAT,
+//	TimeFormat             = DTS_TIMEFORMAT,
+//	AppCanParse            = DTS_APPCANPARSE,
+//	RightAlign             = DTS_RIGHTALIGN);
+//enum_class(DateTimePickFlags, DWORD,
+//	Error = GDT_ERROR,
+//	Valid = GDT_VALID,
+//	None  = GDT_NONE);
+//struct DateTimePickInfo : public RefAs<DATETIMEPICKERINFO> {
+//	using super = RefAs<DATETIMEPICKERINFO>;
+//public:
+//	DateTimePickInfo() reflect_to(self->cbSize = sizeof(DATETIMEPICKERINFO));
+//	DateTimePickInfo(const DATETIMEPICKERINFO &dtpi) : super(dtpi) {}
+//public: // Property - CheckRect
+//	/* W */ inline auto &CheckRect(LRect rc) reflect_to_self(self->rcCheck = rc);
+//	/* R */ inline LRect CheckRect() const reflect_as(self->rcCheck);
+//public: // Property - CheckState
+//	/* W */ inline auto &CheckState(SystemState state) reflect_to_self(self->stateCheck = state.yield());
+//	/* R */ inline auto  CheckState() const reflect_as(reuse_as<SystemState>(self->stateCheck));
+//public: // Property - ButtonRect
+//	/* W */ inline auto &ButtonRect(LRect rc) reflect_to_self(self->rcButton = rc);
+//	/* R */ inline LRect ButtonRect() const reflect_as(self->rcButton);
+//public: // Property - ButtonState
+//	/* W */ inline auto &ButtonState(SystemState state) reflect_to_self(self->stateButton = state.yield());
+//	/* R */ inline auto  ButtonState() const reflect_as(reuse_as<SystemState>(self->stateButton));
+//public: // Property - Edit
+//	/* W */ inline auto &Edit(HWND hEdit) reflect_to_self(self->hwndEdit = hEdit);
+//	/* R */ inline CEdit Edit() const reflect_as(self->hwndEdit);
+//public: // Property - UpDown
+//	/* W */ inline auto &UpDown(HWND hUpDown) reflect_to_self(self->hwndUD = hUpDown);
+//	/* R */ inline CUpDown UpDown() const reflect_as(self->hwndUD);
+//public: // Property - DropDown
+//	/* W */ inline auto &DropDown(HWND hDropDown) reflect_to_self(self->hwndDropDown = hDropDown);
+//	/* R */ inline CComboBox DropDown() const reflect_as(self->hwndDropDown);
+//};
+//BaseOf_CommCtl(class DateTimePickBase) {
+//	SFINAE_CommCtl(DateTimePickBase);
+//public:
+//	static constexpr TCHAR CtlClassName[] = DATETIMEPICK_CLASS;
+//	using super = ControlCommon<Chain<DateTimePickBase<AnyChild>, AnyChild>>;
+//	using Style = DateTimePickStyle;
+//	using Flags = DateTimePickFlags;
+//	using Info = DateTimePickInfo;
+//public:
+//	DateTimePickBase() {}
+//public:
+//#pragma region Properties
+//public: // Property - SystemTime
+////	/* W */ inline auto &SystemTime(const SYSTEMTIME &st) assertl_reflect_as_self(Send(DTM_GETSYSTEMTIME, &st));
+//	/* R */ inline auto  SystemTime() const assertl_reflect_to(SysTime st, Send(self, DTM_SETSYSTEMTIME, &st), st);
+//public: // Property - Range
+////	/* W */ inline auto &Range(const SYSTEMTIME &st) assertl_reflect_as_self(DateTime_SetRange(self, GD_DEFAULT, &st));
+//	/* R */ inline auto  Range() const assertl_reflect_to(SysTime st, DateTime_GetRange(self, &st), st);
+//public: // Property - Format
+//public: // Property - MonthCalColor
+////	/* W */ inline auto &MonthCalColor(int iColor, COLORREF clr) assertl_reflect_as_self(DateTime_SetMonthCalColor(self, iColor, clr));
+//	/* R */ inline auto  MonthCalColor(int iColor) const assertl_reflect_as(DateTime_GetMonthCalColor(self, iColor));
+//public: // Property - MonthCal
+//	/* R */ 
+//public: // 
+//#pragma endregion
+//
+//};
+//using DateTimePick = DateTimePickBase<void>;
+//using CDateTimePick = RefAs<DateTimePick>;
+//#pragma endregion
 
 #pragma region Control ScrollBar
 enum_flags(ScrollBarStyle, WStyle,
@@ -1240,7 +1213,7 @@ public:
 BaseOf_CommCtl(class ScrollBarBase) {
 	SFINAE_CommCtl(ScrollBarBase);
 public:
-	static constexpr auto CtlClassName = WC_SCROLLBAR;
+	static constexpr TCHAR CtlClassName[] = WC_SCROLLBAR;
 	using super = ControlCommon<Chain<ScrollBarBase<AnyChild>, AnyChild>>;
 	using Style = ScrollBarStyle;
 	using SInfo = ScrollInfo;

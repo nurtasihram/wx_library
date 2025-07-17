@@ -117,8 +117,9 @@ bool wx_try(duk_context *ctx, const AnyClosure &closure) {
 void load_duk_types(duk_context *ctx);
 void load_duk_resource(duk_context *ctx);
 void load_duk_gdi(duk_context *ctx);
-void load_duk_dialog(duk_context *ctx);
 void load_duk_window(duk_context *ctx);
+void load_duk_dialog(duk_context *ctx);
+void load_duk_control(duk_context *ctx);
 void load_duk_console(duk_context *ctx);
 void load_duk_realtime(duk_context *ctx);
 

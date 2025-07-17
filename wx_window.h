@@ -1,6 +1,5 @@
 #pragma once
 
-#include <unordered_map>
 #include <typeinfo>
 
 #include "wx_resource.h"
@@ -1065,7 +1064,7 @@ public:
 public:
 	template<class RetType = LRESULT, class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
 	inline RetType Send(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const
-		nt_assertl_reflect_to(auto res = SendMessage(self, (UINT)(msgid), small_cast<WPARAM>(wParam), small_cast<LPARAM>(lParam)), small_cast<RetType>(res));
+		nt_assertl_reflect_to(auto res = SendMessage(self, (UINT)(msgid), small_cast<WPARAM>(wParam), small_cast<LPARAM>(lParam)), (RetType)res);
 	//template<class WParam = WPARAM, class LParam = LPARAM>
 	//inline auto &SendTimeout(UINT msgid, WParam wParam = 0, LParam lParam = 0) {
 	//	SendMessageTimeoutW(self, msgid, wParam, lParam, )

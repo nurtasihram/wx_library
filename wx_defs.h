@@ -415,9 +415,9 @@ public: \
 public: \
 	static inline const Unit __VA_ARGS__; \
 	static constexpr size_t Count = CountOf({ __VA_ARGS__ }); \
-	static constexpr TCHAR __Names[] = _T(#name); \
+	static constexpr TCHAR __Name[] = _T(#name); \
 	static constexpr TCHAR __Entries[] = _T(estr); \
-	static constexpr ProtoType __Keys(size_t ind) reflect_as(ConstIndexOf(ind, __VA_ARGS__)); \
+	static constexpr ProtoType __Vals(size_t ind) reflect_as(ConstIndexOf(ind, __VA_ARGS__)); \
 public: \
 	inline ProtoType yield() const reflect_as(val.yield()); \
 	inline operator Unit() const reflect_as(val); \

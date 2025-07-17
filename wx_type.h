@@ -569,13 +569,13 @@ inline LPWSTR Copies(LPWSTR lpBuffer) reflect_as((LPWSTR)lpBuffer);
 template<class... Args>
 inline LPSTR Copies(LPSTR lpBuffer, const StringA &str, const Args &... args) {
 	auto uLen = str.Length();
-	if (uLen > 0) assertl(StringCchCopyA(lpBuffer, uLen + 1, str) == 0);
+	if (uLen > 0) CopyMemory(lpBuffer, str, uLen);
 	return Copies(lpBuffer + uLen, args...);
 }
 template<class... Args>
 inline LPWSTR Copies(LPWSTR lpBuffer, const StringW &str, const Args &... args) {
 	auto uLen = str.Length();
-	if (uLen > 0) assertl(StringCchCopyW(lpBuffer, uLen + 1, str) == 0);
+	if (uLen > 0) CopyMemory(lpBuffer, str, uLen * sizeof(WCHAR));
 	return Copies(lpBuffer + uLen, args...);
 }
 inline void *Copy(void *lpDst) reflect_as(lpDst);

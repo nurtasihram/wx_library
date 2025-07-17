@@ -68,16 +68,117 @@ constexpr void plist() {
 		plist<Args...>();
 }
 
-int main() {
-	TestWindow wnd;
-	assertl(wnd.Create());
-	wnd.Show();
-	Console.Log(wnd.ModuleFileName());
-	Msg msg;
-	while (msg.Get()) {
-		msg.Translate();
-		msg.Dispatch();
+class Rx {
+	static constexpr bool __a_z(TCHAR w) reflect_as('a' <= w && w <= 'z');
+	static constexpr bool __A_Z(TCHAR w) reflect_as('A' <= w && w <= 'Z');
+	static constexpr bool __0_9(TCHAR w) reflect_as('0' <= w && w <= '9');
+	static constexpr bool __A_z(TCHAR w) reflect_as(__a_z(w) || __A_Z(w));
+	static constexpr bool _word(TCHAR w) reflect_as(__A_z(w) || __0_9(w));
+	static constexpr bool _Word(TCHAR w) reflect_as(_word(w) || w == '_');
+	static constexpr bool __s(TCHAR w) reflect_as(w == '\n' || w == '\r' || w == '\t' || w == ' ');
+	class Token {
+		friend class Rx;
+		LPCTSTR lpsz;
+		size_t len;
+	public:
+		constexpr Token() : lpsz(O), len(0) {}
+		constexpr Token(LPCTSTR lpsz, LPCTSTR hpsz) : lpsz(lpsz), len(hpsz - lpsz) {}
+		operator const String() const reflect_as(CString(len, lpsz));
+	};
+	struct Map { Token key, val; };
+	template<size_t len>
+	class Maps {
+		friend class Rx;
+		Map map[len];
+	public:
+		static constexpr size_t Length = len;
+		constexpr Map operator[](size_t ind) const { return map[ind]; }
+	};
+	struct MapN { Map map; LPCTSTR hpsz; };
+	static constexpr MapN _GetMap(LPCTSTR lpsz, size_t len) {
+		LPCTSTR hpsz = lpsz;
+		// skip blank
+		for (; len; --len)
+			if (__s(hpsz[0]))
+				++hpsz;
+			else
+				break;
+		// get key
+		lpsz = hpsz;
+		for (; len; --len)
+			if (_Word(hpsz[0]))
+				++hpsz;
+			else
+				break;
+		Token key{ lpsz, hpsz };
+		// skip blank
+		for (; len; --len)
+			if (__s(hpsz[0]))
+				++hpsz;
+			else
+				break;
+		// get equal
+		if (hpsz[0] != '=')
+			return{ {}, {} };
+		++hpsz;
+		// skip blank
+		for (; len; --len)
+			if (__s(hpsz[0]))
+				++hpsz;
+			else
+				break;
+		// get val
+		lpsz = hpsz;
+		for (; len; --len)
+			if (_Word(hpsz[0]))
+				++hpsz;
+			else
+				break;
+		Token val{ lpsz, hpsz };
+		// skip blank
+		for (; len; --len)
+			if (__s(hpsz[0]))
+				++hpsz;
+			else
+				break;
+		if (hpsz[0] == ',')
+			++hpsz;
+		return{ { key, val }, hpsz };
 	}
+	template<size_t count>
+	static constexpr Maps<count> GetMaps(LPCTSTR lpsz, size_t len) {
+		Maps<count> maps;
+		for (size_t i = 0; i < count; ++i) {
+			auto map = _GetMap(lpsz, len);
+			len -= map.hpsz - lpsz;
+			lpsz = map.hpsz;
+			maps.map[i] = map.map;
+		}
+		return maps;
+	}
+public:
+	template<class AnyEnum>
+	static constexpr auto Maps = Rx::GetMaps<AnyEnum::Count>(AnyEnum::__Entries, CountOf(AnyEnum::__Entries));
+	template<class AnyEnum>
+	static constexpr auto Name = AnyEnum::__Name;
+	template<class AnyEnum>
+	static constexpr auto BaseName = AnyEnum::__BaseName;
+};
+
+
+int main() {
+	constexpr auto map = Rx::Maps<WS>;
+	for (size_t i = 0; i < map.Length; ++i)
+		Console.Log(map[i].key, ':', map[i].val, '=', nX("08X", WS::__Vals(i)), '\n');
+	//TestWindow wnd;
+	//assertl(wnd.Create());
+	//wnd.Show();
+	//Console.Log(wnd.ModuleFileName());
+	//Msg msg;
+	//while (msg.Get()) {
+	//	msg.Translate();
+	//	msg.Dispatch();
+	//}
 	system("pause");
 }
 

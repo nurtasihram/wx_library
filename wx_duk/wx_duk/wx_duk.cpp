@@ -217,8 +217,9 @@ duk_ret_t load_duk(duk_context *ctx) {
 	load_duk_types(ctx);
 	load_duk_resource(ctx);
 	load_duk_gdi(ctx);
-	load_duk_dialog(ctx);
 	load_duk_window(ctx);
+	load_duk_dialog(ctx);
+	load_duk_control(ctx);
 	load_duk_console(ctx);
 	load_duk_realtime(ctx);
 	return 0;
