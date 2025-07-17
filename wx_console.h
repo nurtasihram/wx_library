@@ -71,6 +71,7 @@ public: // Property - ColorTable
 	}
 	/* R */ inline const COLORREF *ColorTable() const { return self->ColorTable; }
 };
+
 template<class AnyChild = void>
 class ConsoleItf : public ChainExtend<ConsoleItf<AnyChild>, AnyChild> {
 protected:
