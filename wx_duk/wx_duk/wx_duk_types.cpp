@@ -117,14 +117,14 @@ static void load_duk_enum(duk_context *ctx) {
 		}
 		return DUK_RET_REFERENCE_ERROR;
 	};
-	duk_put_global_object(ctx, "FlagObj", duk_fn {
+	duk_add_object(ctx, "FlagObj", duk_fn {
 		duk_int_prop(ctx, "val", 0);
-		duk_put_method(ctx, "valueOf", 0, duk_fn {
+		duk_add_method(ctx, "valueOf", 0, duk_fn {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "val");
 			return 1;
 		});
-		duk_put_method(ctx, "toString", 0, duk_fn {
+		duk_add_method(ctx, "toString", 0, duk_fn {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "val");
 			auto val = duk_to_int(ctx, -1);
@@ -135,14 +135,14 @@ static void load_duk_enum(duk_context *ctx) {
 		});
 		return 0;
 	});
-	duk_put_global_object(ctx, "EnumObj", duk_fn {
+	duk_add_object(ctx, "EnumObj", duk_fn {
 		duk_int_prop(ctx, "val", 0);
-		duk_put_method(ctx, "valueOf", 0, duk_fn {
+		duk_add_method(ctx, "valueOf", 0, duk_fn {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "val");
 			return 1;
 		});
-		duk_put_method(ctx, "toString", 0, duk_fn {
+		duk_add_method(ctx, "toString", 0, duk_fn {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "val");
 			auto val = duk_to_int(ctx, -1);
@@ -151,13 +151,14 @@ static void load_duk_enum(duk_context *ctx) {
 				return DUK_RET_TYPE_ERROR;
 			return __pushEnum(ctx, val, ei);
 		});
-		return 0; });
+		return 0;
+	});
 }
-void duk_add_global_flags(duk_context *ctx,
+void duk_add_flags(duk_context *ctx,
 						  const char *type,
 						  const char *name, const char *parent_name,
 						  const duk_constant *dcs, uint32_t len) {
-	duk_put_global_function(ctx, name, 1, duk_fn {
+	duk_add_method(ctx, name, 1, duk_fn {
 		if (duk_reflect_constructor(ctx))
 			return 1;
 		auto val = duk_to_int(ctx, 0);
@@ -216,10 +217,10 @@ void duk_push_enum(duk_context *ctx, const char *name, duk_int_t i) {
 
 #pragma region Point
 static void load_duk_point(duk_context *ctx) {
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "Point", O,
 		duk_structure {
-			duk_put_method(
+			duk_add_method(
 				ctx, "toString", 0, duk_fn {
 					duk_push_this(ctx);
 					duk_get_prop_string(ctx, -1, "x");
@@ -287,7 +288,7 @@ void duk_push_point(duk_context *ctx, LPoint point) {
 
 #pragma region Rect
 static void load_duk_rect(duk_context *ctx) {
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "Rect", O,
 		duk_structure {
 			duk_put_prop_r(
@@ -330,7 +331,7 @@ static void load_duk_rect(duk_context *ctx) {
 					return 1;
 				}
 			);
-			duk_put_method(
+			duk_add_method(
 				/* String */ ctx, "toString", 0, duk_fn{
 					duk_push_this(ctx);
 					duk_get_prop_string(ctx, -1, "x0");
@@ -424,11 +425,11 @@ static void load_duk_color(duk_context *ctx) {
 			GetGValue(val),
 			GetBValue(val));
 	};
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "RGB", O,
 		duk_structure {
 			duk_int_prop(ctx, "val", 0);
-			duk_put_prop(ctx, "red",
+			duk_add_prop(ctx, "red",
 				duk_fn {
 					auto red = duk_to_int(ctx, 0) & 0xFF;
 					duk_push_this(ctx);
@@ -448,7 +449,7 @@ static void load_duk_color(duk_context *ctx) {
 					return 1;
 				}
 			);
-			duk_put_prop(ctx, "green",
+			duk_add_prop(ctx, "green",
 				duk_fn {
 					auto green = duk_to_int(ctx, 0) & 0xFF;
 					duk_push_this(ctx);
@@ -468,7 +469,7 @@ static void load_duk_color(duk_context *ctx) {
 					return 1;
 				}
 			);
-			duk_put_prop(ctx, "blue",
+			duk_add_prop(ctx, "blue",
 				duk_fn {
 					auto blue = duk_to_int(ctx, 0) & 0xFF;
 					duk_push_this(ctx);
@@ -488,12 +489,12 @@ static void load_duk_color(duk_context *ctx) {
 					return 1;
 				}
 			);
-			duk_put_method(ctx, "valueOf", 0, duk_fn {
+			duk_add_method(ctx, "valueOf", 0, duk_fn {
 				duk_push_this(ctx);
 				duk_get_prop_string(ctx, -1, "val");
 				return 1;
 			});
-			duk_put_method(ctx, "toString", 0, duk_fn {
+			duk_add_method(ctx, "toString", 0, duk_fn {
 				duk_push_this(ctx);
 				duk_get_prop_string(ctx, -1, "val");
 				auto val = duk_to_int(ctx, -1);
@@ -553,23 +554,23 @@ static void load_duk_time(duk_context *ctx) {
 		{ "NoTimeMarker", TIME_NOTIMEMARKER },
 		{ "Force24H", TIME_FORCE24HOURFORMAT },
 	};
-	duk_add_global_enums(ctx, "TimeFormat", nullptr, time_formats);
+	duk_add_enums(ctx, "TimeFormat", nullptr, time_formats);
 	static const duk_constant date_formats[] = {
 		{ "Default", 0 },
 		{ "ShortDate", DATE_SHORTDATE },
 		{ "LongDate", DATE_LONGDATE },
 		{ "CalendarAlt", DATE_USE_ALT_CALENDAR }
 	};
-	duk_add_global_enums(ctx, "DateFormat", nullptr, date_formats);
-	duk_put_global_class(
+	duk_add_enums(ctx, "DateFormat", nullptr, date_formats);
+	duk_add_class(
 		ctx, "SysTime", O,
 		duk_structure {
-			//duk_put_method(ctx, "valueOf", 0, duk_fn {
+			//duk_add_method(ctx, "valueOf", 0, duk_fn {
 			//	duk_push_this(ctx);
 			//	duk_get_prop_string(ctx, -1, "val");
 			//	return 1;
 			//});
-			duk_put_method(ctx, "FormatTime", 2, duk_fn {
+			duk_add_method(ctx, "FormatTime", 2, duk_fn {
 				auto pobj = duk_get_this__p<SysTime>(ctx);
 				if (!pobj)
 					return DUK_RET_REFERENCE_ERROR;
@@ -578,7 +579,7 @@ static void load_duk_time(duk_context *ctx) {
 				duk_push_string(ctx, str);
 				return 1;
 			});
-			duk_put_method(ctx, "FormatDate", 2, duk_fn {
+			duk_add_method(ctx, "FormatDate", 2, duk_fn {
 				auto pobj = duk_get_this__p<SysTime>(ctx);
 				if (!pobj)
 					return DUK_RET_REFERENCE_ERROR;
@@ -587,7 +588,7 @@ static void load_duk_time(duk_context *ctx) {
 				duk_push_string(ctx, str);
 				return 1;
 			});
-			duk_put_method(ctx, "toString", 0, duk_fn {
+			duk_add_method(ctx, "toString", 0, duk_fn {
 				auto pobj = duk_get_this__p<SysTime>(ctx);
 				if (!pobj)
 					return DUK_RET_REFERENCE_ERROR;

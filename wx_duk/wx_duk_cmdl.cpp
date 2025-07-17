@@ -123,10 +123,13 @@ _ret:
 		proc_ok.Set();
 		return 0;
 	} catch (duk_exception err) {
-		duk_errout(ctx, err.msg);
+		duk_errout(ctx, "Duktape Exception: \n%s" ,err.msg);
 		proc_ok.Set();
 	} catch (Exception err) {
-		duk_errout(ctx, err.FormatA());
+		duk_errout(ctx, "WX Exception: \n%s", (LPCSTR)err.toStringA());
+		proc_ok.Set();
+	} catch (const std::exception &err) {
+		duk_errout(ctx, "C++ Exception: \n%s", err.what());
 		proc_ok.Set();
 	} catch (...) {
 		Console.Err(_T("Other exception\n"));
@@ -137,9 +140,9 @@ _ret:
 	goto _ret;
 }
 
-duk_ret_t load_duk_cmdl(duk_context *ctx) {
+duk_ret_t load_duk_cmdl(duk_context *ctx, void *) {
 	duk_push_global_object(ctx);
-	duk_put_prop(ctx, "echo",
+	duk_add_prop(ctx, "echo",
 		duk_fn {
 			bEcho = duk_to_boolean(ctx, 0);
 			return 0;
@@ -166,10 +169,10 @@ duk_ret_t load_duk_cmdl(duk_context *ctx) {
 		return 0;
 	});
 	duk_push_undefined(ctx);
-	duk_put_global_string(ctx, "LastError");
-	duk_put_global_function(ctx, "print_mem", 0, print_mem);
-	duk_put_global_function(ctx, "cmd_prc", 0, cmd_prc);
-	duk_put_global_function(ctx, "cmd_exe", 1, cmd_exe);
+	duk_put_prop_string(ctx, -2, "LastError");
+	duk_add_method(ctx, "print_mem", 0, print_mem);
+	duk_add_method(ctx, "cmd_prc", 0, cmd_prc);
+	duk_add_method(ctx, "cmd_exe", 1, cmd_exe);
 	return 0;
 }
 
@@ -183,12 +186,12 @@ public:
 
 static duk_context *ctx = O;
 LThread cmd_prc_thr = [] {
-	DukWindow duk_win;
-	assertl(duk_win.Create().Size({ 500, 300 }));
-	duk_win.Text(_T("DukWindow"));
-	duk_win.Show();
-	duk_push_new_cclass(ctx, "Window", duk_win);
-	duk_put_global_string(ctx, "test_win");
+	//DukWindow duk_win;
+	//assertl(duk_win.Create().Size({ 500, 300 }));
+	//duk_win.Text(_T("DukWindow"));
+	//duk_win.Show();
+	//duk_push_new_cclass(ctx, "Window", duk_win);
+	//duk_put_global_string(ctx, "test_win");
 __reset:
 	duk_get_global_string(ctx, "cmd_prc");
 	duk_call(ctx, 0);
@@ -201,16 +204,70 @@ __reset:
 	proc_ok.Set();
 };
 
+void duk_add_flags(duk_context *ctx,
+				   const char *name, const char *parent_name,
+				   duk_c_function add_const,
+				   duk_c_function toString) {
+	static duk_c_function _toString = toString;
+	duk_add_class(
+		ctx, name, parent_name,
+		duk_structure {
+			duk_add_method(ctx, "toString", 0, _toString);
+			return 0;
+		},
+		duk_constructor {
+			if (duk_reflect_constructor(ctx))
+				return 1;
+			auto val = duk_to_int(ctx, 0);
+			duk_push_this(ctx);
+			duk_int_prop(ctx, "val", val);
+			return 0;
+		},
+		add_const
+	);
+}
+
 void commandline(duk_context *ctx) {
-	duk_push_c_function(ctx, load_duk, 0);
-	duk_call(ctx, 0);
-	duk_pop(ctx);
+	duk_push_global_object(ctx);
+	using EnumClass = SW;
+	duk_add_flags(
+		ctx, EnumClass::__NameA, O,
+		duk_fn {
+			constexpr auto map = EnumTableA<EnumClass>;
+			for (size_t i = 0; i < EnumClass::Count; ++i) {
+				duk_push_string(ctx, map[i].key);
+				duk_push_uint(ctx, EnumClass::__Vals[i]);
+				duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+			}
+			return 0;
+		},
+		duk_fn {
+			duk_push_this(ctx);
+			duk_get_prop_string(ctx, -1, "val");
+			auto &&str = EnumClassParseA(small_cast<EnumClass>(duk_to_uint(ctx, -1)));
+			duk_push_string(ctx, str);
+			return 1;
+		}
+	);
 
-	duk_push_c_function(ctx, load_duk_cmdl, 0);
-	duk_call(ctx, 0);
-	duk_pop(ctx);
+	duk_int_t rc;
 
-	duk_eval_string(ctx, "Console.Reopen()");
+	//rc = duk_safe_call(ctx, load_duk, O, 1, 0);
+	//if (rc != DUK_EXEC_SUCCESS) {
+	//	duk_dup(ctx, -1);
+	//	duk_put_global_string(ctx, "LastError");
+	//	duk_errout(ctx, "%s\n", duk_safe_to_stacktrace(ctx, -1));
+	//}
+
+	duk_push_global_object(ctx);
+	rc = duk_safe_call(ctx, load_duk_cmdl, O, 1, 0);
+	if (rc != DUK_EXEC_SUCCESS) {
+		duk_dup(ctx, -1);
+		duk_put_global_string(ctx, "LastError");
+		duk_errout(ctx, "%s\n", duk_safe_to_stacktrace(ctx, -1));
+	}
+
+	//duk_eval_string(ctx, "Console.Reopen()");
 	Console.Log(_T("\n - Duktape symbols loaded -\n"));
 	print_mem();
 
@@ -238,6 +295,8 @@ void commandline(duk_context *ctx) {
 }
 
 int main() {
+	Console.Log(_T("Compilation Information:\n") COMPILATION_INFO);
+
 	Console.Log(_T("\n -- Duktape x WindowX --\n\n"));
 
 	ctx = duk_create_heap(duk_alloc, duk_realloc, duk_free, O, duk_onfatal);

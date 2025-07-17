@@ -285,13 +285,14 @@ enum_class(CommEvent, DWORD,
 	Rx80Full  = EV_RX80FULL,
 	Event1    = EV_EVENT1,
 	Event2    = EV_EVENT2);
-struct CommStates : public RefAs<DCB> {
-	using super = RefAs<DCB>;
+class CommStates : public RefStruct<DCB> {
+public:
+	using super = RefStruct<DCB>;
 public:
 	CommStates() reflect_to(self->DCBlength = sizeof(DCB); self->fBinary = 1);
 	CommStates(const DCB &dcb) : super(dcb) {}
-	CommStates(LPCSTR lpDef) : CommStates() assertl_reflect_as(BuildCommDCBA(lpDef, self));
-	CommStates(LPCWSTR lpDef) : CommStates() assertl_reflect_as(BuildCommDCBW(lpDef, self));
+	CommStates(LPCSTR lpDef) : CommStates() assertl_reflect_as(BuildCommDCBA(lpDef, this));
+	CommStates(LPCWSTR lpDef) : CommStates() assertl_reflect_as(BuildCommDCBW(lpDef, this));
 public: // Property - BaudRate
 	/* W */ inline auto &BaudRate(DWORD baudrate) reflect_to_self(self->BaudRate = baudrate);
 	/* R */ inline DWORD BaudRate() const reflect_as(self->BaudRate);
@@ -356,8 +357,9 @@ public: // Property - EvtChar
 	/* W */ inline auto &EvtChar(char evtchar) reflect_to_self(self->EvtChar = evtchar);
 	/* R */ inline char  EvtChar() const reflect_as(self->EvtChar);
 };
-struct CommTimeout : public RefAs<COMMTIMEOUTS> {
-	using super = RefAs<COMMTIMEOUTS>;
+class CommTimeout : public RefStruct<COMMTIMEOUTS> {
+public:
+	using super = RefStruct<COMMTIMEOUTS>;
 public:
 	CommTimeout() {}
 public: // Property - ReadInterval

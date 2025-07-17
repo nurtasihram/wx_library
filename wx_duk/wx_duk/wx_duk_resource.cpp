@@ -3,10 +3,10 @@
 #include "wx_duk.h"
 
 static void load_duk_module(duk_context *ctx) {
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "Module", O,
 		duk_structure {
-			/* Menu */ duk_put_method(ctx, "Menu", 1, duk_fn {
+			/* Menu */ duk_add_method(ctx, "Menu", 1, duk_fn {
 				auto pobj = duk_get_this__p<CModule>(ctx);
 				HMENU hmenu = O;
 				if (duk_is_string(ctx, 0)) {
@@ -21,7 +21,7 @@ static void load_duk_module(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Menu", hmenu);
 				return 1;
 			});
-			/* Bitmap */ duk_put_method(ctx, "Bitmap", 1, duk_fn {
+			/* Bitmap */ duk_add_method(ctx, "Bitmap", 1, duk_fn {
 				auto pobj = duk_get_this__p<CModule>(ctx);
 				HBITMAP hbitmap = O;
 				if (duk_is_string(ctx, 0)) {
@@ -36,7 +36,7 @@ static void load_duk_module(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Bitmap", hbitmap);
 				return 1;
 			});
-			/* Icon */ duk_put_method(ctx, "Icon", 1, duk_fn {
+			/* Icon */ duk_add_method(ctx, "Icon", 1, duk_fn {
 				auto pobj = duk_get_this__p<CModule>(ctx);
 				HICON hicon = O;
 				if (duk_is_string(ctx, 0)) {
@@ -51,7 +51,7 @@ static void load_duk_module(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Icon", hicon);
 				return 1;
 			});
-			/* Cursor */ duk_put_method(ctx, "Cursor", 1, duk_fn {
+			/* Cursor */ duk_add_method(ctx, "Cursor", 1, duk_fn {
 				auto pobj = duk_get_this__p<CModule>(ctx);
 				HCURSOR hcursor = O;
 				if (duk_is_string(ctx, 0)) {
@@ -66,7 +66,7 @@ static void load_duk_module(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Cursor", hcursor);
 				return 1;
 			});
-			/* String */ duk_put_method(ctx, "String", 1, duk_fn {
+			/* String */ duk_add_method(ctx, "String", 1, duk_fn {
 				auto pobj = duk_get_this__p<CModule>(ctx);
 				auto wID = duk_to_uint16(ctx, 0);
 				if (wx_try(ctx, [&] { duk_push_string(ctx, pobj->StringA(wID)); }))
@@ -115,7 +115,7 @@ static void load_duk_module(duk_context *ctx) {
 			return 0;
 		},
 		duk_static {
-			/* Module */ duk_put_method(ctx, "Library", 1, duk_fn {
+			/* Module */ duk_add_method(ctx, "Library", 1, duk_fn {
 				auto lpModuleName = duk_to_string(ctx, 0);
 				CModule mod = O;
 				if (wx_try(ctx, [&] { *mod = Module(lpModuleName); }))
@@ -130,7 +130,7 @@ static void load_duk_module(duk_context *ctx) {
 
 template<class AnyClass>
 static void __CommRes(duk_context *ctx) {
-	duk_put_method(ctx, "Destroy", 0, duk_fn {
+	duk_add_method(ctx, "Destroy", 0, duk_fn {
 		if (auto pobj = duk_get_this__p<AnyClass>(ctx))
 			if (wx_try(ctx, [&] { pobj->Destroy(); }))
 				return DUK_RET_REFERENCE_ERROR;
@@ -138,7 +138,7 @@ static void __CommRes(duk_context *ctx) {
 	});
 }
 static void load_duk_icon(duk_context *ctx) {
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "Icon", O,
 		duk_structure {
 			__CommRes<CIcon>(ctx);
@@ -177,7 +177,7 @@ static void load_duk_icon(duk_context *ctx) {
 	);
 }
 static void load_duk_cursor(duk_context *ctx) {
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "Cursor", O,
 		duk_structure {
 			__CommRes<CCursor>(ctx);
@@ -207,11 +207,11 @@ static void load_duk_cursor(duk_context *ctx) {
 	);
 }
 static void load_duk_menu(duk_context *ctx) {
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "Menu", O,
 		duk_structure {
 			__CommRes<CMenu>(ctx);
-			/* <Self> */ duk_put_method(ctx, "Separator", 0, duk_fn {
+			/* <Self> */ duk_add_method(ctx, "Separator", 0, duk_fn {
 				auto pobj = duk_get_this__p<CMenu>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -220,7 +220,7 @@ static void load_duk_menu(duk_context *ctx) {
 				duk_push_this(ctx);
 				return 1;
 			});
-			/* <Self> */ duk_put_method(ctx, "String", 3, duk_fn {
+			/* <Self> */ duk_add_method(ctx, "String", 3, duk_fn {
 				auto pobj = duk_get_this__p<CMenu>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -232,7 +232,7 @@ static void load_duk_menu(duk_context *ctx) {
 				duk_push_this(ctx);
 				return 1;
 			});
-			/* <Self> */ duk_put_method(ctx, "Check", 4, duk_fn {
+			/* <Self> */ duk_add_method(ctx, "Check", 4, duk_fn {
 				auto pobj = duk_get_this__p<CMenu>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -245,7 +245,7 @@ static void load_duk_menu(duk_context *ctx) {
 				duk_push_this(ctx);
 				return 1;
 			});
-			/* <Self> */ duk_put_method(ctx, "Popup", 3, duk_fn {
+			/* <Self> */ duk_add_method(ctx, "Popup", 3, duk_fn {
 				auto pobj = duk_get_this__p<CMenu>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -263,7 +263,7 @@ static void load_duk_menu(duk_context *ctx) {
 				duk_push_this(ctx);
 				return 1;
 			});
-			/* bool */ duk_put_method(ctx, "valueOf", 0, duk_fn {
+			/* bool */ duk_add_method(ctx, "valueOf", 0, duk_fn {
 				auto pobj = duk_get_this__p<CMenu>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -310,7 +310,7 @@ static void load_duk_menu(duk_context *ctx) {
 			return 0;
 		}
 	);
-	duk_put_global_function(
+	duk_add_method(
 		/* Menu */ ctx, "MenuPopup", 0, duk_fn {
 			CMenu menu = O;
 			if (wx_try(ctx, [&] { *menu = Menu::CreatePopup(); }))

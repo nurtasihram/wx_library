@@ -20,8 +20,7 @@ struct duk_constant {
 const char *smpl_to_string(bool b);
 const char *duk_this_prop_to_string(duk_context *ctx, const char *name);
 
-void duk_put_global_function(duk_context *ctx, const char *name, duk_idx_t nargs, duk_c_function constructor);
-void duk_put_global_object(duk_context *ctx, const char *name, duk_c_function constuctor);
+void duk_add_object(duk_context *ctx, const char *name, duk_c_function constuctor);
 
 /* Class */
 static constexpr duk_uint_t DUK_DEFPROP_PUBLIC_CONST =
@@ -35,14 +34,14 @@ static constexpr duk_uint_t DUK_DEFPROP_PRIVATE_CONST =
 	DUK_DEFPROP_CLEAR_ENUMERABLE |	// unenumerable
 	DUK_DEFPROP_CLEAR_CONFIGURABLE;	// unconfigurable
 void duk_int_prop(duk_context *ctx, const char *name, duk_int_t val);
-void duk_put_prop(duk_context *ctx, const char *name, duk_c_function setter, duk_c_function getter);
+void duk_add_prop(duk_context *ctx, const char *name, duk_c_function setter, duk_c_function getter);
 void duk_put_prop_w(duk_context *ctx, const char *name, duk_c_function setter);
 void duk_put_prop_r(duk_context *ctx, const char *name, duk_c_function getter);
 void duk_put_const(duk_context *ctx, const char *name, duk_uint_t value);
 void duk_put_const(duk_context *ctx, const duk_constant *c, uint32_t len);
-void duk_put_method(duk_context *ctx, const char *name, duk_idx_t nargs, duk_c_function func);
+void duk_add_method(duk_context *ctx, const char *name, duk_idx_t nargs, duk_c_function func);
 void duk_put_destructor(duk_context *ctx, duk_c_function finalizer);
-void duk_put_global_class(duk_context *ctx, const char *name, const char *extends, duk_c_function cstr_struct, duk_c_function cstr_class, duk_c_function cstr_static = O);
+void duk_add_class(duk_context *ctx, const char *name, const char *extends, duk_c_function cstr_struct, duk_c_function cstr_class, duk_c_function cstr_static = O);
 bool duk_reflect_constructor(duk_context *ctx);
 void duk_set_extends(duk_context *ctx, const char *child_name, const char *parent_name);
 #define duk_structure duk_fn
@@ -85,20 +84,20 @@ bool duk_get_rect(duk_context *ctx, WX::LRect &rect, duk_idx_t idx = -1);
 void duk_push_rect(duk_context *ctx, const WX::LRect &rect);
 
 /* Enums & Flags */
-void duk_add_global_flags(duk_context *ctx,
+void duk_add_flags(duk_context *ctx,
 			   const char *type,
 			   const char *name, const char *parent_name,
 			   const duk_constant *dcs, uint32_t len);
 template<size_t len>
-void duk_add_global_flags(duk_context *ctx,
+void duk_add_flags(duk_context *ctx,
 			   const char *name, const char *parent_name,
 			   const duk_constant (&dcs)[len])
-{ duk_add_global_flags(ctx, "FlagObj", name, parent_name, dcs, len); }
+{ duk_add_flags(ctx, "FlagObj", name, parent_name, dcs, len); }
 template<size_t len>
-void duk_add_global_enums(duk_context *ctx,
+void duk_add_enums(duk_context *ctx,
 			   const char *name, const char *parent_name,
 			   const duk_constant(&dcs)[len])
-{ duk_add_global_flags(ctx, "EnumObj", name, parent_name, dcs, len); }
+{ duk_add_flags(ctx, "EnumObj", name, parent_name, dcs, len); }
 void duk_push_enum(duk_context *ctx, const char *name, duk_int_t i);
 
 /* Exception System */
@@ -108,7 +107,7 @@ bool wx_try(duk_context *ctx, const AnyClosure &closure) {
 	try {
 		closure();
 	} catch (WX::Exception err) {
-		duk_errout(ctx, err.FormatA());
+		duk_errout(ctx, err.toStringA());
 		return true;
 	}
 	return false;
@@ -117,9 +116,10 @@ bool wx_try(duk_context *ctx, const AnyClosure &closure) {
 void load_duk_types(duk_context *ctx);
 void load_duk_resource(duk_context *ctx);
 void load_duk_gdi(duk_context *ctx);
-void load_duk_dialog(duk_context *ctx);
 void load_duk_window(duk_context *ctx);
+void load_duk_dialog(duk_context *ctx);
+void load_duk_control(duk_context *ctx);
 void load_duk_console(duk_context *ctx);
 void load_duk_realtime(duk_context *ctx);
 
-duk_ret_t load_duk(duk_context *ctx);
+duk_ret_t load_duk(duk_context *ctx, void *);

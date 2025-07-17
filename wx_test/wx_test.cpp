@@ -9,12 +9,12 @@
 
 using namespace WX;
 
-class BaseOf_Window(TestWindow) {
-	SFINAE_Window(TestWindow);
-public:
-	TestWindow() {}
-public:
-};
+//class BaseOf_Window(TestWindow) {
+//	SFINAE_Window(TestWindow);
+//public:
+//	TestWindow() {}
+//public:
+//};
 
 class Atom {
 	ATOM atom = 0;
@@ -33,27 +33,17 @@ public:
 		atom = 0;
 	}
 public: // Property - Name
-	/* R */ inline String Name() const {
-		auto lpszAtomName = String::Alloc(MaxLenClass);
-		int len = 0;
-		assertl((len = GetAtomName(self, lpszAtomName, MaxLenClass)) > 0);
-		lpszAtomName = String::Realloc(len, lpszAtomName);
-		return { (size_t)len, lpszAtomName };
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline StringX<IsUnicode> Name() const {
+		global_symbolx(GetAtomName);
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenClass);
+		int len;
+		assertl((len = GetAtomName(self, lpsz, MaxLenClass)) > 0);
+		StringX<IsUnicode>::Resize(lpsz, len);
+		return { (size_t)len, lpsz };
 	}
-	/* R */ inline StringA NameA() const {
-		auto lpszAtomName = StringA::Alloc(MaxLenClass);
-		int len = 0;
-		assertl((len = GetAtomNameA(self, lpszAtomName, MaxLenClass)) > 0);
-		lpszAtomName = StringA::Realloc(len, lpszAtomName);
-		return { (size_t)len, lpszAtomName };
-	}
-	/* R */ inline StringW NameW() const {
-		auto lpszAtomName = StringW::Alloc(MaxLenClass);
-		int len = 0;
-		assertl((len = GetAtomNameW(self, lpszAtomName, MaxLenClass)) > 0);
-		lpszAtomName = StringW::Realloc(len, lpszAtomName);
-		return { (size_t)len, lpszAtomName };
-	}
+	/* R */ inline StringA NameA() const reflect_as(Name<false>());
+	/* R */ inline StringW NameW() const reflect_as(Name<true>());
 public:
 	inline operator bool() const reflect_as(atom);
 	inline operator ATOM() const reflect_as(atom);
@@ -61,18 +51,45 @@ public:
 	inline operator LPCWSTR() const reflect_as(MAKEINTRESOURCEW(atom));
 };
 
-template<class AnyClass, class...Args>
-constexpr void plist() {
-	Console.LogA(CString(typeid(AnyClass).name(), MaxLenClass), '\n');
-	if constexpr (sizeof...(Args))
-		plist<Args...>();
+template<class TCHAR, class AnyEnum>
+StringBase<TCHAR> EnumFlagsParse(AnyEnum e) {
+	using EnumType = typename AnyEnum::EnumType;
+	constexpr auto table = EnumTable<EnumType>;
+	auto val = e.yield();
+	if (val == 0)
+		return EnumClassParse(val);
+	for (auto i = 0; i < EnumType::Count; ++i)
+		if (val == EnumType::__Vals[i])
+			return table[i].key;
+	if constexpr (EnumType::HasProtoEnum)
+		return EnumClassParse(reuse_as<typename EnumType::ProtoEnum>(e));
+	else
+		return format_numeral("d").toString<TCHAR>(val);
 }
 
+enum_class(EC1, int,
+	Alfa = 1,
+	Beta = 2,
+	Gamma = 3);
+enum_class(EC2, EC1,
+	Delta = 4,
+	Epsilon = 5,
+	Yota = 6);
+
 int main() {
-	TestWindow wnd;
-	assertl(wnd.Create());
-	wnd.Show();
-	Console.Log(wnd.ModuleFileName());
+	Console.Log(_T("Compilation Information:\n") COMPILATION_INFO);
+
+	constexpr auto map = EnumTable<EC2>;
+	for (size_t i = 0; i < map.Length; ++i)
+		Console.Log(map[i].key, ':', map[i].val, '=', nX("08X", EC1::__Vals[i]), '\n');
+	EC2 e = reuse_as<EC2>(EC1::Alfa);
+	Console.LogA(EnumClassParseA(EC1::Alfa), '\n');
+	Console.Log(EnumClassParse(e), '\n');
+
+	//TestWindow wnd;
+	//assertl(wnd.Create());
+	//wnd.Show();
+	//Console.Log(wnd.ModuleFileName());
 	Msg msg;
 	while (msg.Get()) {
 		msg.Translate();

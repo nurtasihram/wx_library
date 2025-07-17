@@ -4,7 +4,7 @@
 
 template<class AnyClass>
 static void __CommGDI(duk_context *ctx) {
-	duk_put_method(ctx, "Delete", 0, duk_fn {
+	duk_add_method(ctx, "Delete", 0, duk_fn {
 		if (auto pobj = duk_get_this__p<AnyClass>(ctx))
 			if (wx_try(ctx, [&] { pobj->Delete(); }))
 				return DUK_RET_REFERENCE_ERROR;
@@ -32,7 +32,7 @@ static void load_duk_font(duk_context *ctx) {
 		//{ "Type1", TYPE1_FONTTYPE },
 		//{ "Symbol", SYMBOL_FONTTYPE }
 	};
-	duk_add_global_flags(ctx, "FontType", O, __FontType_constant);
+	duk_add_flags(ctx, "FontType", O, __FontType_constant);
 	static const duk_constant __CharSets_constant[]{
 		{ "ANSI", ANSI_CHARSET },
 		{ "Default", DEFAULT_CHARSET },
@@ -55,7 +55,7 @@ static void load_duk_font(duk_context *ctx) {
 		{ "Mac", MAC_CHARSET },
 		{ "Baltic", BALTIC_CHARSET }
 	};
-	duk_add_global_enums(ctx, "CharSets", O, __CharSets_constant);
+	duk_add_flags(ctx, "CharSets", O, __CharSets_constant);
 	static const duk_constant __OutPrecis_constant[]{
 		{ "Default", OUT_DEFAULT_PRECIS },
 		{ "String", OUT_STRING_PRECIS },
@@ -69,7 +69,7 @@ static void load_duk_font(duk_context *ctx) {
 		{ "ScreenOutline", OUT_SCREEN_OUTLINE_PRECIS },
 		{ "PostScriptOnly", OUT_PS_ONLY_PRECIS }
 	};
-	duk_add_global_enums(ctx, "OutPrecis", O, __OutPrecis_constant);
+	duk_add_flags(ctx, "OutPrecis", O, __OutPrecis_constant);
 	static const duk_constant __ClipPrecis_constant[]{
 		{ "Default", CLIP_DEFAULT_PRECIS },
 		{ "Character", CLIP_CHARACTER_PRECIS },
@@ -80,7 +80,7 @@ static void load_duk_font(duk_context *ctx) {
 		{ "DFA_Disable", CLIP_DFA_DISABLE },
 		{ "Embedded", CLIP_EMBEDDED }
 	};
-	duk_add_global_flags(ctx, "ClipPrecis", O, __ClipPrecis_constant);
+	duk_add_flags(ctx, "ClipPrecis", O, __ClipPrecis_constant);
 	static const duk_constant __Qualities_constant[]{
 		{ "Default", DEFAULT_QUALITY },
 		{ "Draf", DRAFT_QUALITY },
@@ -90,14 +90,14 @@ static void load_duk_font(duk_context *ctx) {
 		{ "ClearType", CLEARTYPE_QUALITY },
 		{ "ClearTypeNatural", CLEARTYPE_NATURAL_QUALITY }
 	};
-	duk_add_global_enums(ctx, "Qualities", O, __Qualities_constant);
+	duk_add_flags(ctx, "Qualities", O, __Qualities_constant);
 	static const duk_constant __FontPitches_constant[]{
 		{ "Default", DEFAULT_PITCH },
 		{ "Fixed", FIXED_PITCH },
 		{ "Variable", VARIABLE_PITCH },
 		{ "Mono", MONO_FONT }
 	};
-	duk_add_global_enums(ctx, "FontPitches", O, __FontPitches_constant);
+	duk_add_flags(ctx, "FontPitches", O, __FontPitches_constant);
 	static const duk_constant __FontFamilies_constant[]{
 		{ "DontCare", FF_DONTCARE },
 		{ "Roman", FF_ROMAN },
@@ -106,12 +106,12 @@ static void load_duk_font(duk_context *ctx) {
 		{ "Script", FF_SCRIPT },
 		{ "Decorative", FF_DECORATIVE }
 	};
-	duk_add_global_enums(ctx, "FontFamilies", O, __FontFamilies_constant);
+	duk_add_flags(ctx, "FontFamilies", O, __FontFamilies_constant);
 #pragma endregion
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "FontLogic", O,
 		duk_structure {
-			/* int */ duk_put_prop(ctx, "Height",
+			/* int */ duk_add_prop(ctx, "Height",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -127,7 +127,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* int */ duk_put_prop(ctx, "Width",
+			/* int */ duk_add_prop(ctx, "Width",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -143,7 +143,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* int */ duk_put_prop(ctx, "Escapement",
+			/* int */ duk_add_prop(ctx, "Escapement",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -159,7 +159,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* int */ duk_put_prop(ctx, "Orientation",
+			/* int */ duk_add_prop(ctx, "Orientation",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -175,7 +175,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* int */ duk_put_prop(ctx, "Weight",
+			/* int */ duk_add_prop(ctx, "Weight",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -191,7 +191,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* bool */ duk_put_prop(ctx, "Italic",
+			/* bool */ duk_add_prop(ctx, "Italic",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -207,7 +207,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* bool */ duk_put_prop(ctx, "Underline",
+			/* bool */ duk_add_prop(ctx, "Underline",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -223,7 +223,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* bool */ duk_put_prop(ctx, "StrikeOut",
+			/* bool */ duk_add_prop(ctx, "StrikeOut",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -239,7 +239,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* CharSets */ duk_put_prop(ctx, "CharSet",
+			/* CharSets */ duk_add_prop(ctx, "CharSet",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -255,7 +255,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* OutPrecis */ duk_put_prop(ctx, "OutPrecision",
+			/* OutPrecis */ duk_add_prop(ctx, "OutPrecision",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -271,7 +271,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* ClipPrecis */ duk_put_prop(ctx, "ClipPrecision",
+			/* ClipPrecis */ duk_add_prop(ctx, "ClipPrecision",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -287,7 +287,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* Qualities */ duk_put_prop(ctx, "Quality",
+			/* Qualities */ duk_add_prop(ctx, "Quality",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -303,7 +303,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* FontPitches */ duk_put_prop(ctx, "Pitch",
+			/* FontPitches */ duk_add_prop(ctx, "Pitch",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -319,7 +319,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* FontFamilies */ duk_put_prop(ctx, "Family",
+			/* FontFamilies */ duk_add_prop(ctx, "Family",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -335,7 +335,7 @@ static void load_duk_font(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* String */ duk_put_prop(ctx, "FaceName",
+			/* String */ duk_add_prop(ctx, "FaceName",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
 					if (!pobj)
@@ -352,7 +352,7 @@ static void load_duk_font(duk_context *ctx) {
 				}
 			);
 
-			/* String */ duk_put_method(ctx, "toString", 0, duk_fn {
+			/* String */ duk_add_method(ctx, "toString", 0, duk_fn {
 				auto pobj = duk_get_this__p<FontLogicA>(ctx);
 				if (!pobj)
 					return DUK_RET_REFERENCE_ERROR;
@@ -428,7 +428,7 @@ static void load_duk_font(duk_context *ctx) {
 			return 0;
 		}
 	);
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "Font", O,
 		duk_structure {
 			return 0;
@@ -470,7 +470,7 @@ static void load_duk_font(duk_context *ctx) {
 	);
 }
 static void load_duk_bitmap(duk_context *ctx) {
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "Bitmap", O,
 		duk_structure {
 			__CommGDI<CBitmap>(ctx);
@@ -511,12 +511,12 @@ static void load_duk_pen(duk_context *ctx) {
 		{ "UserStyle", PS_USERSTYLE },
 		{ "Alternate", PS_ALTERNATE }
 	};
-	duk_add_global_flags(ctx, "PenStyles", O, _PenStyles_constant);
-	duk_put_global_class(
+	duk_add_flags(ctx, "PenStyles", O, _PenStyles_constant);
+	duk_add_class(
 		ctx, "PenLogic", O,
 		duk_structure {
 			__CommGDI<CPen>(ctx);
-			/* PenStyles */ duk_put_prop(ctx, "Style",
+			/* PenStyles */ duk_add_prop(ctx, "Style",
 				duk_set {
 					auto pobj = duk_get_this__p<PenLogic>(ctx);
 					if (!pobj)
@@ -532,7 +532,7 @@ static void load_duk_pen(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* Point */ duk_put_prop(ctx, "Width",
+			/* Point */ duk_add_prop(ctx, "Width",
 				duk_set {
 					auto pobj = duk_get_this__p<PenLogic>(ctx);
 					if (!pobj)
@@ -551,7 +551,7 @@ static void load_duk_pen(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* RGB */ duk_put_prop(ctx, "Color",
+			/* RGB */ duk_add_prop(ctx, "Color",
 				duk_set {
 					auto pobj = duk_get_this__p<PenLogic>(ctx);
 					if (!pobj)
@@ -573,7 +573,7 @@ static void load_duk_pen(duk_context *ctx) {
 			return 0;
 		}
 	);
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "Pen", O,
 		duk_structure {
 			__CommGDI<CPen>(ctx);
@@ -614,7 +614,7 @@ static void load_duk_pen(duk_context *ctx) {
 			return 0;
 		},
 		duk_static {
-			/* Pen */ duk_put_method(ctx, "CreateSolid", 2, duk_fn {
+			/* Pen */ duk_add_method(ctx, "CreateSolid", 2, duk_fn {
 				auto color = duk_to_int(ctx, 0);
 				auto width = duk_to_int(ctx, 1);
 				CPen pen = O;
@@ -623,7 +623,7 @@ static void load_duk_pen(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Pen", pen);
 				return 1;
 			});
-			/* Pen */ duk_put_method(ctx, "CreateDash", 2, duk_fn {
+			/* Pen */ duk_add_method(ctx, "CreateDash", 2, duk_fn {
 				auto color = duk_to_int(ctx, 0);
 				auto width = duk_to_int(ctx, 1);
 				CPen pen = O;
@@ -632,7 +632,7 @@ static void load_duk_pen(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Pen", pen);
 				return 1;
 			});
-			/* Pen */ duk_put_method(ctx, "CreateDot", 2, duk_fn {
+			/* Pen */ duk_add_method(ctx, "CreateDot", 2, duk_fn {
 				auto color = duk_to_int(ctx, 0);
 				auto width = duk_to_int(ctx, 1);
 				CPen pen = O;
@@ -641,7 +641,7 @@ static void load_duk_pen(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Pen", pen);
 				return 1;
 			});
-			/* Pen */ duk_put_method(ctx, "CreateDashDot", 2, duk_fn {
+			/* Pen */ duk_add_method(ctx, "CreateDashDot", 2, duk_fn {
 				auto color = duk_to_int(ctx, 0);
 				auto width = duk_to_int(ctx, 1);
 				CPen pen = O;
@@ -650,7 +650,7 @@ static void load_duk_pen(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Pen", pen);
 				return 1;
 			});
-			/* Pen */ duk_put_method(ctx, "CreateDashDotDot", 2, duk_fn {
+			/* Pen */ duk_add_method(ctx, "CreateDashDotDot", 2, duk_fn {
 				auto color = duk_to_int(ctx, 0);
 				auto width = duk_to_int(ctx, 1);
 				CPen pen = O;
@@ -659,7 +659,7 @@ static void load_duk_pen(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Pen", pen);
 				return 1;
 			});
-			/* Pen */ duk_put_method(ctx, "CreateNull", 2, duk_fn{
+			/* Pen */ duk_add_method(ctx, "CreateNull", 2, duk_fn{
 				auto color = duk_to_int(ctx, 0);
 				auto width = duk_to_int(ctx, 1);
 				CPen pen = O;
@@ -668,7 +668,7 @@ static void load_duk_pen(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Pen", pen);
 				return 1;
 									 });
-			/* Pen */ duk_put_method(ctx, "CreateInsideFrame", 2, duk_fn {
+			/* Pen */ duk_add_method(ctx, "CreateInsideFrame", 2, duk_fn {
 				auto color = duk_to_int(ctx, 0);
 				auto width = duk_to_int(ctx, 1);
 				CPen pen = O;
@@ -677,7 +677,7 @@ static void load_duk_pen(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Pen", pen);
 				return 1;
 			});
-			/* Pen */ duk_put_method(ctx, "CreateUserStyle", 2, duk_fn {
+			/* Pen */ duk_add_method(ctx, "CreateUserStyle", 2, duk_fn {
 				auto color = duk_to_int(ctx, 0);
 				auto width = duk_to_int(ctx, 1);
 				CPen pen = O;
@@ -686,7 +686,7 @@ static void load_duk_pen(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Pen", pen);
 				return 1;
 			});
-			/* Pen */ duk_put_method(ctx, "CreateAlternate", 2, duk_fn {
+			/* Pen */ duk_add_method(ctx, "CreateAlternate", 2, duk_fn {
 				auto color = duk_to_int(ctx, 0);
 				auto width = duk_to_int(ctx, 1);
 				CPen pen = O;
@@ -737,8 +737,8 @@ static void load_duk_brush(duk_context *ctx) {
 		{ "Cross", HS_CROSS },
 		{ "DiagCross", HS_DIAGCROSS }
 	};
-	duk_add_global_enums(ctx, "HatchStyle", O, _HatchStyle_constant);
-	duk_put_global_class(
+	duk_add_flags(ctx, "HatchStyle", O, _HatchStyle_constant);
+	duk_add_class(
 		ctx, "Brush", O,
 		duk_structure {
 			__CommGDI<CBrush>(ctx);
@@ -766,7 +766,7 @@ static void load_duk_brush(duk_context *ctx) {
 			return 0;
 		},
 		duk_static {
-			/* Brush */ duk_put_method(ctx, "CreateSolid", 1, duk_fn {
+			/* Brush */ duk_add_method(ctx, "CreateSolid", 1, duk_fn {
 				auto color = duk_to_int(ctx, 0);
 				CBrush brush = O;
 				if (wx_try(ctx, [&] { *brush = Brush::CreateSolid(color); }))
@@ -774,7 +774,7 @@ static void load_duk_brush(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Brush", brush);
 				return 1;
 			});
-			/* Brush */ duk_put_method(ctx, "CreatePattern", 1, duk_fn {
+			/* Brush */ duk_add_method(ctx, "CreatePattern", 1, duk_fn {
 				HBITMAP hBitmap = O;
 				if (duk_get_class__p(ctx, "Bitmap", hBitmap))
 					return DUK_RET_TYPE_ERROR;
@@ -784,7 +784,7 @@ static void load_duk_brush(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Brush", brush);
 				return 1;
 			});
-			/* Brush */ duk_put_method(ctx, "CreateHatch", 2, duk_fn {
+			/* Brush */ duk_add_method(ctx, "CreateHatch", 2, duk_fn {
 				auto color = duk_to_int(ctx, 0);
 				auto style = reuse_as<HatchStyle>(duk_to_int(ctx, 1));
 				CBrush brush = O;
@@ -848,7 +848,7 @@ static void load_duk_brush(duk_context *ctx) {
 
 }
 static void load_duk_palette(duk_context *ctx) {
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "Palette", O,
 		duk_structure {
 			__CommGDI<CPalette>(ctx);
@@ -912,19 +912,19 @@ static void load_duk_devcap(duk_context *ctx) {
 		{ "Isotropic", MM_ISOTROPIC },
 		{ "Anisotropic", MM_ANISOTROPIC }
 	};
-	duk_add_global_enums(ctx, "MapModes", O, _MapModes_constant);
+	duk_add_flags(ctx, "MapModes", O, _MapModes_constant);
 	static duk_constant _Stretches_constant[]{
 		{ "And", BLACKONWHITE },
 		{ "Or", WHITEONBLACK },
 		{ "Del", COLORONCOLOR },
 		{ "Half", HALFTONE }
 	};
-	duk_add_global_enums(ctx, "Stretches", O, _Stretches_constant);
+	duk_add_flags(ctx, "Stretches", O, _Stretches_constant);
 	static duk_constant _PolyFills_constant[]{
 		{ "Alternate", ALTERNATE },
 		{ "Winding", WINDING }
 	};
-	duk_add_global_enums(ctx, "PolyFills", O, _PolyFills_constant);
+	duk_add_flags(ctx, "PolyFills", O, _PolyFills_constant);
 	static duk_constant _TextAlign_constant[]{
 		{ "NoUpDateCP", TA_NOUPDATECP },
 		{ "UpDateCP", TA_UPDATECP },
@@ -936,12 +936,12 @@ static void load_duk_devcap(duk_context *ctx) {
 		{ "Baseline", TA_BASELINE },
 		{ "RTLReading", TA_RTLREADING }
 	};
-	duk_add_global_enums(ctx, "TextAlign", O, _TextAlign_constant);
+	duk_add_flags(ctx, "TextAlign", O, _TextAlign_constant);
 
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "DevCap", O,
 		duk_structure {
-			/* void */ duk_put_method(ctx, "Delete", 0, duk_fn {
+			/* void */ duk_add_method(ctx, "Delete", 0, duk_fn {
 				if (auto pobj = duk_get_this__p<CDevCap>(ctx))
 					if (wx_try(ctx, [&] { pobj->Delete(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -949,7 +949,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				duk_del_prop_string(ctx, -1, "__p");
 				return 0;
 			});
-			/* void */ duk_put_method(ctx, "DrawIcon", 2, duk_fn {
+			/* void */ duk_add_method(ctx, "DrawIcon", 2, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -963,7 +963,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
-			/* void */ duk_put_method(ctx, "DrawPixel", 2, duk_fn {
+			/* void */ duk_add_method(ctx, "DrawPixel", 2, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -975,7 +975,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
-			/* void */ duk_put_method(ctx, "DrawPie", 4, duk_fn {
+			/* void */ duk_add_method(ctx, "DrawPie", 4, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -992,7 +992,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
-			/* void */ duk_put_method(ctx, "DrawEllipse", 1, duk_fn {
+			/* void */ duk_add_method(ctx, "DrawEllipse", 1, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -1003,7 +1003,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
-			/* void */ duk_put_method(ctx, "DrawFocus", 1, duk_fn {
+			/* void */ duk_add_method(ctx, "DrawFocus", 1, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -1014,7 +1014,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
-			/* void */ duk_put_method(ctx, "Invert", 1, duk_fn {
+			/* void */ duk_add_method(ctx, "Invert", 1, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -1025,7 +1025,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
-			/* void */ duk_put_method(ctx, "Fill", 2, duk_fn {
+			/* void */ duk_add_method(ctx, "Fill", 2, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -1042,7 +1042,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
-			/* void */ duk_put_method(ctx, "Select", 1, duk_fn {
+			/* void */ duk_add_method(ctx, "Select", 1, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
 				if (!pobj)
 					return DUK_RET_TYPE_ERROR;
@@ -1059,7 +1059,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				return 0;
 			});
 
-			/* RGB */ duk_put_prop(ctx, "PenColor",
+			/* RGB */ duk_add_prop(ctx, "PenColor",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
 					if (!pobj)
@@ -1080,7 +1080,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* RGB */ duk_put_prop(ctx, "BkColor",
+			/* RGB */ duk_add_prop(ctx, "BkColor",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
 					if (!pobj)
@@ -1101,7 +1101,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* RGB */ duk_put_prop(ctx, "TextColor",
+			/* RGB */ duk_add_prop(ctx, "TextColor",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
 					if (!pobj)
@@ -1122,7 +1122,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* TextAlign */ duk_put_prop(ctx, "TextAligns",
+			/* TextAlign */ duk_add_prop(ctx, "TextAligns",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
 					if (!pobj)
@@ -1143,7 +1143,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* Point */ duk_put_prop(ctx, "ViewOrg",
+			/* Point */ duk_add_prop(ctx, "ViewOrg",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
 					if (!pobj)
@@ -1166,7 +1166,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* Point */ duk_put_prop(ctx, "ViewExt",
+			/* Point */ duk_add_prop(ctx, "ViewExt",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
 					if (!pobj)
@@ -1189,7 +1189,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* Point */ duk_put_prop(ctx, "WindowOrg",
+			/* Point */ duk_add_prop(ctx, "WindowOrg",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
 					if (!pobj)
@@ -1212,7 +1212,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* Point */ duk_put_prop(ctx, "WindowExt",
+			/* Point */ duk_add_prop(ctx, "WindowExt",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
 					if (!pobj)
@@ -1235,7 +1235,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* MapModes */ duk_put_prop(ctx, "MapMode",
+			/* MapModes */ duk_add_prop(ctx, "MapMode",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
 					if (!pobj)
@@ -1256,7 +1256,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* Stretches */ duk_put_prop(ctx, "StretchMode",
+			/* Stretches */ duk_add_prop(ctx, "StretchMode",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
 					if (!pobj)
@@ -1277,7 +1277,7 @@ static void load_duk_devcap(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* PolyFills */ duk_put_prop(ctx, "PolyFillMode",
+			/* PolyFills */ duk_add_prop(ctx, "PolyFillMode",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
 					if (!pobj)

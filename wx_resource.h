@@ -11,8 +11,8 @@
 namespace WX {
 
 #pragma region Icon
-struct IconInfo : public RefAs<ICONINFO> {
-	using super = RefAs<ICONINFO>;
+struct IconInfo : public RefStruct<ICONINFO> {
+	using super = RefStruct<ICONINFO>;
 public:
 	IconInfo(bool fIcon = true) reflect_to(self->fIcon = fIcon);
 	IconInfo(const ICONINFO &i) : super(i) {}
@@ -33,8 +33,8 @@ public: // Property - Colors
 	/* R */ inline Bitmap &Colors() const reflect_as(Bitmap::Attach(const_cast<HBITMAP &>(self->hbmColor)));
 };
 using CIconInfo = RefAs<IconInfo>;
-struct IconInfoEx : public RefAs<ICONINFOEX> {
-	using super = RefAs<ICONINFOEX>;
+class IconInfoEx : public RefStruct<ICONINFOEX> {
+	using super = RefStruct<ICONINFOEX>;
 public:
 	IconInfoEx() reflect_to(self->cbSize = sizeof(self); self->fIcon = true);
 	IconInfoEx(const ICONINFOEX &i) : super(i) {}
@@ -68,7 +68,7 @@ public:
 	using Info = IconInfo;
 	using InfoEx = IconInfoEx;
 protected:
-	friend class RefAs<Icon>;
+	friend union RefAs<Icon>;
 	mutable HICON hIcon = O;
 	Icon(HICON h) : hIcon(h) {}
 	Icon(const Icon &i) : hIcon(i.hIcon) reflect_to(i.hIcon = O);
@@ -149,7 +149,7 @@ class Cursor : public Icon {
 public:
 	using super = Icon;
 protected:
-	friend class RefAs<Cursor>;
+	friend union RefAs<Cursor>;
 	Cursor(HCURSOR h) : super((HICON)h) {}
 	Cursor(const Cursor &c) : Icon(c) {}
 public:
@@ -258,53 +258,13 @@ public: // Property - Enable
 	/* W */ inline auto &Enable(bool bEnable) assertl_reflect_as_self(EnableMenuItem(hMenu, uID, flags | (bEnable ? MF_ENABLED : (MF_DISABLED | MF_GRAYED))) >= 0);
 public: // Property - Check
 	/* W */ inline auto &Check(bool bChecked) assertl_reflect_as_self(CheckMenuItem(hMenu, uID, flags | (bChecked ? MF_CHECKED : MF_UNCHECKED)) >= 0);
-#define MENUITEM_PROPERTY(name, mask, memb, type, in, conv) \
-	/* W */ inline auto &name(type memb) assertl_reflect_to_self(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = mask; mii.memb = in, SetMenuItemInfo(hMenu, uID, flags, &mii)); \
-	/* R */ inline type  name() const assertl_reflect_to(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = mask, GetMenuItemInfo(hMenu, uID, flags, &mii), conv(mii.memb))
-public: // Property - Types
-	MENUITEM_PROPERTY(Types, MIIM_TYPE, fType, Type, fType.yield(), ref_as<Type>);
-public: // Property - State
-	MENUITEM_PROPERTY(States, MIIM_STATE, fState, State, fState.yield(), ref_as<State>);
-public: // Property - ID
-	MENUITEM_PROPERTY(ID, MIIM_ID, wID, UINT, wID, _M_);
-public: // Property - Checked
-	MENUITEM_PROPERTY(Checked, MIIM_CHECKMARKS, hbmpChecked, CBitmap, hbmpChecked, _M_);
-public: // Property - Unchecked
-	MENUITEM_PROPERTY(Unchecked, MIIM_CHECKMARKS, hbmpUnchecked, CBitmap, hbmpUnchecked, _M_);
-public: // Property - Bitmap
-	MENUITEM_PROPERTY(Bitmap, MIIM_BITMAP, hbmpItem, CBitmap, hbmpItem, _M_);
-//	/* W */ inline auto &Bitmap(MenuBmp hbmpItem) assertl_reflect_to_self(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = MIIM_BITMAP; mii.hbmpItem = hbmpItem.yield(), SetMenuItemInfo(hMenu, uID, flags, &mii));
-public: // Property - UserData
-	MENUITEM_PROPERTY(UserData, MIIM_DATA, dwItemData, void *, (ULONG_PTR)dwItemData, ref_as<void *>);
-public: // Property - SubMenu
-	/* W */ auto &SubMenu(CMenu);
-	/* R */ CMenu SubMenu() const;
-public: // Property - String
-	/* W */ inline auto &String(const String &str) {
-		MENUITEMINFO mii({ 0 });
-		mii.cbSize = sizeof(mii);
-		mii.fMask = MIIM_STRING;
-		mii.dwTypeData = const_cast<LPTSTR>((LPCTSTR)str);
-		assertl(SetMenuItemInfo(hMenu, uID, flags, &mii));
-		retself;
-	}
-	/* R */ inline WX::String String() const {
-		MENUITEMINFO mii({ 0 });
-		mii.cbSize = sizeof(mii);
-		mii.fMask = MIIM_STRING;
-		mii.cch = MaxLenNotice;
-		WX::String data((size_t)mii.cch);
-		mii.dwTypeData = data;
-		assertl(GetMenuItemInfo(hMenu, uID, flags, &mii));
-		return data;
-	}
 };
 class Menu {
 public:
 	using Item = MenuItem;
 	using Style = MenuStyle;
 protected:
-	friend class RefAs<Menu>;
+	friend union RefAs<Menu>;
 	mutable HMENU hMenu = O;
 	Menu(HMENU h) : hMenu(h) {}
 	Menu(const Menu &m) : hMenu(m.hMenu) reflect_to(m.hMenu = O);
@@ -367,20 +327,6 @@ public:
 #pragma region Properties
 public: // Property - ItemCount
 	inline auto ItemCount() const reflect_as(GetMenuItemCount(hMenu));
-//#define MENU_PROPERTY(name, mask, memb, type, in) \
-//	/* W */ inline auto &name(type memb) assertl_reflect_to_self(MENUINFO mi({ 0 }); mi.cbSize = sizeof(mi); mi.fMask = mask; mi.memb = in, SetMenuInfo(hMenu, &mi)); \
-//	/* R */ inline type  name() const assertl_reflect_to(MENUINFO mi({ 0 }); mi.cbSize = sizeof(mi); mi.fMask = mask, GetMenuInfo(hMenu, &mi), ref_as<type>(mi.memb));
-//public: // Property - Styles
-//	MENU_PROPERTY(Styles, MIM_STYLE, dwStyle, Style, dwStyle.yield());
-//public: // Property - MaxY
-//	MENU_PROPERTY(MaxY, MIM_MAXHEIGHT, cyMax, UINT, cyMax);
-//public: // Property - Background
-//	MENU_PROPERTY(Background, MIM_BACKGROUND, hbrBack, CBrush, hbrBack);
-//public: // Property - ContextHelpID
-//	MENU_PROPERTY(ContextHelpID, MIM_HELPID, dwContextHelpID, DWORD, dwContextHelpID);
-//public: // Property - UserData
-//	MENU_PROPERTY(UserData, MIM_DATA, dwMenuData, void *, (ULONG_PTR)dwMenuData);
-//#undef MENU_PROPERTY
 #pragma endregion
 public:
 	inline operator bool() const reflect_as(IsMenu(hMenu));
@@ -396,7 +342,6 @@ public:
 	static inline Menu &Attach(HMENU &hMenu) reflect_as(ref_as<Menu>(hMenu));
 	static inline const Menu &Attach(const HMENU &hMenu) reflect_as(ref_as<const Menu>(hMenu));
 };
-MENUITEM_PROPERTY(MenuItem::SubMenu, MIIM_SUBMENU, hSubMenu, CMenu, hSubMenu, _M_);
 inline CMenu MenuItem::Sub(int nPos) reflect_as({ GetSubMenu(hMenu, nPos) });
 static inline Menu MenuPopup() reflect_as(Menu::CreatePopup());
 #undef MENUITEM_PROPERTY
@@ -405,7 +350,7 @@ static inline Menu MenuPopup() reflect_as(Menu::CreatePopup());
 #pragma region Module
 class Module {
 protected:
-	friend class RefAs<Module>;
+	friend union RefAs<Module>;
 	mutable HINSTANCE hInst = O;
 	Module(HINSTANCE h) : hInst(h) {}
 	Module(const Module &m) : hInst(m.hInst) reflect_to(m.hInst = O);
@@ -446,54 +391,43 @@ public:
 	inline CCursor Cursor(LPCWSTR lpszName) const reflect_as(LoadCursorW(self, lpszName));
 	inline CCursor Cursor(WORD wID) const reflect_as(LoadCursor(self, MAKEINTRESOURCE(wID)));
 
-	inline WX::String String(WORD wID) const {
-		WX::String str(StringW(wID).Length());
-		auto len = LoadString(self, wID, str, (int)str.Length() + 1);
-		assertl(len >= 0);
-		assertl(len == str.Length());
-		return str;
+	template<bool IsUnicode = WX::IsUnicode>
+	inline StringX<IsUnicode> String(WORD wID) const {
+		if constexpr (IsUnicode)
+			return StringW(wID);
+		else
+			return StringA(wID);
 	}
 	inline WX::StringA StringA(WORD wID) const {
-		WX::StringA str(StringW(wID).Length());
-		auto len = LoadStringA(self, wID, str, (int)str.Length() + 1);
-		assertl(len >= 0);
-		assertl(len == str.Length());
-		return str;
+		auto len = (int)StringW(wID).Length();
+		auto lpsz = StringA::Alloc(len);
+		assertl((len = LoadStringA(self, wID, lpsz, len)) > 0);
+		return{ (size_t)len, lpsz };
 	}
 	inline const WX::StringW StringW(WORD wID) const {
 		LPCWSTR lpString = O;
-		auto len = LoadStringW(self, wID, (LPWSTR)&lpString, 0);
-		assertl(len >= 0);
+		int len;
+		assertl((len = LoadStringW(self, wID, (LPWSTR)&lpString, 0)) > 0);
 		return CString(len, lpString);
 	}
 
 	template<class AnyFunc>
 	inline AnyFunc *Proc(LPCSTR lpName) reflect_as((AnyFunc  *)::GetProcAddress(self, lpName));
-	
+
 public: // Property - FileName
-	/* R */ inline WX::String FileName() const {
-		auto lpszName = WX::String::Alloc(MaxLenPath);
-		int len = 0;
-		assertl((len = GetModuleFileName(self, lpszName, MaxLenPath)) > 0);
-		lpszName = WX::String::Realloc(len, lpszName);
-		return { (size_t)len, lpszName };
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline StringX<IsUnicode> FileName() const {
+		global_symbolx(GetModuleFileName);
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenPath);
+		int len;
+		assertl((len = GetModuleFileName(self, lpsz, MaxLenPath)) > 0);
+		StringX<IsUnicode>::Resize(lpsz, len);
+		return { (size_t)len, lpsz };
 	}
-	/* R */ inline WX::StringA FileNameA() const {
-		auto lpszName = WX::StringA::Alloc(MaxLenPath);
-		int len = 0;
-		assertl((len = GetModuleFileNameA(self, lpszName, MaxLenPath)) > 0);
-		lpszName = StringA::Realloc(len, lpszName);
-		return { (size_t)len, lpszName };
-	}
-	/* R */ inline WX::StringW FileNameW() const {
-		auto lpszName = WX::StringW::Alloc(MaxLenPath);
-		int len = 0;
-		assertl((len = GetModuleFileNameW(self, lpszName, MaxLenPath)) > 0);
-		lpszName = WX::StringW::Realloc(len, lpszName);
-		return { (size_t)len, lpszName };
-	}
+	/* R */ inline WX::StringA FileNameA() const reflect_as(FileName<false>());
+	/* R */ inline WX::StringW FileNameW() const reflect_as(FileName<true>());
 public:
-	inline operator bool() const reflect_as(hInst ? hInst != INVALID_HANDLE_VALUE : false);
+	inline operator bool() const reflect_as(hInst);
 	inline operator HINSTANCE() const reflect_as(hInst);
 	inline operator LPARAM() const reflect_as((LPARAM)hInst);
 	inline auto &operator=(Module &m) reflect_to_self(std::swap(hInst, m.hInst));

@@ -14,7 +14,7 @@ static void load_duk_handle(duk_context *ctx) {
 		{ "GenericExecute", GENERIC_EXECUTE },
 		{ "GenericAll", GENERIC_ALL }
 	};
-	duk_add_global_flags(ctx, "HandleAccess", O, _HandleAccess_constant);
+	duk_add_flags(ctx, "HandleAccess", O, _HandleAccess_constant);
 }
 
 static void load_duk_event(duk_context *ctx) {
@@ -22,11 +22,11 @@ static void load_duk_event(duk_context *ctx) {
 		{ "All", EVENT_ALL_ACCESS },
 		{ "Modify", EVENT_MODIFY_STATE }
 	};
-	duk_add_global_flags(ctx, "EventAccess", O, _EventAccess_constant);
-	duk_put_global_class(
+	duk_add_flags(ctx, "EventAccess", O, _EventAccess_constant);
+	duk_add_class(
 		ctx, "Event", O,
 		duk_structure {
-			/* void */ duk_put_method(ctx, "Set", 0, duk_fn {
+			/* void */ duk_add_method(ctx, "Set", 0, duk_fn {
 				auto pobj = duk_get_this__p<CEvent>(ctx);
 				if (!pobj)
 					return DUK_RET_REFERENCE_ERROR;
@@ -34,7 +34,7 @@ static void load_duk_event(duk_context *ctx) {
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
-			/* void */ duk_put_method(ctx, "Reset", 0, duk_fn {
+			/* void */ duk_add_method(ctx, "Reset", 0, duk_fn {
 				auto pobj = duk_get_this__p<CEvent>(ctx);
 				if (!pobj)
 					return DUK_RET_REFERENCE_ERROR;
@@ -42,7 +42,7 @@ static void load_duk_event(duk_context *ctx) {
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
-			/* void */ duk_put_method(ctx, "Pulse", 0, duk_fn {
+			/* void */ duk_add_method(ctx, "Pulse", 0, duk_fn {
 				auto pobj = duk_get_this__p<CEvent>(ctx);
 				if (!pobj)
 					return DUK_RET_REFERENCE_ERROR;
@@ -65,10 +65,10 @@ static void load_duk_event(duk_context *ctx) {
 	);
 }
 static void load_duk_mutex(duk_context *ctx) {
-	duk_put_global_class(
+	duk_add_class(
 		ctx, "Mutex", O,
 		duk_structure {
-			/* void */ duk_put_method(ctx, "Release", 0, duk_fn {
+			/* void */ duk_add_method(ctx, "Release", 0, duk_fn {
 				auto pobj = duk_get_this__p<CMutex>(ctx);
 				if (!pobj)
 					return DUK_RET_REFERENCE_ERROR;

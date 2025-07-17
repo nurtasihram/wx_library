@@ -150,7 +150,7 @@ public:
 	using super = HandleBase<ThreadBase<>>;
 	using Access = ThreadAccess;
 protected:
-	friend class RefAs<Thread>;
+	friend union RefAs<Thread>;
 	friend class Process;
 	ThreadBase(HANDLE h) : super(h) {}
 	ThreadBase(const ThreadBase &t) : super(t.hObject) reflect_to(t.hObject = O);
@@ -425,12 +425,12 @@ public:
 	public: // Property - ValueExpend
 		inline String ValueExpend() const {
 			if (!value) return O;
-			DWORD lenDst;
-			assertl((lenDst = ExpandEnvironmentStrings(value, O, 0)));
-			if (lenDst - 1 == value.Length()) return &value;
-			String eval((size_t)lenDst - 1);
-			ExpandEnvironmentStrings(value, eval, lenDst);
-			return eval;
+			DWORD len;
+			assertl((len = ExpandEnvironmentStrings(value, O, 0)) > 0);
+			if (len - 1 == value.Length()) return &value;
+			auto lpsz = String::Alloc(len - 1);
+			assertl(len == ExpandEnvironmentStrings(value, lpsz, len));
+			return{ len, lpsz };
 		}
 	public:
 		inline auto &operator=(const String &value) reflect_to_self(Value(value));
@@ -487,10 +487,9 @@ public:
 	static inline Environments Current() assertl_reflect_as(auto lpEnv = GetEnvironmentStrings(), lpEnv);
 public:
 	inline void Free() {
-		if (lpEnv) {
+		if (lpEnv)
 			assertl(FreeEnvironmentStrings(lpEnv));
-			lpEnv = O;
-		}
+		lpEnv = O;
 	}
 public:
 	inline void Use() const assertl_reflect_as(SetEnvironmentStrings(lpEnv));
@@ -500,7 +499,8 @@ public: // Property - Count
 		if (!lpEnv) return 0;
 		size_t count = 0;
 		for (auto ch = lpEnv; *ch != '\0'; ++ch) {
-			while (*ch != '\0') ++ch;
+			while (*ch != '\0')
+				++ch;
 			++count;
 		}
 		return count;
@@ -535,32 +535,36 @@ public:
 };
 using EnvVar = Environments::Variable;
 class CurrentEnvironment {
+	template<bool IsUnicode>
 	class Variable {
+		using String = StringX<IsUnicode>;
 		friend class CurrentEnvironment;
 		const String name;
 	public:
 		Variable(const String &name) : name(+name) {}
 	public: // Property - Value
-		/* W */ inline Variable &Value(const String &value) assertl_reflect_as_self(SetEnvironmentVariable(name, value.str_safe()));
+		/* W */ inline Variable &Value(const String &value) {
+			global_symbolx(SetEnvironmentVariable);
+			assertl_reflect_as_self(SetEnvironmentVariable(name, value.c_str_safe()));
+		}
 		/* R */ inline String Value() const {
+			global_symbolx(GetEnvironmentVariable);
 			DWORD len;
-			assertl((len = GetEnvironmentVariable(name, O, 0)));
-			String value((size_t)len - 1);
-			GetEnvironmentVariable(name, value, len);
-			return value;
+			assertl((len = GetEnvironmentVariable(name, O, 0)) > 0);
+			auto lpsz = String::Alloc(len - 1);
+			assertl(len == GetEnvironmentVariable(name, lpsz, len));
+			return{ len, lpsz };
 		}
 	public: // Property - ValueExpend
 		inline String ValueExpend() const {
-			DWORD lenSrc;
-			assertl((lenSrc = GetEnvironmentVariable(name, O, 0)));
-			String value((size_t)lenSrc - 1);
-			GetEnvironmentVariable(name, value, lenSrc);
-			DWORD lenDst;
-			assertl((lenDst = ExpandEnvironmentStrings(value, O, 0)));
-			if (lenSrc == lenDst) return value;
-			String eval((size_t)lenDst - 1);
-			ExpandEnvironmentStrings(value, eval, lenDst);
-			return eval;
+			auto &&val = Value();
+			global_symbolx(ExpandEnvironmentStrings);
+			DWORD len;
+			assertl((len = ExpandEnvironmentStrings(val, O, 0)) > 0);
+			if (val.Length() == len) return val;
+			auto lpsz = String::Alloc(len);
+			assertl(len == ExpandEnvironmentStrings(val, lpsz, len));
+			return{ len, lpsz };
 		}
 	public:
 		inline auto &operator=(const String &value) reflect_to_self(Value(value));
@@ -572,8 +576,9 @@ class CurrentEnvironment {
 	};
 public:
 	inline operator Environments() reflect_as(Environments::Current());
-	inline Variable operator[](const String &str) reflect_as(str);
 	inline CurrentEnvironment &operator=(const Environments &env) reflect_to_self(env.Use());
+	template<bool IsUnicode = WX::IsUnicode>
+	inline Variable<IsUnicode> operator[](const StringX<IsUnicode> &str) reflect_as(str);
 } inline Environment;
 #pragma endregion
 
@@ -593,9 +598,9 @@ enum_flags(StartupFlag, DWORD,
 	TitleIsAppID        = STARTF_TITLEISAPPID,
 	PreventPinning      = STARTF_PREVENTPINNING,
 	UntrustedSource     = STARTF_UNTRUSTEDSOURCE);
-class StartupInfo : public RefAs<STARTUPINFO> {
+class StartupInfo : public RefStruct<STARTUPINFO> {
 public:
-	using super = RefAs<STARTUPINFO>;
+	using super = RefStruct<STARTUPINFO>;
 public:
 	StartupInfo() reflect_to(self->cb = sizeof(*self));
 // public: // Property - Desktop
@@ -839,5 +844,167 @@ public:
 };
 using CProcess = RefAs<Process>;
 #pragma endregion
+
+class Currents {
+public: // Property - Directory
+	template<class TCHAR>
+	/* W */ inline auto &Directory(const TCHAR *lpPath) {
+		global_symbolx(SetCurrentDirectory);
+		assertl_reflect_as_self(SetCurrentDirectory(lpPath));
+		return *this;
+	}
+	template<bool IsUnicode>
+	/* R */ inline StringX<IsUnicode> Directory() const {
+		global_symbolx(GetCurrentDirectory);
+		DWORD len;
+		assertl((len = GetCurrentDirectory(0, O)) > 0);
+		auto lpsz = StringX<IsUnicode>::Alloc(len);
+		assertl(len == GetCurrentDirectory(len, lpsz));
+		return{ len, lpsz };
+	}
+	/* R */ inline StringA DirectoryA() const reflect_as(Directory<false>());
+	/* R */ inline StringW DirectoryW() const reflect_as(Directory<true>());
+public: // Property - UserName
+	/* R */ inline String UserName() const {
+		global_symbolx(GetUserName);
+		DWORD len = 0;
+		assertl(GetUserName(NULL, &len));
+		auto lpsz = String::Alloc(len);
+		assertl(GetUserName(lpsz, &len));
+		return{ len, lpsz };
+	}
+public: // Property - ComputerName
+	template<bool IsUnicode>
+	/* R */ inline StringX<IsUnicode> ComputerName() const {
+		global_symbolx(GetComputerName);
+		DWORD len = 0;
+		assertl(GetComputerName(NULL, &len));
+		auto lpsz = StringX<IsUnicode>::Alloc(len);
+		assertl(GetComputerName(lpsz, &len));
+		return{ len, lpsz };
+	}
+	/* R */ inline StringA ComputerNameA() const reflect_as(ComputerName<false>());
+	/* R */ inline StringW ComputerNameW() const reflect_as(ComputerName<true>());
+public: // Property - ProcessID
+	/* R */ inline DWORD ProcessID() const reflect_as(GetCurrentProcessId());
+public: // Property - Process
+	/* R */ inline WX::Process Process() const reflect_as(Process::Current());
+public: // Property - ThreadID
+	/* R */ inline DWORD ThreadID() const reflect_as(GetCurrentThreadId());
+public: // Property - Thread
+	/* R */ inline WX::Thread Thread() const reflect_as(Thread::Current());
+} inline Current;
+
+//SYSTEM_INFO
+//#pragma region OSVersion
+//template<class AnyOSVersion, class OSVERSION>
+//class OSVersionBase : public RefStruct<OSVERSION>,
+//	public ChainExtender<OSVersionBase<AnyOSVersion, OSVERSION>, AnyOSVersion> {
+//public:
+//	static constexpr bool IsUnicode =
+//		std::is_same_v<OSVERSION, OSVERSIONINFOW> ||
+//		std::is_same_v<OSVERSION, OSVERSIONINFOEXW>;
+//public:
+//	using Child = AnyOSVersion;
+//	using super = RefStruct<OSVERSION>;
+//	using String = StringX<IsUnicode>;
+//public:
+//	OSVersionBase() reflect_to(self->dwOSVersionInfoSize = sizeof(OSVERSION));
+//	OSVersionBase(const OSVERSION &osvi) : super(osvi) {}
+//public: // Property - MajorVersion
+//	/* W */ inline auto &MajorVersion(DWORD dwMajorVersion) reflect_to_child(self->dwMajorVersion = dwMajorVersion);
+//	/* R */ inline DWORD MajorVersion() const reflect_as(self->dwMajorVersion);
+//public: // Property - MinorVersion
+//	/* W */ inline auto &MinorVersion(DWORD dwMinorVersion) reflect_to_child(self->dwMinorVersion = dwMinorVersion);
+//	/* R */ inline DWORD MinorVersion() const reflect_as(self->dwMinorVersion);
+//public: // Property - BuildNumber
+//	/* W */ inline auto &BuildNumber(DWORD dwBuildNumber) reflect_to_child(self->dwBuildNumber = dwBuildNumber);
+//	/* R */ inline DWORD BuildNumber() const reflect_as(self->dwBuildNumber);
+//public: // Property - PlatformId
+//	/* W */ inline auto &PlatformId(DWORD dwPlatformId) reflect_to_child(self->dwPlatformId = dwPlatformId);
+//	/* R */ inline DWORD PlatformId() const reflect_as(self->dwPlatformId);
+//public: // Property - CSDVersion
+//	/* W */ inline auto &CSDVersion(const String &szCSDVersion) {
+//		global_symbolx(StringCchCopy);
+//		assertl_reflect_as_child(SUCCEEDED(StringCchCopy(self->szCSDVersion, _countof(self->szCSDVersion), szCSDVersion.c_str_safe())));
+//	}
+//	/* R */ inline const String CSDVersion() const {
+//		global_symbolx(StringCchLength);
+//		assertl_reflect_to(
+//			size_t len,
+//			SUCCEEDED(StringCchLength(self->szCSDVersion, _countof(self->szCSDVersion))),
+//			CString(len, self->szCSDVersion);
+//		);
+//	}
+//public:
+//	inline String toString() const {
+//		auto_string(
+//			fmt,
+//			"Major Version: %d\n"
+//			"Minor Version: %d\n"
+//			"Build Number: %d\n"
+//			"Platform ID: %d\n"
+//			"CSD Version: %s\n");
+//		return format(
+//			fmt,
+//			self->dwMajorVersion,
+//			self->dwMinorVersion,
+//			self->dwBuildNumber,
+//			self->dwPlatformId,
+//			self->szCSDVersion
+//		);
+//	}
+//public:
+//	inline operator String() const reflect_as(child.toString());
+//};
+//template<bool IsUnicode = WX::IsUnicode>
+//class OSVersionInfoX :
+//	public OSVersionBase<
+//		OSVersionInfoX<IsUnicode>,
+//		std::conditional_t<IsUnicode, OSVERSIONINFOW, OSVERSIONINFOA>
+//	> {};
+//using OSVersionInfo = OSVersionInfoX<IsUnicode>;
+//using OSVersionInfoA = OSVersionInfoX<false>;
+//using OSVersionInfoW = OSVersionInfoX<true>;
+//template<bool IsUnicode>
+//class OSVersionInfoExX : 
+//	public OSVersionBase<
+//		OSVersionInfoX<IsUnicode>,
+//		std::conditional_t<IsUnicode, OSVERSIONINFOEXW, OSVERSIONINFOEXA>
+//	> {
+//	using String = StringX<IsUnicode>;
+//	using OSVERSIONINFOEX = std::conditional_t<IsUnicode, OSVERSIONINFOEXW, OSVERSIONINFOEXA>;
+//public:
+//	//WORD   wServicePackMajor;
+//	//WORD   wServicePackMinor;
+//	//WORD   wSuiteMask;
+//	//BYTE  wProductType;
+//};
+//using OSVersionInfoEx = OSVersionInfoExX<IsUnicode>;
+//using OSVersionInfoExA = OSVersionInfoExX<false>;
+//using OSVersionInfoExW = OSVersionInfoExX<true>;
+//#pragma endregion
+class Systems {
+public: // Property - Version
+	//template<bool IsUnicode = WX::IsUnicode>
+	///* R */ inline OSVersionInfoX<IsUnicode> Version() const {
+	//	global_symbolx(GetVersionEx);
+	//	OSVersionInfoX<IsUnicode> osvi;
+	//	assertl(GetVersionEx(&osvi));
+	//	return osvi;
+	//}
+	//inline OSVersionInfoA VersionA() const reflect_as(Version<false>());
+	//inline OSVersionInfoW VersionW() const reflect_as(Version<true>());
+public: // Property - VersionEx
+	//template<bool IsUnicode = WX::IsUnicode>
+	///* R */ inline OSVersionInfoExX<IsUnicode> VersionEx() const {
+	//	global_symbolx(GetVersionEx);
+	//	OSVersionInfoExX<IsUnicode> osvi;
+	//	assertl(GetVersionEx(&osvi));
+	//	return osvi;
+	//}
+	//inline OSVersionInfoExA VersionExA() const reflect_as(VersionEx<false>());
+	//inline OSVersionInfoExW VersionExW() const reflect_as(VersionEx<true>());
+} inline System;
 
 }

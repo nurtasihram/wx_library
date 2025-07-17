@@ -4,8 +4,9 @@
 
 namespace WX {
 
-struct ConsoleCursorInfo : public RefAs<CONSOLE_CURSOR_INFO> {
-	using super = RefAs<CONSOLE_CURSOR_INFO>;
+class ConsoleCursorInfo : public RefStruct<CONSOLE_CURSOR_INFO> {
+public:
+	using super = RefStruct<CONSOLE_CURSOR_INFO>;
 public:
 	ConsoleCursorInfo() {}
 	ConsoleCursorInfo(const CONSOLE_CURSOR_INFO &cci) : super(cci) {}
@@ -16,8 +17,9 @@ public: // Property - Visible
 	/* W */ inline auto &Visible(BOOL bVisible) reflect_to_self(self->bVisible = bVisible);
 	/* W */ inline bool Visible() reflect_as(self->bVisible);
 };
-struct ConsoleScreenBufferInfo : public RefAs<CONSOLE_SCREEN_BUFFER_INFO> {
-	using super = RefAs<CONSOLE_SCREEN_BUFFER_INFO>;
+class ConsoleScreenBufferInfo : public RefStruct<CONSOLE_SCREEN_BUFFER_INFO> {
+public:
+	using super = RefStruct<CONSOLE_SCREEN_BUFFER_INFO>;
 public:
 	ConsoleScreenBufferInfo() {}
 	ConsoleScreenBufferInfo(const CONSOLE_SCREEN_BUFFER_INFO &csbi) : super(csbi) {}
@@ -37,8 +39,9 @@ public: // Property - MaximumWindowSize
 	/* W */ inline auto &MaximumWindowSize(LSize size) reflect_to_self(self->dwMaximumWindowSize = size);
 	/* R */ inline LSize MaximumWindowSize() const reflect_as(self->dwMaximumWindowSize);
 };
-struct ConsoleScreenBufferInfoEx : public RefAs<CONSOLE_SCREEN_BUFFER_INFOEX> {
-	using super = RefAs<CONSOLE_SCREEN_BUFFER_INFOEX>;
+class ConsoleScreenBufferInfoEx : public RefStruct<CONSOLE_SCREEN_BUFFER_INFOEX> {
+public:
+	using super = RefStruct<CONSOLE_SCREEN_BUFFER_INFOEX>;
 public:
 	ConsoleScreenBufferInfoEx() reflect_to(self->cbSize = sizeof(CONSOLE_SCREEN_BUFFER_INFOEX));
 	ConsoleScreenBufferInfoEx(const CONSOLE_SCREEN_BUFFER_INFOEX &csbiex) : super(csbiex) {}
@@ -156,49 +159,29 @@ public:
 public: // Property - Title
 	/* W */ inline auto  &Title(LPCSTR lpTitle) assertl_reflect_as_child(SetConsoleTitleA(lpTitle));
 	/* W */ inline auto  &Title(LPCWSTR lpTitle) assertl_reflect_as_child(SetConsoleTitleW(lpTitle));
-	/* R */ inline String Title() const {
-		String title((size_t)MaxLenTitle);
-		int len = GetConsoleTitle(title, MaxLenTitle + 1);
-		if (len <= 0) return O;
-		title.Resize(len);
-		return title;
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline StringX<IsUnicode> Title() const {
+		global_symbolx(GetConsoleTitle);
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenTitle);
+		int len;
+		assertl((len = GetConsoleTitle(lpsz, MaxLenTitle)) > 0);
+		StringX<IsUnicode>::Resize(lpsz, len);
+		return{ (size_t)len, lpsz };
 	}
-	/* R */ inline StringA TitleA() const {
-		StringA title((size_t)MaxLenTitle);
-		int len = GetConsoleTitleA(title, MaxLenTitle + 1);
-		if (len <= 0) return O;
-		title.Resize(len);
-		return title;
-	}
-	/* R */ inline StringW TitleW() const {
-		StringW title((size_t)MaxLenTitle);
-		int len = GetConsoleTitleW(title, MaxLenTitle + 1);
-		if (len <= 0) return O;
-		title.Resize(len);
-		return title;
-	}
+	/* R */ inline StringA TitleA() const reflect_as(Title<false>());
+	/* R */ inline StringW TitleW() const reflect_as(Title<true>());
 public: // Property - OriginalTitle
-	/* R */ inline StringA OriginalTitleA() const {
-		StringA title((size_t)MaxLenTitle);
-		int len = GetConsoleOriginalTitleA(title, MaxLenTitle + 1);
-		if (len <= 0) return O;
-		title.Resize(len);
-		return title;
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline StringX<IsUnicode> OriginalTitle() const {
+		global_symbolx(GetConsoleOriginalTitle);
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenTitle);
+		int len;
+		assertl((len = GetConsoleOriginalTitle(lpsz, MaxLenTitle)) > 0);
+		StringX<IsUnicode>::Resize(lpsz, len);
+		return{ (size_t)len, lpsz };
 	}
-	/* R */ inline StringW OriginalTitleW() const {
-		StringW title((size_t)MaxLenTitle);
-		int len = GetConsoleOriginalTitleW(title, MaxLenTitle + 1);
-		if (len <= 0) return O;
-		title.Resize(len);
-		return title;
-	}
-	/* R */ inline String OriginalTitle() const {
-		String title((size_t)MaxLenTitle);
-		int len = GetConsoleOriginalTitle(title, MaxLenTitle + 1);
-		if (len <= 0) return O;
-		title.Resize(len);
-		return title;
-	}
+	/* R */ inline StringA OriginalTitleA() const reflect_as(OriginalTitle<false>());
+	/* R */ inline StringW OriginalTitleW() const reflect_as(OriginalTitle<true>());
 public: // Property - CodePage
 	/* W */ inline auto &CodePage(UINT uCodePage) assertl_reflect_as_child(SetConsoleOutputCP(uCodePage));
 	/* R */ inline UINT  CodePage() const reflect_as(GetConsoleOutputCP());

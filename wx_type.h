@@ -288,34 +288,34 @@ template<class CharType = TCHAR> const StringBase<CharType> CString(size_t uLen,
 template<class CharType = TCHAR> const StringBase<CharType> CString(const CharType *lpString, size_t maxLen);
 template<class CharType>
 inline size_t Length(const CharType *lpString, size_t MaxLen) {
-	if constexpr (std::is_same_v<CharType, CHAR>)
-		assertl(SUCCEEDED(StringCchLengthA(lpString, MaxLen, &MaxLen)))
-	elif  constexpr (std::is_same_v<CharType, WCHAR>)
-		assertl(SUCCEEDED(StringCchLengthW(lpString, MaxLen, &MaxLen)));
+	constexpr auto StringCchLength = AnyX<std::is_same_v<CharType, WCHAR>>(::StringCchLengthW, ::StringCchLengthA);
+	assertl(SUCCEEDED(StringCchLength(lpString, MaxLen, &MaxLen)));
 	return MaxLen;
 }
-template<class CharType>
+template<class TCHAR>
 class StringBase {
+	using LPTSTR = TCHAR *;
+	using LPCTSTR = const TCHAR *;
 	enum StrFlags : size_t {
 		STR_DEF = 0,
 		STR_READONLY = 1,
 		STR_MOVABLE = 2,
 		STR_RELEASE = 4
 	};
-	mutable CharType *lpsz = O;
+	mutable LPTSTR lpsz = O;
 	mutable size_t Len : sizeof(void *) * 8 - 3;
 	mutable size_t Flags : 3;
 private:
-	template<class _CharType> friend const StringBase<_CharType> CString(size_t uLen, const _CharType *lpString);
-	template<class _CharType> friend const StringBase<_CharType> CString(const _CharType *lpString, size_t maxLen);
-	StringBase(size_t len, UINT flags, CharType *lpBuffer) :
+	template<class _TCHAR> friend const StringBase<_TCHAR> CString(size_t uLen, const _TCHAR *lpString);
+	template<class _TCHAR> friend const StringBase<_TCHAR> CString(const _TCHAR *lpString, size_t maxLen);
+	StringBase(size_t len, UINT flags, LPTSTR lpBuffer) :
 		lpsz(lpBuffer), Len((UINT)len), Flags(flags) {
 		if (len <= 0 || !lpBuffer) {
 			Len = 0;
 			lpsz = O;
 		}
 	}
-	StringBase(size_t len, const CharType *lpString) : StringBase(len, STR_READONLY, const_cast<CharType *>(lpString)) {}
+	StringBase(size_t len, LPCTSTR lpString) : StringBase(len, STR_READONLY, const_cast<LPTSTR>(lpString)) {}
 public:
 	StringBase() : Len(0), Flags(0) {}
 	StringBase(Null) : Len(0), Flags(0) {}
@@ -323,26 +323,27 @@ public:
 	StringBase(StringBase &str) : StringBase(str.Len, str.Flags, str.lpsz) { str.Len = 0, str.Flags = STR_DEF, str.lpsz = 0; }
 	StringBase(StringBase &&str) : StringBase(str.Len, str.Flags, str.lpsz) { str.Len = 0, str.Flags = STR_DEF, str.lpsz = 0; }
 	explicit StringBase(size_t Len) : lpsz(Alloc(Len)), Len(Len), Flags(STR_MOVABLE | STR_RELEASE) {}
-	StringBase(size_t Len, CharType *lpBuffer) : StringBase(Len, STR_MOVABLE | STR_RELEASE, lpBuffer) {}
-	StringBase(CharType ch) : lpsz(Alloc(1)), Len(1), Flags(STR_MOVABLE | STR_RELEASE) reflect_to(lpsz[0] = ch);
-	template<size_t len> StringBase(arrayof<CharType, len> &str) : StringBase(len - 1, STR_DEF, str) {}
-	template<size_t len> StringBase(const arrayof<CharType, len> &str) : lpsz(const_cast<CharType *>(str)), Len(len - 1), Flags(STR_READONLY) {}
-	template<size_t len> StringBase(const ConstArray<CharType, len> &str) : StringBase(str.array) {}
+	StringBase(size_t Len, LPTSTR lpBuffer) : StringBase(Len, STR_MOVABLE | STR_RELEASE, lpBuffer) {}
+	StringBase(TCHAR ch) : lpsz(Alloc(1)), Len(1), Flags(STR_MOVABLE | STR_RELEASE) reflect_to(lpsz[0] = ch);
+	template<size_t len> StringBase(arrayof<TCHAR, len> &str) : StringBase(len - 1, STR_DEF, str) {}
+	template<size_t len> StringBase(const arrayof<TCHAR, len> &str) : lpsz(const_cast<LPTSTR>(str)), Len(len - 1), Flags(STR_READONLY) {}
+	template<size_t len> StringBase(const ConstArray<TCHAR, len> &str) : StringBase(str.array) {}
 	~StringBase() { operator~(); }
 public:
-	static inline CharType *Realloc(size_t len, CharType *lpsz) {
+	static inline LPTSTR Realloc(size_t len, LPTSTR lpsz) {
 		if (!lpsz && len <= 0) return O;
 		if (len <= 0) {
 			Free(lpsz);
 			return O;
 		}
-		return (CharType *)HeapReAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, lpsz, (len + 1) * sizeof(CharType));
+		return (LPTSTR)Heap::This.Realloc(lpsz, (len + 1) * sizeof(TCHAR), HEAP_ZERO_MEMORY);
 	}
-	static inline CharType *Alloc(size_t len) {
+	static inline LPTSTR Alloc(size_t len) {
 		if (len == 0) return O;
-		return (CharType *)HeapAlloc(GetProcessHeap(), HEAP_ZERO_MEMORY, (len + 1) * sizeof(CharType));
+		return (LPTSTR)Heap::This.Alloc((len + 1) * sizeof(TCHAR), HeapAllocFlag::ZeroInit);
 	}
-	static inline void Free(void *lpsz) reflect_to(HeapFree(GetProcessHeap(), 0, lpsz));
+	static inline void Free(void *lpsz) reflect_to(Heap::This.Free(lpsz));
+	static inline LPTSTR Resize(LPTSTR &lpsz, size_t len) reflect_as(lpsz = Realloc(len, lpsz));
 public:
 	inline auto &Trunc() {
 		if (!(Flags & STR_MOVABLE))
@@ -362,27 +363,19 @@ public:
 			lpsz[OldLen] = 0;
 		retself;
 	}
-
-	inline const StringBase str_safe() const { ///////////////////
-		//		if (!Len || !lpsz) return _T("");
-		if (!lpsz[Len]) return &*this;
-		return +*this;
+public:
+	inline LPCTSTR c_str() const reflect_as(lpsz && Len ? lpsz : O);
+	inline LPCTSTR c_str_safe() const {
+		auto_string(null_str, "");
+		if (!Len || !lpsz) return null_str;
+		return lpsz;
 	}
+public:
 	inline size_t Length() const reflect_as(lpsz ? Len : 0);
-	inline size_t Size() const reflect_as(lpsz ? (Len + 1) * sizeof(CharType) : 0);
-
-	inline CharType *begin() reflect_as(Len ? lpsz : O);
-	inline CharType *end() reflect_as(Len &&lpsz ? lpsz + Len : O);
-	inline const CharType *begin() const reflect_as(Len ? lpsz : O);
-	inline const CharType *end() const reflect_as(Len &&lpsz ? lpsz + Len : O);
+	inline size_t Size() const reflect_as(lpsz ? (Len + 1) * sizeof(TCHAR) : 0);
 public:
 	inline operator bool() const reflect_as(lpsz &&Len);
-	inline operator CharType *() {
-		if (!(Flags & STR_MOVABLE))
-			self = +self;
-		return Len ? lpsz : O;
-	}
-	inline operator const CharType *() const reflect_as(Len ? lpsz : O);
+	inline operator LPCTSTR () const reflect_as(Len ? lpsz : O);
 	inline StringBase operator&() reflect_as({ Len, 0, lpsz });
 	inline const StringBase operator&() const reflect_as({ Len, lpsz });
 	inline void operator~() const {
@@ -391,17 +384,17 @@ public:
 		lpsz = O;
 		Len = 0;
 	}
-	inline CharType *operator*() const {
+	inline LPTSTR operator*() const {
 		if (!lpsz || !Len) return O;
 		auto lpsz = StringBase::Alloc(Len);
-		CopyMemory(lpsz, this->lpsz, (Len + 1) * sizeof(CharType));
+		CopyMemory(lpsz, this->lpsz, (Len + 1) * sizeof(TCHAR));
 		lpsz[Len] = '\0';
 		return lpsz;
 	}
 	inline StringBase operator+() const {
 		if (!lpsz || !Len) return O;
 		auto lpsz = StringBase::Alloc(Len);
-		CopyMemory(lpsz, this->lpsz, (Len + 1) * sizeof(CharType));
+		CopyMemory(lpsz, this->lpsz, (Len + 1) * sizeof(TCHAR));
 		lpsz[Len] = '\0';
 		return { Len, lpsz };
 	}
@@ -409,11 +402,10 @@ public:
 		size_t nLen = WX::Length(lpsz, Len + 1);
 		if (nLen <= 0) return O;
 		auto lpsz = StringBase::Alloc(nLen);
-		CopyMemory(lpsz, this->lpsz, (nLen + 1) * sizeof(CharType));
+		CopyMemory(lpsz, this->lpsz, (nLen + 1) * sizeof(TCHAR));
 		lpsz[nLen] = '\0';
 		return{ nLen, lpsz };
 	}
-
 	auto operator=(StringBase &) const = delete;
 	auto operator=(const StringBase &str) = delete;
 	inline auto &operator=(StringBase &&str) noexcept {
@@ -437,6 +429,39 @@ public:
 		std::swap(lpsz, str.lpsz);
 		retself;
 	}
+	inline auto &operator+=(const StringBase &str) {
+		if (!str.lpsz || !str.Len) retself;
+		if (!lpsz || Len) return self = +str;
+		auto nLen = Len + str.Len;
+		if (!(Flags & STR_MOVABLE) || (Flags & STR_READONLY)) {
+			auto lpsz = StringBase::Alloc(Len);
+			CopyMemory(lpsz, this->lpsz, (Len + 1) * sizeof(TCHAR));
+			if (!(Flags & STR_RELEASE))
+				Free(this->lpsz);
+			this->lpsz = lpsz;
+		}
+		else
+			lpsz = Realloc(nLen, lpsz);
+		CopyMemory(lpsz + Len, str.lpsz, (str.Len + 1) * sizeof(TCHAR));
+		Len = nLen;
+		retself;
+	}
+	//inline StringBase operator+(const StringBase &str) && reflect_as(self += str);
+	//inline StringBase operator+(const StringBase &str) & reflect_as(self + str);
+	//inline StringBase operator+(const StringBase &str) const & {
+	//	if (!str.lpsz || !str.Len) return *this;
+	//	if (!lpsz || Len) return +str;
+	//	auto nLen = Len + str.Len;
+	//	auto lpsz = StringBase::Alloc(nLen);
+	//	CopyMemory(lpsz, this->lpsz, Len * sizeof(TCHAR));
+	//	CopyMemory(lpsz + Len, str.lpsz, (str.Len + 1) * sizeof(TCHAR));
+	//	return{ nLen, lpsz };
+	//}
+public:
+	inline LPTSTR begin() reflect_as(Len ? lpsz : O);
+	inline LPTSTR end() reflect_as(Len &&lpsz ? lpsz + Len : O);
+	inline LPCTSTR begin() const reflect_as(Len ? lpsz : O);
+	inline LPCTSTR end() const reflect_as(Len &&lpsz ? lpsz + Len : O);
 };
 /* Literal operator of String  */
 inline const StringA operator ""_A(LPCSTR lpString, size_t uLen) {
@@ -483,15 +508,12 @@ inline StringW FitsW(const StringA &str, CodePages cp = CodePages::Active) {
 	lpsz[tLen] = 0;
 	return{ (size_t)tLen, lpsz };
 }
-inline auto Fits(StringA str) {
-	if constexpr (IsUnicode)
+template<bool IsUnicode = WX::IsUnicode, class TCHAR = ::TCHAR>
+inline auto Fits(StringBase<TCHAR> str) {
+	if constexpr (std::is_same_v<XCHAR<IsUnicode>, TCHAR>)
+		return str;
+	else if constexpr (IsUnicode)
 		return FitsW(str);
-	else
-		return str;
-}
-inline auto Fits(StringW str) {
-	if constexpr (IsUnicode)
-		return str;
 	else
 		return FitsA(str);
 }
@@ -507,24 +529,24 @@ inline String Fits(const CharType *lpString, size_t MaxLen, CodePages cp = CodeP
 	}
 	else {
 		int tLen;
-#ifdef UNICODE
-		assertl((tLen = MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, O, 0)) > 0);
-#else
-		assertl((tLen = WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, O, 0, O, O)) > 0);
-#endif
+		if constexpr (IsUnicode)
+	 		assertl((tLen = MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, O, 0)) > 0)
+		else
+			assertl((tLen = WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, O, 0, O, O)) > 0)
 		// if (tLen != uLen) warnning glyphs missing 
 		auto lpsz = String::Alloc(tLen);
-#ifdef UNICODE
-		assertl(tLen == MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen));
-#else
-		assertl(tLen == WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen, O, O));
-#endif
+		if constexpr (IsUnicode)
+			assertl(tLen == MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen))
+		else
+			assertl(tLen == WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen, O, O))
 		lpsz[tLen] = 0;
 		return{ (size_t)tLen, lpsz };
 	}
 }
 /* Misc */
-inline size_t CountAll(const String &src, const String &strTarget) {
+template<class TCHAR>
+inline size_t CountAll(const StringBase<TCHAR> &src, const StringBase<TCHAR> &strTarget) {
+	using LPCTSTR = const TCHAR *;
 	if (!src || !strTarget) return 0;
 	if (src.Length() < strTarget.Length()) return 0;
 	size_t count = 0;
@@ -538,13 +560,16 @@ inline size_t CountAll(const String &src, const String &strTarget) {
 	}
 	return count;
 }
-inline String ReplaceAll(const String &src, const String &strTarget, const String &strWith = O) {
+template<class TCHAR>
+inline StringBase<TCHAR> ReplaceAll(const StringBase<TCHAR> &src,
+									const StringBase<TCHAR> &strTarget,
+									const StringBase<TCHAR> &strWith = O) {
+	using LPCTSTR = const TCHAR *;
 	auto count = CountAll(src, strTarget);
 	if (count <= 0) return O;
 	auto tLen = strTarget.Length();
-	auto nLen = count * (strWith.Length() - strTarget.Length());
-	String str(src.Length() + nLen);
-	LPTSTR lpDst = str;
+	auto nLen = src.Length() + count * (strWith.Length() - strTarget.Length());
+	auto lpDst = StringBase<TCHAR>::Alloc(nLen);
 	for (LPCTSTR li = src, hi = src.end(); li < hi; ) {
 		LPCTSTR lj = strTarget, hj = strTarget.end();
 		for (; lj < hj; ++lj)
@@ -556,26 +581,18 @@ inline String ReplaceAll(const String &src, const String &strTarget, const Strin
 		for (LPCTSTR lpwStr = strWith, lpwEnd = strWith.end(); lpwStr < lpwEnd; ++lpwStr)
 			*lpDst++ = *lpwStr;
 	}
-	return str;
+	return{ nLen, lpDst };
 }
-inline size_t LengthOfA(const StringA &str) reflect_as(str.Length());
-inline size_t LengthOfW(const StringW &str) reflect_as(str.Length());
-template<class... Args>
-inline size_t LengthOfA(const Args&... args) reflect_as((LengthOfA((const StringA &)args) + ...));
-template<class... Args>
-inline size_t LengthOfW(const Args&... args) reflect_as((LengthOfW((const StringW &)args) + ...));
-inline LPSTR Copies(LPSTR lpBuffer) reflect_as((LPSTR)lpBuffer);
-inline LPWSTR Copies(LPWSTR lpBuffer) reflect_as((LPWSTR)lpBuffer);
-template<class... Args>
-inline LPSTR Copies(LPSTR lpBuffer, const StringA &str, const Args &... args) {
+template<class TCHAR>
+inline size_t LengthOf(const StringBase<TCHAR> &str) reflect_as(str.Length());
+template<class TCHAR, class... Args>
+inline size_t LengthOf(const StringBase<TCHAR> &str, const Args&... args) reflect_as(str.Length() + (LengthOf((const StringBase<TCHAR> &)args) + ...));
+template<class TCHAR>
+inline TCHAR *Copies(TCHAR *lpBuffer) reflect_as(lpBuffer);
+template<class TCHAR, class... Args>
+inline TCHAR *Copies(TCHAR *lpBuffer, const StringBase<TCHAR> &str, const Args &... args) {
 	auto uLen = str.Length();
-	if (uLen > 0) assertl(StringCchCopyA(lpBuffer, uLen + 1, str) == 0);
-	return Copies(lpBuffer + uLen, args...);
-}
-template<class... Args>
-inline LPWSTR Copies(LPWSTR lpBuffer, const StringW &str, const Args &... args) {
-	auto uLen = str.Length();
-	if (uLen > 0) assertl(StringCchCopyW(lpBuffer, uLen + 1, str) == 0);
+	if (uLen > 0) CopyMemory(lpBuffer, str, uLen * sizeof(TCHAR));
 	return Copies(lpBuffer + uLen, args...);
 }
 inline void *Copy(void *lpDst) reflect_as(lpDst);
@@ -718,8 +735,8 @@ public:
 	format_numeral(const char *lpFormat) : fmt_word{ 0 } assertl(fmt_single(self, lpFormat));
 	format_numeral(const wchar_t *lpFormat) : fmt_word{ 0 } assertl(fmt_single(self, lpFormat));
 private:
-	template<class AnyChar>
-	static inline auto __push(uintptr_t ui, AnyChar *hpString, AnyChar alfa, uint8_t radix, uint8_t int_trunc) {
+	template<class TCHAR>
+	static inline auto __push(uintptr_t ui, TCHAR *hpString, TCHAR alfa, uint8_t radix, uint8_t int_trunc) {
 		uint8_t len = 0;
 		do {
 			auto d_sm = ui / radix;
@@ -729,37 +746,37 @@ private:
 		} while (ui && ++len < int_trunc);
 		return hpString;
 	}
-	template<class AnyChar>
-	static inline auto __push(double pure_float, AnyChar *lpString, AnyChar alfa, uint8_t radix, uint8_t float_trunc) {
+	template<class TCHAR>
+	static inline auto __push(double pure_float, TCHAR *lpString, TCHAR alfa, uint8_t radix, uint8_t float_trunc) {
 		uint8_t len = 0;
 		while (pure_float > 0.f && len++ < float_trunc) {
 			pure_float *= radix;
-			auto rbit = (AnyChar)pure_float;
+			auto rbit = (TCHAR)pure_float;
 			pure_float -= rbit;
 			*lpString++ = rbit + (rbit < 10 ? '0' : alfa);
 		}
 		return lpString;
 	}
-	template<class AnyChar>
-	static inline auto __moveH2L(AnyChar *lpString, AnyChar *hpString, int uLength) {
+	template<class TCHAR>
+	static inline auto __moveH2L(TCHAR *lpString, TCHAR *hpString, int uLength) {
 		while (uLength--)
 			*lpString++ = *hpString++;
 		return lpString;
 	}
 private:
 	inline uint8_t _radix() const reflect_as((uint8_t)radix_type == (uint8_t)Rad::Dec ? 10 : (2 << (uint8_t)radix_type));
-	template<class AnyChar>
-	inline AnyChar _alfa_char() const reflect_as(((uint8_t)alfa_type == (uint8_t)Cap::Big ? 'A' : 'a') - 10);
-	template<class AnyChar>
-	inline AnyChar _fill_int_char() const reflect_as((uint8_t)int_blank == (uint8_t)Align::Space ? ' ' : '0');
-	template<class AnyChar>
-	inline AnyChar _fill_float_char() const reflect_as((uint8_t)float_blank == (uint8_t)Align::Space ? ' ' : '0');
-	template<class AnyChar>
-	inline auto _push(uintptr_t uint_part, AnyChar *hpBuffer, uint8_t radix, AnyChar alfa, bool neg) const {
+	template<class TCHAR>
+	inline TCHAR _alfa_char() const reflect_as(((uint8_t)alfa_type == (uint8_t)Cap::Big ? 'A' : 'a') - 10);
+	template<class TCHAR>
+	inline TCHAR _fill_int_char() const reflect_as((uint8_t)int_blank == (uint8_t)Align::Space ? ' ' : '0');
+	template<class TCHAR>
+	inline TCHAR _fill_float_char() const reflect_as((uint8_t)float_blank == (uint8_t)Align::Space ? ' ' : '0');
+	template<class TCHAR>
+	inline auto _push(uintptr_t uint_part, TCHAR *hpBuffer, uint8_t radix, TCHAR alfa, bool neg) const {
 		auto lpBuffer = __push(uint_part, hpBuffer, alfa, radix, int_trunc ? int_calign : 32);
 		auto int_len = hpBuffer - lpBuffer;
 		if (int_len < int_calign && int_align) {
-			auto fill = _fill_int_char<AnyChar>();
+			auto fill = _fill_int_char<TCHAR>();
 			while (int_len++ < int_calign)
 				*--lpBuffer = fill;
 		}
@@ -774,14 +791,14 @@ private:
 				*--lpBuffer = ' ';
 		return lpBuffer;
 	}
-	template<class AnyChar>
-	inline auto _push(double float_part, AnyChar *lpBuffer, uint8_t radix, AnyChar alfa) const {
+	template<class TCHAR>
+	inline auto _push(double float_part, TCHAR *lpBuffer, uint8_t radix, TCHAR alfa) const {
 		auto hpBuffer = __push(
 			float_part, lpBuffer + 1,
 			alfa, radix, float_calign);
 		auto float_len = hpBuffer - lpBuffer - 1;
 		if (float_align) {
-			auto fill = _fill_float_char<AnyChar>();
+			auto fill = _fill_float_char<TCHAR>();
 			while (float_len++ < int_calign)
 				*hpBuffer++ = fill;
 		}
@@ -796,24 +813,24 @@ private:
 		return hpBuffer;
 	}
 public:
-	template<class AnyChar>
-	inline auto push(uintptr_t uint_part, AnyChar *lpBuffer, AnyChar *&hpBuffer, size_t maxLength) const {
+	template<class TCHAR>
+	inline auto push(uintptr_t uint_part, TCHAR *lpBuffer, TCHAR *&hpBuffer, size_t maxLength) const {
 		hpBuffer = lpBuffer + maxLength - 2;
-		lpBuffer = _push(uint_part, hpBuffer, _radix(), _alfa_char<AnyChar>(), false);
+		lpBuffer = _push(uint_part, hpBuffer, _radix(), _alfa_char<TCHAR>(), false);
 		return lpBuffer;
 	}
-	template<class AnyChar>
-	inline auto push(intptr_t int_part, AnyChar *lpBuffer, AnyChar *&hpBuffer, size_t maxLength) const {
+	template<class TCHAR>
+	inline auto push(intptr_t int_part, TCHAR *lpBuffer, TCHAR *&hpBuffer, size_t maxLength) const {
 		bool neg = int_part < 0;
 		if (neg) int_part = -int_part;
 		hpBuffer = lpBuffer + maxLength - 2;
-		lpBuffer = _push((uintptr_t)int_part, hpBuffer, _radix(), _alfa_char<AnyChar>(), neg);
+		lpBuffer = _push((uintptr_t)int_part, hpBuffer, _radix(), _alfa_char<TCHAR>(), neg);
 		return lpBuffer;
 	}
-	template<class AnyChar>
-	inline auto push(double float_part, AnyChar *lpBuffer, AnyChar *&hpBuffer, size_t maxLength) const {
+	template<class TCHAR>
+	inline auto push(double float_part, TCHAR *lpBuffer, TCHAR *&hpBuffer, size_t maxLength) const {
 		auto rad = _radix();
-		auto alfa = _alfa_char<AnyChar>();
+		auto alfa = _alfa_char<TCHAR>();
 		bool neg = float_part < 0.;
 		if (neg) float_part = -float_part;
 		auto uint_part = (uintptr_t)float_part;
@@ -829,8 +846,8 @@ public:
 	template<class AnyType>
 	inline String operator()(AnyType i) reflect_as(toString(i));
 	static constexpr size_t maxLength = 64;
-	template<class AnyType>
-	inline String toString(AnyType i) const {
+	template<class TCHAR = ::TCHAR, class AnyType>
+	inline StringBase<TCHAR> toString(AnyType i) const {
 		TCHAR lpBuffer[maxLength] = { 0 }, *hpString, *lpString;
 		if constexpr (std::is_unsigned_v<AnyType>)
 			lpString = push((uintptr_t)i, lpBuffer, hpString, maxLength);
@@ -841,27 +858,9 @@ public:
 		return +CString(hpString - lpString, lpString);
 	}
 	template<class AnyType>
-	inline StringA toStringA(AnyType i) const {
-		CHAR lpBuffer[maxLength] = { 0 }, *hpString, *lpString;
-		if constexpr (std::is_unsigned_v<AnyType>)
-			lpString = push((uintptr_t)i, lpBuffer, hpString, maxLength);
-		elif constexpr (std::is_integral_v<AnyType>)
-			lpString = push((intptr_t)i, lpBuffer, hpString, maxLength);
-		elif constexpr (std::is_floating_point_v<AnyType>)
-			lpString = push(i, lpBuffer, hpString, maxLength);
-		return +CString(hpString - lpString, lpString);
-	}
+	inline StringA toStringA(AnyType i) const reflect_as(toString<CHAR>(i));
 	template<class AnyType>
-	inline StringW toStringW(AnyType i) const {
-		WCHAR lpBuffer[maxLength] = { 0 }, *hpString, *lpString;
-		if constexpr (std::is_unsigned_v<AnyType>)
-			lpString = push((uintptr_t)i, lpBuffer, hpString, maxLength);
-		elif constexpr (std::is_integral_v<AnyType>)
-			lpString = push((intptr_t)i, lpBuffer, hpString, maxLength);
-		elif constexpr (std::is_floating_point_v<AnyType>)
-			lpString = push(i, lpBuffer, hpString, maxLength);
-		return +CString(hpString - lpString, lpString);
-	}
+	inline StringW toStringW(AnyType i) const reflect_as(toString<WCHAR>(i));
 };
 static inline format_numeral operator ""_nx(const char *format, size_t n) reflect_as(format);
 static inline format_numeral operator ""_nx(const wchar_t *format, size_t n) reflect_as(format);
@@ -877,22 +876,14 @@ static inline format_numeral operator ""_nx(const wchar_t *format, size_t n) ref
 
 #pragma region Cats
 /* _Cats */
-inline String _Cats() reflect_as(O);
-template<class... Args>
-inline StringA _Cats(const StringA &str, const Args &... args) {
-	if (auto uLength = LengthOfA<const StringA &, const Args &...>(str, args...)) {
-		StringA buff(uLength);
-		*Copies(buff, str, args...) = 0;
-		return buff;
-	}
-	return O;
-}
-template<class... Args>
-inline StringW _Cats(const StringW &str, const Args &... args) {
-	if (auto uLength = LengthOfW<const StringW &, const Args &...>(str, args...)) {
-		StringW buff(uLength);
-		*Copies(buff, str, args...) = 0;
-		return buff;
+template<class TCHAR>
+inline StringBase<TCHAR> _Cats() reflect_as(O);
+template<class TCHAR, class... Args>
+inline StringBase<TCHAR> _Cats(const StringBase<TCHAR> &str, const Args &... args) {
+	if (auto len = LengthOf(str, args...)) {
+		auto lpsz = StringBase<TCHAR>::Alloc(len);
+		*Copies(lpsz, str, args...) = 0;
+		return{ len, lpsz };
 	}
 	return O;
 }
@@ -968,149 +959,151 @@ template<class... Args>
 inline String Cats(const Args& ...args) reflect_as(_Cats(Cats(args)...));
 #pragma endregion
 
+/* Rx::Token */
+template<class TCHAR>
+inline Rx<TCHAR>::Token::operator const StringBase<TCHAR>() const reflect_as(CString(len, lpsz));
+/* EnumClassParseX */
+template<class TCHAR, class AnyEnum>
+StringBase<TCHAR> EnumClassParseX(AnyEnum e) {
+	using EnumType = typename AnyEnum::EnumType;
+	constexpr auto table = EnumTableX<TCHAR, EnumType>;
+	auto val = e.yield();
+	for (auto i = 0; i < EnumType::Count; ++i)
+		if (val == EnumType::__Vals[i])
+			return table[i].key;
+	if constexpr (EnumType::HasProtoEnum)
+		return EnumClassParseX<TCHAR>(reuse_as<typename EnumType::ProtoEnum>(e));
+	else
+		return format_numeral("d").toString<TCHAR>(val);
+}
+template<class AnyEnum>
+inline auto EnumClassParse(AnyEnum e) reflect_as(EnumClassParseX<TCHAR>(e));
+template<class AnyEnum>
+inline auto EnumClassParseA(AnyEnum e) reflect_as(EnumClassParseX<CHAR>(e));
+template<class AnyEnum>
+inline auto EnumClassParseW(AnyEnum e) reflect_as(EnumClassParseX<WCHAR>(e));
 /* format */
 static constexpr size_t Len_sprintf_buff = 1024;
-inline StringA format(LPCSTR lpszFormat, ...) {
+template<class TCHAR = ::TCHAR>
+inline StringBase<TCHAR> format(const TCHAR *lpszFormat, ...) {
+	constexpr bool IsUnicode = std::is_same_v<TCHAR, WCHAR>;
+	global_symbolx(StringCchVPrintfEx);
 	va_list argList;
 	va_start(argList, lpszFormat);
-	CHAR buff[Len_sprintf_buff];
+	TCHAR buff[Len_sprintf_buff];
 	size_t remain = 0;
-	assertl(SUCCEEDED(StringCchVPrintfExA(buff, Len_sprintf_buff, O, &remain, STRSAFE_NULL_ON_FAILURE, lpszFormat, argList)));
+	assertl(SUCCEEDED(StringCchVPrintfEx(buff, Len_sprintf_buff, O, &remain, STRSAFE_NULL_ON_FAILURE, lpszFormat, argList)));
 	va_end(argList);
 	return +CString(buff, Len_sprintf_buff - remain + 1);
 }
-inline StringW format(LPCWSTR lpszFormat, ...) {
-	va_list argList;
-	va_start(argList, lpszFormat);
-	WCHAR buff[Len_sprintf_buff];
-	size_t remain = 0;
-	assertl(SUCCEEDED(StringCchVPrintfExW(buff, Len_sprintf_buff, O, &remain, STRSAFE_NULL_ON_FAILURE, lpszFormat, argList)));
-	va_end(argList);
-	return +CString(buff, Len_sprintf_buff - remain + 1);
-}
-
 /* Exception:: */
+//    File
+template<bool IsUnicode>
+inline StringX<IsUnicode> Exception::File() const reflect_as(Fits<IsUnicode>(FileA()));
 inline StringA Exception::FileA() const reflect_as(CString(szFile, lpszFile));
-inline StringA Exception::FunctionA() const reflect_as(CString(szFunc, lpszFunc));
-inline StringA Exception::SentenceA() const reflect_as(CString(szSent, lpszSent));
 inline StringW Exception::FileW() const reflect_as(FitsW(FileA()));
+//   Function
+template<bool IsUnicode>
+inline StringX<IsUnicode> Exception::Function() const reflect_as(Fits<IsUnicode>(FunctionA()));
+inline StringA Exception::FunctionA() const reflect_as(CString(szFunc, lpszFunc));
 inline StringW Exception::FunctionW() const reflect_as(FitsW(FunctionA()));
+//    Sentence
+template<bool IsUnicode>
+inline StringX<IsUnicode> Exception::Sentence() const reflect_as(Fits<IsUnicode>(SentenceA()));
+inline StringA Exception::SentenceA() const reflect_as(CString(szSent, lpszSent));
 inline StringW Exception::SentenceW() const reflect_as(FitsW(SentenceA()));
-inline String Exception::File() const reflect_as(Fits(FileA()));
-inline String Exception::Function() const reflect_as(Fits(FunctionA()));
-inline String Exception::Sentence() const reflect_as(Fits(SentenceA()));
-inline StringA Exception::toStringA() const reflect_as(CatsA(
-	"\nFile:      ", FileA(),
-	"\nFunction:  ", FunctionA(),
-	"\nSentence:  ", SentenceA(),
-	"\nLine:      ", Line(),
-	"\nLastError: ", LastError()));
-inline StringW Exception::toStringW() const reflect_as(CatsW(
-	L"\nFile:      ", FileW(),
-	L"\nFunction:  ", FunctionW(),
-	L"\nSentence:  ", SentenceW(),
-	L"\nLine:      ", Line(),
-	L"\nLastError: ", LastError()));
-inline auto Exception::toString() const reflect_as(AnyX<IsUnicode>(toStringA(), toStringW()));
-inline StringA Exception::MessageA() const {
-	AutoPointer<Local, CHAR> lpszMsg(LocalHeap);
-	DWORD len = FormatMessageA(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-								  O, LastError(), 0, (LPSTR)&*lpszMsg, 0, O);
-	if (len <= 0) return "<Error>";
-	return +CString(len, &lpszMsg);
+//    toString
+template<bool IsUnicode>
+inline StringX<IsUnicode> Exception::toString() const {
+	using LPCTSTR = LPCXSTR<IsUnicode>;
+#define _ERR_FMT_ \
+		"File:          %s\n" \
+		"Function:      %s\n" \
+		"Sentence:      %s\n" \
+		"Line:          %d\n"
+	if (ErrorCode() == 0) {
+		auto_string(fmt_n, _ERR_FMT_);
+		return format(
+			fmt_n,
+			(LPCTSTR)File<IsUnicode>(),
+			(LPCTSTR)Function<IsUnicode>(),
+			(LPCTSTR)Sentence<IsUnicode>(),
+			Line()
+		);
+	}
+	auto_string(
+		fmt_m, _ERR_FMT_
+		"Error Code:    %d\n"
+		"Error Message: %s\n"
+	);
+	return format(
+		fmt_m,
+		(LPCTSTR)File<IsUnicode>(),
+		(LPCTSTR)Function<IsUnicode>(),
+		(LPCTSTR)Sentence<IsUnicode>(),
+		Line(),
+		ErrorCode(),
+		(LPCTSTR)ErrorMessage<IsUnicode>()
+	);
+#undef _ERR_FMT_
 }
-inline StringW Exception::MessageW() const {
-	AutoPointer<Local, WCHAR> lpszMsg(LocalHeap);
-	DWORD len = FormatMessageW(FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-							   O, LastError(), 0, (LPWSTR) & *lpszMsg, 0, O);
-	if (len <= 0) return L"<Error>";
-	return +CString(len, &lpszMsg);
+inline StringA Exception::toStringA() const reflect_as(toString<false>());
+inline StringW Exception::toStringW() const reflect_as(toString<true>());
+//    ErrorMessage
+template<bool IsUnicode>
+inline StringX<IsUnicode> Exception::ErrorMessage() const {
+	using LPTSTR = LPXSTR<IsUnicode>;
+	if (!ErrorCode())
+		return O;
+	global_symbolx(FormatMessage);
+	AutoPointer<Local, XCHAR<IsUnicode>> lpsz(LocalHeap);
+	DWORD len;
+	assertl(len = FormatMessage(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		O, ErrorCode(), 0, (LPTSTR)&*lpsz, 0, O) > 0);
+	return +CString(len, &lpsz);
 }
-inline auto Exception::Message() const reflect_as(AnyX<IsUnicode>(MessageA(), MessageW()));
-inline StringA Exception::FormatA() const {
-	auto &&str = toStringA();
-	if (LastError() != 0)
-		str = CatsA(str, "\nMessage:   ", MessageA());
-	return str;
-}
-inline StringW Exception::FormatW() const {
-	auto &&str = toStringW();
-	if (LastError() != 0)
-		str = CatsW(str, L"\nMessage:   ", MessageW());
-	return str;
-}
-inline auto Exception::Format() const reflect_as(AnyX<IsUnicode>(FormatA(), FormatW()));
-inline Exception::operator StringA() const reflect_as(FormatA());
-inline Exception::operator StringW() const reflect_as(FormatW());
+inline StringA Exception::ErrorMessageA() const reflect_as(ErrorMessage<false>());
+inline StringW Exception::ErrorMessageW() const reflect_as(ErrorMessage<true>());
+//    operator String
+inline Exception::operator StringA() const reflect_as(toStringA());
+inline Exception::operator StringW() const reflect_as(toStringW());
 /* MsgBox */
-inline int MsgBox(LPCSTR lpCaption, const Exception &err, HWND hParent) reflect_as(MsgBox(lpCaption, err.FormatA(), MB::IconError | MB::AbortRetryIgnore, hParent));
-inline int MsgBox(LPCWSTR lpCaption, const Exception &err, HWND hParent) reflect_as(MsgBox(lpCaption, err.FormatW(), MB::IconError | MB::AbortRetryIgnore, hParent));
+inline int MsgBox(LPCSTR lpCaption, const Exception &err, HWND hParent) reflect_as(MsgBox(lpCaption, err.toStringA(), MB::IconError | MB::AbortRetryIgnore, hParent));
+inline int MsgBox(LPCWSTR lpCaption, const Exception &err, HWND hParent) reflect_as(MsgBox(lpCaption, err.toStringW(), MB::IconError | MB::AbortRetryIgnore, hParent));
 /* SystemTime:: */
-inline String SystemTime::FormatTime(TimeFormat tf, Locales locale) const {
-	auto len = ::GetTimeFormat(locale.yield(), tf.yield(), this, O, O, 0);
-	if (len <= 0) return O;
-	String str((size_t)len - 1);
-	::GetTimeFormat(locale.yield(), tf.yield(), this, O, str, len);
-	return str;
+//    FormatTime
+template<bool IsUnicode>
+inline StringX<IsUnicode> SystemTime::FormatTime(TimeFormat tf, Locales locale) const {
+	global_symbolx(GetTimeFormat);
+	int len;
+	assertl((len = GetTimeFormat(locale.yield(), tf.yield(), &self, O, O, 0)) > 0);
+	auto lpsz = StringX<IsUnicode>::Alloc(len - 1);
+	assertl(len == GetTimeFormat(locale.yield(), tf.yield(), &self, O, lpsz, len));
+	return{ (size_t)len, lpsz };
 }
-inline StringA SystemTime::FormatTimeA(TimeFormat tf, Locales locale) const {
-	auto len = ::GetTimeFormat(locale.yield(), tf.yield(), this, O, O, 0);
-	if (len <= 0) return O;
-	StringA str((size_t)len - 1);
-	::GetTimeFormatA(locale.yield(), tf.yield(), this, O, str, len);
-	return str;
+inline StringA SystemTime::FormatTimeA(TimeFormat tf, Locales locale) const reflect_as(FormatTime<false>());
+inline StringW SystemTime::FormatTimeW(TimeFormat tf, Locales locale) const reflect_as(FormatTime<true>());
+//    FormatDate
+template<bool IsUnicode>
+inline StringX<IsUnicode> SystemTime::FormatDate(DateFormat df, Locales locale) const {
+	global_symbolx(GetDateFormat);
+	int len;
+	assertl((len = GetDateFormat(locale.yield(), df.yield(), &self, O, O, 0)) > 0);
+	auto lpsz = StringX<IsUnicode>::Alloc(len - 1);
+	assertl(len == GetDateFormat(locale.yield(), df.yield(), &self, O, lpsz, len));
+	return{ (size_t)len, lpsz };
 }
-inline StringW SystemTime::FormatTimeW(TimeFormat tf, Locales locale) const {
-	auto len = ::GetTimeFormat(locale.yield(), tf.yield(), this, O, O, 0);
-	if (len <= 0) return O;
-	StringW str((size_t)len - 1);
-	::GetTimeFormatW(locale.yield(), tf.yield(), this, O, str, len);
-	return str;
+inline StringA SystemTime::FormatDateA(DateFormat df, Locales locale) const reflect_as(FormatDate<false>(df, locale));
+inline StringW SystemTime::FormatDateW(DateFormat df, Locales locale) const reflect_as(FormatDate<true>(df, locale));
+template<bool IsUnicode>
+inline StringX<IsUnicode> SystemTime::toString() const {
+	return O;
 }
-
-inline String SystemTime::FormatDate(DateFormat df, Locales locale) const {
-	auto len = ::GetDateFormat(locale.yield(), df.yield(), this, O, O, 0);
-	if (len <= 0) return O;
-	String str((size_t)len - 1);
-	::GetDateFormat(locale.yield(), df.yield(), this, O, str, len);
-	return str;
-}
-inline StringA SystemTime::FormatDateA(DateFormat df, Locales locale) const {
-	auto len = ::GetDateFormat(locale.yield(), df.yield(), this, O, O, 0);
-	if (len <= 0) return O;
-	StringA str((size_t)len - 1);
-	::GetDateFormatA(locale.yield(), df.yield(), this, O, str, len);
-	return str;
-}
-inline StringW SystemTime::FormatDateW(DateFormat df, Locales locale) const {
-	auto len = ::GetDateFormat(locale.yield(), df.yield(), this, O, O, 0);
-	if (len <= 0) return O;
-	StringW str((size_t)len - 1);
-	::GetDateFormatW(locale.yield(), df.yield(), this, O, str, len);
-	return str;
-}
-inline SystemTime::operator StringA() const {
-	auto lenDate = ::GetDateFormatA(0, 0, this, O, O, 0);
-	auto lenTime = ::GetTimeFormatA(0, 0, this, O, O, 0);
-	if (lenDate <= 0 && lenTime <= 0) return O;
-	StringA str((size_t)lenDate + lenTime - 1);
-	::GetDateFormatA(0, 0, this, O, str, lenDate);
-	str[lenDate - 1] = ' ';
-	::GetTimeFormatA(0, 0, this, O, (LPSTR)str + lenDate, lenTime);
-	return str;
-}
-inline SystemTime::operator StringW() const {
-	auto lenDate = ::GetDateFormatW(0, 0, this, O, O, 0);
-	auto lenTime = ::GetTimeFormatW(0, 0, this, O, O, 0);
-	if (lenDate <= 0 && lenTime <= 0) return O;
-	StringW str((size_t)lenDate + lenTime - 1);
-	::GetDateFormatW(0, 0, this, O, str, lenDate);
-	str[lenDate - 1] = L' ';
-	::GetTimeFormatW(0, 0, this, O, (LPWSTR)str + lenDate, lenTime);
-	return str;
-}
-/* FileTime:: */
-inline FileTime::operator StringA() const reflect_as(((SystemTime)self));
-inline FileTime::operator StringW() const reflect_as(((SystemTime)self));
+inline SystemTime::operator StringA() const reflect_as(toString<false>());
+inline SystemTime::operator StringW() const reflect_as(toString<true>());
+/*    FileTime:: */
+template<bool IsUnicode>
+inline StringX<IsUnicode> FileTime::toString() const reflect_as(((SystemTime)self).toString<IsUnicode>());
 
 }

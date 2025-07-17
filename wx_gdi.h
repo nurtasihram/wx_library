@@ -15,7 +15,7 @@ class GObjectBase : public ChainExtender<GObjectBase<AnyChild, BaseHandle>, AnyC
 public:
 	using Child = Chain<GObjectBase, AnyChild>;
 protected:
-	friend class RefAs<GObjectBase>;
+	friend union RefAs<GObjectBase>;
 	mutable HGDIOBJ hobj = O;
 	GObjectBase(HGDIOBJ h) : hobj(h) {}
 	GObjectBase(const GObjectBase &h) : hobj(h.hobj) reflect_to(h.hobj = O);
@@ -120,12 +120,12 @@ enum_class(FontFamilies, BYTE,
 	Script     = FF_SCRIPT,
 	Decorative = FF_DECORATIVE);
 template<bool IsUnicode>
-class FontLogicX : public RefAs<std::conditional_t<IsUnicode, LOGFONTW, LOGFONTA>> {
+class FontLogicX : public RefStruct<std::conditional_t<IsUnicode, LOGFONTW, LOGFONTA>> {
 	using LOGFONT = std::conditional_t<IsUnicode, LOGFONTW, LOGFONTA>;
 	using TCHAR = XCHAR<IsUnicode>;
 	using String = StringBase<TCHAR>;
 public:
-	using super = RefAs<LOGFONT>;
+	using super = RefStruct<LOGFONT>;
 public:
 	FontLogicX() {}
 	FontLogicX(const LOGFONT &lf) : super(lf) {}
@@ -172,7 +172,7 @@ public: // Properties - Family
 	/* W */ inline auto&Family(FontFamilies lfFamily) reflect_to_self(self->lfPitchAndFamily &= 0x0F, self->lfPitchAndFamily |= lfFamily.yield());
 	/* R */ inline FontFamilies Family() const reflect_as(reuse_as<FontFamilies>((BYTE)(self->lfPitchAndFamily & 0xF0)));
 public: // Properties - FaceName
-	/* W */ inline auto &FaceName(String name) assertl_reflect_as_self(SUCCEEDED(AnyX<IsUnicode>(StringCchCopyA, StringCchCopyW)(self->lfFaceName, name.Length() + 1, name)));
+	/* W */ inline auto &FaceName(String name) assertl_reflect_as_self(SUCCEEDED(AnyX<IsUnicode>(StringCchCopyW, StringCchCopyA)(self->lfFaceName, name.Length() + 1, name)));
 	/* R */ inline const String FaceName() const reflect_as(CString(self->lfFaceName, LF_FACESIZE));
 };
 using FontLogic = FontLogicX<IsUnicode>;
@@ -200,7 +200,7 @@ public:
 	using LogicA = FontLogicA;
 	using LogicW = FontLogicW;
 protected:
-	friend class RefAs<Font>;
+	friend union RefAs<Font>;
 	Font(HFONT h) : super(h) {}
 	Font(const Font &f) : super(f) {}
 public:
@@ -286,8 +286,9 @@ public:
 	inline operator const BITMAPINFO *() const reflect_as(this);
 };
 #pragma pack()
-struct BitmapLogic : public RefAs<BITMAP> {
-	using super = RefAs<BITMAP>;
+class BitmapLogic : public RefStruct<BITMAP> {
+public:
+	using super = RefStruct<BITMAP>;
 public:
 	BitmapLogic() {}
 public: // Property - Width
@@ -312,7 +313,7 @@ public: // Property - Colors
 	/* W */ inline auto &Colors(LPVOID bmBits) reflect_to_self(self->bmBits = bmBits);
 	/* R */ inline LPVOID Colors() const reflect_as(self->bmBits);
 public:
-	inline HBITMAP Create() const assertl_reflect_as(auto h = CreateBitmapIndirect(self), h);
+	inline HBITMAP Create() const assertl_reflect_as(auto h = CreateBitmapIndirect(this), h);
 	inline operator HBITMAP() const reflect_as(Create());
 };
 class BaseOf_GDI(Bitmap, HBITMAP) {
@@ -322,7 +323,7 @@ public:
 	using Logic = BitmapLogic;
 	using super = GObjectBase<Bitmap, HBITMAP>;
 protected:
-	friend class RefAs<Bitmap>;
+	friend union RefAs<Bitmap>;
 	Bitmap(HBITMAP h) : super(h) {}
 	Bitmap(const Bitmap &b) : super(b) {}
 public:
@@ -398,8 +399,9 @@ enum_flags(PenStyles, int,
 	InsideFrame = PS_INSIDEFRAME,
 	UserStyle   = PS_USERSTYLE,
 	Alternate   = PS_ALTERNATE);
-struct PenLogic : public RefAs<LOGPEN> {
-	using super = RefAs<LOGPEN>;
+class PenLogic : public RefStruct<LOGPEN> {
+public:
+	using super = RefStruct<LOGPEN>;
 public:
 	PenLogic() {}
 public: // Property - Style
@@ -418,7 +420,7 @@ public:
 	using Styles = PenStyles;
 	using Log = PenLogic;
 protected:
-	friend class RefAs<Pen>;
+	friend union RefAs<Pen>;
 	Pen(HPEN h) : super(h) {}
 	Pen(const Pen &p) : super(p) {}
 public:
@@ -495,7 +497,7 @@ class BaseOf_GDI(Brush, HBRUSH) {
 public:
 	using super = GObjectBase<Brush, HBRUSH>;
 protected:
-	friend class RefAs<Brush>;
+	friend union RefAs<Brush>;
 	Brush(HBRUSH h) : super(h) {}
 	Brush(const Brush &b) : super(b) {}
 public:
@@ -528,8 +530,9 @@ using CBrush = RefAs<Brush>;
 #pragma endregion
 
 #pragma region Palette
-struct PaletteEntry : public RefAs<PALETTEENTRY> {
-	using super = RefAs<PALETTEENTRY>;
+class PaletteEntry : public RefStruct<PALETTEENTRY> {
+public:
+	using super = RefStruct<PALETTEENTRY>;
 public:
 	PaletteEntry() {}
 	PaletteEntry(const PALETTEENTRY &entry) : super(entry) {}
@@ -554,7 +557,7 @@ public:
 	using super = GObjectBase<Palette, HPALETTE>;
 	using Entry = PaletteEntry;
 protected:
-	friend class RefAs<Palette>;
+	friend union RefAs<Palette>;
 	Palette(HPALETTE h) : super(h) {}
 	Palette(const Palette &p) : super(p) {}
 public:
@@ -620,7 +623,7 @@ class BaseOf_GDI(Region, HRGN) {
 public:
 	using super = GObjectBase<Region, HRGN>;
 protected:
-	friend class RefAs<Region>;
+	friend union RefAs<Region>;
 	Region(HRGN h) : super(h) {}
 	Region(const Region &r) : super(r) {}
 public:
@@ -664,7 +667,7 @@ class BaseOf_GDI(MetaFile, HMETAFILE) {
 public:
 	using super = GObjectBase<MetaFile, HMETAFILE>;
 protected:
-	friend class RefAs<Region>;
+	friend union RefAs<Region>;
 	MetaFile(HMETAFILE h) : super(h) {}
 	MetaFile(const MetaFile &m) : super(m) {}
 public:
@@ -732,7 +735,7 @@ class BaseOf_GDI(DevCap, HDC) {
 public:
 	using super = GObjectBase<DevCap, HDC>;
 protected:
-	friend class RefAs<DevCap>;
+	friend union RefAs<DevCap>;
 	DevCap(HDC h) : super(h) {}
 	DevCap(const DevCap &d) : super(d) {}
 public:

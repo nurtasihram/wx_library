@@ -21,11 +21,11 @@ enum_flags(ColorChooseStyle, DWORD,
 	SolidColor           = CC_SOLIDCOLOR,
 	AnyColor             = CC_ANYCOLOR);
 template<bool IsUnicode>
-class ColorChooseX : public RefAs<std::conditional_t<IsUnicode, CHOOSECOLORW, CHOOSECOLORA>> {
+class ColorChooseX : public RefStruct<std::conditional_t<IsUnicode, CHOOSECOLORW, CHOOSECOLORA>> {
 	using CHOOSECOLOR = std::conditional_t<IsUnicode, CHOOSECOLORW, CHOOSECOLORA>;
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 public:
-	using super = RefAs<CHOOSECOLOR>;
+	using super = RefStruct<CHOOSECOLOR>;
 	using Style = ColorChooseStyle;
 	using ColorSet = arrayof<RGBColor, 16>;
 	using CColorSet = const arrayof<RGBColor, 16>;
@@ -45,7 +45,7 @@ public: // Property - Result
 	/* W */ inline auto &Result(COLORREF rgb) reflect_to_self(self->rgbResult = rgb);
 	/* R */ inline RGBColor Result() const reflect_as(self->rgbResult);
 public:
-	inline bool Choose() reflect_as(AnyX<IsUnicode>(ChooseColorA, ChooseColorW)(self));
+	inline bool Choose() reflect_as(AnyX<IsUnicode>(::ChooseColorW, ::ChooseColorA)(this));
 };
 using ColorChoose = ColorChooseX<IsUnicode>;
 using ColorChooseA = ColorChooseX<false>;
@@ -81,13 +81,13 @@ enum_flags(FontChooseStyle, DWORD,
 	NoVertFonts          = CF_NOVERTFONTS,
 	InActiveFonts        = CF_INACTIVEFONTS);
 template<bool IsUnicode>
-class FontChooseX : public RefAs<std::conditional_t<IsUnicode, CHOOSEFONTW, CHOOSEFONTA>> {
+class FontChooseX : public RefStruct<std::conditional_t<IsUnicode, CHOOSEFONTW, CHOOSEFONTA>> {
 	using CHOOSEFONT = std::conditional_t<IsUnicode, CHOOSEFONTW, CHOOSEFONTA>;
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using FontLogic = std::conditional_t<IsUnicode, FontLogicW, FontLogicA>;
 	using LOGFONT = std::conditional_t<IsUnicode, LOGFONTW, LOGFONTA>;
 public:
-	using super = RefAs<CHOOSEFONT>;
+	using super = RefStruct<CHOOSEFONT>;
 	using Style = FontChooseStyle;
 	using Log = FontLogic;
 public:
@@ -121,7 +121,7 @@ public: // Property - LogFont
 	/* W */ inline auto &LogFont(Log *lpLogFont) reflect_to_self(self->lpLogFont = (LOGFONT *)lpLogFont);
 	/* R */ inline auto LogFont() const reflect_as(self->lpLogFont);
 public:
-	inline bool Choose() reflect_as(AnyX<IsUnicode>(ChooseFontA, ChooseFontW)(self));
+	inline bool Choose() reflect_as(AnyX<IsUnicode>(::ChooseFontW, ::ChooseFontA)(this));
 };
 using FontChoose = FontChooseX<IsUnicode>;
 using FontChooseA = FontChooseX<false>;
@@ -157,13 +157,13 @@ enum_flags(FileChooseStyle, DWORD,
 	DontAddToRecent      = OFN_DONTADDTORECENT,
 	ForcesHowHidden      = OFN_FORCESHOWHIDDEN);
 template<bool IsUnicode>
-class FileChooseX : public RefAs<std::conditional_t<IsUnicode, OPENFILENAMEW, OPENFILENAMEA>> {
+class FileChooseX : public RefStruct<std::conditional_t<IsUnicode, OPENFILENAMEW, OPENFILENAMEA>> {
 	using OPENFILENAME = std::conditional_t<IsUnicode, OPENFILENAMEW, OPENFILENAMEA>;
 	using LPTSTR = LPXSTR<IsUnicode>;
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
 public:
-	using super = RefAs<OPENFILENAME>;
+	using super = RefStruct<OPENFILENAME>;
 	using Style = FileChooseStyle;
 public:
 	FileChooseX() reflect_to(self->lStructSize = sizeof(OPENFILENAME));
@@ -211,16 +211,12 @@ public: // Property - DefExt
 	/* W */ inline auto &DefExt(LPCTSTR lpstrDefExt) reflect_to_self(self->lpstrDefExt = lpstrDefExt);
 public:
 	inline bool OpenFile() {
-		if constexpr (IsUnicode)
-			reflect_as(GetOpenFileNameW(self))
-		else
-			reflect_as(GetOpenFileNameA(self))
+		global_symbolx(GetOpenFileName);
+		reflect_as(GetOpenFileName(this));
 	}
 	inline bool SaveFile() {
-		if constexpr (IsUnicode)
-			reflect_as(GetSaveFileNameW(self))
-		else
-			reflect_as(GetSaveFileNameA(self))
+		global_symbolx(GetSaveFileName);
+		reflect_as(GetSaveFileName(this));
 	}
 };
 using FileChoose = FileChooseX<IsUnicode>;
@@ -255,13 +251,15 @@ enum_flags(FindReplaceStyle, DWORD,
 	MatchKashida         = FR_MATCHKASHIDA,
 	MatchAlefHamza       = FR_MATCHALEFHAMZA);
 template<bool IsUnicode>
-class FindReplace : public RefAs<FINDREPLACE> {
+class FindReplace : public RefStruct<std::conditional_t<IsUnicode, FINDREPLACEW, FINDREPLACEA>> {
+	using FINDREPLACE = std::conditional_t<IsUnicode, FINDREPLACEW, FINDREPLACEA>;
+	using String = StringX<IsUnicode>;
+
 public:
+	using super = RefStruct<FINDREPLACE>;
 	using Style = FindReplaceStyle;
 public:
-	FindReplace() {
-		self->lStructSize = sizeof(FINDREPLACE);
-	}
+	FindReplace() reflect_to(self->lStructSize = sizeof(FINDREPLACE));
 public: // Properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = hMod);
@@ -269,16 +267,21 @@ public: // Properties
 	/* W */ inline auto &TemplateName(const TCHAR *lpTemplateName) reflect_to_self(self->lpTemplateName = lpTemplateName);
 	/* R */ inline const String FindWhat() reflect_as(CString(self->lpstrFindWhat, self->wFindWhatLen));
 	/* R */ inline const String ReplaceWith() reflect_as(CString(self->lpstrReplaceWith, self->wReplaceWithLen));
-	//LPARAM       lCustData;          // data passed to hook fn.
-	//LPFRHOOKPROC lpfnHook;           // ptr. to hook fn. or NULL
+	//LPARAM       lCustData; // data passed to hook fn.
+	//LPFRHOOKPROC lpfnHook;  // ptr. to hook fn. or NULL
 public:
 	inline HWND Find() {
+		global_symbolx(FindText);
 		reflect_as(FindText(self));
+	}
+	inline HWND Replace() {
+		global_symbolx(ReplaceText);
+		reflect_as(ReplaceText(self));
 	}
 };
 #pragma endregion
 
-//class ConfigComm : public RefAs<COMMCONFIG> {
+//class ConfigComm : public RefStruct<COMMCONFIG> {
 //	HWND hwndOwner = O;
 //public:
 //	ConfigComm() {
@@ -451,27 +454,25 @@ protected:
 	DialogItem(HWND hDlg, int nIDDlgItem) :
 		hDlg(hDlg), nIDDlgItem(nIDDlgItem) {}
 public: // Property - String
-	/* W */ inline auto &Text(LPTSTR lpText) assertl_reflect_as_self(SetDlgItemText(hDlg, nIDDlgItem, lpText));
-	/* R */ inline String Text() const {
-		auto len = GetDlgItemText(hDlg, nIDDlgItem, O, 0);
-		if (len <= 0) return O;
-		String text((size_t)len);
-		assertl(GetDlgItemText(hDlg, nIDDlgItem, text, len));
-		return text;
+	/* W */ inline auto &Text(LPSTR lpText) assertl_reflect_as_self(SetDlgItemTextA(hDlg, nIDDlgItem, lpText));
+	/* W */ inline auto &Text(LPWSTR lpText) assertl_reflect_as_self(SetDlgItemTextW(hDlg, nIDDlgItem, lpText));
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline StringX<IsUnicode> Text() const {
+		global_symbolx(GetDlgItemText);
+		UINT len;
+		assertl((len = GetDlgItemText(hDlg, nIDDlgItem, O, 0)) > 0);
+		auto lpsz = StringX<IsUnicode>::Alloc(len);
+		assertl(len == GetDlgItemText(hDlg, nIDDlgItem, lpsz, len));
+		return{ len, lpsz };
 	}
+	/* R */ inline StringA TextA() const reflect_as(Text<false>());
+	/* R */ inline StringW TextW() const reflect_as(Text<true>());
 public: // Property - Int
-	/* W */ inline auto &Int(int val) {
-		bool bSigned = val < 0;
-		if (bSigned) val = -val;
-		assertl(SetDlgItemInt(hDlg, nIDDlgItem, val, bSigned));
-		retself;
-	}
-	/* R */ inline int Int(bool bSigned = true) const {
-		BOOL lpTranslated = false;
-		auto val = GetDlgItemInt(hDlg, nIDDlgItem, &lpTranslated, bSigned);
-		assertl(lpTranslated);
-		return val;
-	}
+	/* W */ inline auto &Int(INT val) assertl_reflect_as_self(SetDlgItemInt(hDlg, nIDDlgItem, std::abs(val), val < 0));
+//	/* R */ inline int Int(bool bSigned = true) const nt_assertl_reflect_to_self(auto val = GetDlgItemInt(hDlg, nIDDlgItem, O, false), val);
+public: // Property - UInt
+	/* W */ inline auto &UInt(UINT val) assertl_reflect_as_self(SetDlgItemInt(hDlg, nIDDlgItem, val, false));
+//	/* R */ inline UINT  UInt() const nt_assertl_reflect_to_self(auto val = GetDlgItemInt(hDlg, nIDDlgItem, O, false), val);
 public: // Property - CheckButton
 	/* W */ inline auto &CheckButton(bool bCheck) assertl_reflect_as_self(CheckDlgButton(hDlg, nIDDlgItem, bCheck ? BST_CHECKED : BST_UNCHECKED));
 	/* R */ inline bool CheckButton() const reflect_as(IsDlgButtonChecked(hDlg, nIDDlgItem) == BST_CHECKED);
