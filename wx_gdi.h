@@ -9,11 +9,11 @@ template<class AnyChild, class BaseHandle = HGDIOBJ>
 class GObjectBase;
 using GObject = GObjectBase<void>;
 template<class AnyChild, class BaseHandle>
-class GObjectBase : public ChainExtend<GObjectBase<AnyChild, BaseHandle>, AnyChild> {
+class GObjectBase : public ChainExtender<GObjectBase<AnyChild, BaseHandle>, AnyChild> {
 	misuse_assert((std::is_convertible_v<BaseHandle, HGDIOBJ>),
 				 "BaseHandle must can be converted to HANDLE");
 public:
-	using Child = KChain<GObjectBase, AnyChild>;
+	using Child = Chain<GObjectBase, AnyChild>;
 protected:
 	friend class RefAs<GObjectBase>;
 	mutable HGDIOBJ hobj = O;
@@ -312,7 +312,7 @@ public: // Property - Colors
 	/* W */ inline auto &Colors(LPVOID bmBits) reflect_to_self(self->bmBits = bmBits);
 	/* R */ inline LPVOID Colors() const reflect_as(self->bmBits);
 public:
-	inline HBITMAP Create() const assertl_reflect_as(auto h = CreateBitmapIndirect(&self), h);
+	inline HBITMAP Create() const assertl_reflect_as(auto h = CreateBitmapIndirect(self), h);
 	inline operator HBITMAP() const reflect_as(Create());
 };
 class BaseOf_GDI(Bitmap, HBITMAP) {

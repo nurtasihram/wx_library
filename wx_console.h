@@ -71,12 +71,13 @@ public: // Property - ColorTable
 	}
 	/* R */ inline const COLORREF *ColorTable() const { return self->ColorTable; }
 };
+
 template<class AnyChild = void>
-class ConsoleItf : public ChainExtend<ConsoleItf<AnyChild>, AnyChild> {
+class ConsoleItf : public ChainExtender<ConsoleItf<AnyChild>, AnyChild> {
 protected:
 	HANDLE hInput = O, hOutput = O, hError = O;
 public:
-	using Child = KChain<ConsoleItf, AnyChild>;
+	using Child = Chain<ConsoleItf, AnyChild>;
 public:
 	ConsoleItf(Null) {}
 	ConsoleItf() :

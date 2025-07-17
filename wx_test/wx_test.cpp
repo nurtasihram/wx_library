@@ -1,6 +1,7 @@
 #include "wx_console.h"
 #include "wx_realtime.h"
 #include "wx_window.h"
+#include "wx_control.h"
 
 #include <typeinfo>
 
@@ -31,16 +32,33 @@ public:
 			assertl_reflect_as(DeleteAtom(atom));
 		atom = 0;
 	}
-public:
-	inline String Name() const {
+public: // Property - Name
+	/* R */ inline String Name() const {
 		auto lpszAtomName = String::Alloc(MaxLenClass);
 		int len = 0;
 		assertl((len = GetAtomName(self, lpszAtomName, MaxLenClass)) > 0);
 		lpszAtomName = String::Realloc(len, lpszAtomName);
 		return { (size_t)len, lpszAtomName };
 	}
+	/* R */ inline StringA NameA() const {
+		auto lpszAtomName = StringA::Alloc(MaxLenClass);
+		int len = 0;
+		assertl((len = GetAtomNameA(self, lpszAtomName, MaxLenClass)) > 0);
+		lpszAtomName = StringA::Realloc(len, lpszAtomName);
+		return { (size_t)len, lpszAtomName };
+	}
+	/* R */ inline StringW NameW() const {
+		auto lpszAtomName = StringW::Alloc(MaxLenClass);
+		int len = 0;
+		assertl((len = GetAtomNameW(self, lpszAtomName, MaxLenClass)) > 0);
+		lpszAtomName = StringW::Realloc(len, lpszAtomName);
+		return { (size_t)len, lpszAtomName };
+	}
 public:
+	inline operator bool() const reflect_as(atom);
 	inline operator ATOM() const reflect_as(atom);
+	inline operator LPCSTR() const reflect_as(MAKEINTRESOURCEA(atom));
+	inline operator LPCWSTR() const reflect_as(MAKEINTRESOURCEW(atom));
 };
 
 template<class AnyClass, class...Args>
@@ -50,62 +68,17 @@ constexpr void plist() {
 		plist<Args...>();
 }
 
-//template<class, class>
-//struct Map;
-
-//void test_check() {
-//#define _CALL_(name) pThis->name
-//#define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
-//	case msgid: \
-//		if constexpr (member_##name##_of<Child>::callable) { \
-//			using fn_type = ret argslist; \
-//			misdef_assert((member_##name##_of<Child>::template compatible_to<fn_type>), \
-//							"Member " #name " must be a method compatible to " #ret #argslist); \
-//			return call; \
-//		} break;
-//#include "wx_msg.inl"
-//}
-
-
-#pragma region Reuse & Convert List
-template<class AnyProto, class AnyClass>
-struct Reusable {
-	static constexpr bool usable = false;
-};
-template<class AnyProto, class AnyClass>
-struct Resuage {
-	static constexpr bool usable = true;
-	static inline AnyClass reuse(AnyProto Proto) reflect_as(reuse_as<AnyClass>(Proto));
-	static inline AnyProto reuse(AnyClass Class) reflect_as(reuse_as<AnyClass>(Class));
-};
-#pragma endregion
-
-template<>
-struct Reusable<HWND, Window> : Resuage<HWND, Window> {};
-
 int main() {
-
-//	constexpr const a = std::is_class_v<to_proto<LPCREATESTRUCT>>;
-
-	Console.LogA(typeid(to_proto<LPCREATESTRUCT>).name());
-
-	plist<HDC, HFONT, char>();
-
 	TestWindow wnd;
 	assertl(wnd.Create());
 	wnd.Show();
-
-	auto &&r = Region::CreateElliptic({ 0, 0, 300, 300 });
-	wnd.Region(r);
 	Console.Log(wnd.ModuleFileName());
 	Msg msg;
 	while (msg.Get()) {
 		msg.Translate();
 		msg.Dispatch();
 	}
-
 	system("pause");
-
 }
 
 int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,

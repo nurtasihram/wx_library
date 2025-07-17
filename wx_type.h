@@ -19,11 +19,11 @@ template<class AnyChild>
 class HandleBase;
 using Handle = HandleBase<void>;
 template<class AnyChild>
-class HandleBase : public ChainExtend<HandleBase<AnyChild>, AnyChild> {
+class HandleBase : public ChainExtender<HandleBase<AnyChild>, AnyChild> {
 protected:
 	mutable HANDLE hObject = O;
 public:
-	using Child = KChain<HandleBase, AnyChild>;
+	using Child = Chain<HandleBase, AnyChild>;
 	using Access = HandleAccess;
 protected:
 	HandleBase(HANDLE h) : hObject(h) {}
@@ -322,16 +322,12 @@ public:
 	StringBase(const StringBase &) = delete;
 	StringBase(StringBase &str) : StringBase(str.Len, str.Flags, str.lpsz) { str.Len = 0, str.Flags = STR_DEF, str.lpsz = 0; }
 	StringBase(StringBase &&str) : StringBase(str.Len, str.Flags, str.lpsz) { str.Len = 0, str.Flags = STR_DEF, str.lpsz = 0; }
-
 	explicit StringBase(size_t Len) : lpsz(Alloc(Len)), Len(Len), Flags(STR_MOVABLE | STR_RELEASE) {}
 	StringBase(size_t Len, CharType *lpBuffer) : StringBase(Len, STR_MOVABLE | STR_RELEASE, lpBuffer) {}
-
 	StringBase(CharType ch) : lpsz(Alloc(1)), Len(1), Flags(STR_MOVABLE | STR_RELEASE) reflect_to(lpsz[0] = ch);
-
 	template<size_t len> StringBase(arrayof<CharType, len> &str) : StringBase(len - 1, STR_DEF, str) {}
 	template<size_t len> StringBase(const arrayof<CharType, len> &str) : lpsz(const_cast<CharType *>(str)), Len(len - 1), Flags(STR_READONLY) {}
 	template<size_t len> StringBase(const ConstArray<CharType, len> &str) : StringBase(str.array) {}
-
 	~StringBase() { operator~(); }
 public:
 	static inline CharType *Realloc(size_t len, CharType *lpsz) {
@@ -1049,22 +1045,22 @@ inline Exception::operator StringW() const reflect_as(FormatW());
 /* MsgBox */
 inline int MsgBox(LPCSTR lpCaption, const Exception &err, HWND hParent) reflect_as(MsgBox(lpCaption, err.FormatA(), MB::IconError | MB::AbortRetryIgnore, hParent));
 inline int MsgBox(LPCWSTR lpCaption, const Exception &err, HWND hParent) reflect_as(MsgBox(lpCaption, err.FormatW(), MB::IconError | MB::AbortRetryIgnore, hParent));
-/* SysTime:: */
-inline String SysTime::FormatTime(TimeFormat tf, Locales locale) const {
+/* SystemTime:: */
+inline String SystemTime::FormatTime(TimeFormat tf, Locales locale) const {
 	auto len = ::GetTimeFormat(locale.yield(), tf.yield(), this, O, O, 0);
 	if (len <= 0) return O;
 	String str((size_t)len - 1);
 	::GetTimeFormat(locale.yield(), tf.yield(), this, O, str, len);
 	return str;
 }
-inline StringA SysTime::FormatTimeA(TimeFormat tf, Locales locale) const {
+inline StringA SystemTime::FormatTimeA(TimeFormat tf, Locales locale) const {
 	auto len = ::GetTimeFormat(locale.yield(), tf.yield(), this, O, O, 0);
 	if (len <= 0) return O;
 	StringA str((size_t)len - 1);
 	::GetTimeFormatA(locale.yield(), tf.yield(), this, O, str, len);
 	return str;
 }
-inline StringW SysTime::FormatTimeW(TimeFormat tf, Locales locale) const {
+inline StringW SystemTime::FormatTimeW(TimeFormat tf, Locales locale) const {
 	auto len = ::GetTimeFormat(locale.yield(), tf.yield(), this, O, O, 0);
 	if (len <= 0) return O;
 	StringW str((size_t)len - 1);
@@ -1072,28 +1068,28 @@ inline StringW SysTime::FormatTimeW(TimeFormat tf, Locales locale) const {
 	return str;
 }
 
-inline String SysTime::FormatDate(DateFormat df, Locales locale) const {
+inline String SystemTime::FormatDate(DateFormat df, Locales locale) const {
 	auto len = ::GetDateFormat(locale.yield(), df.yield(), this, O, O, 0);
 	if (len <= 0) return O;
 	String str((size_t)len - 1);
 	::GetDateFormat(locale.yield(), df.yield(), this, O, str, len);
 	return str;
 }
-inline StringA SysTime::FormatDateA(DateFormat df, Locales locale) const {
+inline StringA SystemTime::FormatDateA(DateFormat df, Locales locale) const {
 	auto len = ::GetDateFormat(locale.yield(), df.yield(), this, O, O, 0);
 	if (len <= 0) return O;
 	StringA str((size_t)len - 1);
 	::GetDateFormatA(locale.yield(), df.yield(), this, O, str, len);
 	return str;
 }
-inline StringW SysTime::FormatDateW(DateFormat df, Locales locale) const {
+inline StringW SystemTime::FormatDateW(DateFormat df, Locales locale) const {
 	auto len = ::GetDateFormat(locale.yield(), df.yield(), this, O, O, 0);
 	if (len <= 0) return O;
 	StringW str((size_t)len - 1);
 	::GetDateFormatW(locale.yield(), df.yield(), this, O, str, len);
 	return str;
 }
-inline SysTime::operator StringA() const {
+inline SystemTime::operator StringA() const {
 	auto lenDate = ::GetDateFormatA(0, 0, this, O, O, 0);
 	auto lenTime = ::GetTimeFormatA(0, 0, this, O, O, 0);
 	if (lenDate <= 0 && lenTime <= 0) return O;
@@ -1103,7 +1099,7 @@ inline SysTime::operator StringA() const {
 	::GetTimeFormatA(0, 0, this, O, (LPSTR)str + lenDate, lenTime);
 	return str;
 }
-inline SysTime::operator StringW() const {
+inline SystemTime::operator StringW() const {
 	auto lenDate = ::GetDateFormatW(0, 0, this, O, O, 0);
 	auto lenTime = ::GetTimeFormatW(0, 0, this, O, O, 0);
 	if (lenDate <= 0 && lenTime <= 0) return O;
@@ -1114,7 +1110,7 @@ inline SysTime::operator StringW() const {
 	return str;
 }
 /* FileTime:: */
-inline FileTime::operator StringA() const reflect_as(((SysTime)self));
-inline FileTime::operator StringW() const reflect_as(((SysTime)self));
+inline FileTime::operator StringA() const reflect_as(((SystemTime)self));
+inline FileTime::operator StringW() const reflect_as(((SystemTime)self));
 
 }

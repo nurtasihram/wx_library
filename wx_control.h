@@ -6,6 +6,38 @@
 
 namespace WX {
 
+enum_flags(SystemState, DWORD,
+	Unavailable       = STATE_SYSTEM_UNAVAILABLE,
+	Selected          = STATE_SYSTEM_SELECTED,
+	Focused           = STATE_SYSTEM_FOCUSED,
+	Pushed            = STATE_SYSTEM_PRESSED,
+	Checked           = STATE_SYSTEM_CHECKED,
+	Mixed             = STATE_SYSTEM_MIXED,
+	ReadOnly          = STATE_SYSTEM_READONLY,
+	HotTracked        = STATE_SYSTEM_HOTTRACKED,
+	Defaulted         = STATE_SYSTEM_DEFAULT,
+	Expanded          = STATE_SYSTEM_EXPANDED,
+	Collapsed         = STATE_SYSTEM_COLLAPSED,
+	Busy              = STATE_SYSTEM_BUSY,
+	Floating          = STATE_SYSTEM_FLOATING,
+	Marqueed          = STATE_SYSTEM_MARQUEED,
+	Animated          = STATE_SYSTEM_ANIMATED,
+	Invisible         = STATE_SYSTEM_INVISIBLE,
+	Offscreen         = STATE_SYSTEM_OFFSCREEN,
+	Sizeable          = STATE_SYSTEM_SIZEABLE,
+	Moveable          = STATE_SYSTEM_MOVEABLE,
+	SelfVoicing       = STATE_SYSTEM_SELFVOICING,
+	Focusable         = STATE_SYSTEM_FOCUSABLE,
+	Selectable        = STATE_SYSTEM_SELECTABLE,
+	Linked            = STATE_SYSTEM_LINKED,
+	Traversed         = STATE_SYSTEM_TRAVERSED,
+	MultiSelectable   = STATE_SYSTEM_MULTISELECTABLE,
+	ExtSelectable     = STATE_SYSTEM_EXTSELECTABLE,
+	AlertLow          = STATE_SYSTEM_ALERT_LOW,
+	AlertMedium       = STATE_SYSTEM_ALERT_MEDIUM,
+	AlertHigh         = STATE_SYSTEM_ALERT_HIGH,
+	Protected         = STATE_SYSTEM_PROTECTED);
+
 #pragma region ImageList
 #pragma endregion
 
@@ -39,7 +71,7 @@ public:
 };
 template<class AnyChild>
 WndProc ControlCommon<AnyChild>::DefProc;
-#define BaseOf_CommCtl(name) template<class AnyChild> name : public ControlCommon<KChain<name<AnyChild>, AnyChild>>
+#define BaseOf_CommCtl(name) template<class AnyChild> name : public ControlCommon<Chain<name<AnyChild>, AnyChild>>
 #define SFINAE_CommCtl(name) friend class ControlCommon<name>
 #pragma endregion
 
@@ -56,7 +88,130 @@ enum_flags(HeaderStyle, WStyle,
 	CheckBoxes      = HDS_CHECKBOXES,
 	NoSizing        = HDS_NOSIZING,
 	Overflow        = HDS_OVERFLOW);
-
+enum_flags(HeaderFormat, int,
+	Left            = HDF_LEFT,
+	Right           = HDF_RIGHT,
+	Center          = HDF_CENTER,
+	JustifyMask     = HDF_JUSTIFYMASK,
+	RTLReading      = HDF_RTLREADING,
+	Bitmap          = HDF_BITMAP,
+	String          = HDF_STRING,
+	OwnerDraw       = HDF_OWNERDRAW,
+	Image           = HDF_IMAGE,
+	BitmapOnRight   = HDF_BITMAP_ON_RIGHT,
+	SortUp          = HDF_SORTUP,
+	SortDown        = HDF_SORTDOWN,
+	CheckBox        = HDF_CHECKBOX,
+	Checked         = HDF_CHECKED,
+	FixedWidth      = HDF_FIXEDWIDTH,
+	SplitButton     = HDF_SPLITBUTTON);
+enum_flags(HeaderItemMask, UINT,
+	Width       = HDI_WIDTH,
+	Height      = HDI_HEIGHT,
+	Text        = HDI_TEXT,
+	Format      = HDI_FORMAT,
+	Param       = HDI_LPARAM,
+	Bitmap      = HDI_BITMAP,
+	Image       = HDI_IMAGE,
+	Order       = HDI_ORDER,
+	Filter      = HDI_FILTER,
+	State       = HDI_STATE);
+enum_class(HeaderFilterType, UINT,
+	String  = HDFT_ISSTRING,
+	Number  = HDFT_ISNUMBER,
+	Date    = HDFT_ISDATE,
+	NoValue = HDFT_HASNOVALUE);
+enum_flags(HeaderItemState, UINT,
+	Focussed = HDIS_FOCUSED);
+template<bool IsUnicode>
+class HeaderItemX : public RefAs<std::conditional_t<IsUnicode, HDITEMW, HDITEMA>> {
+	using HDITEMX = std::conditional_t<IsUnicode, HDITEMW, HDITEMA>;
+	using HD_TEXTFILTERX = std::conditional_t<IsUnicode, HD_TEXTFILTERA, HD_TEXTFILTERW>;
+public:
+	using super = RefAs<std::conditional_t<IsUnicode, HDITEMW, HDITEMA>>;
+public:
+	HeaderItemX() {}
+	HeaderItemX(const HDITEMX &hdi) : super(hdi) {}
+	HeaderItemX(HeaderItemMask mask) reflect_to(self->mask = mask.yield());
+public: // Property - Mask
+	/* W */ inline auto &Mask(HeaderItemMask mask) reflect_to_self(self->mask = mask.yield());
+	/* R */ inline auto  Mask() const reflect_as(ref_as<HeaderItemMask>(self->mask));
+public: // Property - Width
+	/* W */ inline auto &Width(int cx) reflect_to_self(self->cxy = cx, self->mask |= HDI_WIDTH);
+	/* R */ inline auto  Width() const reflect_as(self->cxy);
+public: // Property - Height
+	/* W */ inline auto &Height(int cy) reflect_to_self(self->cxy = cy, self->mask |= HDI_HEIGHT);
+	/* R */ inline auto  Height() const reflect_as(self->cxy);
+public: // Property - Text
+	/* R */ inline const String Text() const reflect_as(CString(self->pszText, self->cchTextMax));
+public: // Property - Bitmap
+	/* W */ inline auto &Bitmap(HBITMAP hBitmap) reflect_to_self(self->hbm = hBitmap, self->mask |= HDI_BITMAP);
+	/* R */ inline CBitmap Bitmap() const reflect_as(self->hbm);
+public: // Property - Format
+	/* W */ inline auto &Format(HeaderFormat fmt) reflect_to_self(self->fmt = fmt.yield(), self->mask |= HDI_FORMAT);
+	/* R */ inline auto  Format() const reflect_as(ref_as<HeaderFormat>(self->fmt));
+public: // Property - Param
+	/* W */ inline auto &Param(LPARAM lParam) reflect_to_self(self->lParam = lParam, self->mask |= HDI_LPARAM);
+	/* R */ inline LPARAM Param() const reflect_as(self->lParam);
+public: // Property - Image
+	/* W */ inline auto &Image(int iImage) reflect_to_self(self->iImage = iImage, self->mask |= HDI_IMAGE);
+	/* R */ inline auto  Image() const reflect_as(self->iImage);
+public: // Property - Order
+	/* W */ inline auto &Order(int iOrder) reflect_to_self(self->iOrder = iOrder, self->mask |= HDI_ORDER);
+	/* R */ inline auto  Order() const reflect_as(self->iOrder);
+public: // Property - FilterType
+	/* R */ inline auto FilterType() const reflect_as(ref_as<HeaderFilterType>(self->type));
+public: // Property - Filter
+	//void *pvFilter;       // [in] filter data see above
+public: // Property - States
+	/* W */ inline auto &States(HeaderItemState state) reflect_to_self(self->state = state.yield(), self->mask |= HDI_STATE);
+	/* R */ inline auto  States() const reflect_as(ref_as<HeaderItemState>(self->state));
+};
+using HeaderItem = HeaderItemX<IsUnicode>;
+using HeaderItemA = HeaderItemX<false>;
+using HeaderItemW = HeaderItemX<true>;
+class HeaderArray {
+	template<class AnyChild>
+	friend class HeaderBase;
+	CWindow header;
+private:
+	class ItemIndex {
+		CWindow header;
+		int index;
+	public:
+		ItemIndex(HWND hHeader, int index) : header(hHeader), index(index) {}
+	public:
+		inline void Remove() assertl_reflect_as(header->Send(HDM_DELETEITEM, index));
+	public:
+		//inline operator HeaderItemA() const;
+		inline ItemIndex &operator=(const HDITEMA &hdi) assertl_reflect_as_self(header->Send(HDM_SETITEMA, index, (LPARAM)&hdi));
+		inline ItemIndex &operator=(const HDITEMW &hdi) assertl_reflect_as_self(header->Send(HDM_SETITEMW, index, (LPARAM)&hdi));
+	};
+private:
+	HeaderArray(HWND hHeader) : header(hHeader) {}
+public:
+	inline int Insert(int index, const HDITEMA &hdi) reflect_as(header->Send(HDM_INSERTITEMA, index, (LPARAM)&hdi));
+	inline int Insert(int index, const HDITEMW &hdi) reflect_as(header->Send(HDM_INSERTITEMW, index, (LPARAM)&hdi));
+public: // Property - Count
+	/* R */ inline int Count() const reflect_as(header->Send(HDM_GETITEMCOUNT));
+public:
+	inline ItemIndex operator[](int index) reflect_as({ header, index });
+	inline const ItemIndex operator[](int index) const reflect_as({ header, index });
+};
+BaseOf_CommCtl(class HeaderBase) {
+	SFINAE_CommCtl(HeaderBase);
+public:
+	static constexpr LPCTSTR CtlClassName = WC_HEADER;
+	using super = ControlCommon<Chain<HeaderBase<AnyChild>, AnyChild>>;
+	using Style = HeaderStyle;
+public:
+	HeaderBase() {}
+public:
+#pragma region Properties
+public: // Property - 
+#pragma endregion
+};
+using Header = HeaderBase<void>;
 #pragma endregion
 
 #pragma region Control ToolBar
@@ -134,80 +289,18 @@ public:
 	/* R */ inline INT_PTR StringIndex() const reflect_as(self->iString);
 	/* R */ inline const WX::String String() const reflect_as(CString((LPCTSTR)self->iString, MaxLenNotice));
 };
-template<class AnyChild = void>
-class ToolBarBase;
-using ToolBar = ToolBarBase<>;
 BaseOf_CommCtl(class ToolBarBase) {
-protected:
 	SFINAE_CommCtl(ToolBarBase);
 public:
 	static constexpr LPCTSTR CtlClassName = TOOLBARCLASSNAME;
-	using super = ControlCommon<KChain<ToolBarBase<AnyChild>, AnyChild>>;
+	using super = ControlCommon<Chain<ToolBarBase<AnyChild>, AnyChild>>;
 	using Style = ToolBarStyle;
 	using StyleEx = ToolBarStyleEx;
 	using Button = ToolBarButton;
-	class IButton {
-		ToolBarBase &tb;
-		int idCommand;
-	public:
-		IButton(ToolBarBase &tb, int idCommand) : tb(tb), idCommand(idCommand) {}
-	public: 
-		/* W */ inline auto&Enable(bool bEnable) assertl_reflect_as_self(tb.Send(TB_ENABLEBUTTON, idCommand, bEnable));
-		/* R */ inline bool Enable() const reflect_as(tb.Send(TB_ISBUTTONENABLED, idCommand));
-	public: 
-		/* W */ inline auto&Check(bool bCheck) assertl_reflect_as_self(tb.Send(TB_CHECKBUTTON, idCommand, bCheck));
-		/* R */ inline bool Check() const reflect_as(tb.Send(TB_ISBUTTONCHECKED, idCommand));
-	public: 
-		/* W */ inline auto&Press(bool bPress) assertl_reflect_as_self(tb.Send(TB_PRESSBUTTON, idCommand, bPress));
-		/* R */ inline bool Press() const reflect_as(tb.Send(TB_ISBUTTONPRESSED, idCommand));
-	public: 
-		/* W */ inline auto&Hide(bool bPress) assertl_reflect_as_self(tb.Send(TB_HIDEBUTTON, idCommand, bPress));
-		/* R */ inline bool Hide() const reflect_as(tb.Send(TB_ISBUTTONHIDDEN, idCommand));
-	public: 
-		/* R */ inline bool HighLighted() const reflect_as(tb.Send(TB_ISBUTTONHIGHLIGHTED, idCommand));
-	public: 
-		/* W */ inline auto&Indeterminate(bool bEnable) assertl_reflect_as_self(tb.Send(TB_INDETERMINATE, idCommand, bEnable));
-		/* R */ inline bool Indeterminate() const reflect_as(tb.Send(TB_ISBUTTONINDETERMINATE, idCommand));
-	public: 
-		/* R */ inline String Text() const {
-			auto len = tb.Send<size_t>(TB_GETBUTTONTEXT, idCommand);
-			String text(len);
-			tb.Send<size_t>(TB_GETBUTTONTEXT, idCommand, (LPTSTR)text);
-			return text;
-		}
-	public: 
-		/* W */ inline auto&Mark(bool bMark) assertl_reflect_as_self(tb.Send(TB_MARKBUTTON, idCommand, bMark));
-	public: 
-		/* R */ inline int Index() assertl_reflect_to(int index, (index = tb.Send(TB_COMMANDTOINDEX, idCommand)) > 0, index);
-	public: 
-		inline auto &ID(int idCommand) {
-			assertl(Send(TB_SETCMDID, this->idCommand, idCommand));
-			this->idCommand = idCommand;
-			retself;
-		}
-		inline int ID() const reflect_as(idCommand);
-	public: 
-	public:
-		inline void Delete() assertl_reflect_as_self(tb.Send(TB_DELETEBUTTON, idCommand));
-
-	};
 public:
 	ToolBarBase() {}
-
-	template<size_t nCount>
-	inline auto &Add(const Button(&buttons)[nCount]) assertl_reflect_as(super::Send(TB_ADDBUTTONS, nCount, buttons));
-	inline auto &Add(std::initializer_list<Button> buttons) assertl_reflect_as(super::Send(TB_ADDBUTTONS, buttons.size(), buttons.begin()));
-	inline auto &Add(LPCTBBUTTON lpButtons, UINT nCount) assertl_reflect_as(super::Send(TB_ADDBUTTONS, nCount, lpButtons));
-	inline auto &Add(const Button *lpButtons, UINT nCount) assertl_reflect_as(super::Send(TB_ADDBUTTONS, nCount, lpButtons));
-	inline auto &Add(const TBBUTTON &button) assertl_reflect_as(super::Send(TB_ADDBUTTONS, 1, &button));
-	inline auto &Add(const Button &button) assertl_reflect_as(super::Send(TB_ADDBUTTONS, 1, &button));
-	inline auto &Insert(const Button &button, int idBefore) assertl_reflect_as(super::Send(TB_INSERTBUTTON, idBefore, &button));
-
-TB_GETBUTTON            = TB_GETBUTTON,
-
-public: 
-	/* R */ inline UINT Count() const reflect_as(super::Send(TB_BUTTONCOUNT));
 };
+using ToolBar = ToolBarBase<void>;
 #pragma endregion
 
 #pragma region Control ReBar
@@ -234,21 +327,21 @@ enum_flags(ToolTipStyle, WStyle,
 #pragma endregion
 
 #pragma region Control StatusBar
-enum_flags(StatusBarTexts, uint16_t,
+enum_flags(StatusBarTextStyle, uint16_t,
+	Default      = 0,
 	OwnerDraw    = SBT_OWNERDRAW,
 	NoBorders    = SBT_NOBORDERS,
 	PopOut       = SBT_POPOUT,
 	RTLReading   = SBT_RTLREADING,
 	NoTabParsing = SBT_NOTABPARSING);
 BaseOf_CommCtl(class StatusBarBase) {
-protected:
 	SFINAE_CommCtl(StatusBarBase);
 public:
 	static constexpr LPCTSTR CtlClassName = STATUSCLASSNAME;
-	using super = ControlCommon<KChain<StatusBarBase<AnyChild>, AnyChild>>;
+	using super = ControlCommon<Chain<StatusBarBase<AnyChild>, AnyChild>>;
 	using Style = WStyle;
 	using StyleEx = WStyleEx;
-	using Texts = StatusBarTexts;
+	using TextStyle = StatusBarTextStyle;
 public:
 	StatusBarBase() {}
 public:
@@ -277,9 +370,9 @@ public:
 public: 
 	/* R */ inline uint16_t TextLength(uint8_t nPart) const reflect_as(super::template Send<uint16_t>(SB_GETTEXTLENGTH, nPart));
 public: 
-	/* R */ inline Texts    TextStyle(uint8_t nPart) const reflect_as(super::template Send<Texts>(SB_GETTEXTLENGTH, nPart) >> 16);
+	/* R */ inline TextStyle TextStyles(uint8_t nPart) const reflect_as(super::template Send<TextStyle>(SB_GETTEXTLENGTH, nPart) >> 16);
 public: 
-	/* W */ inline bool   Text(uint8_t nPart, LPCTSTR text, Texts style = Texts::Default) reflect_as(super::Send(SB_SETTEXT, nPart | style.yield(), (LPARAM)(LPCTSTR)text));
+	/* W */ inline bool Text(uint8_t nPart, LPCTSTR text, TextStyle style = TextStyle::Default) reflect_as(super::Send(SB_SETTEXT, nPart | style.yield(), (LPARAM)(LPCTSTR)text));
 	/* R */ inline String Text(uint8_t nPart) const {
 		auto len = TextLength(nPart);
 		if (len <= 0) return O;
@@ -341,13 +434,20 @@ enum_flags(UpDownStyle, WStyle,
 	Horz                = UDS_HORZ,
 	NoThousands         = UDS_NOTHOUSANDS,
 	HotTrack            = UDS_HOTTRACK);
+BaseOf_CommCtl(class UpDownBase) {
+	SFINAE_CommCtl(UpDownBase);
+public:
+	static constexpr LPCTSTR CtlClassName = UPDOWN_CLASS;
+	using super = ControlCommon<Chain<UpDownBase<AnyChild>, AnyChild>>;
+	using Style = UpDownStyle;
+public:
+	UpDownBase() {}
+};
+using UpDown = UpDownBase<void>;
+using CUpDown = RefAs<CUpDown>;
 #pragma endregion
 
 #pragma region Control Progress
-#define PBS_SMOOTH              0x01
-#define PBS_VERTICAL            0x04
-#define PBS_MARQUEE             0x08
-#define PBS_SMOOTHREVERSE       0x10
 enum_flags(ProgressStyle, WStyle, 
 	Smooth              = PBS_SMOOTH,
 	Vertical            = PBS_VERTICAL,
@@ -356,7 +456,56 @@ enum_flags(ProgressStyle, WStyle,
 #pragma endregion
 
 #pragma region Control HotKey
-
+enum_flags(HotKeyFlag, BYTE,
+	None                = 0,
+	Shift               = HOTKEYF_SHIFT,
+	Control             = HOTKEYF_CONTROL,
+	Alt                 = HOTKEYF_ALT,
+	Ext                 = HOTKEYF_EXT);
+enum_flags(HotKeyRule, WORD,
+	None                = HKCOMB_NONE,
+	Shift               = HKCOMB_S,
+	Control             = HKCOMB_C,
+	Alt                 = HKCOMB_A,
+	ShiftControl        = HKCOMB_SC,
+	ShiftAlt            = HKCOMB_SA,
+	ControlAlt          = HKCOMB_CA,
+	ShiftControlAlt     = HKCOMB_SCA);
+class HotKeyInfo {
+	HotKeyFlag mod;
+	BYTE vk;
+public:
+	HotKeyInfo(WORD LoWord = 0) : mod(reuse_as<HotKeyFlag>(LOBYTE(LoWord))), vk(HIBYTE(LoWord)) {}
+	HotKeyInfo(WPARAM wParam) : HotKeyInfo(LOWORD(wParam)) {}
+public: // Property - Modifiers
+	/* W */ inline auto &Modifiers(HotKeyFlag mod) reflect_to_self(this->mod = mod.yield());
+	/* R */ inline HotKeyFlag Modifiers() const reflect_as(this->mod);
+public: // Property - VirtualKey
+	/* W */ inline auto &VirtualKey(BYTE vk) reflect_to_self(this->vk = vk);
+	/* R */ inline BYTE VirtualKey() const reflect_as(this->vk);
+public:
+	inline operator WPARAM() const reflect_as(MAKEWPARAM(MAKEWORD(mod.yield(), vk), 0));
+};
+BaseOf_CommCtl(class HotKeyBase) {
+	SFINAE_CommCtl(HotKeyBase);
+public:
+	static constexpr LPCTSTR CtlClassName = WC_HOTKEY;
+	using super = ControlCommon<Chain<HotKeyBase<AnyChild >, AnyChild >>;
+	using Info = HotKeyInfo;
+	using Rule = HotKeyRule;
+public:
+	HotKeyBase() {}
+public:
+#pragma region Properties
+public: // Property - HotKey
+	/* W */ inline auto &HotKey(Info inf) reflect_to_self(super::Send(HKM_SETHOTKEY, inf));
+	/* R */ inline Info  HotKey() const reflect_as(super::Send(HKM_GETHOTKEY));
+public: // Property - Rules
+	/* W */ inline auto &Rules(Rule rules) reflect_to_self(super::Send(HKM_SETRULES, rules.yield()));
+#pragma endregion
+};
+using HotKey = HotKeyBase<void>;
+using CHotKey = RefAs<HotKey>;
 #pragma endregion
 
 #pragma region Control SysLink
@@ -405,12 +554,10 @@ public:
 	ListViewColumn(const LVCOLUMNW &lvc) : super(lvc) {}
 };
 BaseOf_CommCtl(class ListViewBase) {
-	protected:
 	SFINAE_CommCtl(ListViewBase);
-	def_memberof(wmailBox);
 public:
 	static constexpr auto CtlClassName = WC_LISTVIEW;
-	using super = ControlCommon<KChain<ListViewBase<AnyChild>, AnyChild>>;
+	using super = ControlCommon<Chain<ListViewBase<AnyChild>, AnyChild>>;
 	using Style = ListViewStyle;
 public:
 	ListViewBase() {}
@@ -435,6 +582,7 @@ public:
 #pragma endregion
 };
 using ListView = ListViewBase<void>;
+using CListView = RefAs<ListView>;
 #pragma endregion
 
 #pragma region Control TreeView
@@ -467,6 +615,18 @@ enum_flags(TreeViewStyleEx, WStyleEx,
 	ExclusionCheckBoxes  = TVS_EX_EXCLUSIONCHECKBOXES,
 	DimmedCheckBoxes     = TVS_EX_DIMMEDCHECKBOXES,
 	DrawImageAsync       = TVS_EX_DRAWIMAGEASYNC);
+BaseOf_CommCtl(class TreeViewBase) {
+	SFINAE_CommCtl(TreeViewBase);
+public:
+	static constexpr LPCTSTR CtlClassName = WC_TREEVIEW;
+	using super = ControlCommon<Chain<TreeViewBase<AnyChild>, AnyChild>>;
+	using Style = TreeViewStyle;
+	using StyleEx = TreeViewStyleEx;
+public:
+	TreeViewBase() {}
+};
+using TreeView = TreeViewBase<void>;
+using CTreeView = RefAs<TreeView>;
 #pragma endregion
 
 #pragma region Control TabControl
@@ -491,6 +651,17 @@ enum_flags(TabControlStyle, WStyle,
 	OwnerDrawFixed      = TCS_OWNERDRAWFIXED,
 	ToolTips            = TCS_TOOLTIPS,
 	FocusNever          = TCS_FOCUSNEVER);
+BaseOf_CommCtl(class TabControlBase) {
+	SFINAE_CommCtl(TabControlBase);
+public:
+	static constexpr LPCTSTR CtlClassName = WC_TABCONTROL;
+	using super = ControlCommon<Chain<TabControlBase<AnyChild>, AnyChild>>;
+	using Style = TabControlStyle;
+public:
+	TabControlBase() {}
+};
+using TabControl = TabControlBase<void>;
+using CTabControl = RefAs<TabControl>;
 #pragma endregion
 
 #pragma region Control Animate
@@ -499,6 +670,17 @@ enum_flags(AnimateStyle, WStyle,
 	Transparent         = ACS_TRANSPARENT,
 	AutoPlay            = ACS_AUTOPLAY,
 	Timer               = ACS_TIMER);
+BaseOf_CommCtl(class AnimateBase) {
+	SFINAE_CommCtl(AnimateBase);
+public:
+	static constexpr LPCTSTR CtlClassName = ANIMATE_CLASS;
+	using super = ControlCommon<Chain<AnimateBase<AnyChild>, AnyChild>>;
+	using Style = AnimateStyle;
+public:
+	AnimateBase() {}
+};
+using Animate = AnimateBase<void>;
+using CAnimate = RefAs<Animate>;
 #pragma endregion
 
 #pragma region Control MonthCal
@@ -511,18 +693,17 @@ enum_flags(MonthCalStyle, WStyle,
 	NoTrailingDates   = MCS_NOTRAILINGDATES,
 	ShortDaysOfWeek   = MCS_SHORTDAYSOFWEEK,
 	NoSelChangeOnNav  = MCS_NOSELCHANGEONNAV);
-#pragma endregion
-
-#pragma region Control DateTimePick
-enum_flags(DateTimePickStyle, WStyle,
-	UpDown                 = DTS_UPDOWN,
-	ShowNone               = DTS_SHOWNONE,
-	ShortDateFormat        = DTS_SHORTDATEFORMAT,
-	LongDateFormat         = DTS_LONGDATEFORMAT,
-	ShortDateCenturyFormat = DTS_SHORTDATECENTURYFORMAT,
-	TimeFormat             = DTS_TIMEFORMAT,
-	AppCanParse            = DTS_APPCANPARSE,
-	RightAlign             = DTS_RIGHTALIGN);
+BaseOf_CommCtl(class MonthCalBase) {
+	SFINAE_CommCtl(MonthCalBase);
+public:
+	static constexpr LPCTSTR CtlClassName = MONTHCAL_CLASS;
+	using super = ControlCommon<Chain<MonthCal<AnyChild>, AnyChild>>;
+	using Style = MonthCalStyle;
+public:
+	MonthCalBase() {}
+};
+using MonthCal = MonthCalBase<void>;
+using CMonthCal = RefAs<MonthCal>;
 #pragma endregion
 
 #pragma region Control Pager
@@ -571,7 +752,7 @@ enum_flags(ButtonStyle, WStyle,
 	PushLike         = BS_PUSHLIKE,
 	MultiLine        = BS_MULTILINE,
 	Notify           = BS_NOTIFY,
-	Flat             = BS_FLAT)
+	Flat             = BS_FLAT);
 enum_flags(ButtonState, SHORT,
 	Unchecked     = BST_UNCHECKED,
 	Checked       = BST_CHECKED,
@@ -616,20 +797,18 @@ public:
 	/* W */ inline auto   &Align(Aligns align) reflect_to_self(self->uAlign = align.yield());
 	/* R */ inline Aligns  Align() const reflect_as(ref_as<Aligns>(self->uAlign));
 };
-BaseOf_CommCtl(class CtlBuuton) {
-protected:
-	SFINAE_CommCtl(CtlBuuton);
-	def_memberof(wmailBox);
+BaseOf_CommCtl(class ButtonBase) {
+	SFINAE_CommCtl(ButtonBase);
 public:
 	static constexpr auto CtlClassName = WC_BUTTON;
-	using Child = KChain<CtlBuuton<AnyChild>, AnyChild>;
+	using Child = Chain<ButtonBase<AnyChild>, AnyChild>;
 	using super = ControlCommon<Child>;
 	using Style = ButtonStyle;
 	using State = ButtonState;
 	using BSplitInfo = ButtonSplitInfo;
 	using BImageList = ButtonImageList;
 public:
-	CtlBuuton() {}
+	ButtonBase() {}
 
 #pragma region Callback
 protected:
@@ -654,11 +833,6 @@ protected:
 #define WX_BUTTON
 #include "wx_msg_ctl.inl"
 		}
-		if constexpr (member_wmailBox_of<AnyChild>::callable) {
-			LRESULT res;
-			if (static_cast<AnyChild * >(this)->wmailBox(res, msgid, wParam, lParam))
-				return res;
-		}
 		return super::HandleNext();
 	}
 #pragma endregion
@@ -677,16 +851,13 @@ public:
 	}
 public: 
 	/* W */ inline auto &TextMargin(RECT margin) assertl_reflect_as_self(Button_SetTextMargin(self, &margin));
-	/* R */ inline LRect TextMargin() const assertl_reflect_to(LRect rc, Button_GetTextMargin(self, &rc), rc);
+	/* R */ inline auto TextMargin() const assertl_reflect_to(LRect rc, Button_GetTextMargin(self, &rc), rc);
 public: 
-	/* W */ inline auto      &SplitInfo(BUTTON_SPLITINFO bsp) assertl_reflect_as_self(Button_SetSplitInfo(self, &bsp));
-	/* R */ inline BSplitInfo SplitInfo() const assertl_reflect_to(BSplitInfo bsp, Button_GetSplitInfo(self, &bsp), bsp);
+	/* W */ inline auto &SplitInfo(BUTTON_SPLITINFO bsp) assertl_reflect_as_self(Button_SetSplitInfo(self, &bsp));
+	/* R */ inline auto  SplitInfo() const assertl_reflect_to(BSplitInfo bsp, Button_GetSplitInfo(self, &bsp), bsp);
 public: 
-	/* W */ inline auto      &ImageList(BUTTON_IMAGELIST &iml) assertl_reflect_as_self(Button_SetImageList(self, &iml));
-	/* R */ inline BImageList ImageList() const assertl_reflect_to(BImageList iml, Button_GetImageList(self, &iml), iml);
-
-
-
+	/* W */ inline auto &ImageList(BUTTON_IMAGELIST &iml) assertl_reflect_as_self(Button_SetImageList(self, &iml));
+	/* R */ inline auto ImageList() const assertl_reflect_to(BImageList iml, Button_GetImageList(self, &iml), iml);
 public: 
 	/* W */ inline auto &Check(State s) reflect_to_self(super::Send(BM_SETCHECK, s.yield()));
 	/* R */ inline State Check() const reflect_as(super::template Send<State>(BM_GETCHECK));
@@ -699,9 +870,10 @@ public:
 	/* W */ inline auto &DontClick(bool bDontClick) reflect_to_self(super::Send(BM_SETDONTCLICK, bDontClick));
 #pragma endregion
 };
+using Button = ButtonBase<void>;
 #pragma endregion
 
-#pragma region Static
+#pragma region Control Static
 enum_flags(StaticStyle, WStyle,
 	Left            = SS_LEFT,
 	Center          = SS_CENTER,
@@ -736,28 +908,23 @@ enum_flags(StaticStyle, WStyle,
 	WordEllipsis    = SS_WORDELLIPSIS,
 	EllipsisMask    = SS_ELLIPSISMASK);
 BaseOf_CommCtl(class StaticBase) {
-protected:
 	SFINAE_CommCtl(StaticBase);
 public:
 	static constexpr auto CtlClassName = WC_STATIC;
-	using Child = KChain<StaticBase<AnyChild>, AnyChild>;
+	using Child = Chain<StaticBase<AnyChild>, AnyChild>;
 	using super = ControlCommon<Child>;
 	using Style = StaticStyle;
 public:
 	StaticBase() {}
 #pragma region Properties
-public: 
+public: // Property - Icon
 	/* W */ inline auto &Icon(HICON hIcon) reflect_to_child(super::Send(STM_SETICON, hIcon));
 	/* R */ inline CIcon Icon() const reflect_as(super::template Send<HICON>(STM_GETICON));
-public: 
-	/* W */ inline auto    &ImageBitmap() reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_BITMAP));
-	/* R */ inline CBitmap  ImageBitmap() const reflect_as(super::template Send<HBITMAP>(STM_GETIMAGE, IMAGE_BITMAP));
-public: 
-	/* W */ inline auto &ImageIcon(HICON hIcon) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_BITMAP));
-	/* R */ inline CIcon ImageIcon() const reflect_as(super::template Send<HICON>(STM_GETIMAGE, IMAGE_BITMAP));
-public: 
-	/* W */ inline auto   &ImageCursor(HCURSOR hCursor) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_CURSOR, hCursor));
-	/* R */ inline CCursor ImageCursor() const reflect_as(super::template Send<HCURSOR>(STM_GETIMAGE, IMAGE_CURSOR));
+public: // Property - Image
+	/* W */ inline auto &Image(HBITMAP hBitmap) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_BITMAP, hBitmap));
+	/* W */ inline auto &Image(HICON hIcon) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_BITMAP, hIcon));
+	/* W */ inline auto &Image(HCURSOR hCursor) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_CURSOR, hCursor));
+	/* W */ inline auto &Image(HENHMETAFILE hMeta) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_ENHMETAFILE, hMeta));
 #pragma endregion
 };
 using Static = StaticBase<void>;
@@ -783,35 +950,18 @@ enum_flags(EditMargin, UINT,
 	Left     = EC_LEFTMARGIN,
 	Right    = EC_RIGHTMARGIN,
 	FontInfo = EC_USEFONTINFO);
-class EditBalloonTip : private EDITBALLOONTIP {
-public:
-	EditBalloonTip() : EDITBALLOONTIP{ 0 } reflect_to(this->cbStruct = sizeof(EDITBALLOONTIP));
-public: 
-	/* W */ inline auto &Title(LPCTSTR lpszTitle) reflect_to_self(this->pszTitle = lpszTitle);
-	/* R */ inline const String Title() const reflect_as(CString(this->pszTitle, MaxLenTitle));
-public: 
-	/* W */ inline auto &Text(LPCTSTR lpszText) reflect_to_self(this->pszText = lpszText);
-	/* R */ inline const String Text() const reflect_as(CString(this->pszText, MaxLenNotice));
-public: 
-	/* W */ inline auto &Icon(ToolTipIcons tti) reflect_to_self(this->ttiIcon = tti.yield());
-	/* R */ inline ToolTipIcons Icon()const reflect_as(reuse_as<ToolTipIcons>(this->ttiIcon));
-public:
-	inline PEDITBALLOONTIP operator&() reflect_as(this);
-	inline const EDITBALLOONTIP *operator&() const reflect_as(this);
-};
+class EditBalloonTip : private RefAs<EDITBALLOONTIP> {};
 BaseOf_CommCtl(class EditBase) {
-protected:
 	SFINAE_CommCtl(EditBase);
 public:
 	static constexpr auto CtlClassName = WC_EDIT;
-	using super = ControlCommon<KChain<EditBase<AnyChild>, AnyChild>>;
+	using super = ControlCommon<Chain<EditBase<AnyChild>, AnyChild>>;
 	using Style = EditStyle;
 	using Balloon = EditBalloonTip;
 public:
 	EditBase() {}
-
+public:
 #pragma region Methods
-
 	inline auto &ScrollCaret() reflect_to_child(super::Send(EM_SCROLLCARET));
 	inline bool  LineScroll(int nLines) reflect_as(super::Send(EM_LINESCROLL, 0, nLines));
 	inline auto &ReplaceSel(LPCTSTR lpString, bool bUndo = false) reflect_to_child(super::Send(EM_REPLACESEL, bUndo, lpString));
@@ -820,13 +970,12 @@ public:
 
 	inline auto&BalloonTip(const Balloon &tip) const assertl_reflect_as_self(Edit_ShowBalloonTip(self, &tip));
 	inline auto&BalloonTip() const assertl_reflect_as_self(Edit_HideBalloonTip(self));
-
 #pragma endregion
 
 #pragma region Properties
 public: 
-	/* W */ inline auto &uSel(int to, int from) reflect_to_child(super::Send(EM_SETSEL, to, from));
-	/* R */ inline auto  uSel() const reflect_to(struct { _M_(int to = 0, from = 0); } r; super::Send(EM_GETSEL, &r.from, &r.to), r);
+	/* W */ inline auto &Sel(int to, int from) reflect_to_child(super::Send(EM_SETSEL, to, from));
+	/* R */ inline auto  Sel() const reflect_to(struct { _M_(int to = 0, from = 0); } r; super::Send(EM_GETSEL, &r.from, &r.to), r);
 public: 
 	/* W */ inline auto &Rect(LRect rc) reflect_to_child(super::Send(EM_SETRECT, O, rc));
 	/* R */ inline LRect Rect() const assertl_reflect_to(LRect rc, super::Send(EM_GETRECT, O, &rc), rc);
@@ -838,13 +987,13 @@ public:
 public: 
 	/* W */ inline auto  &Handle(HLOCAL hLocal) reflect_to_child(super::Send(EM_SETHANDLE, hLocal));
 	/* R */ inline HLOCAL Handle() const reflect_as(super::template Send<HLOCAL>(EM_GETHANDLE));
-public: 
+public:
 	/* R */ inline int Thumb() const reflect_as(super::Send(EM_GETTHUMB));
 public: 
 	/* R */ inline UINT LineCount() const reflect_as(super::Send(EM_GETLINECOUNT));
 public: 
 	/* R */ inline int LineIndex(int index) reflect_as(super::Send(EM_LINEINDEX, index));
-public: 
+public:
 	/* R */ inline int LineLength(int nLine) reflect_as(super::Send(EM_LINELENGTH, nLine));
 public: 
 	/* W */ inline String Line(int nLine) const {
@@ -897,6 +1046,8 @@ public:
 	/* R */ inline DWORD FileLineCount() const reflect_as(Edit_GetFileLineCount(self));
 #pragma endregion
 };
+using Edit = EditBase<void>;
+using CEdit = RefAs<Edit>;
 #pragma endregion
 
 #pragma region Control ListBox
@@ -935,6 +1086,117 @@ enum_flags(ComboBoxStyle, WStyle,
 	DisableNoScroll    = CBS_DISABLENOSCROLL,
 	UpperCase          = CBS_UPPERCASE,
 	LowerCase          = CBS_LOWERCASE);
+BaseOf_CommCtl(class ComboBoxBase) {
+	SFINAE_CommCtl(ComboBoxBase);
+public:
+	static constexpr auto CtlClassName = WC_COMBOBOX;
+	using super = ControlCommon<Chain<ComboBoxBase<AnyChild>, AnyChild>>;
+	using Style = ComboBoxStyle;
+public:
+	ComboBoxBase() {}
+};
+using ComboBox = ComboBoxBase<void>;
+using CComboBox = RefAs<ComboBox>;
+#pragma endregion
+
+#pragma region Control DateTimePick
+enum_flags(DateTimePickStyle, WStyle,
+	UpDown                 = DTS_UPDOWN,
+	ShowNone               = DTS_SHOWNONE,
+	ShortDateFormat        = DTS_SHORTDATEFORMAT,
+	LongDateFormat         = DTS_LONGDATEFORMAT,
+	ShortDateCenturyFormat = DTS_SHORTDATECENTURYFORMAT,
+	TimeFormat             = DTS_TIMEFORMAT,
+	AppCanParse            = DTS_APPCANPARSE,
+	RightAlign             = DTS_RIGHTALIGN);
+enum_class(DateTimePickFlags, DWORD,
+	Error = GDT_ERROR,
+	Valid = GDT_VALID,
+	None  = GDT_NONE);
+struct DateTimePickInfo : public RefAs<DATETIMEPICKERINFO> {
+	using super = RefAs<DATETIMEPICKERINFO>;
+public:
+	DateTimePickInfo() reflect_to(self->cbSize = sizeof(DATETIMEPICKERINFO));
+	DateTimePickInfo(const DATETIMEPICKERINFO &dtpi) : super(dtpi) {}
+public: // Property - CheckRect
+	/* W */ inline auto &CheckRect(LRect rc) reflect_to_self(self->rcCheck = rc);
+	/* R */ inline LRect CheckRect() const reflect_as(self->rcCheck);
+public: // Property - CheckState
+	/* W */ inline auto &CheckState(SystemState state) reflect_to_self(self->stateCheck = state.yield());
+	/* R */ inline auto  CheckState() const reflect_as(reuse_as<SystemState>(self->stateCheck));
+public: // Property - ButtonRect
+	/* W */ inline auto &ButtonRect(LRect rc) reflect_to_self(self->rcButton = rc);
+	/* R */ inline LRect ButtonRect() const reflect_as(self->rcButton);
+public: // Property - ButtonState
+	/* W */ inline auto &ButtonState(SystemState state) reflect_to_self(self->stateButton = state.yield());
+	/* R */ inline auto  ButtonState() const reflect_as(reuse_as<SystemState>(self->stateButton));
+public: // Property - Edit
+	/* W */ inline auto &Edit(HWND hEdit) reflect_to_self(self->hwndEdit = hEdit);
+	/* R */ inline CEdit Edit() const reflect_as(self->hwndEdit);
+public: // Property - UpDown
+	/* W */ inline auto &UpDown(HWND hUpDown) reflect_to_self(self->hwndUD = hUpDown);
+	/* R */ inline CUpDown UpDown() const reflect_as(self->hwndUD);
+public: // Property - DropDown
+	/* W */ inline auto &DropDown(HWND hDropDown) reflect_to_self(self->hwndDropDown = hDropDown);
+	/* R */ inline CComboBox DropDown() const reflect_as(self->hwndDropDown);
+};
+BaseOf_CommCtl(class DateTimePickBase) {
+	SFINAE_CommCtl(DateTimePickBase);
+public:
+	static constexpr auto CtlClassName = DATETIMEPICK_CLASS;
+	using super = ControlCommon<Chain<DateTimePickBase<AnyChild>, AnyChild>>;
+	using Style = DateTimePickStyle;
+	using Flags = DateTimePickFlags;
+	using Info = DateTimePickInfo;
+public:
+	DateTimePickBase() {}
+public:
+#pragma region Properties
+public: // Property - SystemTime
+	/* W */ inline auto &SystemTime(const SYSTEMTIME &st) assertl_reflect_as_self(Send(DTM_GETSYSTEMTIME, &st));
+	/* R */ inline auto  SystemTime() const assertl_reflect_to(SystemTime st, Send(self, DTM_SETSYSTEMTIME, &st), st);
+public: // Property - Range
+	/* W */ inline auto &Range(const SYSTEMTIME &st) assertl_reflect_as_self(DateTime_SetRange(self, GD_DEFAULT, &st));
+	/* R */ inline auto Range() const assertl_reflect_to(SystemTime st, DateTime_GetRange(self, &st), st);
+#define DTM_GETRANGE (DTM_FIRST + 3)
+#define DateTime_GetRange(hdp, rgst)  (DWORD)SNDMSG(hdp, DTM_GETRANGE, 0, (LPARAM)(rgst))
+#define DTM_SETRANGE (DTM_FIRST + 4)
+#define DateTime_SetRange(hdp, gd, rgst)  (BOOL)SNDMSG(hdp, DTM_SETRANGE, (WPARAM)(gd), (LPARAM)(rgst))
+public: // Property - Format
+#define DTM_SETFORMATA (DTM_FIRST + 5)
+#define DTM_SETFORMATW (DTM_FIRST + 50)
+#define DateTime_SetFormat(hdp, sz)  (BOOL)SNDMSG(hdp, DTM_SETFORMAT, 0, (LPARAM)(sz))
+public: // Property - MonthCalColor
+	/* W */ inline auto &MonthCalColor(int iColor, COLORREF clr) assertl_reflect_as_self(DateTime_SetMonthCalColor(self, iColor, clr));
+	/* R */ inline auto  MonthCalColor(int iColor) const assertl_reflect_as(DateTime_GetMonthCalColor(self, iColor));
+#define DTM_SETMCCOLOR    (DTM_FIRST + 6)
+#define DateTime_SetMonthCalColor(hdp, iColor, clr) SNDMSG(hdp, DTM_SETMCCOLOR, iColor, clr)
+#define DTM_GETMCCOLOR    (DTM_FIRST + 7)
+#define DateTime_GetMonthCalColor(hdp, iColor) SNDMSG(hdp, DTM_GETMCCOLOR, iColor, 0)
+public: // Property - MonthCal
+	/* R */ 
+#define DTM_GETMONTHCAL   (DTM_FIRST + 8)
+#define DateTime_GetMonthCal(hdp) (HWND)SNDMSG(hdp, DTM_GETMONTHCAL, 0, 0)
+public: // 
+#define DTM_SETMCFONT     (DTM_FIRST + 9)
+#define DateTime_SetMonthCalFont(hdp, hfont, fRedraw) SNDMSG(hdp, DTM_SETMCFONT, (WPARAM)(hfont), (LPARAM)(fRedraw))
+#define DTM_GETMCFONT     (DTM_FIRST + 10)
+#define DateTime_GetMonthCalFont(hdp) SNDMSG(hdp, DTM_GETMCFONT, 0, 0)
+#define DTM_SETMCSTYLE    (DTM_FIRST + 11)
+#define DateTime_SetMonthCalStyle(hdp, dwStyle) SNDMSG(hdp, DTM_SETMCSTYLE, 0, (LPARAM)dwStyle)
+#define DTM_GETMCSTYLE    (DTM_FIRST + 12)
+#define DateTime_GetMonthCalStyle(hdp) SNDMSG(hdp, DTM_GETMCSTYLE, 0, 0)
+#define DTM_CLOSEMONTHCAL (DTM_FIRST + 13)
+#define DateTime_CloseMonthCal(hdp) SNDMSG(hdp, DTM_CLOSEMONTHCAL, 0, 0)
+#define DTM_GETDATETIMEPICKERINFO (DTM_FIRST + 14)
+#define DateTime_GetDateTimePickerInfo(hdp, pdtpi) SNDMSG(hdp, DTM_GETDATETIMEPICKERINFO, 0, (LPARAM)(pdtpi))
+#define DTM_GETIDEALSIZE (DTM_FIRST + 15)
+#define DateTime_GetIdealSize(hdp, psize) (BOOL)SNDMSG((hdp), DTM_GETIDEALSIZE, 0, (LPARAM)(psize))
+#pragma endregion
+
+};
+using DateTimePick = DateTimePickBase<void>;
+using CDateTimePick = RefAs<DateTimePick>;
 #pragma endregion
 
 #pragma region Control ScrollBar
@@ -976,11 +1238,10 @@ public:
 	
 };
 BaseOf_CommCtl(class ScrollBarBase) {
-protected:
 	SFINAE_CommCtl(ScrollBarBase);
 public:
 	static constexpr auto CtlClassName = WC_SCROLLBAR;
-	using super = ControlCommon<KChain<ScrollBarBase<AnyChild>, AnyChild>>;
+	using super = ControlCommon<Chain<ScrollBarBase<AnyChild>, AnyChild>>;
 	using Style = ScrollBarStyle;
 	using SInfo = ScrollInfo;
 	using SBarInfo = ScrollBarInfo;

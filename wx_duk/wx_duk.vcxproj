@@ -67,6 +67,7 @@
     <ClCompile Include="duktape\duktape.c" />
     <ClCompile Include="wx_duk\wx_duk.cpp" />
     <ClCompile Include="wx_duk\wx_duk_console.cpp" />
+    <ClCompile Include="wx_duk\wx_duk_control.cpp" />
     <ClCompile Include="wx_duk\wx_duk_dialog.cpp" />
     <ClCompile Include="wx_duk\wx_duk_realtime.cpp" />
     <ClCompile Include="wx_duk\wx_duk_resource.cpp" />
@@ -177,7 +178,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -192,7 +193,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -209,7 +210,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -228,7 +229,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -246,7 +247,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
     <Bscmake>
@@ -264,7 +265,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
@@ -281,7 +282,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -300,7 +301,7 @@
       <AdditionalIncludeDirectories>$(ProjectDir)\duktape;$(ProjectDir)..\;$(ProjectDir)\wx_duk;$(ProjectDir)\resources;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
-      <SubSystem>Windows</SubSystem>
+      <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <GenerateDebugInformation>true</GenerateDebugInformation>

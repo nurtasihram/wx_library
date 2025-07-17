@@ -37,7 +37,6 @@ struct IconInfoEx : public RefAs<ICONINFOEX> {
 	using super = RefAs<ICONINFOEX>;
 public:
 	IconInfoEx() reflect_to(self->cbSize = sizeof(self); self->fIcon = true);
-	IconInfoEx(const IconInfoEx &i) : super(i) {}
 	IconInfoEx(const ICONINFOEX &i) : super(i) {}
 	~IconInfoEx() {
 		if (self->hbmMask)
@@ -204,19 +203,18 @@ using CCursor = RefAs<Cursor>;
 #pragma region Menu
 class Menu;
 using CMenu = RefAs<Menu>;
-enum_class(MenuBmp, HBITMAP,
-	Callback      = HBMMENU_CALLBACK,
-	No            = 0,
-	System        = HBMMENU_SYSTEM,
-	BarRestore    = HBMMENU_MBAR_RESTORE,
-	BarMinimize   = HBMMENU_MBAR_MINIMIZE,
-	BarClose      = HBMMENU_MBAR_CLOSE,
-	BarCloseD     = HBMMENU_MBAR_CLOSE_D,
-	BarMinimizeD  = HBMMENU_MBAR_MINIMIZE_D,
-	PopupClose    = HBMMENU_POPUP_CLOSE,
-	PopupRestore  = HBMMENU_POPUP_RESTORE,
-	PopupMaximize = HBMMENU_POPUP_MAXIMIZE,
-	PopupMinimize = HBMMENU_POPUP_MINIMIZE);
+//enum_class(MenuBmp, HBITMAP,
+//	Callback      = HBMMENU_CALLBACK,
+//	System        = HBMMENU_SYSTEM,
+//	BarRestore    = HBMMENU_MBAR_RESTORE,
+//	BarMinimize   = HBMMENU_MBAR_MINIMIZE,
+//	BarClose      = HBMMENU_MBAR_CLOSE,
+//	BarCloseD     = HBMMENU_MBAR_CLOSE_D,
+//	BarMinimizeD  = HBMMENU_MBAR_MINIMIZE_D,
+//	PopupClose    = HBMMENU_POPUP_CLOSE,
+//	PopupRestore  = HBMMENU_POPUP_RESTORE,
+//	PopupMaximize = HBMMENU_POPUP_MAXIMIZE,
+//	PopupMinimize = HBMMENU_POPUP_MINIMIZE);
 enum_flags(MenuItemType, UINT,
 	String        = MFT_STRING,
 	Bitmap        = MFT_BITMAP,
@@ -275,7 +273,7 @@ public: // Property - Unchecked
 	MENUITEM_PROPERTY(Unchecked, MIIM_CHECKMARKS, hbmpUnchecked, CBitmap, hbmpUnchecked, _M_);
 public: // Property - Bitmap
 	MENUITEM_PROPERTY(Bitmap, MIIM_BITMAP, hbmpItem, CBitmap, hbmpItem, _M_);
-	/* W */ inline auto &Bitmap(MenuBmp hbmpItem) assertl_reflect_to_self(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = MIIM_BITMAP; mii.hbmpItem = hbmpItem.yield(), SetMenuItemInfo(hMenu, uID, flags, &mii));
+//	/* W */ inline auto &Bitmap(MenuBmp hbmpItem) assertl_reflect_to_self(MENUITEMINFO mii({ 0 }); mii.cbSize = sizeof(mii); mii.fMask = MIIM_BITMAP; mii.hbmpItem = hbmpItem.yield(), SetMenuItemInfo(hMenu, uID, flags, &mii));
 public: // Property - UserData
 	MENUITEM_PROPERTY(UserData, MIIM_DATA, dwItemData, void *, (ULONG_PTR)dwItemData, ref_as<void *>);
 public: // Property - SubMenu

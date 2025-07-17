@@ -7,7 +7,10 @@
 
 namespace WX {
 
-enum_flags(ChooserColorStyle, DWORD,
+//CommDlgExtendedError
+
+#pragma region ColorChoose
+enum_flags(ColorChooseStyle, DWORD,
 	InitRGB              = CC_RGBINIT,
 	FullOpen             = CC_FULLOPEN,
 	PreventFullOpen      = CC_PREVENTFULLOPEN,
@@ -18,16 +21,16 @@ enum_flags(ChooserColorStyle, DWORD,
 	SolidColor           = CC_SOLIDCOLOR,
 	AnyColor             = CC_ANYCOLOR);
 template<bool IsUnicode>
-class ChooserColorX : public RefAs<std::conditional_t<IsUnicode, CHOOSECOLORW, CHOOSECOLORA>> {
+class ColorChooseX : public RefAs<std::conditional_t<IsUnicode, CHOOSECOLORW, CHOOSECOLORA>> {
 	using CHOOSECOLOR = std::conditional_t<IsUnicode, CHOOSECOLORW, CHOOSECOLORA>;
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 public:
 	using super = RefAs<CHOOSECOLOR>;
-	using Style = ChooserColorStyle;
+	using Style = ColorChooseStyle;
 	using ColorSet = arrayof<RGBColor, 16>;
 	using CColorSet = const arrayof<RGBColor, 16>;
 public:
-	ChooserColorX() reflect_to(self->lStructSize = sizeof(CHOOSECOLOR));
+	ColorChooseX() reflect_to(self->lStructSize = sizeof(CHOOSECOLOR));
 public: // Common properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = (HWND &)hMod);
@@ -42,18 +45,15 @@ public: // Property - Result
 	/* W */ inline auto &Result(COLORREF rgb) reflect_to_self(self->rgbResult = rgb);
 	/* R */ inline RGBColor Result() const reflect_as(self->rgbResult);
 public:
-	inline bool Choose() {
-		if constexpr (IsUnicode)
-			reflect_as(ChooseColorW(self))
-		else
-			reflect_as(ChooseColorA(self))
-	}
+	inline bool Choose() reflect_as(AnyX<IsUnicode>(ChooseColorA, ChooseColorW)(self));
 };
-using ChooserColor = ChooserColorX<IsUnicode>;
-using ChooserColorA = ChooserColorX<false>;
-using ChooserColorW = ChooserColorX<true>;
+using ColorChoose = ColorChooseX<IsUnicode>;
+using ColorChooseA = ColorChooseX<false>;
+using ColorChooseW = ColorChooseX<true>;
+#pragma endregion
 
-enum_flags(ChooserFontStyle, DWORD,
+#pragma region FontChoose
+enum_flags(FontChooseStyle, DWORD,
 	ScreenFonts          = CF_SCREENFONTS,
 	PrinterFonts         = CF_PRINTERFONTS,
 	ShowHelp             = CF_SHOWHELP,
@@ -81,17 +81,17 @@ enum_flags(ChooserFontStyle, DWORD,
 	NoVertFonts          = CF_NOVERTFONTS,
 	InActiveFonts        = CF_INACTIVEFONTS);
 template<bool IsUnicode>
-class ChooserFontX : public RefAs<std::conditional_t<IsUnicode, CHOOSEFONTW, CHOOSEFONTA>> {
+class FontChooseX : public RefAs<std::conditional_t<IsUnicode, CHOOSEFONTW, CHOOSEFONTA>> {
 	using CHOOSEFONT = std::conditional_t<IsUnicode, CHOOSEFONTW, CHOOSEFONTA>;
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using FontLogic = std::conditional_t<IsUnicode, FontLogicW, FontLogicA>;
 	using LOGFONT = std::conditional_t<IsUnicode, LOGFONTW, LOGFONTA>;
 public:
 	using super = RefAs<CHOOSEFONT>;
-	using Style = ChooserFontStyle;
+	using Style = FontChooseStyle;
 	using Log = FontLogic;
 public:
-	ChooserFontX() reflect_to(self->lStructSize = sizeof(CHOOSEFONT));
+	FontChooseX() reflect_to(self->lStructSize = sizeof(CHOOSEFONT));
 public: // Common properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = hMod);
@@ -121,18 +121,15 @@ public: // Property - LogFont
 	/* W */ inline auto &LogFont(Log *lpLogFont) reflect_to_self(self->lpLogFont = (LOGFONT *)lpLogFont);
 	/* R */ inline auto LogFont() const reflect_as(self->lpLogFont);
 public:
-	inline bool Choose() {
-		if constexpr (IsUnicode)
-			reflect_as(ChooseFontW(self))
-		else
-			reflect_as(ChooseFontA(self))
-	}
+	inline bool Choose() reflect_as(AnyX<IsUnicode>(ChooseFontA, ChooseFontW)(self));
 };
-using ChooserFont = ChooserFontX<IsUnicode>;
-using ChooserFontA = ChooserFontX<false>;
-using ChooserFontW = ChooserFontX<true>;
+using FontChoose = FontChooseX<IsUnicode>;
+using FontChooseA = FontChooseX<false>;
+using FontChooseW = FontChooseX<true>;
+#pragma endregion
 
-enum_flags(ChooserFileStyle, DWORD,
+#pragma region FileChoose
+enum_flags(FileChooseStyle, DWORD,
 	ReadOnly             = OFN_READONLY,
 	OverwritePrompt      = OFN_OVERWRITEPROMPT,
 	HideReadOnly         = OFN_HIDEREADONLY,
@@ -160,16 +157,16 @@ enum_flags(ChooserFileStyle, DWORD,
 	DontAddToRecent      = OFN_DONTADDTORECENT,
 	ForcesHowHidden      = OFN_FORCESHOWHIDDEN);
 template<bool IsUnicode>
-class ChooserFileX : public RefAs<std::conditional_t<IsUnicode, OPENFILENAMEW, OPENFILENAMEA>> {
+class FileChooseX : public RefAs<std::conditional_t<IsUnicode, OPENFILENAMEW, OPENFILENAMEA>> {
 	using OPENFILENAME = std::conditional_t<IsUnicode, OPENFILENAMEW, OPENFILENAMEA>;
 	using LPTSTR = LPXSTR<IsUnicode>;
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
 public:
 	using super = RefAs<OPENFILENAME>;
-	using Style = ChooserFileStyle;
+	using Style = FileChooseStyle;
 public:
-	ChooserFileX() reflect_to(self->lStructSize = sizeof(OPENFILENAME));
+	FileChooseX() reflect_to(self->lStructSize = sizeof(OPENFILENAME));
 public: // Common properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = hMod);
@@ -226,10 +223,12 @@ public:
 			reflect_as(GetSaveFileNameA(self))
 	}
 };
-using ChooserFile = ChooserFileX<IsUnicode>;
-using ChooserFileA = ChooserFileX<false>;
-using ChooserFileW = ChooserFileX<true>;
+using FileChoose = FileChooseX<IsUnicode>;
+using FileChooseA = FileChooseX<false>;
+using FileChooseW = FileChooseX<true>;
+#pragma endregion
 
+#pragma region FindReplace
 enum_flags(FindReplaceStyle, DWORD,
 	Down                 = FR_DOWN,
 	WholeWord            = FR_WHOLEWORD,
@@ -277,6 +276,7 @@ public:
 		reflect_as(FindText(self));
 	}
 };
+#pragma endregion
 
 //class ConfigComm : public RefAs<COMMCONFIG> {
 //	HWND hwndOwner = O;

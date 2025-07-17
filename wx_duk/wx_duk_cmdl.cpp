@@ -8,23 +8,23 @@
 using namespace WX;
 
 #pragma region Memory Management
-int duk_alloc_count = 0;
-Heap duk_mem_heap = Heap::Create();
-void *duk_alloc(void *udata, duk_size_t size) {
+static int duk_alloc_count = 0;
+static Heap duk_mem_heap = Heap::Create();
+static void *duk_alloc(void *udata, duk_size_t size) {
 	(void)udata;
 	if (!size)
 		return O;
 	duk_alloc_count++;
 	return duk_mem_heap.Alloc(size, HeapAllocFlag::GenerateExceptions);
 }
-void duk_free(void *udata, void *ptr) {
+static void duk_free(void *udata, void *ptr) {
 	(void)udata;
 	if (!ptr)
 		return;
 	duk_alloc_count--;
 	duk_mem_heap.Free(ptr);
 }
-void *duk_realloc(void *udata, void *ptr, duk_size_t size) {
+static void *duk_realloc(void *udata, void *ptr, duk_size_t size) {
 	if (!ptr)
 		return duk_alloc(udata, size);
 	if (!size) {
@@ -33,10 +33,10 @@ void *duk_realloc(void *udata, void *ptr, duk_size_t size) {
 	}
 	return duk_mem_heap.Realloc(ptr, size);
 }
-void duk_onfatal(void *udata, const char *msg) {
+static void duk_onfatal(void *udata, const char *msg) {
 	throw duk_exception{ msg };
 }
-duk_ret_t print_mem(duk_context * = O) {
+static duk_ret_t print_mem(duk_context * = O) {
 	auto &&sum = duk_mem_heap.Summaries();
 	Console.Log(
 		_T("   Allocated: "), sum.Allocated(),
@@ -75,7 +75,7 @@ static duk_ret_t cmd_exe(duk_context *ctx) {
 	return 0;
 }
 
-static duk_ret_t msg_proc(duk_context *ctx) {
+static duk_ret_t cmd_prc(duk_context *ctx) {
 	++duk_cmdl_count;
 	Console.Log(_T("\n -- JavaScript --\n"));
 	proc_ok.Set();
@@ -110,7 +110,7 @@ _ret:
 					bCmdl = false;
 					do {
 						bReset = false;
-						duk_get_global_string(ctx, "msg_proc");
+						duk_get_global_string(ctx, "cmd_prc");
 						duk_call(ctx, 0);
 						duk_pop(ctx);
 					} while (bReset);
@@ -168,15 +168,29 @@ duk_ret_t load_duk_cmdl(duk_context *ctx) {
 	duk_push_undefined(ctx);
 	duk_put_global_string(ctx, "LastError");
 	duk_put_global_function(ctx, "print_mem", 0, print_mem);
-	duk_put_global_function(ctx, "msg_proc", 0, msg_proc);
+	duk_put_global_function(ctx, "cmd_prc", 0, cmd_prc);
 	duk_put_global_function(ctx, "cmd_exe", 1, cmd_exe);
 	return 0;
 }
 
+class BaseOf_Window(DukWindow) {
+	SFINAE_Window(DukWindow);
+public:
+	DukWindow() {}
+public:
+	inline void OnDestroy() {}
+};
+
 static duk_context *ctx = O;
-LThread msg_proc_thr = [] {
+LThread cmd_prc_thr = [] {
+	DukWindow duk_win;
+	assertl(duk_win.Create().Size({ 500, 300 }));
+	duk_win.Text(_T("DukWindow"));
+	duk_win.Show();
+	duk_push_new_cclass(ctx, "Window", duk_win);
+	duk_put_global_string(ctx, "test_win");
 __reset:
-	duk_get_global_string(ctx, "msg_proc");
+	duk_get_global_string(ctx, "cmd_prc");
 	duk_call(ctx, 0);
 	duk_pop(ctx);
 	duk_gc(ctx, 0);
@@ -200,7 +214,7 @@ void commandline(duk_context *ctx) {
 	Console.Log(_T("\n - Duktape symbols loaded -\n"));
 	print_mem();
 
-	assertl(msg_proc_thr.Create());
+	assertl(cmd_prc_thr.Create());
 	proc_ok.WaitForSignal();
 
 	while (duk_cmdl_count) {
@@ -214,11 +228,11 @@ void commandline(duk_context *ctx) {
 		char js_code[1024]{ 0 };
 		std::cin.getline(js_code, sizeof(js_code));
 		// process input
-		if (!msg_proc_thr.StillActive()) {
+		if (!cmd_prc_thr.StillActive()) {
 			Console.Log(_T("Message procedurer had exited\n"));
 			break;
 		}
-		msg_proc_thr.Post(WX_DUK_ON_CMD, js_code);
+		cmd_prc_thr.Post(WX_DUK_ON_CMD, js_code);
 		proc_ok.WaitForSignal();
 	}
 }

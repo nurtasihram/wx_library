@@ -161,7 +161,7 @@ public:
 	ThreadBase(ThreadBase &&t) : super(t.hObject) reflect_to(t.hObject = O);
 public:
 	template<class AnyChild = void>
-	class CreateStruct : public ChainExtend<CreateStruct<AnyChild>, AnyChild> {
+	class CreateStruct : public ChainExtender<CreateStruct<AnyChild>, AnyChild> {
 		friend class ThreadBase;
 		LPSECURITY_ATTRIBUTES lpThreadAttributes = O;
 		SIZE_T dwStackSize = 0;
@@ -239,12 +239,12 @@ public:
 };
 template<class AnyChild>
 class ThreadBase : public Thread,
-	public ChainExtend<ThreadBase<AnyChild>, AnyChild> {
+	public ChainExtender<ThreadBase<AnyChild>, AnyChild> {
 public:
 	using super = Thread;
 protected:
 	friend class ThreadBase<>;
-	using ChainExtend<ThreadBase<AnyChild>, AnyChild>::child_;
+	using ChainExtender<ThreadBase<AnyChild>, AnyChild>::child_;
 	static DWORD WINAPI Proc(LPVOID lpThis) {
 		auto pThis = static_cast<ThreadBase *>(lpThis);
 	retry:

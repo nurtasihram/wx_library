@@ -12,26 +12,29 @@ namespace WX {
 using RID = DWORD;
 
 class SecurityIdentifiersAuthority {
-	mutable SID_IDENTIFIER_AUTHORITY sia = { 0 };
-	[[maybe_unused]] BYTE ___[2] = { 0 };
+	mutable SID_IDENTIFIER_AUTHORITY sia{ 0 };
+	[[maybe_unused]] WORD ___ = 0;
 public:
 	SecurityIdentifiersAuthority() { static_assert(sizeof(self) == 8, "alignment error"); }
-	SecurityIdentifiersAuthority(Null) {}
 	SecurityIdentifiersAuthority(const arrayof<BYTE, 6> &sia) : sia(ref_as<const SID_IDENTIFIER_AUTHORITY>(sia)) {}
-	constexpr SecurityIdentifiersAuthority(const SID_IDENTIFIER_AUTHORITY &sia) : sia(sia) {}
+	constexpr SecurityIdentifiersAuthority(BYTE s0, BYTE s1, BYTE s2, BYTE s3, BYTE s4, BYTE s5) : sia({ s0, s1, s2, s3, s4, s5 }) {}
+	SecurityIdentifiersAuthority(const SID_IDENTIFIER_AUTHORITY &sia) : sia(sia) {}
 	inline bool operator==(const SecurityIdentifiersAuthority &s) const reflect_as(reuse_as<uint64_t>(self) == reuse_as<uint64_t>(s));
 	inline bool operator!=(const SecurityIdentifiersAuthority &s) const reflect_as(reuse_as<uint64_t>(self) != reuse_as<uint64_t>(s));
 	inline operator String() const reflect_as(Cats(nX("02x", sia.Value[0]), TEXT("-"), nX("02x", sia.Value[1]), TEXT("-"), nX("02x", sia.Value[2]), TEXT("-"), nX("02x", sia.Value[3]), TEXT("-"), nX("02x", sia.Value[4]), TEXT("-"), nX("02x", sia.Value[5])));
+	inline operator SID_IDENTIFIER_AUTHORITY &() const reflect_as(sia);
 	inline PSID_IDENTIFIER_AUTHORITY operator &() const reflect_as(&sia);
 };
 using SecAuthorID = SecurityIdentifiersAuthority;
 
-enum_class_explicit(SecurityIdentifiersAuthorities, SecAuthorID,
-	Null    = SecAuthorID(SECURITY_NULL_SID_AUTHORITY),
-	World   = SecAuthorID(SECURITY_WORLD_SID_AUTHORITY),
-	Local   = SecAuthorID(SECURITY_LOCAL_SID_AUTHORITY),
-	Creator = SecAuthorID(SECURITY_CREATOR_SID_AUTHORITY),
-	NT      = SecAuthorID(SECURITY_NT_AUTHORITY));
+struct SecurityIdentifiersAuthorities {
+	static constexpr SecAuthorID
+		Null    = SECURITY_NULL_SID_AUTHORITY,
+		World   = SECURITY_WORLD_SID_AUTHORITY,
+		Local   = SECURITY_LOCAL_SID_AUTHORITY,
+		Creator = SECURITY_CREATOR_SID_AUTHORITY,
+		NT      = SECURITY_NT_AUTHORITY;
+};
 using SecAuthorIDs = SecurityIdentifiersAuthorities;
 class SecurityIdentifier {
 	friend class SecurityDescriptor;
@@ -43,32 +46,29 @@ public:
 	SecurityIdentifier(SecurityIdentifier &sid) : pSID(&sid) reflect_to(sid.pSID = O);
 	SecurityIdentifier(SecurityIdentifier &&sid) : pSID(&sid) reflect_to(sid.pSID = O);
 	SecurityIdentifier(const SecurityIdentifier &) = delete;
-
 	SecurityIdentifier(LPCTSTR lpszSID) assertl(ConvertStringSidToSid(lpszSID, &pSID));
-
-	SecurityIdentifier(const SecAuthorID &sia, RID nSA0)
+	SecurityIdentifier(SID_IDENTIFIER_AUTHORITY &sia, RID nSA0)
 		assertl(AllocateAndInitializeSid(&sia, 1, nSA0, 0, 0, 0, 0, 0, 0, 0, &pSID));
-	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1)
+	SecurityIdentifier(SID_IDENTIFIER_AUTHORITY &sia, RID nSA0, RID nSA1)
 		assertl(AllocateAndInitializeSid(&sia, 2, nSA0, nSA1, 0, 0, 0, 0, 0, 0, &pSID));
-	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2)
+	SecurityIdentifier(SID_IDENTIFIER_AUTHORITY &sia, RID nSA0, RID nSA1, RID nSA2)
 		assertl(AllocateAndInitializeSid(&sia, 3, nSA0, nSA1, nSA2, 0, 0, 0, 0, 0, &pSID));
-	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3)
+	SecurityIdentifier(SID_IDENTIFIER_AUTHORITY &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3)
 		assertl(AllocateAndInitializeSid(&sia, 4, nSA0, nSA1, nSA2, nSA3, 0, 0, 0, 0, &pSID));
-	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4)
+	SecurityIdentifier(SID_IDENTIFIER_AUTHORITY &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4)
 		assertl(AllocateAndInitializeSid(&sia, 5, nSA0, nSA1, nSA2, nSA3, nSA4, 0, 0, 0, &pSID));
-	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4, RID nSA5)
+	SecurityIdentifier(SID_IDENTIFIER_AUTHORITY &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4, RID nSA5)
 		assertl(AllocateAndInitializeSid(&sia, 6, nSA0, nSA1, nSA2, nSA3, nSA4, nSA5, 0, 0, &pSID));
-	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4, RID nSA5, RID nSA6)
+	SecurityIdentifier(SID_IDENTIFIER_AUTHORITY &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4, RID nSA5, RID nSA6)
 		assertl(AllocateAndInitializeSid(&sia, 7, nSA0, nSA1, nSA2, nSA3, nSA4, nSA5, nSA6, 0, &pSID));
-	SecurityIdentifier(const SecAuthorID &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4, RID nSA5, RID nSA6, RID nSA7)
+	SecurityIdentifier(SID_IDENTIFIER_AUTHORITY &sia, RID nSA0, RID nSA1, RID nSA2, RID nSA3, RID nSA4, RID nSA5, RID nSA6, RID nSA7)
 		assertl(AllocateAndInitializeSid(&sia, 8, nSA0, nSA1, nSA2, nSA3, nSA4, nSA5, nSA6, nSA7, &pSID));
-	//SecurityIdentifier(const SecAuthorID &sia, BYTE nSubAuthorityCount = 0) {
+	//SecurityIdentifier(SID_IDENTIFIER_AUTHORITY &sia, BYTE nSubAuthorityCount = 0) {
 	//	assertl(pSID = (PSID)LocalAlloc(0, GetSidLengthRequired(nSubAuthorityCount)));
 	//	assertl(InitializeSid(pSID, &sia, nSubAuthorityCount));
 	//}
-
 	~SecurityIdentifier() reflect_to(Delete());
-
+public:
 	inline bool Delete() {
 		if (pSID)
 			if (!LocalFree(pSID))
@@ -76,17 +76,9 @@ public:
 		pSID = O;
 		return true;
 	}
-	inline SecurityIdentifier operator+() const {
-		if (!*this) return O;
-		auto size = Size();
-		auto npSID = Local::Alloc(size);
-		assertl(CopySid(size, npSID, pSID));
-		return npSID;
-	}
-
+public:
 	inline bool EqualDomain(PSID pSID) assertl_reflect_to(BOOL eq, EqualDomainSid(this->pSID, pSID, &eq), eq);
 	inline bool EqualPrefix(PSID pSID) reflect_as(EqualPrefixSid(this->pSID, pSID));
-
 public: // Property - Size
 	/* R */ inline DWORD Size() const assertl_reflect_as(auto size = GetLengthSid(this->pSID), size);
 public: // Property - AuthorityID
@@ -97,17 +89,21 @@ public: // Property - AuthorityCount
 public: // 
 	//GetWindowsAccountDomainSid
 	//IsWellKnownSid
-
-	inline RID &operator[](BYTE uSubAuthorityIndex) assertl_reflect_as(auto dwAuthority = GetSidSubAuthority(this->pSID, uSubAuthorityIndex), *dwAuthority);
-	inline RID  operator[](BYTE uSubAuthorityIndex) const assertl_reflect_as(auto dwAuthority = GetSidSubAuthority(this->pSID, uSubAuthorityIndex), *dwAuthority);
-
-	inline bool operator==(PSID pSID) const reflect_as(EqualSid(this->pSID, pSID));
-	inline bool operator!=(PSID pSID) const reflect_as(EqualSid(this->pSID, pSID));
-
+	inline operator bool() const reflect_as(this->pSID ? IsValidSid(this->pSID) : false);
 	inline operator StringA() const assertl_reflect_to(AutoPointer<_M_(Local, CHAR)> szSID(LocalHeap), ConvertSidToStringSidA(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
 	inline operator StringW() const assertl_reflect_to(AutoPointer<_M_(Local, WCHAR)> szSID(LocalHeap), ConvertSidToStringSidW(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
 	inline PSID operator&() const reflect_as(this->pSID);
-	inline operator bool() const reflect_as(this->pSID ? IsValidSid(this->pSID) : false);
+	inline SecurityIdentifier operator+() const {
+		if (!*this) return O;
+		auto size = Size();
+		auto npSID = Local::Alloc(size);
+		assertl(CopySid(size, npSID, pSID));
+		return npSID;
+	}
+	inline RID &operator[](BYTE uSubAuthorityIndex) assertl_reflect_as(auto dwAuthority = GetSidSubAuthority(this->pSID, uSubAuthorityIndex), *dwAuthority);
+	inline RID  operator[](BYTE uSubAuthorityIndex) const assertl_reflect_as(auto dwAuthority = GetSidSubAuthority(this->pSID, uSubAuthorityIndex), *dwAuthority);
+	inline bool operator==(PSID pSID) const reflect_as(EqualSid(this->pSID, pSID));
+	inline bool operator!=(PSID pSID) const reflect_as(EqualSid(this->pSID, pSID));
 };
 using SecID = SecurityIdentifier;
 #pragma endregion
@@ -115,13 +111,13 @@ using SecID = SecurityIdentifier;
 #pragma region Access Control
 enum_flags(AccessPermission, DWORD,
 	QueryValue          = KEY_QUERY_VALUE,
-	Value            = KEY_SET_VALUE,
+	Value               = KEY_SET_VALUE,
 	CreateSubKey        = KEY_CREATE_SUB_KEY,
 	EnumerateSubKeys    = KEY_ENUMERATE_SUB_KEYS,
 	Notify              = KEY_NOTIFY,
 	CreateLink          = KEY_CREATE_LINK,
-	Wow6432key          = KEY_WOW64_32KEY,
-	Wow6464key          = KEY_WOW64_64KEY,
+	Wow64Key32          = KEY_WOW64_32KEY,
+	Wow64Key64          = KEY_WOW64_64KEY,
 	Wow64Res            = KEY_WOW64_RES,
 	Read       = KEY_READ,
 	Write      = KEY_WRITE,

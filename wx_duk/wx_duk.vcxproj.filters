@@ -114,5 +114,8 @@
     <ClCompile Include="wx_duk_gdi.cpp">
       <Filter>wx_duk</Filter>
     </ClCompile>
+    <ClCompile Include="wx_duk\wx_duk_control.cpp">
+      <Filter>wx_duk</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

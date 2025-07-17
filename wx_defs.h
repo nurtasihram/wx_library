@@ -126,33 +126,27 @@ template<class AnyRef>
 class RefAs {
 	union Ref {
 		AnyRef t;
-		Ref() reflect_to(ZeroMemory(&t, sizeof(t)));
-		template<class...AnyType>
-		Ref(AnyType &...args) : t{ args... }{}
-		template<class...AnyType>
-		Ref(AnyType &&...args) : t{ args... } {}
-		template<class...AnyType>
-		Ref(const AnyType &...args) : t{ args... } {}
+		Ref() {}
+		Ref(Null) {}
 		~Ref() {}
 	} t;
 public:
-	RefAs() {}
-	RefAs(AnyRef &) {}
-	RefAs(AnyRef &&) {}
-	RefAs(const AnyRef &) {}
-	template<class...AnyType>
-	RefAs(AnyType &...args) : t(args...) {}
-	template<class...AnyType>
-	RefAs(AnyType &&...args) : t(args...) {}
-	template<class...AnyType>
-	RefAs(const AnyType &...args) : t(args...) {}
+	RefAs() : t(O) reflect_to(ZeroMemory(std::addressof(t.t), sizeof(t)));
+	template<class AnyType>
+	RefAs(AnyType &arg) reflect_to(new(&self) AnyRef(arg));
+	template<class AnyType>
+	RefAs(AnyType &&arg) reflect_to(new(&self) AnyRef(arg));
+	template<class AnyType>
+	RefAs(const AnyType &arg) reflect_to(new(&self) AnyRef(arg));
 public:
 	template<class AnyType>
-	inline operator AnyType() reflect_as(t.t);
+	inline operator AnyType() reflect_as((AnyType)t.t);
 	template<class AnyType>
-	inline operator AnyType() const reflect_as(t.t);
+	inline operator AnyType() const reflect_as((AnyType)t.t);
 	inline operator AnyRef &() reflect_as(t.t);
 	inline operator const AnyRef &() const reflect_as(t.t);
+	inline operator AnyRef *() reflect_as(std::addressof(t.t));
+	inline operator const AnyRef *() const reflect_as(std::addressof(t.t));
 	inline auto &operator*() reflect_as(t.t);
 	inline auto &operator*() const reflect_as(t.t);
 	inline auto operator&() reflect_as(std::addressof(t.t));
@@ -285,20 +279,20 @@ static std::function<wx_answer(const Exception &)> Catch = [](const Exception &e
 #define def_memberof(name) \
 template <class AnyClass> class member_##name##_of { \
 	template<class _AnyClass> \
-	static auto _retof_##name(int) -> decltype(&_AnyClass::name); \
+	static auto __refof_##name(int) -> decltype(&_AnyClass::name); \
 	template<class _AnyClass> \
-	static auto _retof_##name(...) -> void; \
+	static auto __refof_##name(...) -> void; \
 	template<class _AnyClass, class Ret, class... Args> \
-	static auto _compatible(Ret(*)(Args...)) -> std::is_convertible< \
+	static auto __compatible(Ret(*)(Args...)) -> std::is_convertible< \
 		decltype(std::declval<_AnyClass>().name(std::declval<Args>()...)), Ret>; \
 	template<class _AnyClass> \
-	static auto _compatible(...) -> std::false_type; \
+	static auto __compatible(...) -> std::false_type; \
 public: \
-	using type = decltype(_retof_##name<AnyClass>(0)); \
+	using type = decltype(__refof_##name<AnyClass>(0)); \
 	static constexpr bool callable = !std::is_void_v<type>; \
 	template<class AnyType> \
 	static constexpr bool compatible_to = \
-		decltype(_compatible<AnyClass>(std::declval<AnyType *>()))::value; }
+		decltype(__compatible<AnyClass>(std::declval<AnyType *>()))::value; }
 #define subtype_branch(name) \
 template<class AnyType, class OtherType> \
 static inline auto __subtype_branchof_##name(int) -> \
@@ -311,14 +305,14 @@ using subtype_branchof_##name = \
 	decltype(__subtype_branchof_##name<AnyType, OtherType>(0))
 #pragma endregion
 
-#pragma region KChain
+#pragma region Chain Extender
 template<class ParentClass, class ChildClass>
-using KChain = std::conditional_t<std::is_void_v<ChildClass>, ParentClass, ChildClass>;
+using Chain = std::conditional_t<std::is_void_v<ChildClass>, ParentClass, ChildClass>;
 template<class ParentClass, class ChildClass>
-struct ChainExtend {
-	using Child = KChain<ParentClass, ChildClass>;
+struct ChainExtender {
+	using Child = Chain<ParentClass, ChildClass>;
 	using Self = ParentClass;
-	constexpr ChainExtend() {
+	constexpr ChainExtender() {
 		if constexpr (!std::is_void_v<ChildClass>)
 			child_assert(ParentClass, ChildClass);
 	}
@@ -327,133 +321,107 @@ struct ChainExtend {
 	Self &self_() reflect_as(*static_cast<Self *>(this));
 	const Self &self_() const reflect_as(*static_cast<const Self *>(this));
 };
-#define child    (this->child_())
+#define child (this->child_())
 #define retchild return child
 #define reflect_to_child(...) { __VA_ARGS__; retchild; }
+subtype_branch(super);
 template<class Class1, class Class2>
-struct chain_is_ext_of_t {
-	subtype_branch(super);
-	static constexpr bool value() {
-		if constexpr (std::is_same_v<Class1, Class2>)
-			return true;
-		elif  constexpr (std::is_void_v<subtype_branchof_super<Class1, void>>)
-			return false;
-		elif  constexpr (std::is_same_v<typename Class1::super, Class2>)
-			return true;
-		else
-			return chain_is_ext_of_t<typename Class1::super, Class2>::value();
-	}
-};
+constexpr bool is_chain_extended_on =
+	std::is_void_v<Class1> || std::is_void_v<Class2> ? false :
+	std::is_same_v<Class1, Class2> ?  true :
+	is_chain_extended_on<subtype_branchof_super<Class1, void>, Class2>;
 #pragma endregion
 
 #pragma region Static Compatible
 template <class AnyCallable, class Ret, class... Args>
-static auto _static_compatible(...) -> std::false_type;
+static auto __static_compatible(...) -> std::false_type;
 template <class AnyCallable, class Ret, class... Args>
-static auto _static_compatible(int) -> std::is_convertible<
+static auto __static_compatible(int) -> std::is_convertible<
 	decltype(std::declval<AnyCallable>()(std::declval<Args>()...)), Ret>;
 template<class AnyCallable, class FuncType>
 static constexpr bool static_compatible = false;
-/// @brief 靜態兼容性檢查
-/// 	用於檢查任意可調用類型是否可以作爲指定的函數類型進行調用。
-/// @tparam AnyCallable 任意可調用類型
-/// @tparam Ret 返迴類型
-/// @tparam ...Args 參數類型
 template<class AnyCallable, class Ret, class... Args>
 static constexpr bool static_compatible<AnyCallable, Ret(Args...)> =
-decltype(_static_compatible<AnyCallable, Ret, Args...>(0))::value;
+decltype(__static_compatible<AnyCallable, Ret, Args...>(0))::value;
 #pragma endregion
 
 #pragma region Enumerate
+template<class AnyType>
+constexpr AnyType ConstIndexOf(size_t ind, AnyType t0) {
+	return t0;
+}
+template<class AnyType, class...AnyTypes>
+constexpr AnyType ConstIndexOf(size_t ind, AnyType t0, AnyTypes...tN) {
+	if (ind == 0)
+		return t0;
+	else
+		return ConstIndexOf(ind - 1, tN...);
+}
 template<class Enum1, class Enum2, class EnumType>
 inline auto __makeResult(EnumType val) {
-	constexpr auto left = chain_is_ext_of_t<Enum1, Enum2>::value();
-	constexpr auto right = chain_is_ext_of_t<Enum2, Enum1>::value();
+	constexpr auto left = is_chain_extended_on<Enum1, Enum2>;
+	constexpr auto right = is_chain_extended_on<Enum2, Enum1>;
 	static_assert(left || right, "Convertless");
 	if constexpr (left)
 		return reuse_as<Enum1>(val);
 	elif  constexpr (right)
 		return reuse_as<Enum2>(val);
 }
-enum class EnumModifies : CHAR {
-	no = 0,
-	defualt = 'd',
-	alias = 'a',
-	complex = 'c'
-};
-template<class ProtoType>
-struct EnumToken {
-	const String *pszEnumName;
-	const ProtoType *val;
-	LPCTSTR lpLeft = O, lpRight = O;
-	USHORT lnLeft = 0, lnRight = 0;
-	EnumModifies mod = EnumModifies::no;
-	EnumToken() {}
-	EnumToken(const String &szEnumName, const ProtoType *val) :
-		pszEnumName(std::addressof(szEnumName)), val(val) {}
-	inline const String Left() const;
-	inline const String Right() const;
-	inline const ProtoType &Value() const reflect_as(*val);
-	inline const String &EnumName() const reflect_as(*pszEnumName);
-};
 template<class AnyType>
 struct EnumUnitBase {
 	using ProtoType = AnyType;
 	using ProtoUnit = EnumUnitBase;
 	ProtoType val;
 	constexpr EnumUnitBase(ProtoType val) : val(val) {}
+	static constexpr size_t CountAll = 0;
 };
-def_memberof(EnumName);
+def_memberof(IsProtoEnum);
 template<class AnyType>
-static constexpr bool IsEnumBased = member_EnumName_of<AnyType>::callable;
+static constexpr bool IsEnumBased = member_IsProtoEnum_of<AnyType>::callable;
 template<class AnyType>
-using EnumUnit = std::conditional_t<
-	IsEnumBased<AnyType>, AnyType,
-	EnumUnitBase<AnyType>>;
+using EnumUnit = std::conditional_t<IsEnumBased<AnyType>, AnyType, EnumUnitBase<AnyType>>;
 template<class SubClass, class BaseType>
 struct EnumBase {
 	static constexpr bool IsProtoEnum = !IsEnumBased<BaseType>;
-	static const String &&EnumName;
 	using ProtoEnum = std::conditional_t<IsProtoEnum, SubClass, BaseType>;
 	using ProtoUnit = typename EnumUnit<BaseType>::ProtoUnit;
 	using ProtoType = typename ProtoUnit::ProtoType;
-	using Token = EnumToken<ProtoType>;
-	static constexpr size_t CountAll() reflect_as(IsProtoEnum ? SubClass::Count : SubClass::Count + ProtoEnum::CountAll());
+	static constexpr size_t CountAll() reflect_as(IsProtoEnum ? SubClass::Count : SubClass::Count + ProtoEnum::CountAll()); \
 };
 #define __enum_ex(name, base, oprt, estr, ...) \
 class name : public EnumBase<name, base> { \
 public: \
+	using super = EnumBase<name, base>; \
 	using EnumType = name; \
-	using super = base; \
-	using ProtoType = typename EnumBase<name, base>::ProtoType; \
-	using ProtoUnit = typename EnumBase<name, base>::ProtoUnit; \
-public: \
+	using ProtoEnum = typename super::ProtoEnum; \
+	using ProtoUnit = typename super::ProtoUnit; \
+	using ProtoType = typename super::ProtoType; \
+protected: \
 	friend struct EnumBase<name, base>; \
-	static constexpr TCHAR __Name[] = _T(#name); \
-	static constexpr TCHAR __Entries[] = _T(estr); \
-	static inline const ProtoType *__Index(size_t ind) { \
-		static const ProtoType *const values[] = { __VA_ARGS__ }; \
-		return values[ind]; \
-	} \
 	class Unit : protected ProtoUnit { \
 	protected: friend class name; \
 		Unit(const ProtoUnit &val) : ProtoUnit(val.val) {} \
 		constexpr Unit(const ProtoType &val) : ProtoUnit(val) { static_assert(sizeof(val) == sizeof(self), "alignment error"); } \
-		const ProtoType *operator=(const ProtoType &) const reflect_as(std::addressof(val)); \
+		constexpr ProtoType operator=(const ProtoType &v) const reflect_as(v); \
 	public: using EnumType = name; \
 		oprt(Unit); \
 		inline ProtoType yield() const reflect_as(val); \
 	} val; \
 public: \
-	static inline const Unit __VA_ARGS__; \
-	oprt(Unit); \
 	template<class AnyType> \
 	constexpr name(AnyType val) : val(ref_as<Unit>(val)) \
-	{ static_assert(chain_is_ext_of_t<name, typename AnyType::EnumType>::value(), "enumerate error"); } \
-	constexpr name(Unit val) : val(val.val) {} \
+	{ static_assert(is_chain_extended_on<name, typename AnyType::EnumType>, "enumerate error"); } \
+	constexpr name(Unit val) : val(val.val) { static_assert(sizeof(val) == sizeof(self), "alignment error"); } \
+public: \
+	static inline const Unit __VA_ARGS__; \
 	static constexpr size_t Count = CountOf({ __VA_ARGS__ }); \
+	static constexpr TCHAR __Names[] = _T(#name); \
+	static constexpr TCHAR __Entries[] = _T(estr); \
+	static constexpr ProtoType __Keys(size_t ind) reflect_as(ConstIndexOf(ind, __VA_ARGS__)); \
+public: \
 	inline ProtoType yield() const reflect_as(val.yield()); \
-	inline operator Unit() const reflect_as(val); }
+	inline operator Unit() const reflect_as(val); \
+	oprt(Unit); }
 #define enum_flags_opr(name) \
 	inline name operator~ (      ) const reflect_as(~val); \
 	template<class AnyType> inline auto operator^(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>(yield() ^  v.yield())); \
@@ -659,9 +627,6 @@ using functionof = __functionof<to_proto<OtherType>>;
 #pragma endregion
 
 #pragma region Function
-/// @brief 閉包函數基類
-/// @tparam RetType 返迴類型
-/// @tparam ArgsList 參數列表
 template<class RetType, class ArgsList>
 struct FunctionBase {};
 template<class RetType, class... Args>
@@ -904,13 +869,13 @@ enum_flags(DateFormat, DWORD,
 	ShortDate    = DATE_SHORTDATE,
 	LongDate     = DATE_LONGDATE,
 	CalendarAlt  = DATE_USE_ALT_CALENDAR);
-struct SysTime : public SYSTEMTIME {
+struct SystemTime : public SYSTEMTIME {
 public:
-	SysTime(Null) : SYSTEMTIME{ 0 } {}
-	SysTime() reflect_to(GetSystemTime(this));
-	SysTime(const FILETIME &ft) assertl(FileTimeToSystemTime(&ft, this));
+	SystemTime(Null) : SYSTEMTIME{ 0 } {}
+	SystemTime() reflect_to(GetSystemTime(this));
+	SystemTime(const FILETIME &ft) assertl(FileTimeToSystemTime(&ft, this));
 public:
-	static inline SysTime Local() reflect_to(SysTime st; GetLocalTime(&st), st);
+	static inline SystemTime Local() reflect_to(SystemTime st; GetLocalTime(&st), st);
 public:
 	String FormatTime(TimeFormat = TimeFormat::Default, Locales = Locales::Default) const;
 	StringA FormatTimeA(TimeFormat = TimeFormat::Default, Locales = Locales::Default) const;
@@ -922,6 +887,7 @@ public:
 	operator StringA() const;
 	operator StringW() const;
 };
+using SysTime = SystemTime;
 struct FileTime : protected FILETIME {
 public:
 	FileTime() : FILETIME{ 0 } {}
@@ -933,8 +899,8 @@ public:
 public:
 	inline operator StringA() const;
 	inline operator StringW() const;
-	inline operator SysTime() const assertl_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
-	inline operator SYSTEMTIME() const assertl_reflect_to(SysTime st, FileTimeToSystemTime(this, &st), st);
+	inline operator SystemTime() const assertl_reflect_to(SystemTime st, FileTimeToSystemTime(this, &st), st);
+	inline operator SYSTEMTIME() const assertl_reflect_to(SystemTime st, FileTimeToSystemTime(this, &st), st);
 	inline operator LARGE_INTEGER() const reflect_as(reuse_as<LARGE_INTEGER>(*this));
 	inline LPFILETIME operator &() reflect_as(this);
 	inline const FILETIME *operator &() const reflect_as(this);

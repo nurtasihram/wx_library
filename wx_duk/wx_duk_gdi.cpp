@@ -599,7 +599,7 @@ static void load_duk_pen(duk_context *ctx) {
 						if (size != sizeof(PenLogic))
 							return DUK_RET_TYPE_ERROR;
 						CPen pen = O;
-						if (wx_try(ctx, [&]() { *pen = Pen(*lpLogPen); }))
+						if (wx_try(ctx, [&]() { *pen = Pen::Create(*lpLogPen); }))
 							return DUK_RET_REFERENCE_ERROR;
 						duk_put_this__p(ctx, pen);
 					} else {

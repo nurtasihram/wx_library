@@ -131,9 +131,7 @@ public:
 	File(Null) {}
 	File(File &f) : super(f) {}
 	File(File &&f) : super(f) {}
-
-	using super::operator=;
-
+public:
 	class CreateStruct {
 		LPCTSTR lpFileName;
 		Access dwDesiredAccess = Access::Default;
@@ -162,7 +160,6 @@ public:
 		inline operator File() assertl_reflect_as(auto h = CreateFile(lpFileName, dwDesiredAccess.yield(), dwShareMode.yield(), lpAttributes, dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile), h);
 	};
 	static inline CreateStruct Create(LPCTSTR lpFileName) reflect_as(lpFileName);
-
 	class MappingCreateStruct {
 		HANDLE hFile;
 		LPSECURITY_ATTRIBUTES lpAttributes = O;
@@ -185,7 +182,6 @@ public:
 	};
 	inline MappingCreateStruct CreateMapping(LPCTSTR lpName, uint64_t size) reflect_as({ self, lpName, size });
 	inline MappingCreateStruct CreateMapping(uint64_t size) reflect_as({ self, O, size });
-
 	class MappingOpenStruct {
 		DWORD dwDesiredAccess = MapAccess::ReadWrite.yield();
 		bool bInheritHandle = false;
@@ -199,7 +195,12 @@ public:
 	public:
 		inline operator File() assertl_reflect_as(auto h = OpenFileMapping(dwDesiredAccess, bInheritHandle, lpName), h);
 	};
-	inline MappingOpenStruct OpenMapping(LPCTSTR lpName) reflect_as(lpName);
+	static inline MappingOpenStruct OpenMapping(LPCTSTR lpName) reflect_as(lpName);
+public:
+	static inline bool Delete(LPCSTR lpFileName) reflect_as(DeleteFileA(lpFileName));
+	static inline bool Delete(LPCWSTR lpFileName) reflect_as(DeleteFileW(lpFileName));
+	static inline bool Copy(LPCSTR lpExistingFileName, LPCSTR lpNewFileName, bool bFailIfExists = false) reflect_as(CopyFileA(lpExistingFileName, lpNewFileName, bFailIfExists));
+	static inline bool Copy(LPCWSTR lpExistingFileName, LPCWSTR lpNewFileName, bool bFailIfExists = false) reflect_as(CopyFileW(lpExistingFileName, lpNewFileName, bFailIfExists));
 
 	class MapPointer {
 		friend class File;
@@ -226,12 +227,9 @@ public:
 	};
 	inline MapPointer MapView(MapAccess acs = MapAccess::All, uint64_t offset = 0, size_t size = 0) assertl_reflect_as(auto p = MapViewOfFile(self, acs.yield(), (DWORD)(offset >> 32), (DWORD)offset, size), p);
 
-	static inline bool Delete(LPCTSTR lpFileName) reflect_as(DeleteFile(lpFileName));
-	static inline bool Copy(LPCTSTR lpExistingFileName, LPCTSTR lpNewFileName, bool bFailIfExists = false) reflect_as(CopyFile(lpExistingFileName, lpNewFileName, bFailIfExists));
-
 	inline DWORD Read(LPVOID lpBuffer, DWORD dwNumberOfBytesToRead) assertl_reflect_as(ReadFile(self, lpBuffer, dwNumberOfBytesToRead, &dwNumberOfBytesToRead, O), dwNumberOfBytesToRead);
 	inline DWORD Write(LPCVOID lpBuffer, DWORD dwNumberOfBytesToRead) assertl_reflect_as(WriteFile(self, lpBuffer, dwNumberOfBytesToRead, &dwNumberOfBytesToRead, O), dwNumberOfBytesToRead);
-	
+
 	inline void Flush() assertl_reflect_as(FlushFileBuffers(self));
 
 #pragma region Properties
@@ -290,10 +288,10 @@ enum_class(CommEvent, DWORD,
 struct CommStates : public RefAs<DCB> {
 	using super = RefAs<DCB>;
 public:
-	CommStates() : super(0) reflect_to(self->DCBlength = sizeof(DCB); self->fBinary = 1);
+	CommStates() reflect_to(self->DCBlength = sizeof(DCB); self->fBinary = 1);
 	CommStates(const DCB &dcb) : super(dcb) {}
-	CommStates(LPCSTR lpDef) : CommStates() assertl_reflect_as(BuildCommDCBA(lpDef, &self));
-	CommStates(LPCWSTR lpDef) : CommStates() assertl_reflect_as(BuildCommDCBW(lpDef, &self));
+	CommStates(LPCSTR lpDef) : CommStates() assertl_reflect_as(BuildCommDCBA(lpDef, self));
+	CommStates(LPCWSTR lpDef) : CommStates() assertl_reflect_as(BuildCommDCBW(lpDef, self));
 public: // Property - BaudRate
 	/* W */ inline auto &BaudRate(DWORD baudrate) reflect_to_self(self->BaudRate = baudrate);
 	/* R */ inline DWORD BaudRate() const reflect_as(self->BaudRate);
