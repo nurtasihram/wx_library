@@ -120,8 +120,8 @@ enum_class(FontFamilies, BYTE,
 	Script     = FF_SCRIPT,
 	Decorative = FF_DECORATIVE);
 template<bool IsUnicode>
-class FontLogicX : public RefStruct<std::conditional_t<IsUnicode, LOGFONTW, LOGFONTA>> {
-	using LOGFONT = std::conditional_t<IsUnicode, LOGFONTW, LOGFONTA>;
+class FontLogicX : public RefStruct<switch_structx(LOGFONT)> {
+	using_structx(LOGFONT);
 	using TCHAR = XCHAR<IsUnicode>;
 	using String = StringBase<TCHAR>;
 public:

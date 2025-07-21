@@ -69,9 +69,8 @@ void duk_add_method(duk_context *ctx, const char *name, duk_idx_t nargs, duk_c_f
 }
 void duk_put_destructor(duk_context *ctx, duk_c_function finalizer) {
 	if (finalizer)
-		duk_push_c_function(ctx, finalizer, 1);
-	else
-		duk_push_null(ctx);
+		 duk_push_c_function(ctx, finalizer, 1);
+	else duk_push_null(ctx);
 	duk_set_finalizer(ctx, -2);
 }
 void duk_add_class(duk_context *ctx,
@@ -174,8 +173,7 @@ bool duk_get_class__p(duk_context *ctx, const char *class_name, void *&ptr, duk_
 	duk_get_global_string(ctx, class_name);
 	if (duk_instanceof(ctx, idx, -1))
 		res = duk_get__p(ctx, ptr, size, idx);
-	else
-		duk_errout(ctx, "argument is not a instance of %s", class_name);
+	else duk_errout(ctx, "argument is not a instance of %s", class_name);
 	duk_pop(ctx);
 	return res;
 }
@@ -200,7 +198,17 @@ void duk_push_new_cclass(duk_context *ctx, const char *class_name, HANDLE hd) {
 	duk_put_destructor(ctx, O);
 }
 
-duk_ret_t load_duk(duk_context *ctx, void *) {
+bool duk_load_library(duk_context *ctx, duk_safe_call_function func) {
+	duk_push_global_object(ctx);
+	auto rc = duk_safe_call(ctx, func, O, 1, 0);
+	if (rc = DUK_EXEC_SUCCESS) return true;
+	duk_dup(ctx, -1);
+	duk_put_global_string(ctx, "LastError");
+	duk_errout(ctx, "Load library failed: \n%s\n", duk_safe_to_stacktrace(ctx, -1));
+	return false;
+}
+
+duk_ret_t load_duk_windows(duk_context *ctx, void *) {
 	duk_dup(ctx, 0);
 	load_duk_types(ctx);
 	load_duk_resource(ctx);

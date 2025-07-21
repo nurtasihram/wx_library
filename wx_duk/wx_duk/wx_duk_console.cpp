@@ -103,13 +103,13 @@ void load_duk_console(duk_context *ctx) {
 				return DUK_RET_REFERENCE_ERROR;
 			return 0;
 		});
-		duk_add_method(ctx, "FillCharacter", 3, duk_fn {
+		duk_add_method(ctx, "Fill", 3, duk_fn {
 			auto cCharacter = duk_to_string(ctx, 0);
 			auto nLength = duk_to_int(ctx, 1);
 			LPoint dwWriteCoord;
 			if (!duk_get_point(ctx, dwWriteCoord, 2))
 				return DUK_RET_TYPE_ERROR;
-			if (wx_try(ctx, [&] { duk_push_int(ctx, Console.FillCharacterA(cCharacter[0], nLength, dwWriteCoord)); }))
+			if (wx_try(ctx, [&] { duk_push_int(ctx, Console.Fill(cCharacter[0], nLength, dwWriteCoord)); }))
 				return DUK_RET_REFERENCE_ERROR;
 			return 1;
 		});
@@ -123,13 +123,14 @@ void load_duk_console(duk_context *ctx) {
 				return DUK_RET_REFERENCE_ERROR;
 			return 1;
 		});
-		duk_add_method(ctx, "WriteCharacter", 3, duk_fn {
+		duk_add_method(ctx, "Write", 3, duk_fn {
 			auto lpCharacters = duk_to_string(ctx, 0);
 			auto nLength = duk_to_int(ctx, 1);
 			LPoint dwWriteCoord;
-			if (!duk_get_point(ctx, dwWriteCoord, 2))
-				return DUK_RET_TYPE_ERROR;
-			if (wx_try(ctx, [&] { duk_push_int(ctx, Console.WriteCharacterA(lpCharacters, nLength, dwWriteCoord)); }))
+			if (duk_get_point(ctx, dwWriteCoord, 2)) {
+				if (wx_try(ctx, [&] { duk_push_int(ctx, Console.Write(lpCharacters, nLength, dwWriteCoord)); }))
+					return DUK_RET_REFERENCE_ERROR;
+			} elif (wx_try(ctx, [&] { duk_push_int(ctx, Console.Write(lpCharacters, nLength)); }))
 				return DUK_RET_REFERENCE_ERROR;
 			return 1;
 		});
@@ -146,9 +147,9 @@ void load_duk_console(duk_context *ctx) {
 #pragma region Properties
 		duk_add_prop(ctx, "Title",
 			duk_fn {
-				if (auto lpTitle = duk_to_string(ctx, 0))
-					if (wx_try(ctx, [&] { Console.Title(lpTitle); }))
-						return DUK_RET_REFERENCE_ERROR;
+				auto lpTitle = duk_to_string(ctx, 0);
+				if (wx_try(ctx, [&] { Console.Title(lpTitle); }))
+					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			},
 			duk_fn {
@@ -164,9 +165,9 @@ void load_duk_console(duk_context *ctx) {
 		});
 		duk_add_prop(ctx, "CodePage",
 			duk_fn {
-				if (auto cp = duk_to_int(ctx, 0))
-					if (wx_try(ctx, [&] { Console.CodePage(cp); }))
-						return DUK_RET_REFERENCE_ERROR;
+				auto cp = duk_to_int(ctx, 0);
+				if (wx_try(ctx, [&] { Console.CodePage(cp); }))
+					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			},
 			duk_fn {
@@ -177,9 +178,9 @@ void load_duk_console(duk_context *ctx) {
 		);
 		duk_add_prop(ctx, "Attributes",
 			duk_fn {
-				if (auto chAtr = duk_to_int(ctx, 0))
-					if (wx_try(ctx, [&] { Console.Attributes(chAtr & 0xFFFF); }))
-						return DUK_RET_REFERENCE_ERROR;
+				auto chAtr = duk_to_int(ctx, 0);
+				if (wx_try(ctx, [&] { Console.Attributes(chAtr & 0xFFFF); }))
+					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			},
 			duk_fn {
@@ -191,9 +192,10 @@ void load_duk_console(duk_context *ctx) {
 		duk_add_prop(ctx, "CursorPosition",
 			duk_fn {
 				LPoint pos;
-				if (duk_get_point(ctx, pos))
-					if (wx_try(ctx, [&] { Console.CursorPosition(pos); }))
-						return DUK_RET_REFERENCE_ERROR;
+				if (!duk_get_point(ctx, pos))
+					return DUK_RET_TYPE_ERROR;
+				if (wx_try(ctx, [&] { Console.CursorPosition(pos); }))
+					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			},
 			duk_fn {

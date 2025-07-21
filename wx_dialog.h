@@ -21,8 +21,8 @@ enum_flags(ColorChooseStyle, DWORD,
 	SolidColor           = CC_SOLIDCOLOR,
 	AnyColor             = CC_ANYCOLOR);
 template<bool IsUnicode>
-class ColorChooseX : public RefStruct<std::conditional_t<IsUnicode, CHOOSECOLORW, CHOOSECOLORA>> {
-	using CHOOSECOLOR = std::conditional_t<IsUnicode, CHOOSECOLORW, CHOOSECOLORA>;
+class ColorChooseX : public RefStruct<switch_structx(CHOOSECOLOR)> {
+	using_structx(CHOOSECOLOR);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 public:
 	using super = RefStruct<CHOOSECOLOR>;
@@ -81,11 +81,11 @@ enum_flags(FontChooseStyle, DWORD,
 	NoVertFonts          = CF_NOVERTFONTS,
 	InActiveFonts        = CF_INACTIVEFONTS);
 template<bool IsUnicode>
-class FontChooseX : public RefStruct<std::conditional_t<IsUnicode, CHOOSEFONTW, CHOOSEFONTA>> {
-	using CHOOSEFONT = std::conditional_t<IsUnicode, CHOOSEFONTW, CHOOSEFONTA>;
+class FontChooseX : public RefStruct<switch_structx(CHOOSEFONT)> {
+	using_structx(CHOOSEFONT);
+	using_structx(FontLogic);
+	using_structx(LOGFONT);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
-	using FontLogic = std::conditional_t<IsUnicode, FontLogicW, FontLogicA>;
-	using LOGFONT = std::conditional_t<IsUnicode, LOGFONTW, LOGFONTA>;
 public:
 	using super = RefStruct<CHOOSEFONT>;
 	using Style = FontChooseStyle;
@@ -157,8 +157,8 @@ enum_flags(FileChooseStyle, DWORD,
 	DontAddToRecent      = OFN_DONTADDTORECENT,
 	ForcesHowHidden      = OFN_FORCESHOWHIDDEN);
 template<bool IsUnicode>
-class FileChooseX : public RefStruct<std::conditional_t<IsUnicode, OPENFILENAMEW, OPENFILENAMEA>> {
-	using OPENFILENAME = std::conditional_t<IsUnicode, OPENFILENAMEW, OPENFILENAMEA>;
+class FileChooseX : public RefStruct<switch_structx(OPENFILENAME)> {
+	using_structx(OPENFILENAME);
 	using LPTSTR = LPXSTR<IsUnicode>;
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
@@ -251,8 +251,8 @@ enum_flags(FindReplaceStyle, DWORD,
 	MatchKashida         = FR_MATCHKASHIDA,
 	MatchAlefHamza       = FR_MATCHALEFHAMZA);
 template<bool IsUnicode>
-class FindReplace : public RefStruct<std::conditional_t<IsUnicode, FINDREPLACEW, FINDREPLACEA>> {
-	using FINDREPLACE = std::conditional_t<IsUnicode, FINDREPLACEW, FINDREPLACEA>;
+class FindReplace : public RefStruct<switch_structx(FINDREPLACE)> {
+	using_structx(FINDREPLACE);
 	using String = StringX<IsUnicode>;
 
 public:
@@ -362,8 +362,7 @@ private:
 		if (className.size() <= 1) {
 			WORD aClassId[2] = { 0xFFFF, className[0] };
 			PushHeap(pHeap, maxSize, aClassId);
-		}
-		else PushHeap(pHeap, maxSize, className);
+		} else PushHeap(pHeap, maxSize, className);
 		PushHeap(pHeap, maxSize, caption);
 		PushHeap(pHeap, maxSize, sizeParam);
 	}
@@ -379,9 +378,8 @@ class DialogFactory {
 public:
 	DialogFactory() {}
 	DialogFactory(LPCWSTR pCaption) : caption(pCaption) {}
-	
+public:
 	inline auto &Add(const DialogControl &dc) reflect_to_self(dits.push_back(dc));
-
 #pragma region Properties
 public: // Property - Style
 	template<class AnyStyle>
@@ -415,13 +413,11 @@ private:
 		if (menuName.size() == 1) {
 			WORD aMenuId[2] = { 0xFFFF, menuName[0] };
 			PushHeap(pHeap, maxSize, aMenuId);
-		}
-		else PushHeap(pHeap, maxSize, menuName);
+		} else PushHeap(pHeap, maxSize, menuName);
 		if (className.size() == 1) {
 			WORD aClassId[2] = { 0xFFFF, className[0] };
 			PushHeap(pHeap, maxSize, aClassId);
-		}
-		else PushHeap(pHeap, maxSize, className);
+		} else PushHeap(pHeap, maxSize, className);
 		PushHeap(pHeap, maxSize, caption);
 		for (auto &dit : dits) {
 			dit.PushToHeap(pHeap, maxSize);
@@ -495,7 +491,7 @@ public:
 	inline INT_PTR Box(HWND hParent = NULL, HINSTANCE hInst = GetModuleHandle(O)) {
 		if constexpr (member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>)
 			return DialogBoxIndirectParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this);
-		elif  constexpr (member_Forming_of<Child>::template compatible_to<LPCTSTR()>)
+		elif constexpr (member_Forming_of<Child>::template compatible_to<LPCTSTR()>)
 			return DialogBoxParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this);
 		else {
 			static_assert(member_Forming_of<Child>::template compatible_to<UINT()>, "requires a valid template");
@@ -505,7 +501,7 @@ public:
 	inline auto&Create(HWND hParent = NULL, HINSTANCE hInst = GetModuleHandle(O)) {
 		if constexpr (member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>)
 			assertl(CreateDialogIndirectParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this))
-		elif  constexpr (member_Forming_of<Child>::template compatible_to<LPCTSTR()>)
+		elif constexpr (member_Forming_of<Child>::template compatible_to<LPCTSTR()>)
 			assertl(CreateDialogParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this))
 		else {
 			static_assert(member_Forming_of<Child>::template compatible_to<UINT()>, "requires a valid template");

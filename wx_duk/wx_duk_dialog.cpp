@@ -6,8 +6,7 @@ template<class AnyDlgStruct>
 static void load_CommDlg(duk_context *ctx) {
 	duk_property_w(ctx, "Parent", duk_fn() {
 		auto pobj = duk_get_buffer<AnyDlgStruct>(ctx);
-		if (!pobj)
-			return DUK_RET_INTERNAL_ERROR;
+		if (!pobj) return DUK_RET_INTERNAL_ERROR;
 		HANDLE hParent = O;
 		if (duk_class_handle(ctx, "Window", hParent))
 			return DUK_RET_TYPE_ERROR;
@@ -16,8 +15,7 @@ static void load_CommDlg(duk_context *ctx) {
 	});
 	duk_property_w(ctx, "Module", duk_fn() {
 		auto pobj = duk_get_buffer<AnyDlgStruct>(ctx);
-		if (!pobj)
-			return DUK_RET_INTERNAL_ERROR;
+		if (!pobj) return DUK_RET_INTERNAL_ERROR;
 		HANDLE hModule = O;
 		if (duk_class_handle(ctx, "Module", hModule))
 			return DUK_RET_TYPE_ERROR;
@@ -26,16 +24,14 @@ static void load_CommDlg(duk_context *ctx) {
 	});
 	duk_property_w(ctx, "Styles", duk_fn() {
 		auto pobj = duk_get_buffer<AnyDlgStruct>(ctx);
-		if (!pobj)
-			return DUK_RET_INTERNAL_ERROR;
+		if (!pobj) return DUK_RET_INTERNAL_ERROR;
 		auto styles = duk_to_int(ctx, 0);
 		pobj->Styles(reuse_as<typename AnyDlgStruct::Style>(styles));
 		return 0;
 	});
 	duk_property_w(ctx, "TemplateName", duk_fn() {
 		auto pobj = duk_get_buffer<AnyDlgStruct>(ctx);
-		if (!pobj)
-			return DUK_RET_INTERNAL_ERROR;
+		if (!pobj) return DUK_RET_INTERNAL_ERROR;
 		auto lpszName = duk_to_string(ctx, 0);
 		if (!lpszName)
 			return 0;
@@ -63,8 +59,7 @@ static void load_ChooserColor(duk_context *ctx) {
 			duk_property(ctx, "CustColors",
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserColorA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					if (!duk_is_object(ctx, 0))
 						return DUK_RET_TYPE_ERROR;
 					duk_get_global_string(ctx, "Uint32Array");
@@ -86,15 +81,13 @@ static void load_ChooserColor(duk_context *ctx) {
 			);
 			duk_property_r(ctx, "Result", duk_fn() {
 				auto pobj = duk_get_buffer<ChooserColorA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				duk_push_new(ctx, "RGB", pobj->Result());
 				return 1;
 			});
 			duk_method(ctx, "Choose", 0, duk_fn() {
 				auto pobj = duk_get_buffer<ChooserColorA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				bool res = false;
 				res = pobj->Choose();
 				duk_push_boolean(ctx, res);
@@ -165,16 +158,14 @@ static void load_ChooserFont(duk_context *ctx) {
 			duk_property(ctx, "FontTypes",
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					auto ft = reuse_as<FontType>(duk_to_uint16(ctx, 0));
 					pobj->FontTypes(ft);
 					return 0;
 				},
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					duk_push_new(ctx, "FontType", pobj->FontTypes().yield());
 					return 1;
 				}
@@ -182,15 +173,13 @@ static void load_ChooserFont(duk_context *ctx) {
 			duk_property(ctx, "SizeMin",
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					pobj->SizeMin(duk_to_int(ctx, 0));
 					return 0;
 				},
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					duk_push_int(ctx, pobj->SizeMin());
 					return 1;
 				}
@@ -198,16 +187,14 @@ static void load_ChooserFont(duk_context *ctx) {
 			duk_property(ctx, "SizeMax",
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					auto size = duk_to_int(ctx, 0);
 					pobj->SizeMax(size);
 					return 0;
 				},
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					duk_push_int(ctx, pobj->SizeMax());
 					return 1;
 				}
@@ -215,16 +202,14 @@ static void load_ChooserFont(duk_context *ctx) {
 			duk_property(ctx, "PointSize",
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					auto size = duk_to_int(ctx, 0);
 					pobj->PointSize(size);
 					return 0;
 				},
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					duk_push_int(ctx, pobj->PointSize());
 					return 1;
 				}
@@ -232,16 +217,14 @@ static void load_ChooserFont(duk_context *ctx) {
 			duk_property(ctx, "Color",
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					auto size = duk_to_uint32(ctx, 0);
 					pobj->Color(size);
 					return 0;
 				},
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					duk_push_new(ctx, "RGB", pobj->Color());
 					return 1;
 				}
@@ -249,8 +232,7 @@ static void load_ChooserFont(duk_context *ctx) {
 			duk_property(ctx, "LogFont",
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					duk_get_global_string(ctx, "FontLogic");
 					if (!duk_instanceof(ctx, 0, -1))
 						return DUK_RET_TYPE_ERROR;
@@ -265,8 +247,7 @@ static void load_ChooserFont(duk_context *ctx) {
 				},
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					duk_push_this(ctx);
 					duk_get_prop_string(ctx, -1, "__LogFont");
 					duk_get_global_string(ctx, "FontLogic");
@@ -277,8 +258,7 @@ static void load_ChooserFont(duk_context *ctx) {
 			);
 			duk_method(ctx, "Choose", 0, duk_fn() {
 				auto pobj = duk_get_buffer<ChooserFontA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				duk_push_boolean(ctx, pobj->Choose());
 				return 1;
 			});
@@ -358,23 +338,20 @@ static void load_ChooserFile(duk_context *ctx) {
 			load_CommDlg<ChooserFileA>(ctx);
 			duk_property_r(ctx, "FileOffset", duk_fn() {
 				auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				duk_push_int(ctx, pobj->FileOffset());
 				return 1;
 			});
 			duk_property_r(ctx, "FileExtension", duk_fn() {
 				auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				duk_push_int(ctx, pobj->FileExtension());
 				return 1;
 			});
 			duk_property(ctx, "File", 
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					auto lpszFile = duk_to_string(ctx, 0);
 					auto len = duk_get_length(ctx, 0);
 					duk_push_this(ctx);
@@ -386,8 +363,7 @@ static void load_ChooserFile(duk_context *ctx) {
 							lpszFileBuffer = (LPSTR)duk_resize_buffer(ctx, -1, len + 1);
 							pobj->FileMaxLen((DWORD)len + 1);
 						}
-					}
-					else {
+					} else {
 						duk_pop(ctx);
 						lpszFileBuffer = (LPSTR)duk_push_dynamic_buffer(ctx, MAX_PATH * 2);
 						duk_put_prop_string(ctx, -1, "__File");
@@ -399,8 +375,7 @@ static void load_ChooserFile(duk_context *ctx) {
 				},
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					duk_push_string(ctx, pobj->File());
 					return 1;
 				}
@@ -408,8 +383,7 @@ static void load_ChooserFile(duk_context *ctx) {
 			duk_property(ctx, "FileMaxLen",
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					auto len = duk_to_uint32(ctx, 0);
 					if (len == pobj->FileMaxLen())
 						return 0;
@@ -420,8 +394,7 @@ static void load_ChooserFile(duk_context *ctx) {
 					if (lpszFileBuffer) {
 						lpszFileBuffer = (LPSTR)duk_resize_buffer(ctx, -1, len);
 						pobj->FileMaxLen((DWORD)len);
-					}
-					else {
+					} else {
 						duk_pop(ctx);
 						lpszFileBuffer = (LPSTR)duk_push_dynamic_buffer(ctx, MAX_PATH * 2);
 						duk_put_prop_string(ctx, -1, "__File");
@@ -432,8 +405,7 @@ static void load_ChooserFile(duk_context *ctx) {
 				},
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					duk_push_uint(ctx, pobj->FileMaxLen());
 					return 1;
 				}
@@ -441,8 +413,7 @@ static void load_ChooserFile(duk_context *ctx) {
 			duk_property(ctx, "FileTitle", 
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					auto lpszFileTitle = duk_to_string(ctx, 0);
 					auto len = duk_get_length(ctx, 0);
 					duk_push_this(ctx);
@@ -454,8 +425,7 @@ static void load_ChooserFile(duk_context *ctx) {
 							lpszFileTitleBuffer = (LPSTR)duk_resize_buffer(ctx, -1, len + 1);
 							pobj->FileTitleMaxLen((DWORD)len + 1);
 						}
-					}
-					else {
+					} else {
 						duk_pop(ctx);
 						lpszFileTitleBuffer = (LPSTR)duk_push_dynamic_buffer(ctx, MAX_PATH);
 						duk_put_prop_string(ctx, -2, "__FileTitle");
@@ -467,8 +437,7 @@ static void load_ChooserFile(duk_context *ctx) {
 				},
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					duk_push_string(ctx, pobj->FileTitle());
 					return 1;
 				}
@@ -476,8 +445,7 @@ static void load_ChooserFile(duk_context *ctx) {
 			duk_property(ctx, "CustomFilter", 
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					auto lpszCustomFilter = duk_to_string(ctx, 0);
 					auto len = duk_get_length(ctx, 0);
 					duk_push_this(ctx);
@@ -489,8 +457,7 @@ static void load_ChooserFile(duk_context *ctx) {
 							lpszCustomFilterBuffer = (LPSTR)duk_resize_buffer(ctx, -1, len + 1);
 							pobj->CustomFilterMaxLen((DWORD)len + 1);
 						}
-					}
-					else {
+					} else {
 						duk_pop(ctx);
 						lpszCustomFilterBuffer = (LPSTR)duk_push_dynamic_buffer(ctx, MAX_PATH);
 						duk_put_prop_string(ctx, -1, "__CustomFilter");
@@ -502,16 +469,14 @@ static void load_ChooserFile(duk_context *ctx) {
 				},
 				duk_fn() {
 					auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-					if (!pobj)
-						return DUK_RET_INTERNAL_ERROR;
+					if (!pobj) return DUK_RET_INTERNAL_ERROR;
 					duk_push_string(ctx, pobj->CustomFilter());
 					return 1;
 				}
 			);
 			duk_property_w(ctx, "Filter", duk_fn() {
 				auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				auto lpszFilter = duk_to_string(ctx, 0);
 				if (!lpszFilter)
 					return 0;
@@ -520,15 +485,13 @@ static void load_ChooserFile(duk_context *ctx) {
 			});
 			duk_property_r(ctx, "FilterIndex", duk_fn() {
 				auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				duk_push_int(ctx, pobj->FilterIndex());
 				return 1;
 			});
 			duk_property_w(ctx, "InitialDir", duk_fn() {
 				auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				auto lpszInitialDir = duk_to_string(ctx, 0);
 				if (!lpszInitialDir)
 					return 0;
@@ -537,8 +500,7 @@ static void load_ChooserFile(duk_context *ctx) {
 			});
 			duk_property_w(ctx, "Title", duk_fn() {
 				auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				auto lpszTitle = duk_to_string(ctx, 0);
 				if (!lpszTitle)
 					return 0;
@@ -547,8 +509,7 @@ static void load_ChooserFile(duk_context *ctx) {
 			});
 			duk_property_w(ctx, "DefExt", duk_fn() {
 				auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				auto lpszDefExt = duk_to_string(ctx, 0);
 				if (!lpszDefExt)
 					return 0;
@@ -557,8 +518,7 @@ static void load_ChooserFile(duk_context *ctx) {
 			});
 			duk_method(ctx, "OpenFile", 0, duk_fn() {
 				auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				bool res = false;
 				res = pobj->OpenFile();
 				duk_push_boolean(ctx, res);
@@ -566,8 +526,7 @@ static void load_ChooserFile(duk_context *ctx) {
 			});
 			duk_method(ctx, "SaveFile", 0, duk_fn() {
 				auto pobj = duk_get_buffer<ChooserFileA>(ctx);
-				if (!pobj)
-					return DUK_RET_INTERNAL_ERROR;
+				if (!pobj) return DUK_RET_INTERNAL_ERROR;
 				bool res = false;
 				res = pobj->SaveFile();
 				duk_push_boolean(ctx, res);

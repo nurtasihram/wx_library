@@ -266,16 +266,15 @@ bool duk_get_point(duk_context *ctx, LPoint &point, duk_idx_t idx) {
 		duk_get_prop_index(ctx, -2, 1);
 		point.y = duk_get_int(ctx, -1);
 	}
-	elif  (duk_is_object(ctx, idx)) {
+	elif (duk_is_object(ctx, idx)) {
 		duk_get_prop_string(ctx, -1, "x");
 		point.x = duk_get_int(ctx, -1);
 		duk_get_prop_string(ctx, -2, "y");
 		point.y = duk_get_int(ctx, -1);
 	}
-	elif  (duk_is_number(ctx, idx))
+	elif (duk_is_number(ctx, idx))
 		point = duk_get_int(ctx, idx);
-	else
-		return false;
+	else return false;
 	return true;
 }
 void duk_push_point(duk_context *ctx, LPoint point) {
@@ -390,7 +389,7 @@ bool duk_get_rect(duk_context *ctx, LRect &rect, duk_idx_t idx) {
 		duk_get_prop_index(ctx, -4, 3);
 		rect.bottom = duk_get_int(ctx, -1);
 	}
-	elif  (duk_is_object(ctx, idx)) {
+	elif (duk_is_object(ctx, idx)) {
 		duk_get_prop_string(ctx, -1, "x0");
 		rect.left = duk_get_int(ctx, -1);
 		duk_get_prop_string(ctx, -2, "y0");
@@ -400,10 +399,9 @@ bool duk_get_rect(duk_context *ctx, LRect &rect, duk_idx_t idx) {
 		duk_get_prop_string(ctx, -4, "y1");
 		rect.bottom = duk_get_int(ctx, -1);
 	}
-	elif  (duk_is_number(ctx, idx))
+	elif (duk_is_number(ctx, idx))
 		rect = duk_get_int(ctx, idx);
-	else
-		return false;
+	else return false;
 	return true;
 }
 void duk_push_rect(duk_context *ctx, const LRect &rect) {
@@ -572,8 +570,7 @@ static void load_duk_time(duk_context *ctx) {
 			//});
 			duk_add_method(ctx, "FormatTime", 2, duk_fn {
 				auto pobj = duk_get_this__p<SysTime>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto fmt = duk_to_int(ctx, 0);
 				auto &&str = pobj->FormatTimeA(reuse_as<TimeFormat>(fmt));
 				duk_push_string(ctx, str);
@@ -581,8 +578,7 @@ static void load_duk_time(duk_context *ctx) {
 			});
 			duk_add_method(ctx, "FormatDate", 2, duk_fn {
 				auto pobj = duk_get_this__p<SysTime>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto fmt = duk_to_int(ctx, 0);
 				auto &&str = pobj->FormatDateA(reuse_as<DateFormat>(fmt));
 				duk_push_string(ctx, str);
@@ -590,8 +586,7 @@ static void load_duk_time(duk_context *ctx) {
 			});
 			duk_add_method(ctx, "toString", 0, duk_fn {
 				auto pobj = duk_get_this__p<SysTime>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_string(ctx, (StringA)*pobj);
 				return 1;
 			});
@@ -612,10 +607,9 @@ static void load_duk_time(duk_context *ctx) {
 						if (!pobj || read_size != sizeof(SysTime))
 							return DUK_RET_REFERENCE_ERROR;
 						st = *pobj;
-					} elif  (duk_is_null(ctx, 0))
+					} elif (duk_is_null(ctx, 0))
 						break;
-					else
-						return DUK_RET_TYPE_ERROR;
+					else return DUK_RET_TYPE_ERROR;
 					break;
 				default:
 					return DUK_RET_SYNTAX_ERROR;

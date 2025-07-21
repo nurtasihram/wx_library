@@ -62,9 +62,8 @@ StringBase<TCHAR> EnumFlagsParse(AnyEnum e) {
 		if (val == EnumType::__Vals[i])
 			return table[i].key;
 	if constexpr (EnumType::HasProtoEnum)
-		return EnumClassParse(reuse_as<typename EnumType::ProtoEnum>(e));
-	else
-		return format_numeral("d").toString<TCHAR>(val);
+		 return EnumClassParse(reuse_as<typename EnumType::ProtoEnum>(e));
+	else return format_numeral("d").toString<TCHAR>(val);
 }
 
 enum_class(EC1, int,

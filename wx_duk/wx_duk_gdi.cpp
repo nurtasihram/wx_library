@@ -114,15 +114,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* int */ duk_add_prop(ctx, "Height",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Height(duk_to_int(ctx, 0));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_int(ctx, pobj->Height());
 					return 1;
 				}
@@ -130,15 +128,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* int */ duk_add_prop(ctx, "Width",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Width(duk_to_int(ctx, 0));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_int(ctx, pobj->Width());
 					return 1;
 				}
@@ -146,15 +142,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* int */ duk_add_prop(ctx, "Escapement",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Escapement(duk_to_int(ctx, 0));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_int(ctx, pobj->Escapement());
 					return 1;
 				}
@@ -162,15 +156,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* int */ duk_add_prop(ctx, "Orientation",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Orientation(duk_to_int(ctx, 0));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_int(ctx, pobj->Orientation());
 					return 1;
 				}
@@ -178,15 +170,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* int */ duk_add_prop(ctx, "Weight",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Weight(duk_to_int(ctx, 0));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_int(ctx, pobj->Weight());
 					return 1;
 				}
@@ -194,15 +184,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* bool */ duk_add_prop(ctx, "Italic",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Italic(duk_to_boolean(ctx, 0));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_boolean(ctx, pobj->Italic());
 					return 1;
 				}
@@ -210,15 +198,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* bool */ duk_add_prop(ctx, "Underline",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Underline(duk_to_boolean(ctx, 0));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_boolean(ctx, pobj->Underline());
 					return 1;
 				}
@@ -226,15 +212,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* bool */ duk_add_prop(ctx, "StrikeOut",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->StrikeOut(duk_to_boolean(ctx, 0));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_boolean(ctx, pobj->StrikeOut());
 					return 1;
 				}
@@ -242,15 +226,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* CharSets */ duk_add_prop(ctx, "CharSet",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->CharSet(reuse_as<CharSets>((BYTE)duk_to_uint16(ctx, 0)));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "CharSets", (int)pobj->CharSet().yield());
 					return 1;
 				}
@@ -258,15 +240,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* OutPrecis */ duk_add_prop(ctx, "OutPrecision",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->OutPrecision(reuse_as<OutPrecis>((BYTE)duk_to_int(ctx, 0)));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "OutPrecis", (int)pobj->OutPrecision().yield());
 					return 1;
 				}
@@ -274,15 +254,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* ClipPrecis */ duk_add_prop(ctx, "ClipPrecision",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->ClipPrecision(reuse_as<ClipPrecis>((BYTE)duk_to_int(ctx, 0)));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "ClipPrecis", (int)pobj->ClipPrecision().yield());
 					return 1;
 				}
@@ -290,15 +268,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* Qualities */ duk_add_prop(ctx, "Quality",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Quality(reuse_as<Qualities>((BYTE)duk_to_int(ctx, 0)));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "Qualities", (int)pobj->Quality().yield());
 					return 1;
 				}
@@ -306,15 +282,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* FontPitches */ duk_add_prop(ctx, "Pitch",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Pitch(reuse_as<FontPitches>((BYTE)duk_to_int(ctx, 0)));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "FontPitches", (int)pobj->Pitch().yield());
 					return 1;
 				}
@@ -322,15 +296,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* FontFamilies */ duk_add_prop(ctx, "Family",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Family(reuse_as<FontFamilies>((BYTE)duk_to_int(ctx, 0)));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "FontFamilies", (int)pobj->Family().yield());
 					return 1;
 				}
@@ -338,15 +310,13 @@ static void load_duk_font(duk_context *ctx) {
 			/* String */ duk_add_prop(ctx, "FaceName",
 				duk_set {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->FaceName(CString(duk_to_string(ctx, 0), LF_FACESIZE));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<FontLogicA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_string(ctx, pobj->FaceName());
 					return 1;
 				}
@@ -354,8 +324,7 @@ static void load_duk_font(duk_context *ctx) {
 
 			/* String */ duk_add_method(ctx, "toString", 0, duk_fn {
 				auto pobj = duk_get_this__p<FontLogicA>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto lpszCharSet = duk_this_prop_to_string(ctx, "CharSet"),
 					 lpszOutPrecis = duk_this_prop_to_string(ctx, "OutPrecision"),
 					 lpszClipPrecis = duk_this_prop_to_string(ctx, "ClipPrecision");
@@ -440,9 +409,9 @@ static void load_duk_font(duk_context *ctx) {
 				case 1:
 					if (duk_is_pointer(ctx, 0)) {
 						duk_put_this__p(ctx, duk_get_pointer(ctx, 0));
-					} elif  (duk_is_null(ctx, 0)) {
+					} elif (duk_is_null(ctx, 0)) {
 						duk_put_this__p(ctx, O);
-					} elif  (duk_is_object(ctx, 0)) {
+					} elif (duk_is_object(ctx, 0)) {
 						duk_get_global_string(ctx, "FontLogic");
 						if (!duk_instanceof(ctx, 0, -1))
 							return DUK_RET_TYPE_ERROR;
@@ -519,15 +488,13 @@ static void load_duk_pen(duk_context *ctx) {
 			/* PenStyles */ duk_add_prop(ctx, "Style",
 				duk_set {
 					auto pobj = duk_get_this__p<PenLogic>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Style(reuse_as<PenStyles>(duk_to_int(ctx, 0)));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<PenLogic>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_int(ctx, pobj->Style().yield());
 					return 1;
 				}
@@ -535,8 +502,7 @@ static void load_duk_pen(duk_context *ctx) {
 			/* Point */ duk_add_prop(ctx, "Width",
 				duk_set {
 					auto pobj = duk_get_this__p<PenLogic>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					LPoint width;
 					if (!duk_get_point(ctx, width, 0))
 						return DUK_RET_TYPE_ERROR;
@@ -545,8 +511,7 @@ static void load_duk_pen(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<PenLogic>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_point(ctx, pobj->Width());
 					return 1;
 				}
@@ -554,15 +519,13 @@ static void load_duk_pen(duk_context *ctx) {
 			/* RGB */ duk_add_prop(ctx, "Color",
 				duk_set {
 					auto pobj = duk_get_this__p<PenLogic>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->Color(duk_to_uint32(ctx, 0));
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<PenLogic>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "RGB", pobj->Color());
 					return 1;
 				}
@@ -586,9 +549,9 @@ static void load_duk_pen(duk_context *ctx) {
 				case 1:
 					if (duk_is_pointer(ctx, 0)) {
 						duk_put_this__p(ctx, duk_get_pointer(ctx, 0));
-					} elif  (duk_is_null(ctx, 0)) {
+					} elif (duk_is_null(ctx, 0)) {
 						duk_put_this__p(ctx, O);
-					} elif  (duk_is_object(ctx, 0)) {
+					} elif (duk_is_object(ctx, 0)) {
 						duk_get_global_string(ctx, "PenLogic");
 						if (!duk_instanceof(ctx, 0, -1))
 							return DUK_RET_TYPE_ERROR;
@@ -951,8 +914,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "DrawIcon", 2, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				HICON hIcon = O;
 				if (duk_get_class__p(ctx, "Icon", hIcon, 0))
 					return DUK_RET_TYPE_ERROR;
@@ -965,8 +927,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "DrawPixel", 2, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				LPoint Pos;
 				if (!duk_get_point(ctx, Pos, 0))
 					return DUK_RET_TYPE_ERROR;
@@ -977,8 +938,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "DrawPie", 4, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				LRect rc;
 				if (!duk_get_rect(ctx, rc, 0))
 					return DUK_RET_TYPE_ERROR;
@@ -994,8 +954,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "DrawEllipse", 1, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				LRect rc;
 				if (!duk_get_rect(ctx, rc, 0))
 					return DUK_RET_TYPE_ERROR;
@@ -1005,8 +964,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "DrawFocus", 1, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				LRect rc;
 				if (!duk_get_rect(ctx, rc, 0))
 					return DUK_RET_TYPE_ERROR;
@@ -1016,8 +974,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "Invert", 1, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				LRect rc;
 				if (!duk_get_rect(ctx, rc, 0))
 					return DUK_RET_TYPE_ERROR;
@@ -1027,25 +984,22 @@ static void load_duk_devcap(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "Fill", 2, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				HBRUSH hBrush;
 				if (duk_get_class__p(ctx, "Brush", hBrush, 0))
 					return DUK_RET_TYPE_ERROR;
 				LRect rc;
 				if (wx_try(ctx, [&] {
 					if (duk_get_rect(ctx, rc, 1))
-						pobj->Fill(hBrush, rc);
-					else
-						pobj->Fill(hBrush);
+						 pobj->Fill(hBrush, rc);
+					else pobj->Fill(hBrush);
 				}))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
 			/* void */ duk_add_method(ctx, "Select", 1, duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				duk_push_c_function(ctx, _selectable, 1);
 				duk_dup(ctx, 0);
 				duk_call(ctx, 1);
@@ -1062,8 +1016,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			/* RGB */ duk_add_prop(ctx, "PenColor",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					auto color = duk_to_int(ctx, 0);
 					if (wx_try(ctx, [&] { pobj->PenColor(color); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1071,8 +1024,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					COLORREF color = 0;
 					if (wx_try(ctx, [&] { color = pobj->PenColor(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1083,8 +1035,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			/* RGB */ duk_add_prop(ctx, "BkColor",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					auto color = duk_to_int(ctx, 0);
 					if (wx_try(ctx, [&] { pobj->BkColor(color); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1092,8 +1043,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					COLORREF color = 0;
 					if (wx_try(ctx, [&] { color = pobj->BkColor(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1104,8 +1054,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			/* RGB */ duk_add_prop(ctx, "TextColor",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					auto color = duk_to_uint(ctx, 0);
 					if (wx_try(ctx, [&] { pobj->TextColor(color); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1113,8 +1062,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					COLORREF color = 0;
 					if (wx_try(ctx, [&] { color = pobj->TextColor(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1125,8 +1073,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			/* TextAlign */ duk_add_prop(ctx, "TextAligns",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					auto align = duk_to_uint(ctx, 0);
 					if (wx_try(ctx, [&] { pobj->TextAligns(reuse_as<TextAlign>(align)); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1134,8 +1081,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					auto align = reuse_as<TextAlign>(0);
 					if (wx_try(ctx, [&] { align = pobj->TextAligns(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1146,8 +1092,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			/* Point */ duk_add_prop(ctx, "ViewOrg",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					LPoint Pos;
 					if (!duk_get_point(ctx, Pos))
 						return DUK_RET_TYPE_ERROR;
@@ -1157,8 +1102,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					LPoint Pos;
 					if (wx_try(ctx, [&] { pobj->ViewOrg(Pos); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1169,8 +1113,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			/* Point */ duk_add_prop(ctx, "ViewExt",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					LPoint Ext;
 					if (!duk_get_point(ctx, Ext))
 						return DUK_RET_TYPE_ERROR;
@@ -1180,8 +1123,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					LPoint Ext;
 					if (wx_try(ctx, [&] { pobj->ViewExt(Ext); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1192,8 +1134,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			/* Point */ duk_add_prop(ctx, "WindowOrg",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					LPoint Pos;
 					if (!duk_get_point(ctx, Pos))
 						return DUK_RET_TYPE_ERROR;
@@ -1203,8 +1144,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					LPoint Pos;
 					if (wx_try(ctx, [&] { pobj->WindowOrg(Pos); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1215,8 +1155,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			/* Point */ duk_add_prop(ctx, "WindowExt",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					LPoint Ext;
 					if (!duk_get_point(ctx, Ext))
 						return DUK_RET_TYPE_ERROR;
@@ -1226,8 +1165,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					LPoint Ext;
 					if (wx_try(ctx, [&] { pobj->WindowExt(Ext); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1238,8 +1176,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			/* MapModes */ duk_add_prop(ctx, "MapMode",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					auto mode = duk_to_int(ctx, 0);
 					if (wx_try(ctx, [&] { pobj->MapMode(reuse_as<MapModes>(mode)); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1247,8 +1184,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					auto mode = reuse_as<MapModes>(0);
 					if (wx_try(ctx, [&] { mode = pobj->MapMode(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1259,8 +1195,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			/* Stretches */ duk_add_prop(ctx, "StretchMode",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					auto mode = duk_to_int(ctx, 0);
 					if (wx_try(ctx, [&] { pobj->StretchMode(reuse_as<Stretches>(mode)); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1268,8 +1203,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					auto mode = reuse_as<Stretches>(0);
 					if (wx_try(ctx, [&] { mode = pobj->StretchMode(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1280,8 +1214,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			/* PolyFills */ duk_add_prop(ctx, "PolyFillMode",
 				duk_set {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					auto mode = duk_to_int(ctx, 0);
 					if (wx_try(ctx, [&] { pobj->PolyFill(reuse_as<PolyFills>(mode)); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1289,8 +1222,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CDevCap>(ctx);
-					if (!pobj)
-						return DUK_RET_TYPE_ERROR;
+					if (!pobj) return DUK_RET_TYPE_ERROR;
 					auto mode = reuse_as<PolyFills>(0);
 					if (wx_try(ctx, [&] { mode = pobj->PolyFill(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1300,8 +1232,7 @@ static void load_duk_devcap(duk_context *ctx) {
 			);
 			/* Point */ duk_put_prop_r(ctx, "Size", duk_fn {
 				auto pobj = duk_get_this__p<CDevCap>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				LPoint size;
 				if (wx_try(ctx, [&] { size = pobj->Size(); }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -1336,7 +1267,7 @@ static void load_duk_devcap(duk_context *ctx) {
 				case 1:
 					if (duk_is_pointer(ctx, 0)) {
 						duk_put_this__p(ctx, duk_get_pointer(ctx, 0));
-					} elif  (duk_is_object(ctx, 0)) {
+					} elif (duk_is_object(ctx, 0)) {
 						duk_get_global_string(ctx, "DevCap");
 						if (!duk_instanceof(ctx, 0, -1)) {
 							duk_errout(ctx, "DevCap constructor: first argument must be a DevCap object");

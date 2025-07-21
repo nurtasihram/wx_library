@@ -262,7 +262,7 @@ protected:
 	inline DWORD Start() {
 		if constexpr (member_OnStart_of<AnyChild>::template compatible_to<DWORD()>)
 			reflect_as(child.OnStart())
-		elif  constexpr (member_OnStart_of<AnyChild>::template compatible_to<void()>)
+		elif constexpr (member_OnStart_of<AnyChild>::template compatible_to<void()>)
 			reflect_to(child.OnStart(), 0)
 		else {
 			static_assert(member_OnStart_of<AnyChild>::callable, "OnStart uncallable or unexisted");
@@ -274,11 +274,11 @@ protected:
 	inline wx_answer Catch(const Exception &err) {
 		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Exception)>)
 			reflect_as(child.OnCatch(err))
-		elif  constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
+		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
 			reflect_as(child.OnCatch())
-		elif  constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Exception)>)
+		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Exception)>)
 			reflect_to(child.OnCatch(err), false)
-		elif  constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
+		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
 			reflect_to(child.OnCatch(), false)
 		else {
 			static_assert(!member_OnCatch_of<AnyChild>::callable, "OnCatch uncompatible");
@@ -297,7 +297,7 @@ protected:
 	inline DWORD Final() {
 		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<DWORD()>)
 			reflect_as(child.OnFinal())
-		elif  constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
+		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
 			reflect_to(child.OnFinal(), -1)
 		else {
 			static_assert(!member_OnFinal_of<AnyChild>::callable, "OnFinal uncallable");
@@ -367,9 +367,9 @@ protected:
 		bool OnCatch(const Exception &err) override {
 			if constexpr (static_compatible<AnyCatch, wx_answer(Exception)>)
 				reflect_as(lOnCatch(err))
-			elif  constexpr (static_compatible<AnyCatch, wx_answer()>)
+			elif constexpr (static_compatible<AnyCatch, wx_answer()>)
 				reflect_as(lOnCatch())
-			elif  constexpr (static_compatible<AnyCatch, void(Exception)>)
+			elif constexpr (static_compatible<AnyCatch, void(Exception)>)
 				reflect_to(lOnCatch(err), false)
 			else {
 				static_assert(static_compatible<AnyCatch, void()>, "OnCatch uncompatible");
@@ -534,11 +534,10 @@ public:
 	inline operator LPTCH() const reflect_as(lpEnv);
 };
 using EnvVar = Environments::Variable;
-class CurrentEnvironment {
+class {
 	template<bool IsUnicode>
 	class Variable {
 		using String = StringX<IsUnicode>;
-		friend class CurrentEnvironment;
 		const String name;
 	public:
 		Variable(const String &name) : name(+name) {}
@@ -576,7 +575,7 @@ class CurrentEnvironment {
 	};
 public:
 	inline operator Environments() reflect_as(Environments::Current());
-	inline CurrentEnvironment &operator=(const Environments &env) reflect_to_self(env.Use());
+	inline void operator=(const Environments &env) reflect_to(env.Use());
 	template<bool IsUnicode = WX::IsUnicode>
 	inline Variable<IsUnicode> operator[](const StringX<IsUnicode> &str) reflect_as(str);
 } inline Environment;
@@ -845,10 +844,11 @@ public:
 using CProcess = RefAs<Process>;
 #pragma endregion
 
-class Currents {
+class {
 public: // Property - Directory
 	template<class TCHAR>
 	/* W */ inline auto &Directory(const TCHAR *lpPath) {
+		constexpr bool IsUnicode = IsCharW<TCHAR>;
 		global_symbolx(SetCurrentDirectory);
 		assertl_reflect_as_self(SetCurrentDirectory(lpPath));
 		return *this;
@@ -865,14 +865,17 @@ public: // Property - Directory
 	/* R */ inline StringA DirectoryA() const reflect_as(Directory<false>());
 	/* R */ inline StringW DirectoryW() const reflect_as(Directory<true>());
 public: // Property - UserName
-	/* R */ inline String UserName() const {
+	template<bool IsUnicode>
+	/* R */ inline StringX<IsUnicode> UserName() const {
 		global_symbolx(GetUserName);
 		DWORD len = 0;
 		assertl(GetUserName(NULL, &len));
-		auto lpsz = String::Alloc(len);
+		auto lpsz = StringX<IsUnicode>::Alloc(len);
 		assertl(GetUserName(lpsz, &len));
 		return{ len, lpsz };
 	}
+	inline StringA UserNameA() const reflect_as(UserName<false>());
+	inline StringW UserNameW() const reflect_as(UserName<true>());
 public: // Property - ComputerName
 	template<bool IsUnicode>
 	/* R */ inline StringX<IsUnicode> ComputerName() const {
@@ -896,115 +899,7 @@ public: // Property - Thread
 } inline Current;
 
 //SYSTEM_INFO
-//#pragma region OSVersion
-//template<class AnyOSVersion, class OSVERSION>
-//class OSVersionBase : public RefStruct<OSVERSION>,
-//	public ChainExtender<OSVersionBase<AnyOSVersion, OSVERSION>, AnyOSVersion> {
-//public:
-//	static constexpr bool IsUnicode =
-//		std::is_same_v<OSVERSION, OSVERSIONINFOW> ||
-//		std::is_same_v<OSVERSION, OSVERSIONINFOEXW>;
-//public:
-//	using Child = AnyOSVersion;
-//	using super = RefStruct<OSVERSION>;
-//	using String = StringX<IsUnicode>;
-//public:
-//	OSVersionBase() reflect_to(self->dwOSVersionInfoSize = sizeof(OSVERSION));
-//	OSVersionBase(const OSVERSION &osvi) : super(osvi) {}
-//public: // Property - MajorVersion
-//	/* W */ inline auto &MajorVersion(DWORD dwMajorVersion) reflect_to_child(self->dwMajorVersion = dwMajorVersion);
-//	/* R */ inline DWORD MajorVersion() const reflect_as(self->dwMajorVersion);
-//public: // Property - MinorVersion
-//	/* W */ inline auto &MinorVersion(DWORD dwMinorVersion) reflect_to_child(self->dwMinorVersion = dwMinorVersion);
-//	/* R */ inline DWORD MinorVersion() const reflect_as(self->dwMinorVersion);
-//public: // Property - BuildNumber
-//	/* W */ inline auto &BuildNumber(DWORD dwBuildNumber) reflect_to_child(self->dwBuildNumber = dwBuildNumber);
-//	/* R */ inline DWORD BuildNumber() const reflect_as(self->dwBuildNumber);
-//public: // Property - PlatformId
-//	/* W */ inline auto &PlatformId(DWORD dwPlatformId) reflect_to_child(self->dwPlatformId = dwPlatformId);
-//	/* R */ inline DWORD PlatformId() const reflect_as(self->dwPlatformId);
-//public: // Property - CSDVersion
-//	/* W */ inline auto &CSDVersion(const String &szCSDVersion) {
-//		global_symbolx(StringCchCopy);
-//		assertl_reflect_as_child(SUCCEEDED(StringCchCopy(self->szCSDVersion, _countof(self->szCSDVersion), szCSDVersion.c_str_safe())));
-//	}
-//	/* R */ inline const String CSDVersion() const {
-//		global_symbolx(StringCchLength);
-//		assertl_reflect_to(
-//			size_t len,
-//			SUCCEEDED(StringCchLength(self->szCSDVersion, _countof(self->szCSDVersion))),
-//			CString(len, self->szCSDVersion);
-//		);
-//	}
-//public:
-//	inline String toString() const {
-//		auto_string(
-//			fmt,
-//			"Major Version: %d\n"
-//			"Minor Version: %d\n"
-//			"Build Number: %d\n"
-//			"Platform ID: %d\n"
-//			"CSD Version: %s\n");
-//		return format(
-//			fmt,
-//			self->dwMajorVersion,
-//			self->dwMinorVersion,
-//			self->dwBuildNumber,
-//			self->dwPlatformId,
-//			self->szCSDVersion
-//		);
-//	}
-//public:
-//	inline operator String() const reflect_as(child.toString());
-//};
-//template<bool IsUnicode = WX::IsUnicode>
-//class OSVersionInfoX :
-//	public OSVersionBase<
-//		OSVersionInfoX<IsUnicode>,
-//		std::conditional_t<IsUnicode, OSVERSIONINFOW, OSVERSIONINFOA>
-//	> {};
-//using OSVersionInfo = OSVersionInfoX<IsUnicode>;
-//using OSVersionInfoA = OSVersionInfoX<false>;
-//using OSVersionInfoW = OSVersionInfoX<true>;
-//template<bool IsUnicode>
-//class OSVersionInfoExX : 
-//	public OSVersionBase<
-//		OSVersionInfoX<IsUnicode>,
-//		std::conditional_t<IsUnicode, OSVERSIONINFOEXW, OSVERSIONINFOEXA>
-//	> {
-//	using String = StringX<IsUnicode>;
-//	using OSVERSIONINFOEX = std::conditional_t<IsUnicode, OSVERSIONINFOEXW, OSVERSIONINFOEXA>;
-//public:
-//	//WORD   wServicePackMajor;
-//	//WORD   wServicePackMinor;
-//	//WORD   wSuiteMask;
-//	//BYTE  wProductType;
-//};
-//using OSVersionInfoEx = OSVersionInfoExX<IsUnicode>;
-//using OSVersionInfoExA = OSVersionInfoExX<false>;
-//using OSVersionInfoExW = OSVersionInfoExX<true>;
-//#pragma endregion
 class Systems {
-public: // Property - Version
-	//template<bool IsUnicode = WX::IsUnicode>
-	///* R */ inline OSVersionInfoX<IsUnicode> Version() const {
-	//	global_symbolx(GetVersionEx);
-	//	OSVersionInfoX<IsUnicode> osvi;
-	//	assertl(GetVersionEx(&osvi));
-	//	return osvi;
-	//}
-	//inline OSVersionInfoA VersionA() const reflect_as(Version<false>());
-	//inline OSVersionInfoW VersionW() const reflect_as(Version<true>());
-public: // Property - VersionEx
-	//template<bool IsUnicode = WX::IsUnicode>
-	///* R */ inline OSVersionInfoExX<IsUnicode> VersionEx() const {
-	//	global_symbolx(GetVersionEx);
-	//	OSVersionInfoExX<IsUnicode> osvi;
-	//	assertl(GetVersionEx(&osvi));
-	//	return osvi;
-	//}
-	//inline OSVersionInfoExA VersionExA() const reflect_as(VersionEx<false>());
-	//inline OSVersionInfoExW VersionExW() const reflect_as(VersionEx<true>());
 } inline System;
 
 }

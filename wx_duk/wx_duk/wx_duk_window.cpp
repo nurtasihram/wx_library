@@ -7,8 +7,7 @@ inline duk_c_function duk_set_safe(AnyClosure closure) {
 	static auto _closure = closure;
 	return duk_fn {
 		auto pobj = duk_get_this__p<AnyClass>(ctx);
-		if (!pobj)
-			return DUK_RET_REFERENCE_ERROR;
+		if (!pobj) return DUK_RET_REFERENCE_ERROR;
 		if constexpr (!std::is_void_v<decltype(_closure(ctx, pobj))>)
 			return _closure(ctx, pobj);
 		else {
@@ -22,8 +21,7 @@ inline duk_c_function duk_get_safe(AnyClosure closure) {
 	static auto _closure = closure;
 	return duk_fn {
 		auto pobj = duk_get_this__p<AnyClass>(ctx);
-		if (!pobj)
-			return DUK_RET_REFERENCE_ERROR;
+		if (!pobj) return DUK_RET_REFERENCE_ERROR;
 		if constexpr (!std::is_void_v<decltype(_closure(ctx, pobj))>)
 			return _closure(ctx, pobj);
 		else {
@@ -61,9 +59,7 @@ static duk_c_function duk_constructor_buffer = duk_constructor {
 				duk_push_string(ctx, "__p");
 				duk_dup(ctx, 0);
 				duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
-			}
-			else
-				return DUK_RET_TYPE_ERROR;
+			} else return DUK_RET_TYPE_ERROR;
 			break;
 		}
 	}
@@ -208,8 +204,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowPlacement>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_boolean(ctx, pobj->SetMinPosition());
 					return 1;
 				}
@@ -221,8 +216,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowPlacement>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_boolean(ctx, pobj->RestoreToMaximized());
 					return 1;
 				}
@@ -234,8 +228,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowPlacement>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_boolean(ctx, pobj->Async());
 					return 1;
 				}
@@ -247,8 +240,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowPlacement>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "SW", pobj->ShowFlags().yield());
 					return 1;
 				}
@@ -265,8 +257,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowPlacement>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto &&Pos = pobj->MinPosition();
 					duk_push_point(ctx, Pos);
 					return 1;
@@ -283,8 +274,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowPlacement>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto &&Pos = pobj->MaxPosition();
 					duk_push_point(ctx, Pos);
 					return 1;
@@ -301,8 +291,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowPlacement>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto &&Pos = pobj->NormalPosition();
 					duk_push_rect(ctx, Pos);
 					return 1;
@@ -311,8 +300,7 @@ void load_duk_window(duk_context *ctx) {
 			duk_add_method(
 				/* String */ ctx, "toString", 0, duk_fn {
 				auto pobj = duk_get_this__p<WindowPlacement>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto lpszShowFlags = duk_this_prop_to_string(ctx, "ShowFlags");
 				auto lpszMinPos = duk_this_prop_to_string(ctx, "MinPosition"),
 					 lpszMaxPos = duk_this_prop_to_string(ctx, "MaxPosition"),
@@ -357,8 +345,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowInfo>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto &&r = pobj->Rect();
 					duk_push_rect(ctx, r);
 					return 1;
@@ -375,8 +362,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get{
 					auto pobj = duk_get_this__p<WindowInfo>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto &&r = pobj->ClientRect();
 					duk_push_rect(ctx, r);
 					return 1;
@@ -389,8 +375,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowInfo>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "WindowStyle", pobj->Styles().yield());
 					return 1;
 				}
@@ -402,8 +387,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowInfo>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "WindowStyleEx", pobj->StylesEx().yield());
 					return 1;
 				}
@@ -415,8 +399,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowInfo>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_int(ctx, pobj->Status());
 					return 1;
 				}
@@ -432,8 +415,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowInfo>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto &&p = pobj->Borders();
 					duk_push_point(ctx, p);
 					return 1;
@@ -446,8 +428,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowInfo>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_uint(ctx, pobj->ClassAtom());
 					return 1;
 				}
@@ -459,8 +440,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<WindowInfo>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_uint(ctx, pobj->CreatorVersion());
 					return 1;
 				}
@@ -498,16 +478,14 @@ void load_duk_window(duk_context *ctx) {
 			}),
 			duk_get {
 				auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_enum(ctx, "ClassStyle", pobj->Styles().yield());
 				return 1;
 			}
 		);
 		/* int */ duk_put_prop_r(ctx, "ClsExtra", duk_fn {
 			auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-			if (!pobj)
-				return DUK_RET_REFERENCE_ERROR;
+			if (!pobj) return DUK_RET_REFERENCE_ERROR;
 			duk_push_int(ctx, pobj->ClsExtra());
 			return 1;
 		});
@@ -518,8 +496,7 @@ void load_duk_window(duk_context *ctx) {
 			}),
 			duk_get {
 				auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_int(ctx, pobj->WndExtra());
 				return 1;
 			}
@@ -535,8 +512,7 @@ void load_duk_window(duk_context *ctx) {
 			}),
 			duk_get {
 				auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_new_cclass(ctx, "Module", pobj->Module());
 				return 1;
 			}
@@ -552,8 +528,7 @@ void load_duk_window(duk_context *ctx) {
 			}),
 			duk_get {
 				auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_new_cclass(ctx, "Icon", pobj->Icon());
 				return 1;
 			}
@@ -569,8 +544,7 @@ void load_duk_window(duk_context *ctx) {
 			}),
 			duk_get {
 				auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_new_cclass(ctx, "Cursor", pobj->Cursor());
 				return 1;
 			}
@@ -586,8 +560,7 @@ void load_duk_window(duk_context *ctx) {
 			}),
 			duk_get {
 				auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_new_cclass(ctx, "Brush", pobj->Background());
 				return 1;
 			}
@@ -597,16 +570,14 @@ void load_duk_window(duk_context *ctx) {
 			duk_set_safe<AnyWndClass>([](duk_context *ctx, AnyWndClass *pobj) {
 				if (duk_is_string(ctx, 0))
 					pobj->Menu(duk_to_string(ctx, 0));
-				elif  (duk_is_number(ctx, 0))
+				elif (duk_is_number(ctx, 0))
 					pobj->Menu(duk_to_uint16(ctx, 0));
-				else
-					return DUK_RET_TYPE_ERROR;
+				else return DUK_RET_TYPE_ERROR;
 				return 0;
 			}),
 			duk_get {
 				auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_new_cclass(ctx, "Menu", pobj->Menu());
 				return 1;
 			}
@@ -618,8 +589,7 @@ void load_duk_window(duk_context *ctx) {
 			}),
 			duk_get {
 				auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_string(ctx, pobj->Name());
 				return 1;
 			}
@@ -631,16 +601,14 @@ void load_duk_window(duk_context *ctx) {
 			}),
 			duk_get {
 				auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_uint(ctx, pobj->Atom());
 				return 1;
 			}
 		);
 		/* Atom */ duk_add_method(ctx, "Register", 0, duk_fn {
 			auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-			if (!pobj)
-				return DUK_RET_REFERENCE_ERROR;
+			if (!pobj) return DUK_RET_REFERENCE_ERROR;
 			WORD atom = 0;
 			if (wx_try(ctx, [&] { atom = pobj->Register(); }))
 				return DUK_RET_REFERENCE_ERROR;
@@ -649,16 +617,14 @@ void load_duk_window(duk_context *ctx) {
 		});
 		/* void */ duk_add_method(ctx, "Unregister", 0, duk_fn {
 			auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-			if (!pobj)
-				return DUK_RET_REFERENCE_ERROR;
+			if (!pobj) return DUK_RET_REFERENCE_ERROR;
 			if (wx_try(ctx, [&] { pobj->Unregister(); }))
 				return DUK_RET_REFERENCE_ERROR;
 			return 0;
 		});
 		/* void */ duk_add_method(ctx, "GetInfo", 0, duk_fn {
 			auto pobj = duk_get_this__p<AnyWndClass>(ctx);
-			if (!pobj)
-				return DUK_RET_REFERENCE_ERROR;
+			if (!pobj) return DUK_RET_REFERENCE_ERROR;
 			if (wx_try(ctx, [&] { pobj->GetInfo(); }))
 				return DUK_RET_REFERENCE_ERROR;
 			return 0;
@@ -703,8 +669,7 @@ void load_duk_window(duk_context *ctx) {
 			duk_add_prop(ctx, "IconSm",
 				duk_fn {
 					auto pobj = duk_get_this__p<WindowClassExA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HICON hIcon = O;
 					if (!duk_get_class__p(ctx, "IconSmall", hIcon))
 						return DUK_RET_TYPE_ERROR;
@@ -713,8 +678,7 @@ void load_duk_window(duk_context *ctx) {
 				},
 				duk_fn {
 					auto pobj = duk_get_this__p<WindowClassExA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_new_cclass(ctx, "Icon", pobj->IconSmall());
 					return 1;
 				}
@@ -740,8 +704,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CreateStructA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_new_cclass(ctx, "Module", pobj->Module());
 					return 1;
 				}
@@ -757,8 +720,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CreateStructA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_new_cclass(ctx, "Menu", pobj->Menu());
 					return 1;
 				}
@@ -774,8 +736,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CreateStructA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_new_cclass(ctx, "Window", pobj->Parent());
 					return 1;
 				}
@@ -787,8 +748,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CreateStructA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "WindowStyle", pobj->Styles().yield());
 					return 1;
 				}
@@ -800,8 +760,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CreateStructA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_string(ctx, pobj->Caption());
 					return 1;
 				}
@@ -813,8 +772,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CreateStructA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "WindowStyleEx", pobj->StylesEx().yield());
 					return 1;
 				}
@@ -830,8 +788,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
  				duk_get {
 					auto pobj = duk_get_this__p<CreateStructA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_point(ctx, pobj->Size());
 					return 1;
 				}
@@ -847,8 +804,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
  				duk_get {
 					auto pobj = duk_get_this__p<CreateStructA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_point(ctx, pobj->Position());
 					return 1;
 				}
@@ -864,36 +820,31 @@ void load_duk_window(duk_context *ctx) {
 				}),
  				duk_get {
 					auto pobj = duk_get_this__p<CreateStructA>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_rect(ctx, pobj->Rect());
 					return 1;
 				}
 			);
 			/* void */ duk_add_method(ctx, "ClientRect", 2, duk_fn {
 				auto pobj = duk_get_this__p<CreateStructA>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				LRect rc;
 				if (!duk_get_rect(ctx, rc, 0))
 					return DUK_RET_TYPE_ERROR;
 				if (duk_is_undefined(ctx, 1))
-					pobj->ClientRect(rc);
-				else
-					pobj->ClientRect(rc, duk_to_uint(ctx, 1));
+					 pobj->ClientRect(rc);
+				else pobj->ClientRect(rc, duk_to_uint(ctx, 1));
 				return 0;
 			});
 			/* void */ duk_add_method(ctx, "ClientSize", 2, duk_fn {
 				auto pobj = duk_get_this__p<CreateStructA>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				LPoint Size;
 				if (!duk_get_point(ctx, Size, 0))
 					return DUK_RET_TYPE_ERROR;
 				if (duk_is_undefined(ctx, 1))
-					pobj->ClientSize(Size);
-				else
-					pobj->ClientSize(Size, duk_to_uint(ctx, 1));
+					 pobj->ClientSize(Size);
+				else pobj->ClientSize(Size, duk_to_uint(ctx, 1));
 				return 0;
 			});
 			return 0;
@@ -921,9 +872,7 @@ void load_duk_window(duk_context *ctx) {
 						duk_push_string(ctx, "__p");
 						duk_dup(ctx, 0);
 						duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
-					}
-					else
-						return DUK_RET_TYPE_ERROR;
+					} else return DUK_RET_TYPE_ERROR;
 					break;
 				}
 			}
@@ -937,24 +886,21 @@ void load_duk_window(duk_context *ctx) {
 		duk_structure {
 			/* void */ duk_add_method(ctx, "Destroy", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Destroy(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
 			/* void */ duk_add_method(ctx, "Close", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Close(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
 			/* void */ duk_add_method(ctx, "Delete", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Delete(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
@@ -963,8 +909,7 @@ void load_duk_window(duk_context *ctx) {
 #pragma region Method
 			/* void */ duk_add_method(ctx, "Hide", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Hide(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -972,8 +917,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "ShowNormal", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->ShowNormal(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -981,8 +925,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "Normal", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Normal(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -990,8 +933,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "ShowMinimized", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->ShowMinimized(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -999,8 +941,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "ShowMaximized", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->ShowMaximized(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -1008,8 +949,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "Maximize", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Maximize(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -1017,8 +957,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "ShowNoActivate", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->ShowNoActivate(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -1026,8 +965,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "Show", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Show(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -1035,8 +973,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "Minimize", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Minimize(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -1044,8 +981,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "ShowMinNoActive", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->ShowMinNoActive(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -1053,8 +989,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "ShowNA", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->ShowNA(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -1062,8 +997,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "Restore", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Restore(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -1071,8 +1005,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "ShowDefault", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->ShowDefault(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -1080,8 +1013,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "ForceMinimize", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->ForceMinimize(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -1089,8 +1021,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "Max", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Max(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -1099,16 +1030,14 @@ void load_duk_window(duk_context *ctx) {
 
 			/* void */ duk_add_method(ctx, "BringToTop", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->BringToTop(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
 			/* int */ duk_add_method(ctx, "MsgBox", 3, duk_fn{
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto nargs = duk_get_top(ctx);
 				LPCSTR lpCaption = duk_to_string(ctx, 0);
 				LPCSTR lpText = duk_to_string(ctx, 1);
@@ -1121,16 +1050,14 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "Focus", 0, duk_fn{
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Focus(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
 			/* bool */ duk_add_method(ctx, "IsFocus", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				bool res = false;
 				if (wx_try(ctx, [&] { res = pobj->IsFocus(); }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -1139,8 +1066,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* Point */ duk_add_method(ctx, "ScreenToClient", 1, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				LPoint pt;
 				if (!duk_get_point(ctx, pt, 0))
 					return DUK_RET_TYPE_ERROR;
@@ -1151,8 +1077,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* Point */ duk_add_method(ctx, "ClientToScreen", 1, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				LPoint pt;
 				if (!duk_get_point(ctx, pt, 0))
 					return DUK_RET_TYPE_ERROR;
@@ -1163,8 +1088,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* Rect */ duk_add_method(ctx, "AdjustRect", 1, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				LRect rc;
 				if (!duk_get_rect(ctx, rc, 0))
 					return DUK_RET_TYPE_ERROR;
@@ -1175,8 +1099,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "Move", 2, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				LRect rc;
 				if (!duk_get_rect(ctx, rc, 0)) 
 					return DUK_RET_TYPE_ERROR;
@@ -1187,16 +1110,14 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "Update", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Update(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
 			/* void */ duk_add_method(ctx, "RegisterTouch", 2, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				bool bFine = duk_is_undefined(ctx, 0) ? true : duk_to_boolean(ctx, 1);
 				bool bWantPalm = duk_is_undefined(ctx, 1) ? false : duk_to_boolean(ctx, 1);
 				if (wx_try(ctx, [&] { pobj->RegisterTouch(bFine, bWantPalm); }))
@@ -1205,16 +1126,14 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "UnregisterTouch", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->UnregisterTouch(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
 			/* void */ duk_add_method(ctx, "HasChild", 1, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				HWND hWnd = O;
 				if (!duk_get_class__p(ctx, "Window", hWnd))
 					return DUK_RET_TYPE_ERROR;
@@ -1224,8 +1143,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "EnumChild", 1, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (!duk_is_callable(ctx, 0))
 					return DUK_RET_TYPE_ERROR;
 				if (wx_try(ctx, [&] {
@@ -1243,8 +1161,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* void */ duk_add_method(ctx, "EnumProp", 1, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (!duk_is_callable(ctx, 0))
 					return DUK_RET_TYPE_ERROR;
 				if (wx_try(ctx, [&] {
@@ -1265,8 +1182,7 @@ void load_duk_window(duk_context *ctx) {
 
 			/* bool */ duk_add_method(ctx, "valueOf", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				bool res = false;
 				if (wx_try(ctx, [&] { res = *pobj; }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -1278,8 +1194,7 @@ void load_duk_window(duk_context *ctx) {
 #pragma region Properties
 			/* bool */ duk_put_prop_r(ctx, "Iconic", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				bool res = false;
 				if (wx_try(ctx, [&] { res = pobj->Iconic(); }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -1288,8 +1203,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* bool */ duk_put_prop_r(ctx, "Zoomed", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				bool res = false;
 				if (wx_try(ctx, [&] { res = pobj->Zoomed(); }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -1305,8 +1219,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					bool res = false;
 					if (wx_try(ctx, [&] { res = pobj->Visible(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1323,8 +1236,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					bool res = false;
 					if (wx_try(ctx, [&] { res = pobj->Enabled(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1334,8 +1246,7 @@ void load_duk_window(duk_context *ctx) {
 			);
 			/* Point */ duk_put_prop_r(ctx, "ClientRect", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				LRect rc;
 				if (wx_try(ctx, [&] { rc = pobj->ClientRect(); }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -1344,8 +1255,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* Point */ duk_put_prop_r(ctx, "ClientSize", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				LPoint Size;
 				if (wx_try(ctx, [&] { Size = pobj->ClientSize(); }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -1364,8 +1274,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
  				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					LPoint Pos;
 					if (wx_try(ctx, [&] { Pos = pobj->Position(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1385,8 +1294,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
  				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					LPoint Size;
 					if (wx_try(ctx, [&] { Size = pobj->Size(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1406,8 +1314,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
  				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					LRect rc;
 					if (wx_try(ctx, [&] { rc = pobj->Rect(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1434,8 +1341,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
  				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_get_global_string(ctx, "WindowPlacement");
 					auto pPlacement = (WindowPlacement *)duk_push_fixed_buffer(ctx, sizeof(WindowPlacement));
 					if (wx_try(ctx, [&] { *pPlacement = pobj->Placement(); }))
@@ -1448,8 +1354,7 @@ void load_duk_window(duk_context *ctx) {
 				/* WindowInfo */ ctx, "Info",
  				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_get_global_string(ctx, "WindowInfo");
 					auto pInfo = (WindowInfo *)duk_push_fixed_buffer(ctx, sizeof(WindowInfo));
 					if (wx_try(ctx, [&] { *pInfo = pobj->Info(); }))
@@ -1461,8 +1366,7 @@ void load_duk_window(duk_context *ctx) {
 			duk_put_prop_r(
 				/* uint */ ctx, "TextLength", duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					if (wx_try(ctx, [&] { duk_push_uint(ctx, pobj->TextLengthA()); }))
 						return DUK_RET_REFERENCE_ERROR;
 					return 1;
@@ -1477,8 +1381,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					if (wx_try(ctx, [&] { duk_push_string(ctx, pobj->TextA()); }))
 						return DUK_RET_REFERENCE_ERROR;
 					return 1;
@@ -1486,8 +1389,7 @@ void load_duk_window(duk_context *ctx) {
 			);
 			/* String */ duk_put_prop_r(ctx, "ModuleFileName", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				StringA res = O;
 				if (wx_try(ctx, [&] { res = pobj->ModuleFileNameA(); }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -1506,8 +1408,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HWND hParent = O;
 					if (wx_try(ctx, [&] { hParent = pobj->Parent(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1519,8 +1420,7 @@ void load_duk_window(duk_context *ctx) {
 				/* Window */ ctx, "Next",
 				duk_get{
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_new_cclass(ctx, "Window", pobj->Next());
 					return 1;
 				}
@@ -1529,8 +1429,7 @@ void load_duk_window(duk_context *ctx) {
 				/* Window */ ctx, "Prev",
 				duk_get{
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_new_cclass(ctx, "Window", pobj->Prev());
 					return 1;
 				}
@@ -1547,8 +1446,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HMENU hMenu = O;
 					if (wx_try(ctx, [&] { hMenu = pobj->Menu(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1558,8 +1456,7 @@ void load_duk_window(duk_context *ctx) {
 			);
 			/* Menu */ duk_put_prop_r(ctx, "SysMenu", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				HMENU hMenu = O;
 				if (wx_try(ctx, [&] { hMenu = pobj->SysMenu(); }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -1569,8 +1466,7 @@ void load_duk_window(duk_context *ctx) {
 			/* Region */ duk_add_prop(ctx, "Region", ////////////////////////////
 				duk_set {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HRGN hRgn = O;
 					if (!duk_get_class__p(ctx, "Region", hRgn))
 						return DUK_RET_TYPE_ERROR;
@@ -1580,8 +1476,7 @@ void load_duk_window(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HRGN hRgn = O;
 					//if (wx_try(ctx, [&] { hRgn = pobj->Region(); }))
 					//	return DUK_RET_REFERENCE_ERROR;
@@ -1601,8 +1496,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HICON hIcon = O;
 					if (wx_try(ctx, [&] { hIcon = pobj->Icon(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1622,8 +1516,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HICON hIcon = O;
 					if (wx_try(ctx, [&] { hIcon = pobj->IconSmall(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1643,8 +1536,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HICON hIcon = O;
 					if (wx_try(ctx, [&] { hIcon = pobj->IconSmall2(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1666,8 +1558,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HMODULE hModule = O;
 					if (wx_try(ctx, [&] { hModule = pobj->Module(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1687,8 +1578,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HWND hParent = O;
 					if (wx_try(ctx, [&] { hParent = pobj->HwndParent(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1705,8 +1595,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
  				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					WStyle styles = WStyle::Overlapped;
 					if (wx_try(ctx, [&] { styles = pobj->Styles(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1723,8 +1612,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
  				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					WStyleEx styles = WStyleEx::No;
 					if (wx_try(ctx, [&] { styles = pobj->StylesEx(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1735,16 +1623,14 @@ void load_duk_window(duk_context *ctx) {
 			/* pointer */ duk_add_prop(ctx, "UserData", ///////////////
 				duk_set {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					if (wx_try(ctx, [&] { pobj->UserData(duk_to_int(ctx, 0)); }))
 						return DUK_RET_REFERENCE_ERROR;
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					LONG_PTR data = 0;
 					if (wx_try(ctx, [&] { data = pobj->UserData(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1755,16 +1641,14 @@ void load_duk_window(duk_context *ctx) {
 			/* long_ptr */ duk_add_prop(ctx, "ID", ///////////////
 				duk_set {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					if (wx_try(ctx, [&] { pobj->ID(duk_to_int(ctx, 0)); }))
 						return DUK_RET_REFERENCE_ERROR;
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					LONG_PTR uID = 0;
 					if (wx_try(ctx, [&] { uID = pobj->ID(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1775,8 +1659,7 @@ void load_duk_window(duk_context *ctx) {
 #pragma endregion
 			/* String */ duk_put_prop_r(ctx, "ClassName", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				StringA res = O;
 				if (wx_try(ctx, [&] { res = pobj->ClassNameA(); }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -1787,8 +1670,7 @@ void load_duk_window(duk_context *ctx) {
 			/* Atom */ duk_add_prop(ctx, "ClassAtom", ////////////////////////
 				duk_set { 
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto atom = duk_to_uint16(ctx, 0);
 					if (wx_try(ctx, [&] { pobj->ClassAtom(atom); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1796,8 +1678,7 @@ void load_duk_window(duk_context *ctx) {
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_uint16_t atom = 0;
 					if (wx_try(ctx, [&] { atom = pobj->ClassAtom(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1808,16 +1689,14 @@ void load_duk_window(duk_context *ctx) {
 			/* String */ duk_add_prop(ctx, "ClassMenuName", ////////////////////////
 				duk_set {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					if (wx_try(ctx, [&] { pobj->ClassMenuName(duk_to_string(ctx, 0)); }))
 						return DUK_RET_REFERENCE_ERROR;
 					return 0;
 				},
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					LPCSTR res = O;
 					if (wx_try(ctx, [&] { res = pobj->ClassMenuNameA(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1834,8 +1713,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					ClassStyle styles = ClassStyle::VRedraw;
 					if (wx_try(ctx, [&] { styles = pobj->ClassStyles(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1855,8 +1733,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HBRUSH hBrush = O;
 					if (wx_try(ctx, [&] { hBrush = pobj->ClassBackground(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1876,8 +1753,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HCURSOR hCursor = O;
 					if (wx_try(ctx, [&] { hCursor = pobj->ClassCursor(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1897,8 +1773,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HICON hIcon = O;
 					if (wx_try(ctx, [&] { hIcon = pobj->ClassIcon(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1918,8 +1793,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HMODULE hModule = O;
 					if (wx_try(ctx, [&] { hModule = pobj->ClassModule(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1936,8 +1810,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_uint_t extra = 0;
 					if (wx_try(ctx, [&] { extra = (duk_uint_t)pobj->ClassWndExtra(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1954,8 +1827,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_uint_t extra = 0;
 					if (wx_try(ctx, [&] { extra = (duk_uint_t)pobj->ClassClsExtra(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1976,8 +1848,7 @@ void load_duk_window(duk_context *ctx) {
 				}),
 				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
-					if (!pobj)
-						return DUK_RET_REFERENCE_ERROR;
+					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					HICON hIcon = O;
 					if (wx_try(ctx, [&] { hIcon = pobj->ClassIconSmall(); }))
 						return DUK_RET_REFERENCE_ERROR;
@@ -1988,8 +1859,7 @@ void load_duk_window(duk_context *ctx) {
 #pragma endregion
 			/* WindowClass */ duk_put_prop_r(ctx, "Class", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_get_global_string(ctx, "WindowClass");
 				auto pWndClass = (WindowClassA *)duk_push_fixed_buffer(ctx, sizeof(WindowClassA));
 				if (wx_try(ctx, [&] { *pWndClass = pobj->ClassA(); }))
@@ -1999,8 +1869,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* WindowClassEx */ duk_put_prop_r(ctx, "ClassEx", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_get_global_string(ctx, "WindowClassEx");
 				auto pWndClass = (WindowClassExA *)duk_push_fixed_buffer(ctx, sizeof(WindowClassExA));
 				if (wx_try(ctx, [&] { *pWndClass = pobj->ClassExA(); }))
@@ -2010,8 +1879,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* DevCap */ duk_put_prop_r(ctx, "DC", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				HDC hdc = O;
 				if (wx_try(ctx, [&] { hdc = pobj->DC(); }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -2020,8 +1888,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* uint */ duk_put_prop_r(ctx, "ProcessId", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				DWORD res = 0;
 				if (wx_try(ctx, [&] { res = pobj->ProcessId(); }))
 					return DUK_RET_REFERENCE_ERROR;
@@ -2030,8 +1897,7 @@ void load_duk_window(duk_context *ctx) {
 			});
 			/* uint */ duk_put_prop_r(ctx, "ThreadId", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				DWORD res = 0;
 				if (wx_try(ctx, [&] { res = pobj->ThreadId(); }))
 					return DUK_RET_REFERENCE_ERROR;

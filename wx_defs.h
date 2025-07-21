@@ -146,49 +146,39 @@ using Null = decltype(nullptr);
 constexpr Null O = nullptr;
 
 #pragma region String Reference
-#ifdef UNICODE
-constexpr bool IsUnicode = true;
-#else
-constexpr bool IsUnicode = false;
-#endif
-template<class CharType>
-class StringBase;
-using String = StringBase<TCHAR>;
-using StringA = StringBase<CHAR>;
-using StringW = StringBase<WCHAR>;
-const StringA operator ""_A(LPCSTR lpString, size_t uLen);
-const StringW operator ""_W(LPCWSTR lpString, size_t uLen);
-const String operator ""_S(LPCTSTR lpString, size_t uLen);
-#define S(str) _T(str##_S)
 template<bool IsUnicode>
 using XCHAR = std::conditional_t<IsUnicode, WCHAR, CHAR>;
 template<bool IsUnicode>
 using LPXSTR = std::conditional_t<IsUnicode, LPWSTR, LPSTR>;
 template<bool IsUnicode>
 using LPCXSTR = std::conditional_t<IsUnicode, LPCWSTR, LPCSTR>;
-template<bool IsUnicode>
-using StringX = std::conditional_t<IsUnicode, StringW, StringA>;
+#ifdef UNICODE
+constexpr bool IsUnicode = true;
+#else
+constexpr bool IsUnicode = false;
+#endif
 template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
 static constexpr auto AnyX(AnyTypeW *w, AnyTypeA *a) {
 	if constexpr (IsUnicode)
-		return w;
-	else
-		return a;
+		 return w;
+	else return a;
 }
 template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
 static constexpr auto &AnyX(AnyTypeW &w, AnyTypeA &a) {
 	if constexpr (IsUnicode)
-		return w;
-	else
-		return a;
+		 return w;
+	else return a;
 }
 template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
 static constexpr auto AnyX(AnyTypeW &&w, AnyTypeA &&a) {
 	if constexpr (IsUnicode)
-		return w;
-	else
-		return a;
+		 return w;
+	else return a;
 }
+template<class TCHAR>
+static constexpr bool IsCharA = std::is_same_v<TCHAR, CHAR>; 
+template<class TCHAR>
+static constexpr bool IsCharW = std::is_same_v<TCHAR, WCHAR>; 
 #ifndef __clang__
 #	define locale_symbolx(name) static constexpr auto name = AnyX<IsUnicode>(name##W, name##A)
 #	define global_symbolx(name) static constexpr auto name = AnyX<IsUnicode>(::name##W, ::name##A)
@@ -197,7 +187,20 @@ static constexpr auto AnyX(AnyTypeW &&w, AnyTypeA &&a) {
 #	define global_symbolx(name) static auto name = AnyX<IsUnicode>(::name##W, ::name##A)
 #endif
 #define const_stringx(name, str) static constexpr auto name##A = str; static constexpr auto name##W = L##str
-#define auto_string(name, str) const_stringx(name, str); locale_symbolx(name)
+#define auto_stringx(name, str) const_stringx(name, str); locale_symbolx(name)
+#define switch_structx(name) std::conditional_t<IsUnicode, name##W, name##A>
+#define using_structx(name) using name = std::conditional_t<IsUnicode, name##W, name##A>
+template<class CharType>
+class StringBase;
+using String = StringBase<TCHAR>;
+using StringA = StringBase<CHAR>;
+using StringW = StringBase<WCHAR>;
+const StringA operator""_A(LPCSTR lpString, size_t uLen);
+const StringW operator""_W(LPCWSTR lpString, size_t uLen);
+const String operator""_S(LPCTSTR lpString, size_t uLen);
+#define S(str) _T(str##_S)
+template<bool IsUnicode>
+using StringX = switch_structx(String);
 #pragma endregion
 
 #pragma region Reuse & Cast
@@ -512,8 +515,9 @@ struct TypeList<Type0, Types...> : TypeList<Types...> {
 	using IndexOf = typename index<ind>::type;
 	template<size_t ind>
 	inline auto &indexof() {
-		if constexpr (ind == 0) return type;
-		else return TypeList<Types...>::template indexof<ind - 1>();
+		if constexpr (ind == 0)
+			 return TypeList<Types...>::template indexof<ind - 1>();
+		else return type;
 	}
 	using ind_seq = std::index_sequence_for<Type0, Types...>;
 private:
@@ -654,7 +658,8 @@ public:
 	FunctionPackage(PackType &f) : func(f) {}
 	RetType operator()(Args ...args) override {
 		static_assert(static_compatible<PackType, RetType(Args...)>, "Argument list uncompatible");
-		if constexpr (std::is_pointer_v<PackType>) reflect_to(assertl(func), func(args...))
+		if constexpr (std::is_pointer_v<PackType>)
+			 reflect_to(assertl(func), func(args...))
 		else reflect_as(func(args...));
 	}
 };
@@ -731,49 +736,31 @@ class Rx {
 	static constexpr MapN _GetMap(LPCTSTR lpsz, size_t len) {
 		LPCTSTR hpsz = lpsz;
 		// skip blank
-		for (; len; --len)
-			if (__s(hpsz[0]))
-				++hpsz;
-			else
-				break;
+		while (len && __s(hpsz[0]))
+			--len, ++hpsz;
 		// get key
 		lpsz = hpsz;
-		for (; len; --len)
-			if (_Word(hpsz[0]))
-				++hpsz;
-			else
-				break;
+		while (len && _Word(hpsz[0]))
+			--len, ++hpsz;
 		Token key{ lpsz, hpsz };
 		// skip blank
-		for (; len; --len)
-			if (__s(hpsz[0]))
-				++hpsz;
-			else
-				break;
+		while (len && __s(hpsz[0])) 
+			--len, ++hpsz;
 		// get equal
 		if (hpsz[0] != '=')
 			return{ {}, {} };
 		++hpsz;
 		// skip blank
-		for (; len; --len)
-			if (__s(hpsz[0]))
-				++hpsz;
-			else
-				break;
+		while (len && __s(hpsz[0])) 
+			--len, ++hpsz;
 		// get val
 		lpsz = hpsz;
-		for (; len; --len)
-			if (_Word(hpsz[0]))
-				++hpsz;
-			else
-				break;
+		while (len && _Word(hpsz[0]))
+			--len, ++hpsz;
 		Token val{ lpsz, hpsz };
 		// skip blank
-		for (; len; --len)
-			if (__s(hpsz[0]))
-				++hpsz;
-			else
-				break;
+		while (len && __s(hpsz[0])) 
+			--len, ++hpsz;
 		if (hpsz[0] == ',')
 			++hpsz;
 		return{ { key, val }, hpsz };
@@ -793,10 +780,9 @@ public:
 	template<class AnyEnum>
 	static constexpr auto Table() {
 		misuse_assert(IsEnum<AnyEnum>, "template type must be based on EnumBase");
-		if constexpr (std::is_same_v<TCHAR, CHAR>)
-			return GetMaps<AnyEnum::Count>(AnyEnum::__EntriesA, CountOf(AnyEnum::__EntriesA));
-		else
-			return GetMaps<AnyEnum::Count>(AnyEnum::__EntriesW, CountOf(AnyEnum::__EntriesW));
+		if constexpr (IsCharW<TCHAR>)
+			 return GetMaps<AnyEnum::Count>(AnyEnum::__EntriesW, CountOf(AnyEnum::__EntriesW));
+		else return GetMaps<AnyEnum::Count>(AnyEnum::__EntriesA, CountOf(AnyEnum::__EntriesA));
 	}
 };
 /* EnumTableX */
@@ -816,7 +802,7 @@ inline auto __makeResult(EnumType val) {
 	static_assert(left || right, "Convertless");
 	if constexpr (left)
 		return reuse_as<Enum1>(val);
-	elif  constexpr (right)
+	elif constexpr (right)
 		return reuse_as<Enum2>(val);
 }
 template<class AnyType>
@@ -1043,21 +1029,19 @@ inline LRect operator&(const LSize &s, const LPoint &p) reflect_as({ p, s });
 inline LRect &WX::LRect::align(LAlign a, const LRect &r2) {
 	if (a == LAlign::HCenter)
 		xmove((r2.left + r2.right - left - right) / 2);
-	elif  (a <= LAlign::Right) {
+	elif (a <= LAlign::Right) {
 		left += r2.right - right;
 		right = r2.right;
-	}
-	else /* if (a <= LAlign::Left) */ {
+	} else /* if (a <= LAlign::Left) */ {
 		right += r2.left - left;
 		left = r2.left;
 	}
 	if (a == LAlign::VCenter)
 		ymove((r2.top + r2.bottom - top - bottom) / 2);
-	elif  (a <= LAlign::Bottom) {
+	elif (a <= LAlign::Bottom) {
 		top += r2.bottom - bottom;
 		bottom = r2.bottom;
-	}
-	else /* if (a & LAlign::Top) */ {
+	} else /* if (a & LAlign::Top) */ {
 		bottom += r2.top - top;
 		top = r2.top;
 	}

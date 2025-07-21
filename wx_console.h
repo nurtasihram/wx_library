@@ -89,6 +89,10 @@ public:
 		hError(GetStdHandle(STD_ERROR_HANDLE)) {}
 	ConsoleItf(DWORD pid) reflect_to(Attach(pid));
 public:
+	static inline void Attach(DWORD pid) assertl_reflect_as(AttachConsole(pid));
+	static inline void Alloc() assertl_reflect_as(AllocConsole());
+	static inline void Free() assertl_reflect_as(FreeConsole());
+public:
 	inline auto &Reopen() {
 		hInput = GetStdHandle(STD_INPUT_HANDLE);
 		hOutput = GetStdHandle(STD_OUTPUT_HANDLE);
@@ -102,63 +106,59 @@ public:
 		freopen_s(&fin, "CONIN$", "r+t", stdin);
 		retchild;
 	}
-	inline auto &Clear() reflect_to_self(FillCharacter(_T(' '), ScreenBufferInfo().Size().Square()), CursorPosition(0));
+	inline auto &Clear() reflect_to_self(Fill(_T(' '), ScreenBufferInfo().Size().Square()), CursorPosition(0));
 	inline auto &Color(WORD wAttributes) reflect_to_self(FillAttributes(wAttributes, ScreenBufferInfo().Size().Square()), Attributes(wAttributes));
-
-#pragma region Allocator
-	static inline void Attach(DWORD pid) assertl_reflect_as(AttachConsole(pid));
-	static inline void Alloc() assertl_reflect_as(AllocConsole());
-	static inline void Free() assertl_reflect_as(FreeConsole());
-	static inline CWindow Window() reflect_as(GetConsoleWindow());
-#pragma endregion
-
+public:
 	inline void ActiveScreenBuffer() assertl_reflect_as(SetConsoleActiveScreenBuffer(hOutput));
 	inline void FlushInputBuffer() assertl_reflect_as(FlushConsoleInputBuffer(hInput));
-
-#pragma region Constants
-	inline DWORD FillCharacter(TCHAR cCharacter, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacter(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
-	inline DWORD FillCharacterA(CHAR cCharacter, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacterA(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
-	inline DWORD FillCharacterW(WCHAR cCharacter, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacterW(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
+public:
+	template<class TCHAR>
+	inline DWORD Fill(TCHAR cCharacter, DWORD nLength, LPoint dwWriteCoord = 0) {
+		constexpr bool IsUnicode = IsCharW<TCHAR>;
+		global_symbolx(FillConsoleOutputCharacter);
+		assertl_reflect_to(DWORD written = 0, FillConsoleOutputCharacter(hOutput, cCharacter, nLength, dwWriteCoord, &written), written);
+	}
 	inline DWORD FillAttributes(WORD wAttributes, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, FillConsoleOutputAttribute(hOutput, wAttributes, nLength, dwWriteCoord, &written), written);
-	inline DWORD WriteCharacter(LPCTSTR lpCharacters, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacter(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
-	inline DWORD WriteCharacterA(LPCSTR lpCharacters, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacterA(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
-	inline DWORD WriteCharacterW(LPCWSTR lpCharacters, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacterW(hOutput, lpCharacters, nLength, dwWriteCoord, &written), written);
+	template<class TCHAR>
+	inline DWORD Write(const TCHAR *lpszString, DWORD nLength) {
+		constexpr bool IsUnicode = IsCharW<TCHAR>;
+		global_symbolx(WriteConsole);
+		assertl_reflect_as(WriteConsole(hOutput, lpszString, nLength, &nLength, O), nLength);
+	}
+	template<class TCHAR>
+	inline DWORD Write(const StringBase<TCHAR> &str) reflect_as(Write((const TCHAR *)str, (DWORD)str.Length()));
+	template<class TCHAR>
+	inline DWORD Write(const TCHAR *lpszString, DWORD nLength, LPoint dwWriteCoord) {
+		constexpr bool IsUnicode = IsCharW<TCHAR>;
+		global_symbolx(WriteConsoleOutputCharacter);
+		assertl_reflect_to(DWORD written = 0, WriteConsoleOutputCharacter(hOutput, lpszString, nLength, dwWriteCoord, &written), written);
+	}
+	template<class TCHAR>
+	inline DWORD Write(const StringBase<TCHAR> &str, LPoint dwWriteCoord) reflect_as(Write((const TCHAR *)str, (DWORD)str.Length(), dwWriteCoord));
 	inline DWORD WriteAttributes(const WORD *lpAttributes, DWORD nLength, LPoint dwWriteCoord = 0) assertl_reflect_to(DWORD written = 0, WriteConsoleOutputAttribute(hOutput, lpAttributes, nLength, dwWriteCoord, &written), written);
 //	inline String ReadCharacter(LPoint pos, LSize size) assertl_reflect_to(String s, ReadConsoleOutputCharacter(hOutput, s, size.Area(), pos, &size), s);
-#pragma endregion
-
-#pragma region Read Write
-protected:
-	inline DWORD _Write(HANDLE hOutput, LPCSTR lpszString, DWORD uLength) assertl_reflect_as(WriteConsoleA(hOutput, lpszString, uLength, &uLength, O), uLength);
-	inline DWORD _Write(HANDLE hOutput, LPCWSTR lpszString, DWORD uLength) assertl_reflect_as(WriteConsoleW(hOutput, lpszString, uLength, &uLength, O), uLength);
-public:
-	inline DWORD Log(const String &s) reflect_as(_Write(hOutput, s, (DWORD)s.Length()));
-	inline DWORD LogA(const StringA &s) reflect_as(_Write(hOutput, s, (DWORD)s.Length()));
-	inline DWORD LogW(const StringW &s) reflect_as(_Write(hOutput, s, (DWORD)s.Length()));
 public:
 	template<class... Args>
-	inline DWORD Log(const Args& ...args) reflect_as(Log(Cats(args...)));
+	inline DWORD Log(const Args& ...args) reflect_as(Write(Cats(args...)));
 	template<class... Args>
-	inline DWORD LogA(const Args& ...args) reflect_as(LogA(CatsA(args...)));
+	inline DWORD LogA(const Args& ...args) reflect_as(Write<CHAR>(CatsA(args...)));
 	template<class... Args>
-	inline DWORD LogW(const Args& ...args) reflect_as(LogW(CatsW(args...)));
-public:
-	inline DWORD Err(const String &s) reflect_as(_Write(hError, s, (DWORD)s.Length()));
-	inline DWORD ErrA(const StringA &s) reflect_as(_Write(hError, s, (DWORD)s.Length()));
-	inline DWORD ErrW(const StringW &s) reflect_as(_Write(hError, s, (DWORD)s.Length()));
+	inline DWORD LogW(const Args& ...args) reflect_as(Write<WCHAR>(CatsW(args...)));
 public:
 	template<class... Args>
-	inline DWORD Err(const Args& ...args) reflect_as(Err(Cats(args...)));
+	inline DWORD Err(const Args& ...args) reflect_as(Write(Cats(args...)));
 	template<class... Args>
-	inline DWORD ErrA(const Args& ...args) reflect_as(ErrA(CatsA(args...)));
+	inline DWORD ErrA(const Args& ...args) reflect_as(Write<CHAR>(CatsA(args...)));
 	template<class... Args>
-	inline DWORD ErrW(const Args& ...args) reflect_as(ErrW(CatsW(args...)));
-#pragma endregion
-
+	inline DWORD ErrW(const Args& ...args) reflect_as(Write<WCHAR>(CatsW(args...)));
 #pragma region Properties
 public: // Property - Title
-	/* W */ inline auto  &Title(LPCSTR lpTitle) assertl_reflect_as_child(SetConsoleTitleA(lpTitle));
-	/* W */ inline auto  &Title(LPCWSTR lpTitle) assertl_reflect_as_child(SetConsoleTitleW(lpTitle));
+	template<class TCHAR>
+	/* W */ inline auto &Title(const TCHAR *lpTitle) {
+		constexpr bool IsUnicode = IsCharW<TCHAR>;
+		global_symbolx(SetConsoleTitle);
+		assertl_reflect_as_child(SetConsoleTitle(lpTitle));
+	}
 	template<bool IsUnicode = WX::IsUnicode>
 	/* R */ inline StringX<IsUnicode> Title() const {
 		global_symbolx(GetConsoleTitle);
@@ -182,6 +182,8 @@ public: // Property - OriginalTitle
 	}
 	/* R */ inline StringA OriginalTitleA() const reflect_as(OriginalTitle<false>());
 	/* R */ inline StringW OriginalTitleW() const reflect_as(OriginalTitle<true>());
+public: // 
+	static inline CWindow Window() reflect_as(GetConsoleWindow());
 public: // Property - CodePage
 	/* W */ inline auto &CodePage(UINT uCodePage) assertl_reflect_as_child(SetConsoleOutputCP(uCodePage));
 	/* R */ inline UINT  CodePage() const reflect_as(GetConsoleOutputCP());

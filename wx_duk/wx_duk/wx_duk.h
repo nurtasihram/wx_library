@@ -55,9 +55,8 @@ void *duk_get_this__p(duk_context *ctx, duk_size_t size = 0);
 template<class AnyHandle>
 inline auto duk_get_this__p(duk_context *ctx) {
 	if constexpr (IsRef<AnyHandle>)
-		return reuse_as<AnyHandle>(duk_get_this__p(ctx));
-	else
-		return reuse_as<AnyHandle *>(duk_get_this__p(ctx, sizeof(AnyHandle)));
+		 return reuse_as<AnyHandle>(duk_get_this__p(ctx));
+	else return reuse_as<AnyHandle *>(duk_get_this__p(ctx, sizeof(AnyHandle)));
 }
 void duk_put_this__p(duk_context *ctx, HANDLE hd);
 
@@ -69,9 +68,8 @@ bool duk_get_class__p(duk_context *ctx, const char *class_name, void *&ptr, duk_
 template<class AnyHandle>
 bool duk_get_class__p(duk_context *ctx, const char *class_name, AnyHandle &hd, duk_idx_t idx = 0) {
 	if constexpr (IsRef<AnyHandle>)
-		return duk_get_class__p(ctx, class_name, ref_as<void *>(hd), 0, idx);
-	else
-		return duk_get_class__p(ctx, class_name, ref_as<void *>(hd), sizeof(AnyHandle), idx);
+		 return duk_get_class__p(ctx, class_name, ref_as<void *>(hd), 0, idx);
+	else return duk_get_class__p(ctx, class_name, ref_as<void *>(hd), sizeof(AnyHandle), idx);
 }
 
 void duk_push_new_handle(duk_context *ctx, const char *class_name, HANDLE hd);
@@ -113,6 +111,8 @@ bool wx_try(duk_context *ctx, const AnyClosure &closure) {
 	return false;
 }
 
+bool duk_load_library(duk_context *ctx, duk_safe_call_function func);
+
 void load_duk_types(duk_context *ctx);
 void load_duk_resource(duk_context *ctx);
 void load_duk_gdi(duk_context *ctx);
@@ -122,4 +122,4 @@ void load_duk_control(duk_context *ctx);
 void load_duk_console(duk_context *ctx);
 void load_duk_realtime(duk_context *ctx);
 
-duk_ret_t load_duk(duk_context *ctx, void *);
+duk_ret_t load_duk_windows(duk_context *ctx, void *);

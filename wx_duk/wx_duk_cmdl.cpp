@@ -87,7 +87,7 @@ _ret:
 				msg.Translate();
 				msg.Dispatch();
 			}
-			elif  (msg.ID() == WX_DUK_ON_CMD) {
+			elif (msg.ID() == WX_DUK_ON_CMD) {
 				duk_get_global_string(ctx, "cmd_exe");
 				duk_push_string(ctx, msg.ParamW<LPCSTR>());
 				auto rc = duk_pcall(ctx, 1);
@@ -230,12 +230,14 @@ void duk_add_flags(duk_context *ctx,
 void commandline(duk_context *ctx) {
 	duk_push_global_object(ctx);
 	using EnumClass = SW;
+
 	duk_add_flags(
 		ctx, EnumClass::__NameA, O,
 		duk_fn {
 			constexpr auto map = EnumTableA<EnumClass>;
 			for (size_t i = 0; i < EnumClass::Count; ++i) {
-				duk_push_string(ctx, map[i].key);
+				StringA key = map[i].key;
+				duk_push_lstring(ctx, key, key.Length());
 				duk_push_uint(ctx, EnumClass::__Vals[i]);
 				duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
 			}
@@ -245,27 +247,13 @@ void commandline(duk_context *ctx) {
 			duk_push_this(ctx);
 			duk_get_prop_string(ctx, -1, "val");
 			auto &&str = EnumClassParseA(small_cast<EnumClass>(duk_to_uint(ctx, -1)));
-			duk_push_string(ctx, str);
+			duk_push_lstring(ctx, str, str.Length());
 			return 1;
 		}
 	);
 
-	duk_int_t rc;
-
-	//rc = duk_safe_call(ctx, load_duk, O, 1, 0);
-	//if (rc != DUK_EXEC_SUCCESS) {
-	//	duk_dup(ctx, -1);
-	//	duk_put_global_string(ctx, "LastError");
-	//	duk_errout(ctx, "%s\n", duk_safe_to_stacktrace(ctx, -1));
-	//}
-
-	duk_push_global_object(ctx);
-	rc = duk_safe_call(ctx, load_duk_cmdl, O, 1, 0);
-	if (rc != DUK_EXEC_SUCCESS) {
-		duk_dup(ctx, -1);
-		duk_put_global_string(ctx, "LastError");
-		duk_errout(ctx, "%s\n", duk_safe_to_stacktrace(ctx, -1));
-	}
+	//duk_load_library(ctx, load_duk_windows);
+	duk_load_library(ctx, load_duk_cmdl);
 
 	//duk_eval_string(ctx, "Console.Reopen()");
 	Console.Log(_T("\n - Duktape symbols loaded -\n"));
@@ -278,7 +266,7 @@ void commandline(duk_context *ctx) {
 		// print prompt
 		auto &&cur_pos = Console.CursorPosition();
 		++cur_pos.x;
-		Console.FillCharacter(_T('>'), duk_cmdl_count, cur_pos);
+		Console.Fill(_T('>'), duk_cmdl_count, cur_pos);
 		cur_pos.x += duk_cmdl_count + 1;
 		Console.CursorPosition(cur_pos);
 		// read input

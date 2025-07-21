@@ -28,24 +28,21 @@ static void load_duk_event(duk_context *ctx) {
 		duk_structure {
 			/* void */ duk_add_method(ctx, "Set", 0, duk_fn {
 				auto pobj = duk_get_this__p<CEvent>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Set(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
 			/* void */ duk_add_method(ctx, "Reset", 0, duk_fn {
 				auto pobj = duk_get_this__p<CEvent>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Reset(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
 			/* void */ duk_add_method(ctx, "Pulse", 0, duk_fn {
 				auto pobj = duk_get_this__p<CEvent>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Pulse(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
@@ -70,8 +67,7 @@ static void load_duk_mutex(duk_context *ctx) {
 		duk_structure {
 			/* void */ duk_add_method(ctx, "Release", 0, duk_fn {
 				auto pobj = duk_get_this__p<CMutex>(ctx);
-				if (!pobj)
-					return DUK_RET_REFERENCE_ERROR;
+				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Release(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;

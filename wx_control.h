@@ -125,14 +125,14 @@ enum_class(HeaderFilterType, UINT,
 enum_flags(HeaderItemState, UINT,
 	Focussed = HDIS_FOCUSED);
 template<bool IsUnicode>
-class HeaderItemX : public RefStruct<std::conditional_t<IsUnicode, HDITEMW, HDITEMA>> {
-	using HDITEMX = std::conditional_t<IsUnicode, HDITEMW, HDITEMA>;
-	using HD_TEXTFILTERX = std::conditional_t<IsUnicode, HD_TEXTFILTERA, HD_TEXTFILTERW>;
+class HeaderItemX : public RefStruct<switch_structx(HDITEM)> {
+	using_structx(HDITEM);
+	using_structx(HD_TEXTFILTER);
 public:
-	using super = RefStruct<std::conditional_t<IsUnicode, HDITEMW, HDITEMA>>;
+	using super = RefStruct<switch_structx(HDITEM)>;
 public:
 	HeaderItemX() {}
-	HeaderItemX(const HDITEMX &hdi) : super(hdi) {}
+	HeaderItemX(const HDITEM &hdi) : super(hdi) {}
 	HeaderItemX(HeaderItemMask mask) reflect_to(self->mask = mask.yield());
 public: // Property - Mask
 	/* W */ inline auto &Mask(HeaderItemMask mask) reflect_to_self(self->mask = mask.yield());

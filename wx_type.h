@@ -242,22 +242,15 @@ public:
 	inline AnyType *Alloc(size_t size = SizeOf<AnyType>) {
 		if (size <= 0)
 			Free();
-		if (p)
-			p = (AnyType *)heap.Realloc(p, size);
-		else
-			p = (AnyType *)heap.Alloc(size);
-		return p;
+		return (AnyType *)(p ? heap.Realloc(p, size) : heap.Alloc(size));
 	}
 	template<class AnyFlags>
 	inline AnyType *Alloc(size_t size, AnyFlags flags) {
-		if (p)
-			p = (AnyType *)heap.Realloc(p, size, flags);
-		else
-			p = (AnyType *)heap.Alloc(size, flags);
-		return p;
+		return (AnyType *)(p ? heap.Realloc(p, size, flags) : heap.Alloc(size, flags));
 	}
 	inline void Free() {
-		if (p) heap.Free(p);
+		if (p)
+			heap.Free(p);
 		p = O;
 	}
 public:
@@ -366,7 +359,7 @@ public:
 public:
 	inline LPCTSTR c_str() const reflect_as(lpsz && Len ? lpsz : O);
 	inline LPCTSTR c_str_safe() const {
-		auto_string(null_str, "");
+		auto_stringx(null_str, "");
 		if (!Len || !lpsz) return null_str;
 		return lpsz;
 	}
@@ -439,9 +432,7 @@ public:
 			if (!(Flags & STR_RELEASE))
 				Free(this->lpsz);
 			this->lpsz = lpsz;
-		}
-		else
-			lpsz = Realloc(nLen, lpsz);
+		} else lpsz = Realloc(nLen, lpsz);
 		CopyMemory(lpsz + Len, str.lpsz, (str.Len + 1) * sizeof(TCHAR));
 		Len = nLen;
 		retself;
@@ -513,9 +504,8 @@ inline auto Fits(StringBase<TCHAR> str) {
 	if constexpr (std::is_same_v<XCHAR<IsUnicode>, TCHAR>)
 		return str;
 	else if constexpr (IsUnicode)
-		return FitsW(str);
-	else
-		return FitsA(str);
+		 return FitsW(str);
+	else return FitsA(str);
 }
 template<class CharType>
 inline String Fits(const CharType *lpString, size_t MaxLen, CodePages cp = CodePages::Active) {
@@ -526,19 +516,16 @@ inline String Fits(const CharType *lpString, size_t MaxLen, CodePages cp = CodeP
 		auto lpsz = String::Alloc(uLen);
 		CopyMemory(lpsz, lpString, (uLen + 1) * sizeof(TCHAR));
 		return{ uLen, lpsz };
-	}
-	else {
+	} else {
 		int tLen;
 		if constexpr (IsUnicode)
-	 		assertl((tLen = MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, O, 0)) > 0)
-		else
-			assertl((tLen = WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, O, 0, O, O)) > 0)
+	 		 assertl((tLen = MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, O, 0)) > 0)
+		else assertl((tLen = WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, O, 0, O, O)) > 0)
 		// if (tLen != uLen) warnning glyphs missing 
 		auto lpsz = String::Alloc(tLen);
 		if constexpr (IsUnicode)
-			assertl(tLen == MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen))
-		else
-			assertl(tLen == WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen, O, O))
+			 assertl(tLen == MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen))
+		else assertl(tLen == WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen, O, O))
 		lpsz[tLen] = 0;
 		return{ (size_t)tLen, lpsz };
 	}
@@ -575,8 +562,7 @@ inline StringBase<TCHAR> ReplaceAll(const StringBase<TCHAR> &src,
 		for (; lj < hj; ++lj)
 			if ((*lpDst++ = *li++) != *lj)
 				break;
-		if (lj < hj)
-			continue;
+		if (lj < hj) continue;
 		lpDst -= tLen;
 		for (LPCTSTR lpwStr = strWith, lpwEnd = strWith.end(); lpwStr < lpwEnd; ++lpwStr)
 			*lpDst++ = *lpwStr;
@@ -604,8 +590,7 @@ inline void *Copy(void *lpDst, const void *lpSrc, size_t uSize, Args... args) {
 }
 template<class AnyType>
 inline void Fill(AnyType *lpArray, const AnyType &Sample, size_t Len) {
-	while (Len--)
-		CopyMemory(lpArray++, &Sample, sizeof(AnyType));
+	while (Len--) CopyMemory(lpArray++, &Sample, sizeof(AnyType));
 }
 #pragma endregion
 
@@ -803,13 +788,12 @@ private:
 				*hpBuffer++ = fill;
 		}
 		if (float_len > 0)
-			*lpBuffer = '.';
+			 *lpBuffer = '.';
 		elif (float_force)
-			*lpBuffer = '.';
+			 *lpBuffer = '.';
 		elif (float_align)
-			*lpBuffer = ' ';
-		else
-			--hpBuffer;
+			 *lpBuffer = ' ';
+		else --hpBuffer;
 		return hpBuffer;
 	}
 public:
@@ -972,9 +956,8 @@ StringBase<TCHAR> EnumClassParseX(AnyEnum e) {
 		if (val == EnumType::__Vals[i])
 			return table[i].key;
 	if constexpr (EnumType::HasProtoEnum)
-		return EnumClassParseX<TCHAR>(reuse_as<typename EnumType::ProtoEnum>(e));
-	else
-		return format_numeral("d").toString<TCHAR>(val);
+		 return EnumClassParseX<TCHAR>(reuse_as<typename EnumType::ProtoEnum>(e));
+	else return format_numeral("d").toString<TCHAR>(val);
 }
 template<class AnyEnum>
 inline auto EnumClassParse(AnyEnum e) reflect_as(EnumClassParseX<TCHAR>(e));
@@ -986,7 +969,7 @@ inline auto EnumClassParseW(AnyEnum e) reflect_as(EnumClassParseX<WCHAR>(e));
 static constexpr size_t Len_sprintf_buff = 1024;
 template<class TCHAR = ::TCHAR>
 inline StringBase<TCHAR> format(const TCHAR *lpszFormat, ...) {
-	constexpr bool IsUnicode = std::is_same_v<TCHAR, WCHAR>;
+	constexpr bool IsUnicode = IsCharW<TCHAR>;
 	global_symbolx(StringCchVPrintfEx);
 	va_list argList;
 	va_start(argList, lpszFormat);
@@ -1022,7 +1005,7 @@ inline StringX<IsUnicode> Exception::toString() const {
 		"Sentence:      %s\n" \
 		"Line:          %d\n"
 	if (ErrorCode() == 0) {
-		auto_string(fmt_n, _ERR_FMT_);
+		auto_stringx(fmt_n, _ERR_FMT_);
 		return format(
 			fmt_n,
 			(LPCTSTR)File<IsUnicode>(),
@@ -1031,7 +1014,7 @@ inline StringX<IsUnicode> Exception::toString() const {
 			Line()
 		);
 	}
-	auto_string(
+	auto_stringx(
 		fmt_m, _ERR_FMT_
 		"Error Code:    %d\n"
 		"Error Message: %s\n"
@@ -1053,8 +1036,7 @@ inline StringW Exception::toStringW() const reflect_as(toString<true>());
 template<bool IsUnicode>
 inline StringX<IsUnicode> Exception::ErrorMessage() const {
 	using LPTSTR = LPXSTR<IsUnicode>;
-	if (!ErrorCode())
-		return O;
+	if (!ErrorCode()) return O;
 	global_symbolx(FormatMessage);
 	AutoPointer<Local, XCHAR<IsUnicode>> lpsz(LocalHeap);
 	DWORD len;

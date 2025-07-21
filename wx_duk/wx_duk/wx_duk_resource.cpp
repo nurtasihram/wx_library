@@ -95,9 +95,9 @@ static void load_duk_module(duk_context *ctx) {
 				case 1:
 					if (duk_is_pointer(ctx, 0)) {
 						duk_put_this__p(ctx, duk_get_pointer(ctx, 0));
-					} elif  (duk_is_null(ctx, 0)) {
+					} elif (duk_is_null(ctx, 0)) {
 						duk_put_this__p(ctx, O);
-					} elif  (duk_is_string(ctx, 0)) {
+					} elif (duk_is_string(ctx, 0)) {
 						auto lpModuleName = duk_to_string(ctx, 0);
 						CModule mod = O;
 						if (wx_try(ctx, [&] { *mod = Module(lpModuleName); }))
@@ -213,8 +213,7 @@ static void load_duk_menu(duk_context *ctx) {
 			__CommRes<CMenu>(ctx);
 			/* <Self> */ duk_add_method(ctx, "Separator", 0, duk_fn {
 				auto pobj = duk_get_this__p<CMenu>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Separator(); }))
 					return DUK_RET_REFERENCE_ERROR;
 				duk_push_this(ctx);
@@ -222,8 +221,7 @@ static void load_duk_menu(duk_context *ctx) {
 			});
 			/* <Self> */ duk_add_method(ctx, "String", 3, duk_fn {
 				auto pobj = duk_get_this__p<CMenu>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				LPCSTR lpString = duk_to_string(ctx, 0);
 				UINT_PTR uID = duk_is_undefined(ctx, 1) ? 0 : duk_to_int(ctx, 1);
 				bool bEnable = duk_is_undefined(ctx, 2) ? true : duk_to_boolean(ctx, 2);
@@ -234,8 +232,7 @@ static void load_duk_menu(duk_context *ctx) {
 			});
 			/* <Self> */ duk_add_method(ctx, "Check", 4, duk_fn {
 				auto pobj = duk_get_this__p<CMenu>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				LPCSTR lpString = duk_to_string(ctx, 0);
 				UINT_PTR uID = duk_is_undefined(ctx, 1) ? 0 : duk_to_int(ctx, 1);
 				bool bChecked = duk_is_undefined(ctx, 2) ? 0 : duk_to_boolean(ctx, 2);
@@ -247,8 +244,7 @@ static void load_duk_menu(duk_context *ctx) {
 			});
 			/* <Self> */ duk_add_method(ctx, "Popup", 3, duk_fn {
 				auto pobj = duk_get_this__p<CMenu>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				LPCSTR lpString = duk_to_string(ctx, 0);
 				HMENU hPopup = nullptr;
 				if (!duk_get_class__p(ctx, "Menu", hPopup, 1))
@@ -265,8 +261,7 @@ static void load_duk_menu(duk_context *ctx) {
 			});
 			/* bool */ duk_add_method(ctx, "valueOf", 0, duk_fn {
 				auto pobj = duk_get_this__p<CMenu>(ctx);
-				if (!pobj)
-					return DUK_RET_TYPE_ERROR;
+				if (!pobj) return DUK_RET_TYPE_ERROR;
 				bool res = false;
 				if (wx_try(ctx, [&] { res = *pobj; }))
 					return DUK_RET_REFERENCE_ERROR;

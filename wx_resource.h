@@ -2,9 +2,6 @@
 
 #include <vector>
 
-#include <winerror.h>
-
-#include "wx_type.h"
 #include "wx_file.h"
 #include "wx_gdi.h"
 
@@ -394,9 +391,8 @@ public:
 	template<bool IsUnicode = WX::IsUnicode>
 	inline StringX<IsUnicode> String(WORD wID) const {
 		if constexpr (IsUnicode)
-			return StringW(wID);
-		else
-			return StringA(wID);
+			 return StringW(wID);
+		else return StringA(wID);
 	}
 	inline WX::StringA StringA(WORD wID) const {
 		auto len = (int)StringW(wID).Length();

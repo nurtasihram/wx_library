@@ -442,7 +442,7 @@ public: // Property - Menu
 public: // Property - Name
 	/* W */ inline auto &Name(LPCTSTR lpszClassName) reflect_to_child(self->lpszClassName = lpszClassName);
 	/* R */ inline String Name() const {
-		auto_string(fmt, "#%d");
+		auto_stringx(fmt, "#%d");
 		if (!self->lpszClassName)
 			return O;
 		if (IS_INTRESOURCE(self->lpszClassName))
@@ -461,8 +461,8 @@ public:
 template<bool IsUnicode>
 class WindowClassX : public WindowClassBase<
 					 WindowClassX<IsUnicode>,
-					 std::conditional_t<IsUnicode, WNDCLASSW, WNDCLASSA>> {
-	using WNDCLASS = std::conditional_t<IsUnicode, WNDCLASSW, WNDCLASSA>;
+					 switch_structx(WNDCLASS)> {
+	using_structx(WNDCLASS);
 public:
 	using super = WindowClassBase<WNDCLASS, WindowClassX<IsUnicode>>;
 public:
@@ -484,8 +484,8 @@ using WindowClassW = WindowClassX<true>;
 template<bool IsUnicode>
 class WindowClassExX : public WindowClassBase<
 					   WindowClassExX<IsUnicode>,
-					   std::conditional_t<IsUnicode, WNDCLASSEXW, WNDCLASSEXA>> {
-	using WNDCLASSEX = std::conditional_t<IsUnicode, WNDCLASSEXW, WNDCLASSEXA>;
+					   switch_structx(WNDCLASSEX)> {
+	using_structx(WNDCLASSEX);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
 public:
@@ -539,8 +539,8 @@ static inline HWND WindowCreateMDI(const CREATESTRUCTW &cs) assertl_reflect_as(
 		cs.hwndParent, cs.hInstance,
 		(LPARAM)cs.lpCreateParams), h);
 template<bool IsUnicode, class Style = WStyle, class StyleEx = WStyleEx>
-class CreateStructX : public RefStruct<std::conditional_t<IsUnicode, CREATESTRUCTW, CREATESTRUCTA>> {
-	using CREATESTRUCT = std::conditional_t<IsUnicode, CREATESTRUCTW, CREATESTRUCTA>;
+class CreateStructX : public RefStruct<switch_structx(CREATESTRUCT)> {
+	using_structx(CREATESTRUCT);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
 public:
@@ -609,22 +609,37 @@ using CreateStructW = CreateStructX<true>;
 #pragma endregion
 
 #pragma region WindowBase
-//class WindowProp {
-//	HWND hWnd;
-//	template<class LPCTSTR>
-//	class Prop {
-//		HWND hWnd;
-//		LPCTSTR lpString;
-//	public:
-//		Prop(HWND hWnd, LPCTSTR lpString) : hWnd(hWnd), lpString(lpString) {}
-////		inline void operator=(HANDLE hData) assertl_reflect_as(SetProp(hWnd, lpString, str.yield()));
-//
-//	};
-//public:
-//	WindowProp(HWND hWnd) : hWnd(hWnd) {}
-//	inline auto operator[](LPCSTR lpString) {}
-//	inline auto operator[](LPCWSTR lpString) {}
-//};
+class WindowProp {
+	HWND hWnd;
+	template<class LPCTSTR>
+	class Prop {
+		mutable HWND hWnd;
+		mutable LPCTSTR lpString;
+		Prop(const Prop &) = delete;
+	public:
+		Prop(HWND hWnd, LPCTSTR lpString) : hWnd(hWnd), lpString(lpString) {}
+	public:
+		inline operator HANDLE() const {
+			global_symbolx(GetProp);
+			assertl_reflect_as(auto hData = GetProp(hWnd, lpString), hData);
+		}
+		inline void operator=(HANDLE hData) {
+			global_symbolx(SetProp);
+			assertl_reflect_as(SetProp(hWnd, lpString, hData));
+		}
+		inline auto &operator=(const Prop &prop) {
+			global_symbolx(SetProp);
+			assertl_reflect_as_self(SetProp(hWnd, lpString, prop));
+		}
+	};
+public:
+	WindowProp(HWND hWnd) : hWnd(hWnd) {}
+public:
+	template<class TCHAR>
+	inline auto operator[](const TCHAR *lpString) -> Prop<TCHAR> reflect_as({ hWnd, lpString });
+	template<class TCHAR>
+	inline auto operator[](const TCHAR *lpString) const-> const Prop<TCHAR> reflect_as({ hWnd, lpString });
+};
 template<class AnyChild>
 class WindowBase : public ChainExtender<WindowBase<AnyChild>, AnyChild> {
 	mutable HWND hWnd = O;
@@ -778,7 +793,7 @@ public:
 			};
 			return EnumPropsExA(self, EnumPropProc, (LPARAM)std::addressof(fnEnumProps));
 		}
-		elif  constexpr (static_compatible<AnyFunc, bool(HWND, LPWSTR, HANDLE)>) {
+		elif constexpr (static_compatible<AnyFunc, bool(HWND, LPWSTR, HANDLE)>) {
 			FnEnumPropW fnEnumProps{
 				[&](HWND hWnd, LPWSTR lpString, HANDLE hData) {
 					return fnEnum(hWnd, lpString, hData);
@@ -786,7 +801,7 @@ public:
 			};
 			return EnumPropsExW(self, EnumPropProc, (LPARAM)std::addressof(fnEnumProps));
 		}
-		elif  constexpr (static_compatible<AnyFunc, void(HWND, LPSTR, HANDLE)>) {
+		elif constexpr (static_compatible<AnyFunc, void(HWND, LPSTR, HANDLE)>) {
 			FnEnumPropA fnEnumProps{
 				[&](HWND hWnd, LPSTR lpString, HANDLE hData) {
 					fnEnum(hWnd, lpString, hData);
@@ -794,14 +809,13 @@ public:
 				}
 			};
 			return EnumPropsExA(self, EnumPropProc, (LPARAM)std::addressof(fnEnumProps));
-		}
-		else {
+		} else {
 			static_assert(static_compatible<AnyFunc, void(HWND, LPWSTR, HANDLE)>, "Invalid function type for EnumProp");
 			FnEnumPropW fnEnumProps{
 				[&](HWND hWnd, LPWSTR lpString, HANDLE hData) {
 					return fnEnum(hWnd, lpString, hData);
 					return true;
-			}
+				}
 			};
 			return EnumPropsExW(self, EnumPropProc, (LPARAM)std::addressof(fnEnumProps));
 		}
@@ -826,8 +840,7 @@ protected:
 						  "DefProc must be compatible to LRESULT(HWND, UINT, WPARAM, LPARAM)");
 			return Child::DefProc(hWnd, msgid, wParam, lParam);
 		}
-		else
-			return DefWindowProc(hWnd, msgid, wParam, lParam);
+		else return DefWindowProc(hWnd, msgid, wParam, lParam);
 	}
 	inline LRESULT HandleNext() const { throw MSG{ 0 }; }
 	static LRESULT CALLBACK MainProc(HWND hWnd, UINT msgid, WPARAM wParam, LPARAM lParam) {
@@ -885,7 +898,7 @@ protected:
 	static inline wx_answer Catch(Msg msg, const Exception &err) {
 		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Msg, Exception)>)
 			reflect_as(Child::OnCatch(msg, err))
-		elif  constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Msg, Exception)>)
+		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Msg, Exception)>)
 			reflect_to(Child::OnCatch(msg, err), false)
 		else {
 			static_assert(!member_OnCatch_of<AnyChild>::callable, "OnCatch uncompatible");
@@ -904,7 +917,7 @@ protected:
 	static inline LRESULT Final(Msg msg) {
 		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<LRESULT(Msg)>)
 			reflect_as(Child::OnFinal(msg))
-		elif  constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void(Msg)>)
+		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void(Msg)>)
 			reflect_to(Child::OnFinal(msg), -1)
 		else {
 			static_assert(!member_OnFinal_of<AnyChild>::callable, "OnFinal uncallable");
@@ -994,7 +1007,7 @@ public:
 protected:
 	template<bool IsUnicode, class Style = WStyle, class StyleEx = WStyleEx>
 	class CreateStructX : public WX::CreateStructX<IsUnicode, Style, StyleEx>  {
-		using CREATESTRUCT = std::conditional_t<IsUnicode, CREATESTRUCTW, CREATESTRUCTA>;
+		using_structx(CREATESTRUCT);
 		using LPCTSTR = LPCXSTR<IsUnicode>;
 	public:
 		using super = CreateStructX<IsUnicode, Style, StyleEx>;
@@ -1016,9 +1029,9 @@ protected:
 	template<class Style = WStyle, class StyleEx = WStyleEx>
 	using CreateStruct = CreateStructX<IsUnicode, Style, StyleEx>;
 	template<class Style = WStyle, class StyleEx = WStyleEx>
-	using CreateStructA = CreateStructA<false, Style, StyleEx>;
+	using CreateStructA = CreateStructX<false, Style, StyleEx>;
 	template<class Style = WStyle, class StyleEx = WStyleEx>
-	using CreateStructW = CreateStructW<true, Style, StyleEx>;
+	using CreateStructW = CreateStructX<true, Style, StyleEx>;
 public:
 	inline void Destroy() assertl_reflect_as(DestroyWindow(self));
 	inline void Close() assertl_reflect_as(CloseWindow(self));
