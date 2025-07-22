@@ -85,8 +85,7 @@ enum_flags(WindowStyleEx, DWORD,
 using WSEX = WindowStyleEx;
 using WStyleEx = WindowStyleEx;
 #pragma endregion
-
-enum_class(ShowWindowFlags, int,
+enum_class(WindowShowFlags, int,
 	Hide             = SW_HIDE,
 	ShowNormal       = SW_SHOWNORMAL,
 	Normal           = SW_NORMAL,
@@ -102,8 +101,7 @@ enum_class(ShowWindowFlags, int,
 	ShowDefault      = SW_SHOWDEFAULT,
 	ForceMinimize    = SW_FORCEMINIMIZE,
 	Max              = SW_MAX);
-using SW = ShowWindowFlags;
-
+using SW = WindowShowFlags;
 enum_flags(WindowPosFlag, UINT,
 	NoSize          = SWP_NOSIZE,
 	NoMove          = SWP_NOMOVE,
@@ -145,7 +143,7 @@ public: // Property - Size
 	/* R */ inline LSize Size() const reflect_as({ self->cx, self->cy });
 public: // Property - Rect
 	/* W */ inline auto &Rect(LRect r) reflect_to_self(Size(r), Position(r.left_top()));
-	/* R */ inline LRect Rect() const reflect_as(LRect(Position(), Size()));
+	/* R */ inline LRect Rect() const reflect_as(LRect::left_top(Position(), Size()));
 public: // Property - Flags
 	/* W */ inline auto &Flags(Flag flags) reflect_to_self(self->flags = flags.yield());
 	/* R */ inline Flag Flags() const reflect_as(reuse_as<Flag>(self->flags));
@@ -590,13 +588,13 @@ public: // Property - Position
 	/* R */ inline LPoint Position() const reflect_as({ self->x, self->y });
 public: // Property - Rect
 	/* W */ inline auto &Rect(LRect r) reflect_to_self(Size(r), Position(r.left_top()));
-	/* R */ inline LRect Rect() const reflect_as(LRect(Position(), Size()));
+	/* R */ inline LRect Rect() const reflect_as(LRect::left_top(Position(), Size()));
 public: // Property - ClientRect
 	/* W */ inline auto &ClientRect(LRect rc) assertl_reflect_as(AdjustWindowRectEx(rc, self->style, self->hMenu ? TRUE : FALSE, self->dwExStyle), Rect(rc));
 	/* W */ inline auto &ClientRect(LRect rc, UINT dpi) assertl_reflect_as(AdjustWindowRectExForDpi(rc, self->style, self->hMenu ? TRUE : FALSE, self->dwExStyle, dpi), Rect(rc));
 public: // Property - ClientSize
-	/* W */ inline auto &ClientSize(LSize sz) reflect_as(ClientRect({ Position(), sz }));
-	/* W */ inline auto &ClientSize(LSize sz, UINT dpi) reflect_as(ClientRect({ Position(), sz }, dpi));
+	/* W */ inline auto &ClientSize(LSize sz) reflect_as(ClientRect(LRect::left_top(Position(), sz)));
+	/* W */ inline auto &ClientSize(LSize sz, UINT dpi) reflect_as(ClientRect(LRect::left_top(Position(), sz), dpi));
 public:
 	template <class _AnyChild = void>
 	inline WindowShim<_AnyChild> Create() const reflect_as(WindowCreate(this));
@@ -1105,7 +1103,7 @@ public: // Proterty - Enabled
 public: // Property - ClientRect
 	/* R */ inline LRect ClientRect() const assertl_reflect_to(LRect rc, GetClientRect(self, &rc), rc);
 public: // Property - ClientSize
-	/* R */ inline LSize ClientSize() const assertl_reflect_to(LRect rc, GetClientRect(self, &rc), rc.right_bottom());
+	/* R */ inline LSize ClientSize() const assertl_reflect_to(LRect rc, GetClientRect(self, &rc), rc.size());
 public: // Property - Position
 	/* W */ inline auto  &Position(LPoint ptPosition) assertl_reflect_as_child(SetWindowPos(self, O, ptPosition.x, ptPosition.y, 0, 0, SWP_NOSIZE | SWP_NOACTIVATE));
 	/* R */ inline LPoint Position() const assertl_reflect_to(LRect rc, GetWindowRect(self, &rc), rc.left_top());

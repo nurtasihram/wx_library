@@ -337,9 +337,9 @@ public:
 	StringA toStringA() const;
 	StringW toStringW() const;
 public:
+	inline operator bool() const reflect_as(lpszSent);
 	operator StringA() const;
 	operator StringW() const;
-	inline operator bool() const reflect_as(lpszSent);
 };
 int MsgBox(LPCSTR lpCaption, const Exception &err, HWND hParent = O);
 int MsgBox(LPCWSTR lpCaption, const Exception &err, HWND hParent = O);
@@ -713,7 +713,7 @@ class Rx {
 	static constexpr bool _word(TCHAR w) reflect_as(__A_z(w) || __0_9(w));
 	static constexpr bool _Word(TCHAR w) reflect_as(_word(w) || w == '_');
 	static constexpr bool __s(TCHAR w) reflect_as(w == '\n' || w == '\r' || w == '\t' || w == ' ');
-	class Token {
+	struct Token {
 		friend class Rx;
 		LPCTSTR lpsz;
 		size_t len;
@@ -733,44 +733,55 @@ class Rx {
 		constexpr Map operator[](size_t ind) const { return map[ind]; }
 	};
 	struct MapN { Map map; LPCTSTR hpsz; };
-	static constexpr MapN _GetMap(LPCTSTR lpsz, size_t len) {
+	static constexpr MapN _GetMap(LPCTSTR lpsz) {
 		LPCTSTR hpsz = lpsz;
 		// skip blank
-		while (len && __s(hpsz[0]))
-			--len, ++hpsz;
+		while (auto ch = hpsz[0])
+			if (__s(hpsz[0]))
+				++hpsz;
+			else
+				break;
 		// get key
 		lpsz = hpsz;
-		while (len && _Word(hpsz[0]))
-			--len, ++hpsz;
+		while (auto ch = hpsz[0])
+			if (_Word(hpsz[0]))
+				++hpsz;
+			else
+				break;
 		Token key{ lpsz, hpsz };
 		// skip blank
-		while (len && __s(hpsz[0])) 
-			--len, ++hpsz;
+		while (auto ch = hpsz[0])
+			if (__s(hpsz[0]))
+				++hpsz;
+			else
+				break;
 		// get equal
 		if (hpsz[0] != '=')
 			return{ {}, {} };
 		++hpsz;
 		// skip blank
-		while (len && __s(hpsz[0])) 
-			--len, ++hpsz;
+		while (auto ch = hpsz[0])
+			if (__s(hpsz[0]))
+				++hpsz;
+			else
+				break;
 		// get val
 		lpsz = hpsz;
-		while (len && _Word(hpsz[0]))
-			--len, ++hpsz;
+		while (auto ch = hpsz[0])
+			if (hpsz[0] != ',')
+				++hpsz;
+			else
+				break;
 		Token val{ lpsz, hpsz };
-		// skip blank
-		while (len && __s(hpsz[0])) 
-			--len, ++hpsz;
 		if (hpsz[0] == ',')
 			++hpsz;
 		return{ { key, val }, hpsz };
 	}
 	template<size_t count>
-	static constexpr Maps<count> GetMaps(LPCTSTR lpsz, size_t len) {
+	static constexpr Maps<count> GetMaps(LPCTSTR lpsz) {
 		Maps<count> maps;
 		for (size_t i = 0; i < count; ++i) {
-			auto map = _GetMap(lpsz, len);
-			len -= map.hpsz - lpsz;
+			auto map = _GetMap(lpsz);
 			lpsz = map.hpsz;
 			maps.map[i] = map.map;
 		}
@@ -781,19 +792,17 @@ public:
 	static constexpr auto Table() {
 		misuse_assert(IsEnum<AnyEnum>, "template type must be based on EnumBase");
 		if constexpr (IsCharW<TCHAR>)
-			 return GetMaps<AnyEnum::Count>(AnyEnum::__EntriesW, CountOf(AnyEnum::__EntriesW));
-		else return GetMaps<AnyEnum::Count>(AnyEnum::__EntriesA, CountOf(AnyEnum::__EntriesA));
+			 return GetMaps<AnyEnum::Count>(AnyEnum::__EntriesW);
+		else return GetMaps<AnyEnum::Count>(AnyEnum::__EntriesA);
 	}
 };
 /* EnumTableX */
-template<class TCHAR, class AnyEnum>
-static constexpr auto EnumTableX = Rx<TCHAR>::template Table<AnyEnum>();
+template<class AnyEnum, class TCHAR = ::TCHAR>
+static constexpr auto EnumTable = Rx<TCHAR>::template Table<AnyEnum>();
 template<class AnyEnum>
-static constexpr auto EnumTableA = EnumTableX<CHAR, AnyEnum>;
+static constexpr auto EnumTableA = EnumTable<AnyEnum, CHAR>;
 template<class AnyEnum>
-static constexpr auto EnumTableW = EnumTableX<WCHAR, AnyEnum>;
-template<class AnyEnum>
-static constexpr auto EnumTable = EnumTableX<TCHAR, AnyEnum>;
+static constexpr auto EnumTableW = EnumTable<AnyEnum, WCHAR>;
 /* (misc) */
 template<class Enum1, class Enum2, class EnumType>
 inline auto __makeResult(EnumType val) {
@@ -883,263 +892,6 @@ public: \
 #define enum_class_explicit(name, base, ...) __enum_ex(name, base, enum_explicit enum_class_opr, #__VA_ARGS__, __VA_ARGS__)
 #pragma endregion
 
-#pragma endregion
-
-#pragma region Point Size Rect
-struct LSize;
-struct LPoint : public POINT {
-public:
-	LPoint() : POINT{ 0 } {}
-	LPoint(const POINT &p) : POINT(p) {}
-	LPoint(const LPoint &p) : POINT(p) {}
-	LPoint(LONG a) : POINT{ a, a } {}
-	LPoint(LONG x, LONG y) : POINT{ x, y } {}
-	LPoint(const SIZE &s) : POINT{ s.cx, s.cy } {}
-	LPoint(COORD c) : POINT{ c.X, c.Y } {}
-public:
-	inline operator LPARAM() const reflect_as((LPARAM)this);
-	inline operator COORD() const reflect_as({ (SHORT)x, (SHORT)y });
-	inline LPoint  operator+ () const reflect_to_self();
-	inline LPoint  operator~ () const reflect_as({ y,  x });
-	inline LPoint  operator* (double l) const reflect_as({ LONG((double)x * l), LONG((double)y * l) });
-	inline LPoint  operator/ (double l) const reflect_as({ LONG((double)x / l), LONG((double)y / l) });
-	inline LPoint  operator* (int l) const reflect_as({ x * l, y * l });
-	inline LPoint  operator/ (int l) const reflect_as({ x / l, y / l });
-	inline LPoint  operator- () const reflect_as({ -x, -y });
-	inline LPoint  operator+ (const LPoint &s) const reflect_as({ x + s.x, y + s.y });
-	inline LPoint  operator- (const LPoint &s) const reflect_as({ x - s.x, y - s.y });
-	inline LPoint &operator*=(double p) reflect_to_self(x = LONG((double)x * p), y = LONG((double)y * p));
-	inline LPoint &operator/=(double p) reflect_to_self(x = LONG((double)x / p), y = LONG((double)y / p));
-	inline LPoint &operator+=(const LPoint &p) reflect_to_self(x += p.x, y += p.y);
-	inline LPoint &operator-=(const LPoint &p) reflect_to_self(x -= p.x, y -= p.y);
-	inline LPoint &operator =(const LPoint &p) reflect_to_self(x = p.x, y = p.y);
-	inline bool    operator==(LPoint pt) const reflect_as(pt.x == x && pt.y == y);
-	inline bool    operator!=(LPoint pt) const reflect_as(pt.x != x || pt.y != y);
-};
-struct LSize : public SIZE {
-public:
-	LSize() : SIZE{ 0 } {}
-	LSize(const SIZE &s) : SIZE(s) {}
-	LSize(const LSize &s) : SIZE(s) {}
-	LSize(LONG c) : SIZE{ c, c } {}
-	LSize(LONG cx, LONG cy) : SIZE{ cx, cy } {}
-	LSize(const LPoint &p) : SIZE{ p.x, p.y } {}
-	LSize(COORD c) : SIZE{ c.X, c.Y } {}
-public:
-	inline auto Square() const reflect_as(cx * cy);
-public:
-	inline operator LPARAM() const reflect_as((LPARAM)this);
-	inline operator LPoint() const reflect_as({ cx, cy });
-	inline operator COORD() const reflect_as({ (SHORT)cx, (SHORT)cy });
-	inline LSize  operator+ () const reflect_to_self();
-	inline LSize  operator- () const reflect_as({ -cx, -cy });
-	inline LSize  operator~ () const reflect_as({ cy,  cx });
-	inline LSize  operator* (double l) const reflect_as({ LONG((double)cx * l), LONG((double)cy * l) });
-	inline LSize  operator/ (double l) const reflect_as({ LONG((double)cx / l), LONG((double)cy / l) });
-	inline LSize  operator* (int l) const reflect_as({ cx * l, cy * l });
-	inline LSize  operator/ (int l) const reflect_as({ cx / l, cy / l });
-	inline LSize  operator+ (const LSize &s) const reflect_as({ cx + s.cx, cy + s.cy });
-	inline LSize  operator- (const LSize &s) const reflect_as({ cx - s.cx, cy - s.cy });
-	inline LSize &operator*=(double p) reflect_to_self(cx = LONG((double)cx * p), cy = LONG((double)cy * p));
-	inline LSize &operator/=(double p) reflect_to_self(cx = LONG((double)cx / p), cy = LONG((double)cy / p));
-	inline LSize &operator+=(const LSize &p) reflect_to_self(cx += p.cx, cy += p.cy);
-	inline LSize &operator-=(const LSize &p) reflect_to_self(cx -= p.cx, cy -= p.cy);
-	inline LSize &operator =(const LSize &p) reflect_to_self(cx = p.cx, cy = p.cy);
-	inline bool   operator==(LSize sz) const reflect_as(sz.cx == cx && sz.cy == cy);
-	inline bool   operator!=(LSize sz) const reflect_as(sz.cx != cx || sz.cy != cy);
-};
-enum_flags(LAlign, BYTE,
-	Left	= 1 << 0,
-	Right	= 2 << 0,
-	HCenter = 3 << 0,
-	Top		= 1 << 2,
-	Bottom  = 2 << 2,
-	VCenter = 3 << 2);
-struct LRect : public RECT {
-public:
-	LRect() : RECT{ 0 } {}
-	LRect(const MARGINS &m) : RECT({ m.cxLeftWidth, m.cyTopHeight, m.cxRightWidth, m.cyBottomHeight }) {}
-	LRect(const RECT &rc) : RECT(rc) {}
-	LRect(const LRect &r) : RECT(r) {}
-	LRect(const LSize &sz) : RECT{ 0, 0, sz.cx - 1, sz.cy - 1 } {}
-	LRect(const LPoint &p0, const LPoint &p1) : RECT{ p0.x, p0.y, p1.x, p1.y } {}
-	LRect(LONG a) : RECT{ a, a, a, a } {}
-	LRect(LONG left, LONG top, LONG right, LONG bottom) : RECT{ left, top, right, bottom } {}
-	LRect(SMALL_RECT sr) : RECT{ sr.Left, sr.Top, sr.Right, sr.Bottom } {}
-public:
-	inline auto xsize()        const reflect_as(right - left + 1);
-	inline auto ysize()        const reflect_as(bottom - top + 1);
-	inline LSize size()        const reflect_as({ xsize(), ysize() });
-	inline auto  dx()           const reflect_as(right - left);
-	inline auto  dy()           const reflect_as(bottom - top);
-	inline LSize d()            const reflect_as({ dx(), dy() });
-	inline auto &xmove(LONG dx) reflect_to_self(right += dx, left += dx);
-	inline auto &ymove(LONG dy) reflect_to_self(bottom += dy, top += dy);
-	LRect &align(LAlign a, const LRect &r2);
-public:
-	inline auto x0() const reflect_as(left);
-	inline auto y0() const reflect_as(top);
-	inline auto x1() const reflect_as(right);
-	inline auto y1() const reflect_as(bottom);
-public:
-	inline LPoint left_top()     const reflect_as({ left,  top });
-	inline auto   &left_top(LPoint lt) reflect_to_self(left = lt.x, top = lt.y);
-	static inline LRect left_top(LPoint lt, LSize sz) reflect_as({ lt.x, lt.y, lt.x + sz.cx - 1, lt.y + sz.cy - 1 });
-public:
-	inline LPoint left_bottom()    const reflect_as({ left,  bottom });
-	inline auto  &left_bottom(LPoint lt) reflect_to_self(left = lt.x, bottom = lt.y);
-public:
-	inline LPoint right_top()    const reflect_as({ right, top });
-	inline auto  &right_top(LPoint rt) reflect_to_self(right = rt.x, top = rt.y);
-public:
-	inline LPoint right_bottom() const reflect_as({ right, bottom });
-	inline auto  &right_bottom(LPoint rb) reflect_to_self(right = rb.x, bottom = rb.y);
-public:
-	inline operator LSize()   const reflect_as({ right - left + 1, bottom - top + 1 });
-	inline operator LPRECT()        reflect_as(this);
-	inline operator LPCRECT() const reflect_as(this);
-	inline operator LPARAM()  const reflect_as((LPARAM)this);
-	inline operator MARGINS() const reflect_as({ left, right, top, bottom });
-	inline operator SMALL_RECT() const reflect_as({ (SHORT)left, (SHORT)top, (SHORT)right, (SHORT)bottom });
-	inline LRect  operator+ () const reflect_to_self();
-	inline LRect  operator- () const reflect_as({ -left,   -top, -right, -bottom });
-	inline LRect  operator~ () const reflect_as({ right, bottom,   left,     top });
-	inline LRect  operator+ (const LRect &r) const reflect_as({ left + r.left, top + r.top, right + r.right, bottom + r.bottom });
-	inline LRect  operator- (const LRect &r) const reflect_as({ left - r.left, top - r.top, right - r.right, bottom - r.bottom });
-	inline LRect  operator+ (const LPoint &p) const reflect_as({ left + p.x, top + p.y, right + p.x, bottom + p.y });
-	inline LRect  operator- (const LPoint &p) const reflect_as({ left - p.x, top - p.y, right - p.x, bottom - p.y });
-	inline LRect  operator* (double l) const reflect_as({ LONG((double)left * l), LONG((double)top * l), LONG((double)right * l), LONG((double)bottom * l) });
-	inline LRect  operator/ (double l) const reflect_as({ LONG((double)left / l), LONG((double)top / l), LONG((double)right / l), LONG((double)bottom / l) });
-	inline LRect  operator* (int l ) const reflect_as({ left * l, top * l, right * l, bottom * l });
-	inline LRect  operator/ (int l) const reflect_as({ left / l, top / l, right / l, bottom / l });
-	inline LRect &operator*=(double l) reflect_to_self(left = LONG((double)left * l), top = LONG((double)top * l), right = LONG((double)right * l), bottom = LONG((double)bottom * l));
-	inline LRect &operator/=(double l) reflect_to_self(left = LONG((double)left / l), top = LONG((double)top / l), right = LONG((double)right / l), bottom = LONG((double)bottom / l));
-	inline LRect &operator/=(int l) reflect_to_self(left /= l, top /= l, right /= l, bottom /= l);
-	inline LRect &operator*=(int l) reflect_to_self(left *= l; top *= l, right *= l, bottom *= l);
-	inline LRect &operator+=(const LRect &r) reflect_to_self(left += r.left, top += r.top, right += r.right, bottom += r.bottom);
-	inline LRect &operator-=(const LRect &r) reflect_to_self(left -= r.left, top -= r.top, right -= r.right, bottom -= r.bottom);
-	inline LRect &operator+=(const LPoint &p) reflect_to_self(left += p.x, top += p.y, right += p.x, bottom += p.y);
-	inline LRect &operator-=(const LPoint &p) reflect_to_self(left -= p.x, top -= p.y, right -= p.x, bottom -= p.y);
-	static inline LRect &Attach(RECT &rc) reflect_as(ref_as<LRect>(rc));
-};
-inline LRect operator+(const LPoint &p, const LRect &r) reflect_as(r + p);
-inline LRect operator-(const LPoint &p, const LRect &r) reflect_as(-(r - p));
-inline LRect operator&(const LPoint &p, const LSize &s) reflect_as({ p, s });
-inline LRect operator&(const LSize &s, const LPoint &p) reflect_as({ p, s });
-inline LRect &WX::LRect::align(LAlign a, const LRect &r2) {
-	if (a == LAlign::HCenter)
-		xmove((r2.left + r2.right - left - right) / 2);
-	elif (a <= LAlign::Right) {
-		left += r2.right - right;
-		right = r2.right;
-	} else /* if (a <= LAlign::Left) */ {
-		right += r2.left - left;
-		left = r2.left;
-	}
-	if (a == LAlign::VCenter)
-		ymove((r2.top + r2.bottom - top - bottom) / 2);
-	elif (a <= LAlign::Bottom) {
-		top += r2.bottom - bottom;
-		bottom = r2.bottom;
-	} else /* if (a & LAlign::Top) */ {
-		bottom += r2.top - top;
-		top = r2.top;
-	}
-	return*this;
-}
-#pragma endregion
-
-#pragma region Times
-class FileTime;
-enum_class(Locales, LCID,
-	Default = LOCALE_CUSTOM_DEFAULT,
-	Unspecified = LOCALE_CUSTOM_UNSPECIFIED,
-	UIDefault   = LOCALE_CUSTOM_UI_DEFAULT,
-	Neutral     = LOCALE_NEUTRAL,
-	Invariant   = LOCALE_INVARIANT);
-enum_flags(TimeFormat, DWORD,
-	Default            = 0,
-	NoMinutesOrSeconds = TIME_NOMINUTESORSECONDS,
-	NoSecond           = TIME_NOSECONDS,
-	NoTimeMarker       = TIME_NOTIMEMARKER,
-	Force24H           = TIME_FORCE24HOURFORMAT);
-enum_flags(DateFormat, DWORD,
-	Default      = 0,
-	ShortDate    = DATE_SHORTDATE,
-	LongDate     = DATE_LONGDATE,
-	CalendarAlt  = DATE_USE_ALT_CALENDAR);
-class SystemTime : public RefStruct<SYSTEMTIME> {
-public:
-	using super = RefStruct<SYSTEMTIME>;
-public:
-	SystemTime(Null) {}
-	SystemTime(const SYSTEMTIME &st) : super(st) {}
-	SystemTime() reflect_to(GetSystemTime(this));
-	SystemTime(const FILETIME &ft) assertl(FileTimeToSystemTime(&ft, this));
-public:
-	static inline SystemTime Local() reflect_to(SystemTime st; GetLocalTime(&st), st);
-public: // Property - Year
-	/* W */ inline auto &Year(WORD wYear) reflect_to_self(self->wYear = wYear);
-	/* R */ inline WORD Year() const reflect_as(self->wYear);
-public: // Property - Month
-	/* W */ inline auto &Month(WORD wMonth) reflect_to_self(self->wMonth = wMonth);
-	/* R */ inline WORD Month() const reflect_as(self->wMonth);
-public: // Property - Day
-	/* W */ inline auto &Day(WORD wDay) reflect_to_self(self->wDay = wDay);
-	/* R */ inline WORD Day() const reflect_as(self->wDay);
-public: // Property - Hour
-	/* W */ inline auto &Hour(WORD wHour) reflect_to_self(self->wHour = wHour);
-	/* R */ inline WORD Hour() const reflect_as(self->wHour);
-public: // Property - Minute
-	/* W */ inline auto &Minute(WORD wMinute) reflect_to_self(self->wMinute = wMinute);
-	/* R */ inline WORD Minute() const reflect_as(self->wMinute);
-public: // Property - Second
-	/* W */ inline auto &Second(WORD wSecond) reflect_to_self(self->wSecond = wSecond);
-	/* R */ inline WORD Second() const reflect_as(self->wSecond);
-public: // Property - MilliSeconds
-	/* W */ inline auto &MilliSeconds(WORD wMilliseconds) reflect_to_self(self->wMilliseconds = wMilliseconds);
-	/* R */ inline WORD MilliSeconds() const reflect_as(self->wMilliseconds);
-public:
-	template<bool IsUnicode = WX::IsUnicode>
-	StringX<IsUnicode> FormatTime(TimeFormat = TimeFormat::Default, Locales = Locales::Default) const;
-	StringA FormatTimeA(TimeFormat = TimeFormat::Default, Locales = Locales::Default) const;
-	StringW FormatTimeW(TimeFormat = TimeFormat::Default, Locales = Locales::Default) const;
-	template<bool IsUnicode = WX::IsUnicode>
-	StringX<IsUnicode> FormatDate(DateFormat = DateFormat::Default, Locales = Locales::Default) const;
-	StringA FormatDateA(DateFormat = DateFormat::Default, Locales = Locales::Default) const;
-	StringW FormatDateW(DateFormat = DateFormat::Default, Locales = Locales::Default) const;
-public:
-	template<bool IsUnicode = WX::IsUnicode>
-	StringX<IsUnicode> toString() const;
-public:
-	operator StringA() const;
-	operator StringW() const;
-	operator FileTime() const;
-	inline operator FILETIME() const assertl_reflect_to(FILETIME ft, SystemTimeToFileTime(this, &ft), ft);
-};
-using SysTime = SystemTime;
-class FileTime : public RefStruct<FILETIME> {
-public:
-	using super = RefStruct<FILETIME>;
-public:
-	FileTime() {}
-	FileTime(const FILETIME &ft) : super(ft) {}
-	FileTime(LARGE_INTEGER li) { ref_as<LARGE_INTEGER>(self) = li; }
-	FileTime(const SYSTEMTIME &st) assertl(SystemTimeToFileTime(&st, this));
-public:
-	inline FileTime LocalTime() assertl_reflect_to(FILETIME ft, FileTimeToLocalFileTime(this, &ft), ft);
-	inline FileTime UniversalTime() assertl_reflect_to(FILETIME ft, LocalFileTimeToFileTime(this, &ft), ft);
-public:
-	template<bool IsUnicode = WX::IsUnicode>
-	StringX<IsUnicode> toString() const;
-public:
-	inline operator StringA() const;
-	inline operator StringW() const;
-	inline operator SystemTime() const assertl_reflect_to(SystemTime st, FileTimeToSystemTime(this, &st), st);
-	inline operator SYSTEMTIME() const assertl_reflect_to(SYSTEMTIME st, FileTimeToSystemTime(this, &st), st);
-	inline operator LARGE_INTEGER() const reflect_as(reuse_as<LARGE_INTEGER>(*this));
-};
-inline SystemTime::operator FileTime() const assertl_reflect_to(FILETIME ft, SystemTimeToFileTime(this, &ft), ft);
 #pragma endregion
 
 class RGBColor {

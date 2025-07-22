@@ -29,35 +29,33 @@ void duk_add_prop(duk_context *ctx, const char *name, duk_c_function setter, duk
 	duk_push_c_function(ctx, getter, 0);
 	duk_push_c_function(ctx, setter, 1);
 	duk_def_prop(ctx, -4,
-					DUK_DEFPROP_HAVE_GETTER |		// getter
-					DUK_DEFPROP_HAVE_SETTER |		// setter
-					DUK_DEFPROP_CLEAR_CONFIGURABLE	// unconfigurable 
+				 DUK_DEFPROP_HAVE_GETTER |		// getter
+				 DUK_DEFPROP_HAVE_SETTER |		// setter
+				 DUK_DEFPROP_CLEAR_CONFIGURABLE	// unconfigurable 
 	);
 }
 void duk_put_prop_w(duk_context *ctx, const char *name, duk_c_function setter) {
 	duk_push_string(ctx, name);
 	duk_push_c_function(ctx, setter, 1);
 	duk_def_prop(ctx, -3,
-					DUK_DEFPROP_HAVE_SETTER |		// setter
-					DUK_DEFPROP_CLEAR_CONFIGURABLE	// unconfigurable
+				 DUK_DEFPROP_HAVE_SETTER |		// setter
+				 DUK_DEFPROP_CLEAR_CONFIGURABLE	// unconfigurable
 	);
 }
 void duk_put_prop_r(duk_context *ctx, const char *name, duk_c_function getter) {
 	duk_push_string(ctx, name);
 	duk_push_c_function(ctx, getter, 0);
 	duk_def_prop(ctx, -3,
-					DUK_DEFPROP_HAVE_GETTER |		// getter
-					DUK_DEFPROP_CLEAR_CONFIGURABLE	// unconfigurable
+				 DUK_DEFPROP_HAVE_GETTER |		// getter
+				 DUK_DEFPROP_CLEAR_CONFIGURABLE	// unconfigurable
 	);
 }
-void duk_put_const(duk_context *ctx, const char *name, duk_uint_t value) {
-	duk_push_string(ctx, name);
-	duk_push_uint(ctx, value);
-	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
-}
-void duk_put_const(duk_context *ctx, const duk_constant *c, uint32_t len) {
-	for (; len--; ++c)
-		duk_put_const(ctx, c->name, c->value);
+void duk_add_const(duk_context *ctx, const duk_constant *c, uint32_t len) {
+	for (; len--; ++c) {
+		duk_push_lstring(ctx, c->name, c->lenName);
+		duk_push_uint(ctx, c->value);
+		duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+	}
 }
 void duk_add_method(duk_context *ctx, const char *name, duk_idx_t nargs, duk_c_function func) {
 	duk_push_string(ctx, name);
@@ -107,12 +105,6 @@ bool duk_reflect_constructor(duk_context *ctx) {
 	duk_insert(ctx, 0);
 	duk_new(ctx, nargs);
 	return true;
-}
-void duk_set_extends(duk_context *ctx, const char *child_name, const char *parent_name) {
-	duk_get_global_string(ctx, child_name);
-	duk_push_string(ctx, "prototype");
-	duk_get_global_string(ctx, parent_name);
-	duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
 }
 
 void *duk_put_cstruct(duk_context *ctx, duk_size_t size) {
@@ -201,7 +193,7 @@ void duk_push_new_cclass(duk_context *ctx, const char *class_name, HANDLE hd) {
 bool duk_load_library(duk_context *ctx, duk_safe_call_function func) {
 	duk_push_global_object(ctx);
 	auto rc = duk_safe_call(ctx, func, O, 1, 0);
-	if (rc = DUK_EXEC_SUCCESS) return true;
+	if (rc == DUK_EXEC_SUCCESS) return true;
 	duk_dup(ctx, -1);
 	duk_put_global_string(ctx, "LastError");
 	duk_errout(ctx, "Load library failed: \n%s\n", duk_safe_to_stacktrace(ctx, -1));

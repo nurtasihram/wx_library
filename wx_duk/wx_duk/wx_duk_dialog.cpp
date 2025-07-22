@@ -40,26 +40,16 @@ static void load_CommDlg(duk_context *ctx) {
 	});
 }
 
-static void load_ColorChoose(duk_context *ctx) {
-	static const duk_constant __ColorChooseStyle_constant[]{
-		{ "InitRGB", CC_RGBINIT },
-		{ "FullOpen", CC_FULLOPEN },
-		{ "PreventFullOpen", CC_PREVENTFULLOPEN },
-		{ "ShowHelp", CC_SHOWHELP },
-		{ "EnableHook", CC_ENABLEHOOK },
-		{ "EnableTemplate", CC_ENABLETEMPLATE },
-		{ "EnableTemplateHandle", CC_ENABLETEMPLATEHANDLE },
-		{ "SolidColor", CC_SOLIDCOLOR },
-		{ "AnyColor", CC_ANYCOLOR }
-	};
-	duk_add_flags(ctx, "ColorChooseStyle", O, __ColorChooseStyle_constant);
+void load_duk_dialog(duk_context *ctx) {
+#pragma region CDlgColor
+	duk_add_enum_flags<CDlgColorStyle>(ctx);
 	duk_add_class(
-		ctx, "ColorChoose", O,
+		ctx, "CDlgColor", O,
 		duk_structure {
-			load_CommDlg<ColorChooseA>(ctx);
+			load_CommDlg<CDlgColorA>(ctx);
 			duk_add_prop(ctx, "CustColors",
 				duk_fn {
-					auto pobj = duk_get_this__p<ColorChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgColorA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					if (!duk_is_object(ctx, 0))
 						return DUK_RET_TYPE_ERROR;
@@ -74,20 +64,20 @@ static void load_ColorChoose(duk_context *ctx) {
 					memcpy_s((void *)lpColors, 16 * sizeof(COLORREF), lpcColors, len * sizeof(COLORREF));
 					return 0;
 				},
-				duk_fn{
+				duk_fn {
 					duk_push_this(ctx);
 					duk_get_prop_string(ctx, -1, "__CustColors");
 					return 1;
 				}
 			);
 			duk_put_prop_r(ctx, "Result", duk_fn {
-				auto pobj = duk_get_this__p<ColorChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgColorA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_enum(ctx, "RGB", pobj->Result());
 				return 1;
 			});
 			duk_add_method(ctx, "Choose", 0, duk_fn {
-				auto pobj = duk_get_this__p<ColorChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgColorA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				bool res = false;
 				res = pobj->Choose();
@@ -99,10 +89,10 @@ static void load_ColorChoose(duk_context *ctx) {
 		duk_constructor {
 			if (duk_reflect_constructor(ctx))
 				return 1;
-			ColorChooseA *pobj = O;
+			CDlgColorA *pobj = O;
 			switch (duk_get_top(ctx)) {
 				case 0: {
-					pobj = duk_put_cstruct<ColorChooseA>(ctx);
+					pobj = duk_put_cstruct<CDlgColorA>(ctx);
 					break;
 				}
 				default:
@@ -114,56 +104,27 @@ static void load_ColorChoose(duk_context *ctx) {
 			if (sz != 4 * 16)
 				return DUK_RET_REFERENCE_ERROR;
 			duk_put_prop_string(ctx, -2, "__CustColors");
-			pobj->CustColors((ColorChooseA::ColorSet *)ptr);
+			pobj->CustColors((CDlgColorA::ColorSet *)ptr);
 			return 0;
 		}
 	);
-}
-
-static void load_FontChoose(duk_context *ctx) {
-	static const duk_constant __FontChooseStyle_constant[]{
-		{ "ScreenFonts", CF_SCREENFONTS },
-		{ "PrinterFonts", CF_PRINTERFONTS },
-		{ "ShowHelp", CF_SHOWHELP },
-		{ "EnableHook", CF_ENABLEHOOK },
-		{ "EnableTemplate", CF_ENABLETEMPLATE },
-		{ "EnableTemplateHandle", CF_ENABLETEMPLATEHANDLE },
-		{ "InitTologFontStruct", CF_INITTOLOGFONTSTRUCT },
-		{ "UseStyle", CF_USESTYLE },
-		{ "Effects", CF_EFFECTS },
-		{ "Apply", CF_APPLY },
-		{ "Ansionly", CF_ANSIONLY },
-		{ "NoVectorFonts", CF_NOVECTORFONTS },
-		{ "NoSimulations", CF_NOSIMULATIONS },
-		{ "LimitSize", CF_LIMITSIZE },
-		{ "FixedPitchOnly", CF_FIXEDPITCHONLY },
-		{ "WYSIWYG", CF_WYSIWYG },
-		{ "ForceFontExist", CF_FORCEFONTEXIST },
-		{ "ScalableOnly", CF_SCALABLEONLY },
-		{ "TTOnly", CF_TTONLY },
-		{ "NoFaceSel", CF_NOFACESEL },
-		{ "NoStyleSel", CF_NOSTYLESEL },
-		{ "NoSizeSel", CF_NOSIZESEL },
-		{ "SelectScript", CF_SELECTSCRIPT },
-		{ "NoScriptSel", CF_NOSCRIPTSEL },
-		{ "NoVertFonts", CF_NOVERTFONTS },
-		{ "InActiveFonts", CF_INACTIVEFONTS }
-	};
-	duk_add_flags(ctx, "ColorChooseStyle", O, __FontChooseStyle_constant);
+#pragma endregion
+#pragma region CDlgFont
+	duk_add_enum_flags<CDlgFontStyle>(ctx);
 	duk_add_class(
-		ctx, "FontChoose", O,
+		ctx, "CDlgFont", O,
 		duk_structure {
-			load_CommDlg<FontChooseA>(ctx);
+			load_CommDlg<CDlgFontA>(ctx);
 			duk_add_prop(ctx, "FontTypes",
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto ft = reuse_as<FontType>(duk_to_uint16(ctx, 0));
 					pobj->FontTypes(ft);
 					return 0;
 				},
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "FontType", pobj->FontTypes().yield());
 					return 1;
@@ -171,13 +132,13 @@ static void load_FontChoose(duk_context *ctx) {
 			);
 			duk_add_prop(ctx, "SizeMin",
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					pobj->SizeMin(duk_to_int(ctx, 0));
 					return 0;
 				},
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_int(ctx, pobj->SizeMin());
 					return 1;
@@ -185,14 +146,14 @@ static void load_FontChoose(duk_context *ctx) {
 			);
 			duk_add_prop(ctx, "SizeMax",
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto size = duk_to_int(ctx, 0);
 					pobj->SizeMax(size);
 					return 0;
 				},
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_int(ctx, pobj->SizeMax());
 					return 1;
@@ -200,14 +161,14 @@ static void load_FontChoose(duk_context *ctx) {
 			);
 			duk_add_prop(ctx, "PointSize",
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto size = duk_to_int(ctx, 0);
 					pobj->PointSize(size);
 					return 0;
 				},
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_int(ctx, pobj->PointSize());
 					return 1;
@@ -215,14 +176,14 @@ static void load_FontChoose(duk_context *ctx) {
 			);
 			duk_add_prop(ctx, "Color",
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto size = duk_to_uint32(ctx, 0);
 					pobj->Color(size);
 					return 0;
 				},
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_enum(ctx, "RGB", pobj->Color());
 					return 1;
@@ -230,7 +191,7 @@ static void load_FontChoose(duk_context *ctx) {
 			);
 			duk_add_prop(ctx, "LogFont",
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_get_global_string(ctx, "FontLogic");
 					if (!duk_instanceof(ctx, 0, -1))
@@ -245,7 +206,7 @@ static void load_FontChoose(duk_context *ctx) {
 					return 0;
 				},
 				duk_fn {
-					auto pobj = duk_get_this__p<FontChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_this(ctx);
 					duk_get_prop_string(ctx, -1, "__LogFont");
@@ -256,7 +217,7 @@ static void load_FontChoose(duk_context *ctx) {
 				}
 			);
 			duk_add_method(ctx, "Choose", 0, duk_fn {
-				auto pobj = duk_get_this__p<FontChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgFontA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_boolean(ctx, pobj->Choose());
 				return 1;
@@ -266,7 +227,7 @@ static void load_FontChoose(duk_context *ctx) {
 		duk_constructor {
 			if (duk_reflect_constructor(ctx))
 				return 1;
-			FontChooseA *pobj = O;
+			CDlgFontA *pobj = O;
 			FontLogicA *lpLogFont = O;
 			switch (duk_get_top(ctx)) {
 				case 1: {
@@ -282,7 +243,7 @@ static void load_FontChoose(duk_context *ctx) {
 					duk_put_prop_string(ctx, -2, "__LogFont");
 				}
 				case 0: {
-					pobj = duk_put_cstruct<FontChooseA>(ctx);
+					pobj = duk_put_cstruct<CDlgFontA>(ctx);
 					break;
 				}
 				default:
@@ -297,57 +258,28 @@ static void load_FontChoose(duk_context *ctx) {
 			return 0;
 		}
 	);
-}
-
-static void load_FileChoose(duk_context *ctx) {
-	static const duk_constant __FileChooseStyle_constant[]{
-		{ "ReadOnly", OFN_READONLY },
-		{ "OverwritePrompt", OFN_OVERWRITEPROMPT },
-		{ "HideReadOnly", OFN_HIDEREADONLY },
-		{ "NoChangeDir", OFN_NOCHANGEDIR },
-		{ "ShowHelp", OFN_SHOWHELP },
-		{ "EnableHook", OFN_ENABLEHOOK },
-		{ "EnableTemplate", OFN_ENABLETEMPLATE },
-		{ "EnableTemplateHandle", OFN_ENABLETEMPLATEHANDLE },
-		{ "NoValidate", OFN_NOVALIDATE },
-		{ "AllowMultiSelect", OFN_ALLOWMULTISELECT },
-		{ "ExtensionDifferent", OFN_EXTENSIONDIFFERENT },
-		{ "PathMustExist", OFN_PATHMUSTEXIST },
-		{ "FileMustExist", OFN_FILEMUSTEXIST },
-		{ "CreatePrompt", OFN_CREATEPROMPT },
-		{ "ShareAware", OFN_SHAREAWARE },
-		{ "NoReadOnlyReturn", OFN_NOREADONLYRETURN },
-		{ "NoTestFileCreate", OFN_NOTESTFILECREATE },
-		{ "NoNetworkButton", OFN_NONETWORKBUTTON },
-		{ "NoLongNames", OFN_NOLONGNAMES },
-		{ "Explorer", OFN_EXPLORER },
-		{ "NodeReferenceLinks", OFN_NODEREFERENCELINKS },
-		{ "LongNames", OFN_LONGNAMES },
-		{ "EnableIncludeNotify", OFN_ENABLEINCLUDENOTIFY },
-		{ "EnableSizing", OFN_ENABLESIZING },
-		{ "DontAddToRecent", OFN_DONTADDTORECENT },
-		{ "ForcesHowHidden", OFN_FORCESHOWHIDDEN }
-	};
-	duk_add_flags(ctx, "ColorChooseStyle", O, __FileChooseStyle_constant);
+#pragma endregion
+#pragma region CDlgFile
+	duk_add_enum_flags<CDlgFileStyle>(ctx);
 	duk_add_class(
-		ctx, "FileChoose", O,
+		ctx, "CDlgFile", O,
 		duk_structure {
-			load_CommDlg<FileChooseA>(ctx);
+			load_CommDlg<CDlgFileA>(ctx);
 			duk_put_prop_r(ctx, "FileOffset", duk_fn {
-				auto pobj = duk_get_this__p<FileChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_int(ctx, pobj->FileOffset());
 				return 1;
 			});
 			duk_put_prop_r(ctx, "FileExtension", duk_fn {
-				auto pobj = duk_get_this__p<FileChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_int(ctx, pobj->FileExtension());
 				return 1;
 			});
 			duk_add_prop(ctx, "File",
 				duk_fn {
-					auto pobj = duk_get_this__p<FileChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto lpszFile = duk_to_string(ctx, 0);
 					auto len = duk_get_length(ctx, 0);
@@ -371,7 +303,7 @@ static void load_FileChoose(duk_context *ctx) {
 					return 0;
 				},
 				duk_fn {
-					auto pobj = duk_get_this__p<FileChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_string(ctx, pobj->File());
 					return 1;
@@ -379,7 +311,7 @@ static void load_FileChoose(duk_context *ctx) {
 			);
 			duk_add_prop(ctx, "FileMaxLen",
 				duk_fn {
-					auto pobj = duk_get_this__p<FileChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto len = duk_to_uint32(ctx, 0);
 					if (len == pobj->FileMaxLen())
@@ -401,7 +333,7 @@ static void load_FileChoose(duk_context *ctx) {
 					return 0;
 				},
 				duk_fn {
-					auto pobj = duk_get_this__p<FileChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_uint(ctx, pobj->FileMaxLen());
 					return 1;
@@ -409,7 +341,7 @@ static void load_FileChoose(duk_context *ctx) {
 			);
 			duk_add_prop(ctx, "FileTitle",
 				duk_fn {
-					auto pobj = duk_get_this__p<FileChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto lpszFileTitle = duk_to_string(ctx, 0);
 					auto len = duk_get_length(ctx, 0);
@@ -433,7 +365,7 @@ static void load_FileChoose(duk_context *ctx) {
 					return 0;
 				},
 				duk_fn {
-					auto pobj = duk_get_this__p<FileChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_string(ctx, pobj->FileTitle());
 					return 1;
@@ -441,7 +373,7 @@ static void load_FileChoose(duk_context *ctx) {
 			);
 			duk_add_prop(ctx, "CustomFilter",
 				duk_fn {
-					auto pobj = duk_get_this__p<FileChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					auto lpszCustomFilter = duk_to_string(ctx, 0);
 					auto len = duk_get_length(ctx, 0);
@@ -465,14 +397,14 @@ static void load_FileChoose(duk_context *ctx) {
 					return 0;
 				},
 				duk_fn {
-					auto pobj = duk_get_this__p<FileChooseA>(ctx);
+					auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
 					duk_push_string(ctx, pobj->CustomFilter());
 					return 1;
 				}
 			);
 			duk_put_prop_w(ctx, "Filter", duk_fn {
-				auto pobj = duk_get_this__p<FileChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto lpszFilter = duk_to_string(ctx, 0);
 				if (!lpszFilter)
@@ -481,13 +413,13 @@ static void load_FileChoose(duk_context *ctx) {
 				return 0;
 			});
 			duk_put_prop_r(ctx, "FilterIndex", duk_fn {
-				auto pobj = duk_get_this__p<FileChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_int(ctx, pobj->FilterIndex());
 				return 1;
 			});
 			duk_put_prop_w(ctx, "InitialDir", duk_fn {
-				auto pobj = duk_get_this__p<FileChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto lpszInitialDir = duk_to_string(ctx, 0);
 				if (!lpszInitialDir)
@@ -496,7 +428,7 @@ static void load_FileChoose(duk_context *ctx) {
 				return 0;
 			});
 			duk_put_prop_w(ctx, "Title", duk_fn {
-				auto pobj = duk_get_this__p<FileChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto lpszTitle = duk_to_string(ctx, 0);
 				if (!lpszTitle)
@@ -505,7 +437,7 @@ static void load_FileChoose(duk_context *ctx) {
 				return 0;
 			});
 			duk_put_prop_w(ctx, "DefExt", duk_fn {
-				auto pobj = duk_get_this__p<FileChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto lpszDefExt = duk_to_string(ctx, 0);
 				if (!lpszDefExt)
@@ -514,7 +446,7 @@ static void load_FileChoose(duk_context *ctx) {
 				return 0;
 			});
 			duk_add_method(ctx, "OpenFile", 0, duk_fn {
-				auto pobj = duk_get_this__p<FileChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				bool res = false;
 				res = pobj->OpenFile();
@@ -522,7 +454,7 @@ static void load_FileChoose(duk_context *ctx) {
 				return 1;
 			});
 			duk_add_method(ctx, "SaveFile", 0, duk_fn {
-				auto pobj = duk_get_this__p<FileChooseA>(ctx);
+				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				bool res = false;
 				res = pobj->SaveFile();
@@ -534,10 +466,10 @@ static void load_FileChoose(duk_context *ctx) {
 		duk_constructor {
 			if (duk_reflect_constructor(ctx))
 				return 1;
-			FileChooseA *pobj = O;
+			CDlgFileA *pobj = O;
 			switch (duk_get_top(ctx)) {
 				case 0: {
-					pobj = duk_put_cstruct<FileChooseA>(ctx);
+					pobj = duk_put_cstruct<CDlgFileA>(ctx);
 					break;
 				}
 				default:
@@ -556,11 +488,6 @@ static void load_FileChoose(duk_context *ctx) {
 			return 0;
 		}
 	);
-}
-
-void load_duk_dialog(duk_context *ctx) {
-	load_ColorChoose(ctx);
-	load_FontChoose(ctx);
-	load_FileChoose(ctx);
+#pragma endregion
 }
 

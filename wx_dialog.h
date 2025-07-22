@@ -9,8 +9,8 @@ namespace WX {
 
 //CommDlgExtendedError
 
-#pragma region ColorChoose
-enum_flags(ColorChooseStyle, DWORD,
+#pragma region CDlgColor
+enum_flags(CDlgColorStyle, DWORD,
 	InitRGB              = CC_RGBINIT,
 	FullOpen             = CC_FULLOPEN,
 	PreventFullOpen      = CC_PREVENTFULLOPEN,
@@ -21,16 +21,16 @@ enum_flags(ColorChooseStyle, DWORD,
 	SolidColor           = CC_SOLIDCOLOR,
 	AnyColor             = CC_ANYCOLOR);
 template<bool IsUnicode>
-class ColorChooseX : public RefStruct<switch_structx(CHOOSECOLOR)> {
+class CDlgColorX : public RefStruct<switch_structx(CHOOSECOLOR)> {
 	using_structx(CHOOSECOLOR);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 public:
 	using super = RefStruct<CHOOSECOLOR>;
-	using Style = ColorChooseStyle;
+	using Style = CDlgColorStyle;
 	using ColorSet = arrayof<RGBColor, 16>;
 	using CColorSet = const arrayof<RGBColor, 16>;
 public:
-	ColorChooseX() reflect_to(self->lStructSize = sizeof(CHOOSECOLOR));
+	CDlgColorX() reflect_to(self->lStructSize = sizeof(CHOOSECOLOR));
 public: // Common properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = (HWND &)hMod);
@@ -47,13 +47,13 @@ public: // Property - Result
 public:
 	inline bool Choose() reflect_as(AnyX<IsUnicode>(::ChooseColorW, ::ChooseColorA)(this));
 };
-using ColorChoose = ColorChooseX<IsUnicode>;
-using ColorChooseA = ColorChooseX<false>;
-using ColorChooseW = ColorChooseX<true>;
+using CDlgColor = CDlgColorX<IsUnicode>;
+using CDlgColorA = CDlgColorX<false>;
+using CDlgColorW = CDlgColorX<true>;
 #pragma endregion
 
-#pragma region FontChoose
-enum_flags(FontChooseStyle, DWORD,
+#pragma region CDlgFont
+enum_flags(CDlgFontStyle, DWORD,
 	ScreenFonts          = CF_SCREENFONTS,
 	PrinterFonts         = CF_PRINTERFONTS,
 	ShowHelp             = CF_SHOWHELP,
@@ -81,17 +81,17 @@ enum_flags(FontChooseStyle, DWORD,
 	NoVertFonts          = CF_NOVERTFONTS,
 	InActiveFonts        = CF_INACTIVEFONTS);
 template<bool IsUnicode>
-class FontChooseX : public RefStruct<switch_structx(CHOOSEFONT)> {
+class CDlgFontX : public RefStruct<switch_structx(CHOOSEFONT)> {
 	using_structx(CHOOSEFONT);
 	using_structx(FontLogic);
 	using_structx(LOGFONT);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 public:
 	using super = RefStruct<CHOOSEFONT>;
-	using Style = FontChooseStyle;
+	using Style = CDlgFontStyle;
 	using Log = FontLogic;
 public:
-	FontChooseX() reflect_to(self->lStructSize = sizeof(CHOOSEFONT));
+	CDlgFontX() reflect_to(self->lStructSize = sizeof(CHOOSEFONT));
 public: // Common properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = hMod);
@@ -123,13 +123,13 @@ public: // Property - LogFont
 public:
 	inline bool Choose() reflect_as(AnyX<IsUnicode>(::ChooseFontW, ::ChooseFontA)(this));
 };
-using FontChoose = FontChooseX<IsUnicode>;
-using FontChooseA = FontChooseX<false>;
-using FontChooseW = FontChooseX<true>;
+using CDlgFont = CDlgFontX<IsUnicode>;
+using CDlgFontA = CDlgFontX<false>;
+using CDlgFontW = CDlgFontX<true>;
 #pragma endregion
 
-#pragma region FileChoose
-enum_flags(FileChooseStyle, DWORD,
+#pragma region CDlgFile
+enum_flags(CDlgFileStyle, DWORD,
 	ReadOnly             = OFN_READONLY,
 	OverwritePrompt      = OFN_OVERWRITEPROMPT,
 	HideReadOnly         = OFN_HIDEREADONLY,
@@ -157,16 +157,16 @@ enum_flags(FileChooseStyle, DWORD,
 	DontAddToRecent      = OFN_DONTADDTORECENT,
 	ForcesHowHidden      = OFN_FORCESHOWHIDDEN);
 template<bool IsUnicode>
-class FileChooseX : public RefStruct<switch_structx(OPENFILENAME)> {
+class CDlgFileX : public RefStruct<switch_structx(OPENFILENAME)> {
 	using_structx(OPENFILENAME);
 	using LPTSTR = LPXSTR<IsUnicode>;
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
 public:
 	using super = RefStruct<OPENFILENAME>;
-	using Style = FileChooseStyle;
+	using Style = CDlgFileStyle;
 public:
-	FileChooseX() reflect_to(self->lStructSize = sizeof(OPENFILENAME));
+	CDlgFileX() reflect_to(self->lStructSize = sizeof(OPENFILENAME));
 public: // Common properties
 	/* W */ inline auto &Parent(HWND hWnd) reflect_to_self(self->hwndOwner = hWnd);
 	/* W */ inline auto &Module(HINSTANCE hMod) reflect_to_self(self->hInstance = hMod);
@@ -219,9 +219,9 @@ public:
 		reflect_as(GetSaveFileName(this));
 	}
 };
-using FileChoose = FileChooseX<IsUnicode>;
-using FileChooseA = FileChooseX<false>;
-using FileChooseW = FileChooseX<true>;
+using CDlgFile = CDlgFileX<IsUnicode>;
+using CDlgFileA = CDlgFileX<false>;
+using CDlgFileW = CDlgFileX<true>;
 #pragma endregion
 
 #pragma region FindReplace

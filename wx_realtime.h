@@ -844,6 +844,11 @@ public:
 using CProcess = RefAs<Process>;
 #pragma endregion
 
+inline String CommandLine() {
+	global_symbolx(GetCommandLine);
+	GetCommandLine()
+}
+
 class {
 public: // Property - Directory
 	template<class TCHAR>

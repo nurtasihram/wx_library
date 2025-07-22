@@ -3,26 +3,11 @@
 #include "wx_duk.h"
 
 static void load_duk_handle(duk_context *ctx) {
-	static const duk_constant _HandleAccess_constant[]{
-		{ "Delete", DELETE },
-		{ "ReadCtl", READ_CONTROL },
-		{ "WriteDAC", WRITE_DAC },
-		{ "WriteOwner", WRITE_OWNER },
-		{ "Sync", SYNCHRONIZE },
-		{ "GenericRead", GENERIC_READ },
-		{ "GenericWrite", GENERIC_WRITE },
-		{ "GenericExecute", GENERIC_EXECUTE },
-		{ "GenericAll", GENERIC_ALL }
-	};
-	duk_add_flags(ctx, "HandleAccess", O, _HandleAccess_constant);
+	duk_add_enum_flags<HandleAccess>(ctx);
 }
 
 static void load_duk_event(duk_context *ctx) {
-	static const duk_constant _EventAccess_constant[]{
-		{ "All", EVENT_ALL_ACCESS },
-		{ "Modify", EVENT_MODIFY_STATE }
-	};
-	duk_add_flags(ctx, "EventAccess", O, _EventAccess_constant);
+	duk_add_enum_flags<EventAccess>(ctx);
 	duk_add_class(
 		ctx, "Event", O,
 		duk_structure {
@@ -81,15 +66,16 @@ static void load_duk_mutex(duk_context *ctx) {
 		}
 	);
 }
-static void load_duk_environment(duk_context *ctx) {
-	duk_push_object(ctx); // target
-	duk_push_object(ctx); // handler
-	//duk_push_c_function()
-	duk_push_proxy(ctx, 0);
-}
 
 void load_duk_realtime(duk_context *ctx) {
 	load_duk_handle(ctx);
 	load_duk_event(ctx);
 	load_duk_mutex(ctx);
+
+#pragma region Environment
+	duk_push_object(ctx); // target	
+	duk_push_object(ctx); // handler
+	//duk_push_c_function()
+	duk_push_proxy(ctx, 0);
+#pragma endregion
 }

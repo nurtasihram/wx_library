@@ -60,10 +60,8 @@ static duk_ret_t cmd_exe(duk_context *ctx) {
 	auto lpszCode = duk_require_string(ctx, 0);
 	duk_size_t szCode = duk_get_length(ctx, 0);
 	duk_compile_lstring(ctx, DUK_COMPILE_SHEBANG, lpszCode, szCode);
-
 	duk_push_global_object(ctx);  /* 'this' binding */
 	duk_call_method(ctx, 0);
-
 	if (bEcho && !duk_is_undefined(ctx, -1)) {
 		auto lpsz = duk_to_string(ctx, -1);
 		Console.LogA(lpsz, '\n');
@@ -71,7 +69,6 @@ static duk_ret_t cmd_exe(duk_context *ctx) {
 		//duk_dup(ctx, -2);
 		//duk_call(ctx, 1);
 	}
-
 	return 0;
 }
 
@@ -204,55 +201,10 @@ __reset:
 	proc_ok.Set();
 };
 
-void duk_add_flags(duk_context *ctx,
-				   const char *name, const char *parent_name,
-				   duk_c_function add_const,
-				   duk_c_function toString) {
-	static duk_c_function _toString = toString;
-	duk_add_class(
-		ctx, name, parent_name,
-		duk_structure {
-			duk_add_method(ctx, "toString", 0, _toString);
-			return 0;
-		},
-		duk_constructor {
-			if (duk_reflect_constructor(ctx))
-				return 1;
-			auto val = duk_to_int(ctx, 0);
-			duk_push_this(ctx);
-			duk_int_prop(ctx, "val", val);
-			return 0;
-		},
-		add_const
-	);
-}
-
 void commandline(duk_context *ctx) {
 	duk_push_global_object(ctx);
-	using EnumClass = SW;
 
-	duk_add_flags(
-		ctx, EnumClass::__NameA, O,
-		duk_fn {
-			constexpr auto map = EnumTableA<EnumClass>;
-			for (size_t i = 0; i < EnumClass::Count; ++i) {
-				StringA key = map[i].key;
-				duk_push_lstring(ctx, key, key.Length());
-				duk_push_uint(ctx, EnumClass::__Vals[i]);
-				duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
-			}
-			return 0;
-		},
-		duk_fn {
-			duk_push_this(ctx);
-			duk_get_prop_string(ctx, -1, "val");
-			auto &&str = EnumClassParseA(small_cast<EnumClass>(duk_to_uint(ctx, -1)));
-			duk_push_lstring(ctx, str, str.Length());
-			return 1;
-		}
-	);
-
-	//duk_load_library(ctx, load_duk_windows);
+	duk_load_library(ctx, load_duk_windows);
 	duk_load_library(ctx, load_duk_cmdl);
 
 	//duk_eval_string(ctx, "Console.Reopen()");
@@ -288,7 +240,7 @@ int main() {
 	Console.Log(_T("\n -- Duktape x WindowX --\n\n"));
 
 	ctx = duk_create_heap(duk_alloc, duk_realloc, duk_free, O, duk_onfatal);
-	Console.Log(_T("\n - Duktape heap craeted -\n"));
+	Console.Log(_T("\n - Duktape heap created -\n"));
 	print_mem();
 
 	commandline(ctx);

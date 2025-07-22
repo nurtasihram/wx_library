@@ -14,99 +14,13 @@ static void __CommGDI(duk_context *ctx) {
 
 static void load_duk_font(duk_context *ctx) {
 #pragma region Constants
-	//static const duk_constant __FontType_constant[] {
-	//	{ "Default", 0 },
-	//	{ "Device", DEVICE_FONTTYPE },
-	//	{ "Raster", RASTER_FONTTYPE },
-	//	{ "TrueType", TRUETYPE_FONTTYPE }
-	//};
-	static const duk_constant __FontType_constant[]{
-		{ "Simulated", SIMULATED_FONTTYPE },
-		{ "Printer", PRINTER_FONTTYPE },
-		{ "Screen", SCREEN_FONTTYPE },
-		{ "Bold", BOLD_FONTTYPE },
-		{ "Italic", ITALIC_FONTTYPE },
-		{ "Regular", REGULAR_FONTTYPE },
-		//{ "PS_OpenType", PS_OPENTYPE_FONTTYPE },
-		//{ "TT_OpenType", TT_OPENTYPE_FONTTYPE },
-		//{ "Type1", TYPE1_FONTTYPE },
-		//{ "Symbol", SYMBOL_FONTTYPE }
-	};
-	duk_add_flags(ctx, "FontType", O, __FontType_constant);
-	static const duk_constant __CharSets_constant[]{
-		{ "ANSI", ANSI_CHARSET },
-		{ "Default", DEFAULT_CHARSET },
-		{ "Symbol", SYMBOL_CHARSET },
-		{ "ShiftJIS", SHIFTJIS_CHARSET },
-		{ "Hangeul", HANGEUL_CHARSET },
-		{ "Hangul", HANGUL_CHARSET },
-		{ "GB2312", GB2312_CHARSET },
-		{ "ChineseBig5", CHINESEBIG5_CHARSET },
-		{ "OEM", OEM_CHARSET },
-		{ "Johab", JOHAB_CHARSET },
-		{ "Hebrew", HEBREW_CHARSET },
-		{ "Arabic", ARABIC_CHARSET },
-		{ "Greek", GREEK_CHARSET },
-		{ "Turkish", TURKISH_CHARSET },
-		{ "Vietnamese", VIETNAMESE_CHARSET },
-		{ "Thai", THAI_CHARSET },
-		{ "EastEurope", EASTEUROPE_CHARSET },
-		{ "Russian", RUSSIAN_CHARSET },
-		{ "Mac", MAC_CHARSET },
-		{ "Baltic", BALTIC_CHARSET }
-	};
-	duk_add_flags(ctx, "CharSets", O, __CharSets_constant);
-	static const duk_constant __OutPrecis_constant[]{
-		{ "Default", OUT_DEFAULT_PRECIS },
-		{ "String", OUT_STRING_PRECIS },
-		{ "Character", OUT_CHARACTER_PRECIS },
-		{ "Stroke", OUT_STROKE_PRECIS },
-		{ "TrueType", OUT_TT_PRECIS },
-		{ "Device", OUT_DEVICE_PRECIS },
-		{ "Raster", OUT_RASTER_PRECIS },
-		{ "TrueTypeOnly", OUT_TT_ONLY_PRECIS },
-		{ "Outline", OUT_OUTLINE_PRECIS },
-		{ "ScreenOutline", OUT_SCREEN_OUTLINE_PRECIS },
-		{ "PostScriptOnly", OUT_PS_ONLY_PRECIS }
-	};
-	duk_add_flags(ctx, "OutPrecis", O, __OutPrecis_constant);
-	static const duk_constant __ClipPrecis_constant[]{
-		{ "Default", CLIP_DEFAULT_PRECIS },
-		{ "Character", CLIP_CHARACTER_PRECIS },
-		{ "Stroke", CLIP_STROKE_PRECIS },
-		{ "Mask", CLIP_MASK },
-		{ "LH_Angles", CLIP_LH_ANGLES },
-		{ "TT_Always", CLIP_TT_ALWAYS },
-		{ "DFA_Disable", CLIP_DFA_DISABLE },
-		{ "Embedded", CLIP_EMBEDDED }
-	};
-	duk_add_flags(ctx, "ClipPrecis", O, __ClipPrecis_constant);
-	static const duk_constant __Qualities_constant[]{
-		{ "Default", DEFAULT_QUALITY },
-		{ "Draf", DRAFT_QUALITY },
-		{ "Proof", PROOF_QUALITY },
-		{ "NonAntiAliased", NONANTIALIASED_QUALITY },
-		{ "AntiAliased", ANTIALIASED_QUALITY },
-		{ "ClearType", CLEARTYPE_QUALITY },
-		{ "ClearTypeNatural", CLEARTYPE_NATURAL_QUALITY }
-	};
-	duk_add_flags(ctx, "Qualities", O, __Qualities_constant);
-	static const duk_constant __FontPitches_constant[]{
-		{ "Default", DEFAULT_PITCH },
-		{ "Fixed", FIXED_PITCH },
-		{ "Variable", VARIABLE_PITCH },
-		{ "Mono", MONO_FONT }
-	};
-	duk_add_flags(ctx, "FontPitches", O, __FontPitches_constant);
-	static const duk_constant __FontFamilies_constant[]{
-		{ "DontCare", FF_DONTCARE },
-		{ "Roman", FF_ROMAN },
-		{ "Swiss", FF_SWISS },
-		{ "Modern", FF_MODERN },
-		{ "Script", FF_SCRIPT },
-		{ "Decorative", FF_DECORATIVE }
-	};
-	duk_add_flags(ctx, "FontFamilies", O, __FontFamilies_constant);
+	duk_add_enum_flags<FontType>(ctx);
+	duk_add_enum_flags<CharSets>(ctx);
+	duk_add_enum_flags<OutPrecis>(ctx);
+	duk_add_enum_flags<ClipPrecis>(ctx);
+	duk_add_enum_flags<Qualities>(ctx);
+	duk_add_enum_flags<FontPitches>(ctx);
+	duk_add_enum_flags<FontFamilies>(ctx);
 #pragma endregion
 	duk_add_class(
 		ctx, "FontLogic", O,
@@ -469,18 +383,7 @@ static void load_duk_bitmap(duk_context *ctx) {
 	);
 }
 static void load_duk_pen(duk_context *ctx) {
-	static const duk_constant _PenStyles_constant[]{
-		{ "Solid", PS_SOLID },
-		{ "Dash", PS_DASH },
-		{ "Dot", PS_DOT },
-		{ "DashDot", PS_DASHDOT },
-		{ "DashDotDot", PS_DASHDOTDOT },
-		{ "Null", PS_NULL },
-		{ "InsideFrame", PS_INSIDEFRAME },
-		{ "UserStyle", PS_USERSTYLE },
-		{ "Alternate", PS_ALTERNATE }
-	};
-	duk_add_flags(ctx, "PenStyles", O, _PenStyles_constant);
+	duk_add_enum_flags<PenStyles>(ctx);
 	duk_add_class(
 		ctx, "PenLogic", O,
 		duk_structure {
@@ -622,7 +525,7 @@ static void load_duk_pen(duk_context *ctx) {
 				duk_push_new_handle(ctx, "Pen", pen);
 				return 1;
 			});
-			/* Pen */ duk_add_method(ctx, "CreateNull", 2, duk_fn{
+			/* Pen */ duk_add_method(ctx, "CreateNull", 2, duk_fn {
 				auto color = duk_to_int(ctx, 0);
 				auto width = duk_to_int(ctx, 1);
 				CPen pen = O;
@@ -692,15 +595,7 @@ static void load_duk_pen(duk_context *ctx) {
 }
 static void load_duk_brush(duk_context *ctx) {
 
-	static const duk_constant _HatchStyle_constant[]{
-		{ "Horizontal", HS_HORIZONTAL },
-		{ "Vertical", HS_VERTICAL },
-		{ "FDiagonal", HS_FDIAGONAL },
-		{ "BDiagonal", HS_BDIAGONAL },
-		{ "Cross", HS_CROSS },
-		{ "DiagCross", HS_DIAGCROSS }
-	};
-	duk_add_flags(ctx, "HatchStyle", O, _HatchStyle_constant);
+	duk_add_enum_flags<HatchStyle>(ctx);
 	duk_add_class(
 		ctx, "Brush", O,
 		duk_structure {
@@ -865,41 +760,11 @@ static void load_duk_devcap(duk_context *ctx) {
 		return false;
 	};
 
-	static duk_constant _MapModes_constant[]{
-		{ "Text", MM_TEXT },
-		{ "LoMetric", MM_LOMETRIC },
-		{ "HiMetric", MM_HIMETRIC },
-		{ "LoEnglish", MM_LOENGLISH },
-		{ "HiEnglish", MM_HIENGLISH },
-		{ "Twips", MM_TWIPS },
-		{ "Isotropic", MM_ISOTROPIC },
-		{ "Anisotropic", MM_ANISOTROPIC }
-	};
-	duk_add_flags(ctx, "MapModes", O, _MapModes_constant);
-	static duk_constant _Stretches_constant[]{
-		{ "And", BLACKONWHITE },
-		{ "Or", WHITEONBLACK },
-		{ "Del", COLORONCOLOR },
-		{ "Half", HALFTONE }
-	};
-	duk_add_flags(ctx, "Stretches", O, _Stretches_constant);
-	static duk_constant _PolyFills_constant[]{
-		{ "Alternate", ALTERNATE },
-		{ "Winding", WINDING }
-	};
-	duk_add_flags(ctx, "PolyFills", O, _PolyFills_constant);
-	static duk_constant _TextAlign_constant[]{
-		{ "NoUpDateCP", TA_NOUPDATECP },
-		{ "UpDateCP", TA_UPDATECP },
-		{ "Left", TA_LEFT },
-		{ "Right", TA_RIGHT },
-		{ "Center", TA_CENTER },
-		{ "Top", TA_TOP },
-		{ "Bottom", TA_BOTTOM },
-		{ "Baseline", TA_BASELINE },
-		{ "RTLReading", TA_RTLREADING }
-	};
-	duk_add_flags(ctx, "TextAlign", O, _TextAlign_constant);
+
+	duk_add_enum_flags<MapModes>(ctx);
+	duk_add_enum_flags<Stretches>(ctx);
+	duk_add_enum_flags<PolyFills>(ctx);
+	duk_add_enum_flags<TextAlign>(ctx);
 
 	duk_add_class(
 		ctx, "DevCap", O,

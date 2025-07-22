@@ -154,11 +154,11 @@ static void load_duk_enum(duk_context *ctx) {
 		return 0;
 	});
 }
-void duk_add_flags(duk_context *ctx,
-						  const char *type,
-						  const char *name, const char *parent_name,
-						  const duk_constant *dcs, uint32_t len) {
-	duk_add_method(ctx, name, 1, duk_fn {
+void duk_add_enum(duk_context *ctx,
+				  const char *name, const char *parent_name,
+				  const duk_constant *dcs, uint32_t len) {
+	duk_push_string(ctx, name);
+	duk_push_c_function(ctx, duk_fn {
 		if (duk_reflect_constructor(ctx))
 			return 1;
 		auto val = duk_to_int(ctx, 0);
@@ -168,45 +168,52 @@ void duk_add_flags(duk_context *ctx,
 		duk_push_current_function(ctx);
 		duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
 		return 0;
-	});
-	duk_get_global_string(ctx, name);
-	duk_push_string(ctx, "__p");
-	duk_push_pointer(ctx, (void *)dcs);
-	duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
-	duk_put_const(ctx, dcs, len);
-	duk_push_string(ctx, "toString");
-	duk_push_c_function(ctx, duk_fn{
-		duk_push_this(ctx);
-		enum_inf ei;
-		if (enum_inf::get_static(ctx, ei))
-			return DUK_RET_REFERENCE_ERROR;
-		const char *fmt1 = "  %s: 0x%x,\n";
-		const char *fmt2 = "  %s: 0x%x\n";
-		duk_push_string(ctx, "{\n");
-		int i = 0;
-		auto fmt = fmt1;
-		do {
-			duk_push_sprintf(ctx, fmt, ei.pEnums[i].name, ei.pEnums[i].value);
-			if (++i == ei.count - 1)
-				fmt = fmt2;
-		} while (i < ei.count);
-		duk_push_string(ctx, "}\n");
-		duk_concat(ctx, ei.count + 2);
-		return 1;
-						}, 0);
-	duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
-	duk_push_string(ctx, "__c");
-	duk_push_int(ctx, len);
-	duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
+	}, 1);
 	duk_push_string(ctx, "name");
 	duk_push_string(ctx, name);
 	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
-	if (parent_name) {
-		duk_push_string(ctx, "__l");
-		duk_get_global_string(ctx, parent_name);
-		duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
-	}
-	duk_set_extends(ctx, name, type);
+
+	duk_push_string(ctx, "__p");
+	duk_push_pointer(ctx, (void *)dcs);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
+
+	duk_push_string(ctx, "__c");
+	duk_push_int(ctx, len);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
+
+	duk_push_string(ctx, "name");
+	duk_push_string(ctx, name);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
+
+	duk_add_const(ctx, dcs, len);
+
+	duk_add_method(
+		/* String */ ctx, "toString", 0, duk_fn {
+			duk_push_this(ctx);
+			enum_inf ei;
+			if (enum_inf::get_static(ctx, ei))
+				return DUK_RET_REFERENCE_ERROR;
+			auto pEnums = ei.pEnums;
+			duk_get_prop_string(ctx, -1, "name");
+			duk_push_string(ctx, " {\n");
+			duk_concat(ctx, 2);
+			for (size_t i = 0; i < ei.count; ++i) {
+				duk_push_string(ctx, i ? ",\n  " : "  ");
+				duk_push_lstring(ctx, pEnums[i].name, pEnums[i].lenName);
+				duk_push_sprintf(ctx, ": 0x%x", pEnums[i].value);
+				duk_concat(ctx, 4);
+			}
+			duk_push_string(ctx, "\n}");
+			duk_concat(ctx, 2);
+			return 1;
+		}
+	);
+
+	duk_push_string(ctx, "prototype");
+	duk_get_global_string(ctx, parent_name);
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PRIVATE_CONST);
+
+	duk_def_prop(ctx, -3, DUK_DEFPROP_PUBLIC_CONST);
 }
 void duk_push_enum(duk_context *ctx, const char *name, duk_int_t i) {
 	duk_get_global_string(ctx, name);
@@ -217,20 +224,17 @@ void duk_push_enum(duk_context *ctx, const char *name, duk_int_t i) {
 
 #pragma region Point
 static void load_duk_point(duk_context *ctx) {
-	duk_add_class(
-		ctx, "Point", O,
+	duk_add_class(ctx, "Point", O,
 		duk_structure {
-			duk_add_method(
-				ctx, "toString", 0, duk_fn {
-					duk_push_this(ctx);
-					duk_get_prop_string(ctx, -1, "x");
-					auto x = duk_get_int(ctx, -1);
-					duk_get_prop_string(ctx, -2, "y");
-					auto y = duk_get_int(ctx, -1);
-					duk_push_sprintf(ctx, "{x:%d,y:%d}", x, y);
-					return 1;
-				}
-			);
+			/* String */ duk_add_method(ctx, "toString", 0, duk_fn {
+				duk_push_this(ctx);
+				duk_get_prop_string(ctx, -1, "x");
+				auto x = duk_get_int(ctx, -1);
+				duk_get_prop_string(ctx, -2, "y");
+				auto y = duk_get_int(ctx, -1);
+				duk_push_sprintf(ctx, "{x:%d,y:%d}", x, y);
+				return 1;
+			});
 			return 0;
 		},
 		duk_constructor {
@@ -331,7 +335,7 @@ static void load_duk_rect(duk_context *ctx) {
 				}
 			);
 			duk_add_method(
-				/* String */ ctx, "toString", 0, duk_fn{
+				/* String */ ctx, "toString", 0, duk_fn {
 					duk_push_this(ctx);
 					duk_get_prop_string(ctx, -1, "x0");
 					auto x0 = duk_get_int(ctx, -1);
@@ -545,23 +549,10 @@ static void load_duk_color(duk_context *ctx) {
 }
 
 static void load_duk_time(duk_context *ctx) {
-	static const duk_constant time_formats[] = {
-		{ "Default", 0 },
-		{ "NoMinutesOrSeconds", TIME_NOMINUTESORSECONDS },
-		{ "NoSecond", TIME_NOSECONDS },
-		{ "NoTimeMarker", TIME_NOTIMEMARKER },
-		{ "Force24H", TIME_FORCE24HOURFORMAT },
-	};
-	duk_add_enums(ctx, "TimeFormat", nullptr, time_formats);
-	static const duk_constant date_formats[] = {
-		{ "Default", 0 },
-		{ "ShortDate", DATE_SHORTDATE },
-		{ "LongDate", DATE_LONGDATE },
-		{ "CalendarAlt", DATE_USE_ALT_CALENDAR }
-	};
-	duk_add_enums(ctx, "DateFormat", nullptr, date_formats);
+	duk_add_enum_class<TimeFormat>(ctx);
+	duk_add_enum_class<DateFormat>(ctx);
 	duk_add_class(
-		ctx, "SysTime", O,
+		ctx, "SystemTime", O,
 		duk_structure {
 			//duk_add_method(ctx, "valueOf", 0, duk_fn {
 			//	duk_push_this(ctx);
@@ -569,23 +560,25 @@ static void load_duk_time(duk_context *ctx) {
 			//	return 1;
 			//});
 			duk_add_method(ctx, "FormatTime", 2, duk_fn {
-				auto pobj = duk_get_this__p<SysTime>(ctx);
+				auto pobj = duk_get_this__p<SystemTime>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
-				auto fmt = duk_to_int(ctx, 0);
-				auto &&str = pobj->FormatTimeA(reuse_as<TimeFormat>(fmt));
+				//auto fmt = duk_to_int(ctx, 0);
+				//auto &&str = pobj->FormatTimeA(reuse_as<TimeFormat>(fmt));
+				auto &&str = pobj->FormatTimeA();
 				duk_push_string(ctx, str);
 				return 1;
 			});
 			duk_add_method(ctx, "FormatDate", 2, duk_fn {
-				auto pobj = duk_get_this__p<SysTime>(ctx);
+				auto pobj = duk_get_this__p<SystemTime>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
-				auto fmt = duk_to_int(ctx, 0);
-				auto &&str = pobj->FormatDateA(reuse_as<DateFormat>(fmt));
+				//auto fmt = duk_to_int(ctx, 0);
+				//auto &&str = pobj->FormatDateA(reuse_as<DateFormat>(fmt));
+				auto &&str = pobj->FormatDateA();
 				duk_push_string(ctx, str);
 				return 1;
 			});
 			duk_add_method(ctx, "toString", 0, duk_fn {
-				auto pobj = duk_get_this__p<SysTime>(ctx);
+				auto pobj = duk_get_this__p<SystemTime>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_string(ctx, (StringA)*pobj);
 				return 1;
@@ -595,16 +588,16 @@ static void load_duk_time(duk_context *ctx) {
 		duk_constructor {
 			if (duk_reflect_constructor(ctx))
 				return 1;
-			SysTime st = O;
+			SystemTime st = O;
 			switch (duk_get_top(ctx)) {
 				case 0:
-					st = SysTime();
+					st = SystemTime();
 					break;
 				case 1:
 					if (duk_is_buffer(ctx, 0)) {
 						duk_size_t read_size = 0;
-						auto pobj = (SysTime *)duk_get_buffer(ctx, 0, &read_size);
-						if (!pobj || read_size != sizeof(SysTime))
+						auto pobj = (SystemTime *)duk_get_buffer(ctx, 0, &read_size);
+						if (!pobj || read_size != sizeof(SystemTime))
 							return DUK_RET_REFERENCE_ERROR;
 						st = *pobj;
 					} elif (duk_is_null(ctx, 0))
@@ -616,8 +609,8 @@ static void load_duk_time(duk_context *ctx) {
 			}
 			duk_push_this(ctx);
 			duk_push_string(ctx, "__p");
-			auto pobj = (SysTime *)duk_push_fixed_buffer(ctx, sizeof(SysTime));
-			new(pobj) SysTime(st);
+			auto pobj = (SystemTime *)duk_push_fixed_buffer(ctx, sizeof(SystemTime));
+			new(pobj) SystemTime(st);
 			duk_def_prop(ctx, -3,
 						 DUK_DEFPROP_HAVE_VALUE |
 						 DUK_DEFPROP_CLEAR_CONFIGURABLE |
