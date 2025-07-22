@@ -1,0 +1,9 @@
+#pragma once
+
+#include "wx_type"
+
+#ifndef WX_CPPM_RESOURCE
+import wx.resource;
+#else
+#	undef WX_CPPM_RESOURCE
+#endif
