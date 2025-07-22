@@ -70,8 +70,8 @@ void load_duk_dialog(duk_context *ctx) {
 					return 1;
 				}
 			);
-			duk_add_prop_r(ctx, "Result", duk_fn {
-				auto pobj = duk_get_this__p<CDlgColorA>(ctx);
+			duk_put_prop_r(ctx, "Result", duk_fn {
+				auto pobj = duk_get_this__p<ColorChooseA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_enum(ctx, "RGB", pobj->Result());
 				return 1;
@@ -264,15 +264,15 @@ void load_duk_dialog(duk_context *ctx) {
 	duk_add_class(
 		ctx, "CDlgFile", O,
 		duk_structure {
-			load_CommDlg<CDlgFileA>(ctx);
-			duk_add_prop_r(ctx, "FileOffset", duk_fn {
-				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
+			load_CommDlg<FileChooseA>(ctx);
+			duk_put_prop_r(ctx, "FileOffset", duk_fn {
+				auto pobj = duk_get_this__p<FileChooseA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_int(ctx, pobj->FileOffset());
 				return 1;
 			});
-			duk_add_prop_r(ctx, "FileExtension", duk_fn {
-				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
+			duk_put_prop_r(ctx, "FileExtension", duk_fn {
+				auto pobj = duk_get_this__p<FileChooseA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_int(ctx, pobj->FileExtension());
 				return 1;
@@ -403,8 +403,8 @@ void load_duk_dialog(duk_context *ctx) {
 					return 1;
 				}
 			);
-			duk_add_prop_w(ctx, "Filter", duk_fn {
-				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
+			duk_put_prop_w(ctx, "Filter", duk_fn {
+				auto pobj = duk_get_this__p<FileChooseA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto lpszFilter = duk_to_string(ctx, 0);
 				if (!lpszFilter)
@@ -412,14 +412,14 @@ void load_duk_dialog(duk_context *ctx) {
 				pobj->Filter(lpszFilter);
 				return 0;
 			});
-			duk_add_prop_r(ctx, "FilterIndex", duk_fn {
-				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
+			duk_put_prop_r(ctx, "FilterIndex", duk_fn {
+				auto pobj = duk_get_this__p<FileChooseA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_push_int(ctx, pobj->FilterIndex());
 				return 1;
 			});
-			duk_add_prop_w(ctx, "InitialDir", duk_fn {
-				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
+			duk_put_prop_w(ctx, "InitialDir", duk_fn {
+				auto pobj = duk_get_this__p<FileChooseA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto lpszInitialDir = duk_to_string(ctx, 0);
 				if (!lpszInitialDir)
@@ -427,8 +427,8 @@ void load_duk_dialog(duk_context *ctx) {
 				pobj->InitialDir(lpszInitialDir);
 				return 0;
 			});
-			duk_add_prop_w(ctx, "Title", duk_fn {
-				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
+			duk_put_prop_w(ctx, "Title", duk_fn {
+				auto pobj = duk_get_this__p<FileChooseA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto lpszTitle = duk_to_string(ctx, 0);
 				if (!lpszTitle)
@@ -436,8 +436,8 @@ void load_duk_dialog(duk_context *ctx) {
 				pobj->Title(lpszTitle);
 				return 0;
 			});
-			duk_add_prop_w(ctx, "DefExt", duk_fn {
-				auto pobj = duk_get_this__p<CDlgFileA>(ctx);
+			duk_put_prop_w(ctx, "DefExt", duk_fn {
+				auto pobj = duk_get_this__p<FileChooseA>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto lpszDefExt = duk_to_string(ctx, 0);
 				if (!lpszDefExt)
