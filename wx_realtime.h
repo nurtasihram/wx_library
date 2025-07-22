@@ -535,49 +535,53 @@ public:
 };
 using EnvVar = Environments::Variable;
 class {
-	template<bool IsUnicode>
+	template<class TCHAR>
 	class Variable {
+		static constexpr bool IsUnicode = IsCharW<TCHAR>;
+		using LPCTSTR = const TCHAR *;
 		using String = StringX<IsUnicode>;
-		const String name;
+		LPCTSTR lpName;
 	public:
-		Variable(const String &name) : name(+name) {}
+		Variable(LPCTSTR lpName) : lpName(lpName) {}
 	public: // Property - Value
-		/* W */ inline Variable &Value(const String &value) {
+		/* W */ inline auto &Value(LPCTSTR lpValue) {
 			global_symbolx(SetEnvironmentVariable);
-			assertl_reflect_as_self(SetEnvironmentVariable(name, value.c_str_safe()));
+			assertl_reflect_as_self(SetEnvironmentVariable(lpName, lpValue));
 		}
 		/* R */ inline String Value() const {
 			global_symbolx(GetEnvironmentVariable);
 			DWORD len;
-			assertl((len = GetEnvironmentVariable(name, O, 0)) > 0);
-			auto lpsz = String::Alloc(len - 1);
-			assertl(len == GetEnvironmentVariable(name, lpsz, len));
+			if ((len = GetEnvironmentVariable(lpName, O, 0)) <= 0)
+				return O;
+			auto lpsz = String::Alloc(--len);
+			assertl(len == GetEnvironmentVariable(lpName, lpsz, len));
 			return{ len, lpsz };
 		}
-	public: // Property - ValueExpend
-		inline String ValueExpend() const {
+	public: // Property - Expand
+		/* R */ inline String Expand() const {
 			auto &&val = Value();
 			global_symbolx(ExpandEnvironmentStrings);
 			DWORD len;
-			assertl((len = ExpandEnvironmentStrings(val, O, 0)) > 0);
+			if ((len = ExpandEnvironmentStrings(val, O, 0)) <= 0)
+				return O;
 			if (val.Length() == len) return val;
-			auto lpsz = String::Alloc(len);
+			auto lpsz = String::Alloc(--len);
 			assertl(len == ExpandEnvironmentStrings(val, lpsz, len));
 			return{ len, lpsz };
 		}
 	public:
-		inline auto &operator=(const String &value) reflect_to_self(Value(value));
-		inline operator bool() const reflect_as(GetEnvironmentVariable(name, O, 0));
+		inline auto &operator=(LPCTSTR lpValue) reflect_to_self(Value(lpValue));
+		inline operator bool() const reflect_as(GetEnvironmentVariable(lpName, O, 0));
 		inline operator String() const reflect_as(Value());
-		inline String operator+() const reflect_as(ValueExpend());
-		inline bool operator!=(Null) const reflect_as(GetEnvironmentVariable(name, O, 0) != 0);
-		inline bool operator==(Null) const reflect_as(GetEnvironmentVariable(name, O, 0) == 0);
+		inline String operator+() const reflect_as(Expand());
+		inline bool operator!=(Null) const reflect_as(GetEnvironmentVariable(lpName, O, 0) != 0);
+		inline bool operator==(Null) const reflect_as(GetEnvironmentVariable(lpName, O, 0) == 0);
 	};
 public:
 	inline operator Environments() reflect_as(Environments::Current());
 	inline void operator=(const Environments &env) reflect_to(env.Use());
-	template<bool IsUnicode = WX::IsUnicode>
-	inline Variable<IsUnicode> operator[](const StringX<IsUnicode> &str) reflect_as(str);
+	template<class TCHAR>
+	inline Variable<TCHAR> operator[](const TCHAR *lpName) reflect_as(lpName);
 } inline Environment;
 #pragma endregion
 
@@ -843,6 +847,16 @@ public:
 };
 using CProcess = RefAs<Process>;
 #pragma endregion
+
+template<bool IsUnicode = WX::IsUnicode>
+inline const StringX<IsUnicode> CommandLine() {
+	global_symbolx(GetCommandLine);
+	return +CString(GetCommandLine(), 0x1ff);
+}
+inline const StringA CommandLineA() reflect_as(CommandLine<false>());
+inline const StringW CommandLineW() reflect_as(CommandLine<true>());
+struct CommandArgs {
+};
 
 class {
 public: // Property - Directory

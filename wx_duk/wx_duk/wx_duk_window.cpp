@@ -68,40 +68,7 @@ static duk_c_function duk_constructor_buffer = duk_constructor {
 
 void load_duk_window(duk_context *ctx) {
 #pragma region Misc
-	static const duk_constant _MB_constant[]{
-		{ "Ok", MB_OK },
-		{ "OkCancel", MB_OKCANCEL },
-		{ "AbortRetryIgnore", MB_ABORTRETRYIGNORE },
-		{ "YesNoCancel", MB_YESNOCANCEL },
-		{ "YesNo", MB_YESNO },
-		{ "RetryCancel", MB_RETRYCANCEL },
-		{ "CancelTryContinue", MB_CANCELTRYCONTINUE },
-		{ "IconHand", MB_ICONHAND },
-		{ "IconQuestion", MB_ICONQUESTION },
-		{ "IconExclamation", MB_ICONEXCLAMATION },
-		{ "IconAsterisk", MB_ICONASTERISK },
-		{ "UserIcon", MB_USERICON },
-		{ "IconWarning", MB_ICONWARNING },
-		{ "IconError", MB_ICONERROR },
-		{ "IconInformation", MB_ICONINFORMATION },
-		{ "IconStop", MB_ICONSTOP },
-		{ "DefButton1", MB_DEFBUTTON1 },
-		{ "DefButton2", MB_DEFBUTTON2 },
-		{ "DefButton3", MB_DEFBUTTON3 },
-		{ "DefButton4", MB_DEFBUTTON4 },
-		{ "ApplModal", MB_APPLMODAL },
-		{ "SystemModal", MB_SYSTEMMODAL },
-		{ "TaskModal", MB_TASKMODAL },
-		{ "Help", MB_HELP },
-		{ "NoFocus", MB_NOFOCUS },
-		{ "SetForeground", MB_SETFOREGROUND },
-		{ "DefaultDesktopOnly", MB_DEFAULT_DESKTOP_ONLY },
-		{ "Topmost", MB_TOPMOST },
-		{ "Right", MB_RIGHT },
-		{ "RtlReading", MB_RTLREADING },
-		{ "ServiceNotification", MB_SERVICE_NOTIFICATION }
-	};
-	duk_add_flags(ctx, "MB", O, _MB_constant);
+	duk_add_enum_flags<MB>(ctx);
 	duk_add_method(
 		/* int */ ctx, "MsgBox", 3, duk_fn {
 			LPCSTR lpCaption = duk_is_undefined(ctx, 0) ? "" : duk_to_string(ctx, 0);
@@ -113,86 +80,9 @@ void load_duk_window(duk_context *ctx) {
 		}
 	);
 
-	static const duk_constant _SW_constant[]{
-		{ "Hide", SW_HIDE },
-		{ "ShowNormal", SW_SHOWNORMAL },
-		{ "Normal", SW_NORMAL },
-		{ "ShowMinimized", SW_SHOWMINIMIZED },
-		{ "ShowMaximized", SW_SHOWMAXIMIZED },
-		{ "Maximize", SW_MAXIMIZE },
-		{ "ShowNoActivate", SW_SHOWNOACTIVATE },
-		{ "Show", SW_SHOW },
-		{ "Minimize", SW_MINIMIZE },
-		{ "ShowMinNoActive", SW_SHOWMINNOACTIVE },
-		{ "ShowNA", SW_SHOWNA },
-		{ "Restore", SW_RESTORE },
-		{ "ShowDefault", SW_SHOWDEFAULT },
-		{ "ForceMinimize", SW_FORCEMINIMIZE },
-		{ "Max", SW_MAX }
-	};
-	duk_add_flags(ctx, "SW", O, _SW_constant);
-
-	static const duk_constant _WS_constant[]{
-		{ "Overlapped", WS_OVERLAPPED },
-		{ "Popup", WS_POPUP },
-		{ "Child", WS_CHILD },
-		{ "Minimize", WS_MINIMIZE },
-		{ "Maximize", WS_MAXIMIZE },
-		{ "MinimizeBox", WS_MINIMIZEBOX },
-		{ "MaximizeBox", WS_MAXIMIZEBOX },
-		{ "SizeBox", WS_SIZEBOX },
-		{ "Visible", WS_VISIBLE },
-		{ "Disabled", WS_DISABLED },
-		{ "ClipSiblings", WS_CLIPSIBLINGS },
-		{ "ClipChildren", WS_CLIPCHILDREN },
-		{ "Caption", WS_CAPTION },
-		{ "Border", WS_BORDER },
-		{ "DlgFrame", WS_DLGFRAME },
-		{ "VScroll", WS_VSCROLL },
-		{ "HScroll", WS_HSCROLL },
-		{ "SysMenu", WS_SYSMENU },
-		{ "ThickFrame", WS_THICKFRAME },
-		{ "Group", WS_GROUP },
-		{ "TabStop", WS_TABSTOP },
-		{ "Tiled", WS_TILED },
-		{ "Iconic", WS_ICONIC },
-		{ "TiledWindow", WS_TILEDWINDOW },
-		{ "PopupWindow", WS_POPUPWINDOW },
-		{ "OverlappedWindow", WS_OVERLAPPEDWINDOW }
-	};
-	duk_add_flags(ctx, "WindowStyle", O, _WS_constant);
-
-	static const duk_constant _WSEX_constant[]{
-		{ "No", 0 },
-		{ "DlgModalFrame", WS_EX_DLGMODALFRAME },
-		{ "NoParentNotify", WS_EX_NOPARENTNOTIFY },
-		{ "TopMost", WS_EX_TOPMOST },
-		{ "AcceptFiles", WS_EX_ACCEPTFILES },
-		{ "Transparent", WS_EX_TRANSPARENT },
-		{ "MdiChild", WS_EX_MDICHILD },
-		{ "ToolWindow", WS_EX_TOOLWINDOW },
-		{ "WindowEdge", WS_EX_WINDOWEDGE },
-		{ "ClientEdge", WS_EX_CLIENTEDGE },
-		{ "ContextHelp", WS_EX_CONTEXTHELP },
-		{ "Right", WS_EX_RIGHT },
-		{ "Left", WS_EX_LEFT },
-		{ "ReadingR2L", WS_EX_RTLREADING },
-		{ "ReadingL2R", WS_EX_LTRREADING },
-		{ "LeftScrollBar", WS_EX_LEFTSCROLLBAR },
-		{ "RightScrollBar", WS_EX_RIGHTSCROLLBAR },
-		{ "ControlParent", WS_EX_CONTROLPARENT },
-		{ "StaticEdge", WS_EX_STATICEDGE },
-		{ "AppWindow", WS_EX_APPWINDOW },
-		{ "Layered", WS_EX_LAYERED },
-		{ "NoInheritLayout", WS_EX_NOINHERITLAYOUT },
-		{ "NoRedirectionBitmap", WS_EX_NOREDIRECTIONBITMAP },
-		{ "LayoutR2L", WS_EX_LAYOUTRTL },
-		{ "Composited", WS_EX_COMPOSITED },
-		{ "NoActivate", WS_EX_NOACTIVATE },
-		{ "OverlappedWindow", WS_EX_OVERLAPPEDWINDOW },
-		{ "PaletteWindow", WS_EX_PALETTEWINDOW }
-	};
-	duk_add_flags(ctx, "WindowStyleEx", O, _WSEX_constant);
+	duk_add_enum_flags<WindowStyle>(ctx);
+	duk_add_enum_flags<WindowStyleEx>(ctx);
+	duk_add_enum_flags<WindowShowFlags>(ctx);
 
 	duk_add_class(
 		ctx, "WindowPlacement", O,
@@ -234,7 +124,7 @@ void load_duk_window(duk_context *ctx) {
 				}
 			);
 			duk_add_prop(
-				/* ShowWindowFlags */ ctx, "ShowFlags",
+				/* WindowShowFlags */ ctx, "ShowFlags",
 				duk_set_safe<WindowPlacement>([](duk_context *ctx, WindowPlacement *pobj) {
 					pobj->ShowFlags(reuse_as<SW>(duk_to_uint(ctx, 0)));
 				}),
@@ -452,23 +342,7 @@ void load_duk_window(duk_context *ctx) {
 #pragma endregion
 
 #pragma region WindowClass
-	static const duk_constant _ClassStyle_constant[]{
-		{ "VRedraw", CS_VREDRAW },
-		{ "HRedraw", CS_HREDRAW },
-		{ "Redraw", CS_VREDRAW | CS_HREDRAW },
-		{ "DoubleClick", CS_DBLCLKS },
-		{ "OwnDC", CS_OWNDC },
-		{ "ClassDC", CS_CLASSDC },
-		{ "ParentDC", CS_PARENTDC },
-		{ "NoClose", CS_NOCLOSE },
-		{ "SaveBits", CS_SAVEBITS },
-		{ "ByteAlignClient", CS_BYTEALIGNCLIENT },
-		{ "ByteAlignWindow", CS_BYTEALIGNWINDOW },
-		{ "GlobalClass", CS_GLOBALCLASS },
-		{ "IME", CS_IME },
-		{ "DropShadow", CS_DROPSHADOW }
-	};
-	duk_add_flags(ctx, "ClassStyle", O, _ClassStyle_constant);
+	duk_add_enum_flags<ClassStyle>(ctx);
 	static auto __WndClass_properties = [](duk_context *ctx, auto alfa) {
 		using AnyWndClass = decltype(alfa);
 		duk_add_prop(
@@ -483,7 +357,7 @@ void load_duk_window(duk_context *ctx) {
 				return 1;
 			}
 		);
-		/* int */ duk_put_prop_r(ctx, "ClsExtra", duk_fn {
+		/* int */ duk_add_prop_r(ctx, "ClsExtra", duk_fn {
 			auto pobj = duk_get_this__p<AnyWndClass>(ctx);
 			if (!pobj) return DUK_RET_REFERENCE_ERROR;
 			duk_push_int(ctx, pobj->ClsExtra());
@@ -1035,7 +909,7 @@ void load_duk_window(duk_context *ctx) {
 					return DUK_RET_REFERENCE_ERROR;
 				return 0;
 			});
-			/* int */ duk_add_method(ctx, "MsgBox", 3, duk_fn{
+			/* int */ duk_add_method(ctx, "MsgBox", 3, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				auto nargs = duk_get_top(ctx);
@@ -1048,7 +922,7 @@ void load_duk_window(duk_context *ctx) {
 				duk_push_int(ctx, res);
 				return 1;
 			});
-			/* void */ duk_add_method(ctx, "Focus", 0, duk_fn{
+			/* void */ duk_add_method(ctx, "Focus", 0, duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				if (wx_try(ctx, [&] { pobj->Focus(); }))
@@ -1192,7 +1066,7 @@ void load_duk_window(duk_context *ctx) {
 #pragma endregion
 
 #pragma region Properties
-			/* bool */ duk_put_prop_r(ctx, "Iconic", duk_fn {
+			/* bool */ duk_add_prop_r(ctx, "Iconic", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				bool res = false;
@@ -1201,7 +1075,7 @@ void load_duk_window(duk_context *ctx) {
 				duk_push_boolean(ctx, res);
 				return 1;
 			});
-			/* bool */ duk_put_prop_r(ctx, "Zoomed", duk_fn {
+			/* bool */ duk_add_prop_r(ctx, "Zoomed", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				bool res = false;
@@ -1244,7 +1118,7 @@ void load_duk_window(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* Point */ duk_put_prop_r(ctx, "ClientRect", duk_fn {
+			/* Point */ duk_add_prop_r(ctx, "ClientRect", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				LRect rc;
@@ -1253,7 +1127,7 @@ void load_duk_window(duk_context *ctx) {
 				duk_push_rect(ctx, rc);
 				return 1;
 			});
-			/* Point */ duk_put_prop_r(ctx, "ClientSize", duk_fn {
+			/* Point */ duk_add_prop_r(ctx, "ClientSize", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				LPoint Size;
@@ -1350,7 +1224,7 @@ void load_duk_window(duk_context *ctx) {
 					return 1;
 				}
 			);
-			duk_put_prop_r(
+			duk_add_prop_r(
 				/* WindowInfo */ ctx, "Info",
  				duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
@@ -1363,7 +1237,7 @@ void load_duk_window(duk_context *ctx) {
 					return 1;
 				}
 			);
-			duk_put_prop_r(
+			duk_add_prop_r(
 				/* uint */ ctx, "TextLength", duk_get {
 					auto pobj = duk_get_this__p<CWindow>(ctx);
 					if (!pobj) return DUK_RET_REFERENCE_ERROR;
@@ -1387,7 +1261,7 @@ void load_duk_window(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* String */ duk_put_prop_r(ctx, "ModuleFileName", duk_fn {
+			/* String */ duk_add_prop_r(ctx, "ModuleFileName", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				StringA res = O;
@@ -1416,7 +1290,7 @@ void load_duk_window(duk_context *ctx) {
 					return 1;
 				}
 			);
-			duk_put_prop_r(
+			duk_add_prop_r(
 				/* Window */ ctx, "Next",
 				duk_get{
 					auto pobj = duk_get_this__p<CWindow>(ctx);
@@ -1425,7 +1299,7 @@ void load_duk_window(duk_context *ctx) {
 					return 1;
 				}
 			);
-			duk_put_prop_r(
+			duk_add_prop_r(
 				/* Window */ ctx, "Prev",
 				duk_get{
 					auto pobj = duk_get_this__p<CWindow>(ctx);
@@ -1454,7 +1328,7 @@ void load_duk_window(duk_context *ctx) {
 					return 1;
 				}
 			);
-			/* Menu */ duk_put_prop_r(ctx, "SysMenu", duk_fn {
+			/* Menu */ duk_add_prop_r(ctx, "SysMenu", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				HMENU hMenu = O;
@@ -1657,7 +1531,7 @@ void load_duk_window(duk_context *ctx) {
 				}
 			);
 #pragma endregion
-			/* String */ duk_put_prop_r(ctx, "ClassName", duk_fn {
+			/* String */ duk_add_prop_r(ctx, "ClassName", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				StringA res = O;
@@ -1857,7 +1731,7 @@ void load_duk_window(duk_context *ctx) {
 				}
 			);
 #pragma endregion
-			/* WindowClass */ duk_put_prop_r(ctx, "Class", duk_fn {
+			/* WindowClass */ duk_add_prop_r(ctx, "Class", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_get_global_string(ctx, "WindowClass");
@@ -1867,7 +1741,7 @@ void load_duk_window(duk_context *ctx) {
 				duk_new(ctx, 1);
 				return 1;
 			});
-			/* WindowClassEx */ duk_put_prop_r(ctx, "ClassEx", duk_fn {
+			/* WindowClassEx */ duk_add_prop_r(ctx, "ClassEx", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				duk_get_global_string(ctx, "WindowClassEx");
@@ -1877,7 +1751,7 @@ void load_duk_window(duk_context *ctx) {
 				duk_new(ctx, 1);
 				return 1;
 			});
-			/* DevCap */ duk_put_prop_r(ctx, "DC", duk_fn {
+			/* DevCap */ duk_add_prop_r(ctx, "DC", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				HDC hdc = O;
@@ -1886,7 +1760,7 @@ void load_duk_window(duk_context *ctx) {
 				duk_push_new_cclass(ctx, "DevCap", hdc);
 				return 1;
 			});
-			/* uint */ duk_put_prop_r(ctx, "ProcessId", duk_fn {
+			/* uint */ duk_add_prop_r(ctx, "ProcessId", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				DWORD res = 0;
@@ -1895,7 +1769,7 @@ void load_duk_window(duk_context *ctx) {
 				duk_push_uint(ctx, res);
 				return 1;
 			});
-			/* uint */ duk_put_prop_r(ctx, "ThreadId", duk_fn {
+			/* uint */ duk_add_prop_r(ctx, "ThreadId", duk_fn {
 				auto pobj = duk_get_this__p<CWindow>(ctx);
 				if (!pobj) return DUK_RET_REFERENCE_ERROR;
 				DWORD res = 0;
@@ -1953,21 +1827,21 @@ void load_duk_window(duk_context *ctx) {
 					return 1;
 				}
 			);
-			duk_put_prop_r(
+			duk_add_prop_r(
 				/* Window */ ctx, "Focussed", duk_fn {
 					if (wx_try(ctx, [&] { duk_push_new_cclass(ctx, "Window", Window::Focussed()); }))
 						return DUK_RET_REFERENCE_ERROR;
 					return 1;
 				}
 			);
-			duk_put_prop_r(
+			duk_add_prop_r(
 				/* Window */ ctx, "Active", duk_fn {
 					if (wx_try(ctx, [&] { duk_push_new_cclass(ctx, "Window", Window::Active()); }))
 						return DUK_RET_REFERENCE_ERROR;
 					return 1;
 				}
 			);
-			duk_put_prop_r(
+			duk_add_prop_r(
 				/* Window */ ctx, "Desktop", duk_fn {
 					if (wx_try(ctx, [&] { duk_push_new_cclass(ctx, "Window", Window::Desktop()); }))
 						return DUK_RET_REFERENCE_ERROR;

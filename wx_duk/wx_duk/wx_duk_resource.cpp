@@ -73,7 +73,7 @@ static void load_duk_module(duk_context *ctx) {
 					return DUK_RET_REFERENCE_ERROR;
 				return 1;
 			});
-			/* Menu */ duk_put_prop_r(ctx, "FileName", duk_fn {
+			/* Menu */ duk_add_prop_r(ctx, "FileName", duk_fn {
 				auto pobj = duk_get_this__p<CModule>(ctx);
 				if (wx_try(ctx, [&] { duk_push_string(ctx, pobj->FileNameA()); }))
 					return DUK_RET_REFERENCE_ERROR;

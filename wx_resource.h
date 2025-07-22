@@ -356,14 +356,22 @@ public:
 	Module(Null) {}
 	Module(Module &m) : hInst(m) reflect_to(m.hInst = O);
 	Module(Module &&m) : hInst(m) reflect_to(m.hInst = O);
-	Module(LPCSTR lpModuleName) : hInst(GetModuleHandleA(lpModuleName)) {}
-	Module(LPCWSTR lpModuleName) : hInst(GetModuleHandleW(lpModuleName)) {}
+	Module(LPCSTR lpModuleName) : hInst(Handle(lpModuleName)) {}
+	Module(LPCWSTR lpModuleName) : hInst(Handle(lpModuleName)) {}
 	~Module() reflect_to(Free());
 public:
-	static inline Module Handle(LPCSTR lpModuleName) reflect_as(GetModuleHandleA(lpModuleName));
-	static inline Module Handle(LPCWSTR lpModuleName) reflect_as(GetModuleHandleW(lpModuleName));
-	static inline Module Library(LPCSTR lpLibFileName) assertl_reflect_as(auto hInst = LoadLibraryA(lpLibFileName), hInst);
-	static inline Module Library(LPCWSTR lpLibFileName) assertl_reflect_as(auto hInst = LoadLibraryW(lpLibFileName), hInst);
+	template<class TCHAR>
+	static inline Module Handle(const TCHAR *lpModuleName) {
+		constexpr bool IsUnicode = IsCharW<TCHAR>;
+		global_symbolx(GetModuleHandle);
+		assertl_reflect_as(auto h = GetModuleHandle(lpModuleName), h);
+	}
+	template<class TCHAR>
+	static inline Module Library(const TCHAR *lpLibFileName) {
+		constexpr bool IsUnicode = IsCharW<TCHAR>;
+		global_symbolx(LoadLibrary);
+		assertl_reflect_as(auto h = LoadLibrary(lpLibFileName), h);
+	}
 //	static inline Module Load(LPCSTR lpModuleName, LPVOID lpParameterBlock = O) reflect_as(LoadModule(lpModuleName, lpParameterBlock));
 public:
 	inline void Free() {
@@ -371,23 +379,39 @@ public:
 			assertl(::FreeLibrary(hInst));
 		hInst = O;
 	}
-
-	inline CMenu Menu(LPCSTR lpszName) const reflect_as(LoadMenuA(self, lpszName));
-	inline CMenu Menu(LPCWSTR lpszName) const reflect_as(LoadMenuW(self, lpszName));
-	inline CMenu Menu(WORD wID) const reflect_as(LoadMenu(self, MAKEINTRESOURCE(wID)));
-
-	inline CBitmap Bitmap(LPCSTR lpszName) const reflect_as(LoadBitmapA(self, lpszName));
-	inline CBitmap Bitmap(LPCWSTR lpszName) const reflect_as(LoadBitmapW(self, lpszName));
+public: // Property - Menu
+	template<class TCHAR>
+	/* R */ inline CMenu Menu(const TCHAR *lpszName) const {
+		constexpr bool IsUnicode = IsCharW<TCHAR>;
+		global_symbolx(LoadMenu);
+		assertl_reflect_as(auto h = LoadMenu(self, lpszName), h);
+	}
+	/* R */ inline CMenu Menu(WORD wID) const reflect_as(LoadMenu(self, MAKEINTRESOURCE(wID)));
+public: // Property - Bitmap
+	template<class TCHAR>
+	/* R */ inline CBitmap Bitmap(const TCHAR *lpszName) const {
+		constexpr bool IsUnicode = IsCharW<TCHAR>;
+		global_symbolx(LoadBitmap);
+		assertl_reflect_as(auto h = LoadBitmap(self, lpszName), h);
+	}
 	inline CBitmap Bitmap(WORD wID) const reflect_as(LoadBitmap(self, MAKEINTRESOURCE(wID)));
-
-	inline CIcon Icon(LPCSTR lpszName) const reflect_as(LoadIconA(self, lpszName));
-	inline CIcon Icon(LPCWSTR lpszName) const reflect_as(LoadIconW(self, lpszName));
+public: // Property - Icon
+	template<class TCHAR>
+	/* R */ inline CIcon Icon(const TCHAR *lpszName) const {
+		constexpr bool IsUnicode = IsCharW<TCHAR>;
+		global_symbolx(LoadIcon);
+		assertl_reflect_as(auto h = LoadIcon(self, lpszName), h);
+	}
 	inline CIcon Icon(WORD wID) const reflect_as(LoadIcon(self, MAKEINTRESOURCE(wID)));
-
-	inline CCursor Cursor(LPCSTR lpszName) const reflect_as(LoadCursorA(self, lpszName));
-	inline CCursor Cursor(LPCWSTR lpszName) const reflect_as(LoadCursorW(self, lpszName));
+public: // Property - Cursor
+	template<class TCHAR>
+	/* R */ inline CCursor Cursor(const TCHAR *lpszName) const {
+		constexpr bool IsUnicode = IsCharW<TCHAR>;
+		global_symbolx(LoadCursor);
+		assertl_reflect_as(auto h = LoadCursor(self, lpszName), h);
+	}
 	inline CCursor Cursor(WORD wID) const reflect_as(LoadCursor(self, MAKEINTRESOURCE(wID)));
-
+public: // Property - String
 	template<bool IsUnicode = WX::IsUnicode>
 	inline StringX<IsUnicode> String(WORD wID) const {
 		if constexpr (IsUnicode)
@@ -406,10 +430,9 @@ public:
 		assertl((len = LoadStringW(self, wID, (LPWSTR)&lpString, 0)) > 0);
 		return CString(len, lpString);
 	}
-
+public: // Property - Procedure
 	template<class AnyFunc>
-	inline AnyFunc *Proc(LPCSTR lpName) reflect_as((AnyFunc  *)::GetProcAddress(self, lpName));
-
+	inline AnyFunc *Procedure(LPCSTR lpName) reflect_as((AnyFunc  *)::GetProcAddress(self, lpName));
 public: // Property - FileName
 	template<bool IsUnicode = WX::IsUnicode>
 	/* R */ inline StringX<IsUnicode> FileName() const {

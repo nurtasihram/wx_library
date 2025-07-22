@@ -590,7 +590,22 @@ inline void *Copy(void *lpDst, const void *lpSrc, size_t uSize, Args... args) {
 }
 template<class AnyType>
 inline void Fill(AnyType *lpArray, const AnyType &Sample, size_t Len) {
-	while (Len--) CopyMemory(lpArray++, &Sample, sizeof(AnyType));
+	while (Len--)
+		CopyMemory(lpArray++, &Sample, sizeof(AnyType));
+}
+/* format */
+static constexpr size_t Len_sprintf_buff = 1024;
+template<class TCHAR = ::TCHAR>
+inline StringBase<TCHAR> format(const TCHAR *lpszFormat, ...) {
+	constexpr bool IsUnicode = IsCharW<TCHAR>;
+	global_symbolx(StringCchVPrintfEx);
+	va_list argList;
+	va_start(argList, lpszFormat);
+	TCHAR buff[Len_sprintf_buff];
+	size_t remain = 0;
+	assertl(SUCCEEDED(StringCchVPrintfEx(buff, Len_sprintf_buff, O, &remain, STRSAFE_NULL_ON_FAILURE, lpszFormat, argList)));
+	va_end(argList);
+	return +CString(buff, Len_sprintf_buff - remain + 1);
 }
 #pragma endregion
 
@@ -886,7 +901,7 @@ inline StringA CatsA(uint64_t i) reflect_as(nXA("d", i));
 inline StringA CatsA(DWORD i) reflect_as(nXA("d", i));
 inline StringA CatsA(CHAR chs) reflect_as((CHAR)chs);
 inline StringA CatsA(WCHAR chs) reflect_as((CHAR)chs);
-inline StringA CatsA(LPCSTR lpsz) reflect_as(+CString(lpsz, 1024));
+inline StringA CatsA(LPCSTR lpsz) reflect_as(+CString(lpsz, 0x1FF));
 inline StringA CatsA(const Exception &err) reflect_as(err);
 inline const StringA &CatsA(const StringA &str) reflect_as(str);
 template<class AnyType>
@@ -943,6 +958,340 @@ template<class... Args>
 inline String Cats(const Args& ...args) reflect_as(_Cats(Cats(args)...));
 #pragma endregion
 
+#pragma region Point Size Rect
+struct LPoint : public POINT {
+public:
+	LPoint() : POINT{ 0 } {}
+	LPoint(const POINT &p) : POINT(p) {}
+	LPoint(const LPoint &p) : POINT(p) {}
+	LPoint(LONG a) : POINT{ a, a } {}
+	LPoint(LONG x, LONG y) : POINT{ x, y } {}
+	LPoint(const SIZE &s) : POINT{ s.cx, s.cy } {}
+	LPoint(COORD c) : POINT{ c.X, c.Y } {}
+public:
+	template<bool IsUnicode>
+	inline StringX<IsUnicode> toString() const {
+		auto_stringx(fmt, "{ x: %d, y: %d }");
+		return format(fmt, x, y);
+	}
+	inline StringA toStringA() const reflect_as(toString<false>());
+	inline StringW toStringW() const reflect_as(toString<true>());
+public:
+	inline operator LPARAM() const reflect_as((LPARAM)this);
+	inline operator COORD() const reflect_as({ (SHORT)x, (SHORT)y });
+	inline operator SIZE() const reflect_as({ x, y });
+	inline LPoint  operator+ () const reflect_to_self();
+	inline LPoint  operator~ () const reflect_as({ y,  x });
+	inline LPoint  operator* (double l) const reflect_as({ LONG((double)x * l), LONG((double)y * l) });
+	inline LPoint  operator/ (double l) const reflect_as({ LONG((double)x / l), LONG((double)y / l) });
+	inline LPoint  operator* (int l) const reflect_as({ x * l, y * l });
+	inline LPoint  operator/ (int l) const reflect_as({ x / l, y / l });
+	inline LPoint  operator- () const reflect_as({ -x, -y });
+	inline LPoint  operator+ (POINT s) const reflect_as({ x + s.x, y + s.y });
+	inline LPoint  operator- (POINT s) const reflect_as({ x - s.x, y - s.y });
+	inline LPoint &operator*=(double p) reflect_to_self(x = LONG((double)x * p), y = LONG((double)y * p));
+	inline LPoint &operator/=(double p) reflect_to_self(x = LONG((double)x / p), y = LONG((double)y / p));
+	inline LPoint &operator+=(POINT p) reflect_to_self(x += p.x, y += p.y);
+	inline LPoint &operator-=(POINT p) reflect_to_self(x -= p.x, y -= p.y);
+	inline LPoint &operator =(POINT p) reflect_to_self(x = p.x, y = p.y);
+	inline bool    operator==(POINT pt) const reflect_as(pt.x == x && pt.y == y);
+	inline bool    operator!=(POINT pt) const reflect_as(pt.x != x || pt.y != y);
+};
+struct LSize : public SIZE {
+public:
+	LSize() : SIZE{ 0 } {}
+	LSize(const SIZE &s) : SIZE(s) {}
+	LSize(const LSize &s) : SIZE(s) {}
+	LSize(LONG c) : SIZE{ c, c } {}
+	LSize(LONG cx, LONG cy) : SIZE{ cx, cy } {}
+	LSize(COORD c) : SIZE{ c.X, c.Y } {}
+	LSize(POINT p) : SIZE{ p.x, p.y } {}
+public:
+	inline auto Square() const reflect_as(cx * cy);
+public:
+	template<bool IsUnicode>
+	inline StringX<IsUnicode> toString() const {
+		auto_stringx(fmt, "{ cx: %d, cy: %d }");
+		return format(fmt, cx, cy);
+	}
+	inline StringA toStringA() const reflect_as(toString<false>());
+	inline StringW toStringW() const reflect_as(toString<true>());
+public:
+	inline operator LPARAM() const reflect_as((LPARAM)this);
+	inline operator COORD() const reflect_as({ (SHORT)cx, (SHORT)cy });
+	inline LSize  operator+ () const reflect_to_self();
+	inline LSize  operator- () const reflect_as({ -cx, -cy });
+	inline LSize  operator~ () const reflect_as({ cy,  cx });
+	inline LSize  operator* (double l) const reflect_as({ LONG((double)cx * l), LONG((double)cy * l) });
+	inline LSize  operator/ (double l) const reflect_as({ LONG((double)cx / l), LONG((double)cy / l) });
+	inline LSize  operator* (int l) const reflect_as({ cx * l, cy * l });
+	inline LSize  operator/ (int l) const reflect_as({ cx / l, cy / l });
+	inline LSize  operator+ (const LSize &s) const reflect_as({ cx + s.cx, cy + s.cy });
+	inline LSize  operator- (const LSize &s) const reflect_as({ cx - s.cx, cy - s.cy });
+	inline LSize &operator*=(double p) reflect_to_self(cx = LONG((double)cx * p), cy = LONG((double)cy * p));
+	inline LSize &operator/=(double p) reflect_to_self(cx = LONG((double)cx / p), cy = LONG((double)cy / p));
+	inline LSize &operator+=(const LSize &p) reflect_to_self(cx += p.cx, cy += p.cy);
+	inline LSize &operator-=(const LSize &p) reflect_to_self(cx -= p.cx, cy -= p.cy);
+	inline LSize &operator =(const LSize &p) reflect_to_self(cx = p.cx, cy = p.cy);
+	inline bool   operator==(LSize sz) const reflect_as(sz.cx == cx && sz.cy == cy);
+	inline bool   operator!=(LSize sz) const reflect_as(sz.cx != cx || sz.cy != cy);
+};
+enum_flags(LAlign, BYTE,
+	Left	= 1 << 0,
+	Right	= 2 << 0,
+	HCenter = 3 << 0,
+	Top		= 1 << 2,
+	Bottom  = 2 << 2,
+	VCenter = 3 << 2);
+struct LRect : public RECT {
+public:
+	LRect() : RECT{ 0 } {}
+	LRect(const RECT &rc) : RECT(rc) {}
+	LRect(const LRect &rc) : RECT(rc) {}
+	LRect(LONG a) : RECT{ a, a, a, a } {}
+	LRect(LONG left, LONG top, LONG right, LONG bottom) : RECT{ left, top, right, bottom } {}
+	LRect(const MARGINS &m) : RECT({ m.cxLeftWidth, m.cyTopHeight, m.cxRightWidth, m.cyBottomHeight }) {}
+	LRect(SMALL_RECT s) : RECT{ s.Left, s.Top, s.Right, s.Bottom } {}
+	LRect(SIZE sz) : RECT{ 0, 0, sz.cx - 1, sz.cy - 1 } {}
+	LRect(POINT p0,  POINT p1) : RECT{ p0.x, p0.y, p1.x, p1.y } {}
+public:
+	static inline LRect left_top(LPoint lt, LSize sz) reflect_as({ lt.x, lt.y, lt.x + sz.cx - 1, lt.y + sz.cy - 1 });
+public:
+	inline auto xsize() const reflect_as(right - left + 1);
+	inline auto ysize() const reflect_as(bottom - top + 1);
+	inline LSize size() const reflect_as({ xsize(), ysize() });
+	inline auto  dx()           const reflect_as(right - left);
+	inline auto  dy()           const reflect_as(bottom - top);
+	inline LSize d()            const reflect_as({ dx(), dy() });
+	inline auto &xmove(LONG dx) reflect_to_self(right += dx, left += dx);
+	inline auto &ymove(LONG dy) reflect_to_self(bottom += dy, top += dy);
+	LRect &align(LAlign a, const LRect &r2);
+public:
+	inline auto x0() const reflect_as(left);
+	inline auto y0() const reflect_as(top);
+	inline auto x1() const reflect_as(right);
+	inline auto y1() const reflect_as(bottom);
+public:
+	template<bool IsUnicode>
+	inline StringX<IsUnicode> toString() const {
+		auto_stringx(fmt, "{ left: %d, top: %d, right: %d, bottom: %d }");
+		return format(fmt, left, top, right, bottom);
+	}
+	inline StringA toStringA() const reflect_as(toString<false>());
+	inline StringW toStringW() const reflect_as(toString<true>());
+public: // Property - left_top
+	inline LPoint left_top()     const reflect_as({ left,  top });
+	inline auto   &left_top(LPoint lt) reflect_to_self(left = lt.x, top = lt.y);
+public: // Property - left_bottom
+	inline LPoint left_bottom()    const reflect_as({ left,  bottom });
+	inline auto  &left_bottom(LPoint lt) reflect_to_self(left = lt.x, bottom = lt.y);
+public: // Property - right_top
+	inline LPoint right_top()    const reflect_as({ right, top });
+	inline auto  &right_top(LPoint rt) reflect_to_self(right = rt.x, top = rt.y);
+public: // Property - right_bottom
+	inline LPoint right_bottom() const reflect_as({ right, bottom });
+	inline auto  &right_bottom(LPoint rb) reflect_to_self(right = rb.x, bottom = rb.y);
+public:
+	inline operator StringA() const reflect_as(toStringA());
+	inline operator StringW() const reflect_as(toStringW());
+	inline operator SIZE()   const reflect_as({ right - left + 1, bottom - top + 1 });
+	inline operator LSize()   const reflect_as({ right - left + 1, bottom - top + 1 });
+	inline operator LPRECT()        reflect_as(this);
+	inline operator LPCRECT() const reflect_as(this);
+	inline operator LPARAM()  const reflect_as((LPARAM)this);
+	inline operator MARGINS() const reflect_as({ left, right, top, bottom });
+	inline operator SMALL_RECT() const reflect_as({ (SHORT)left, (SHORT)top, (SHORT)right, (SHORT)bottom });
+	inline LRect  operator+ () const reflect_to_self();
+	inline LRect  operator- () const reflect_as({ -left,   -top, -right, -bottom });
+	inline LRect  operator~ () const reflect_as({ right, bottom,   left,     top });
+	inline LRect  operator+ (const RECT &r) const reflect_as({ left + r.left, top + r.top, right + r.right, bottom + r.bottom });
+	inline LRect  operator- (const RECT &r) const reflect_as({ left - r.left, top - r.top, right - r.right, bottom - r.bottom });
+	inline LRect  operator+ (POINT p) const reflect_as({ left + p.x, top + p.y, right + p.x, bottom + p.y });
+	inline LRect  operator- (POINT p) const reflect_as({ left - p.x, top - p.y, right - p.x, bottom - p.y });
+	inline LRect  operator* (double l) const reflect_as({ LONG((double)left * l), LONG((double)top * l), LONG((double)right * l), LONG((double)bottom * l) });
+	inline LRect  operator/ (double l) const reflect_as({ LONG((double)left / l), LONG((double)top / l), LONG((double)right / l), LONG((double)bottom / l) });
+	inline LRect  operator* (int l ) const reflect_as({ left * l, top * l, right * l, bottom * l });
+	inline LRect  operator/ (int l) const reflect_as({ left / l, top / l, right / l, bottom / l });
+	inline LRect &operator*=(double l) reflect_to_self(left = LONG((double)left * l), top = LONG((double)top * l), right = LONG((double)right * l), bottom = LONG((double)bottom * l));
+	inline LRect &operator/=(double l) reflect_to_self(left = LONG((double)left / l), top = LONG((double)top / l), right = LONG((double)right / l), bottom = LONG((double)bottom / l));
+	inline LRect &operator/=(int l) reflect_to_self(left /= l, top /= l, right /= l, bottom /= l);
+	inline LRect &operator*=(int l) reflect_to_self(left *= l; top *= l, right *= l, bottom *= l);
+	inline LRect &operator+=(const RECT &r) reflect_to_self(left += r.left, top += r.top, right += r.right, bottom += r.bottom);
+	inline LRect &operator-=(const RECT &r) reflect_to_self(left -= r.left, top -= r.top, right -= r.right, bottom -= r.bottom);
+	inline LRect &operator+=(POINT p) reflect_to_self(left += p.x, top += p.y, right += p.x, bottom += p.y);
+	inline LRect &operator-=(POINT p) reflect_to_self(left -= p.x, top -= p.y, right -= p.x, bottom -= p.y);
+};
+inline LRect operator+(LPoint p, const LRect &r) reflect_as(r + p);
+inline LRect operator-(LPoint p, const LRect &r) reflect_as(-(r - p));
+inline LRect &LRect::align(LAlign a, const LRect &r2) {
+	if (a == LAlign::HCenter)
+		xmove((r2.left + r2.right - left - right) / 2);
+	elif (a <= LAlign::Right) {
+		left += r2.right - right;
+		right = r2.right;
+	} else /* if (a <= LAlign::Left) */ {
+		right += r2.left - left;
+		left = r2.left;
+	}
+	if (a == LAlign::VCenter)
+		ymove((r2.top + r2.bottom - top - bottom) / 2);
+	elif (a <= LAlign::Bottom) {
+		top += r2.bottom - bottom;
+		bottom = r2.bottom;
+	} else /* if (a & LAlign::Top) */ {
+		bottom += r2.top - top;
+		top = r2.top;
+	}
+	return*this;
+}
+#pragma endregion
+
+#pragma region Times
+enum_class(Locales, LCID,
+	Default     = LOCALE_CUSTOM_DEFAULT,
+	Unspecified = LOCALE_CUSTOM_UNSPECIFIED,
+	UIDefault   = LOCALE_CUSTOM_UI_DEFAULT,
+	Neutral     = LOCALE_NEUTRAL,
+	Invariant   = LOCALE_INVARIANT);
+enum_flags(TimeFormat, DWORD,
+	Default            = 0,
+	NoMinutesOrSeconds = TIME_NOMINUTESORSECONDS,
+	NoSecond           = TIME_NOSECONDS,
+	NoTimeMarker       = TIME_NOTIMEMARKER,
+	Force24H           = TIME_FORCE24HOURFORMAT);
+enum_flags(DateFormat, DWORD,
+	Default        = 0,
+	ShortDate      = DATE_SHORTDATE,
+	LongDate       = DATE_LONGDATE,
+	UseAltCalendar = DATE_USE_ALT_CALENDAR,
+	YearMonth      = DATE_YEARMONTH,
+	LTRReading     = DATE_LTRREADING,
+	RTLReading     = DATE_RTLREADING,
+	AutoLayout     = DATE_AUTOLAYOUT,
+	MonthDay       = DATE_MONTHDAY);
+class SystemTime : public RefStruct<SYSTEMTIME> {
+public:
+	using super = RefStruct<SYSTEMTIME>;
+public:
+	SystemTime(Null) {}
+	SystemTime() reflect_to(GetSystemTime(this));
+	SystemTime(const SYSTEMTIME &st) : super(st) {}
+	SystemTime(const FILETIME &ft) assertl(FileTimeToSystemTime(&ft, this));
+public:
+	static inline SystemTime LocalTime() reflect_to(SystemTime st; GetLocalTime(&st), st);
+public: // Property - Year
+	/* W */ inline auto &Year(WORD wYear) reflect_to_self(self->wYear = wYear);
+	/* R */ inline WORD Year() const reflect_as(self->wYear);
+public: // Property - Month
+	/* W */ inline auto &Month(WORD wMonth) reflect_to_self(self->wMonth = wMonth);
+	/* R */ inline WORD Month() const reflect_as(self->wMonth);
+public: // Property - Day
+	/* W */ inline auto &Day(WORD wDay) reflect_to_self(self->wDay = wDay);
+	/* R */ inline WORD Day() const reflect_as(self->wDay);
+public: // Property - Hour
+	/* W */ inline auto &Hour(WORD wHour) reflect_to_self(self->wHour = wHour);
+	/* R */ inline WORD Hour() const reflect_as(self->wHour);
+public: // Property - Minute
+	/* W */ inline auto &Minute(WORD wMinute) reflect_to_self(self->wMinute = wMinute);
+	/* R */ inline WORD Minute() const reflect_as(self->wMinute);
+public: // Property - Second
+	/* W */ inline auto &Second(WORD wSecond) reflect_to_self(self->wSecond = wSecond);
+	/* R */ inline WORD Second() const reflect_as(self->wSecond);
+public: // Property - MilliSeconds
+	/* W */ inline auto &MilliSeconds(WORD wMilliseconds) reflect_to_self(self->wMilliseconds = wMilliseconds);
+	/* R */ inline WORD MilliSeconds() const reflect_as(self->wMilliseconds);
+public: // FormatDate
+	template<bool IsUnicode = WX::IsUnicode>
+	inline StringX<IsUnicode> FormatDate(Locales locale = Locales::Default, DateFormat df = DateFormat::Default, LPCXSTR<IsUnicode> lpFormat = O) const {
+		global_symbolx(GetDateFormat);
+		int len;
+		assertl((len = GetDateFormat(locale.yield(), df.yield(), this, lpFormat, O, 0)) > 0);
+		auto lpsz = StringX<IsUnicode>::Alloc(len - 1);
+		assertl(len == GetDateFormat(locale.yield(), df.yield(), this, lpFormat, lpsz, len));
+		return{ (size_t)len, lpsz };
+	}
+	inline StringA FormatDate(Locales locale, DateFormat df, LPCSTR lpFormat) const reflect_as(FormatDate<false>(locale, df, lpFormat));
+	inline StringW FormatDate(Locales locale, DateFormat df, LPCWSTR lpFormat) const reflect_as(FormatDate<true>(locale, df, lpFormat));
+	inline StringA FormatDateA(Locales locale = Locales::Default, DateFormat df = DateFormat::Default, LPCSTR lpFormat = O) const reflect_as(FormatDate<false>(locale, df, lpFormat));
+	inline StringW FormatDateW(Locales locale = Locales::Default, DateFormat df = DateFormat::Default, LPCWSTR lpFormat = O) const reflect_as(FormatDate<true>(locale, df, lpFormat));
+	inline StringW FormatDate(LPCWSTR lpLocaleName, DateFormat df = DateFormat::Default, LPCWSTR lpFormat = O) const {
+		int len;
+		assertl((len = GetDateFormatEx(lpLocaleName, df.yield(), this, lpFormat, O, 0, O)) > 0);
+		auto lpsz = StringW::Alloc(len - 1);
+		assertl(len == GetDateFormatEx(lpLocaleName, df.yield(), this, lpFormat, lpsz, len, O));
+		return{ (size_t)len, lpsz };
+	}
+public: // FormatTime
+	template<bool IsUnicode = WX::IsUnicode>
+	inline StringX<IsUnicode> FormatTime(Locales locale = Locales::Default, TimeFormat tf = TimeFormat::Default, LPCXSTR<IsUnicode> lpFormat = O) const {
+		global_symbolx(GetTimeFormat);
+		int len;
+		assertl((len = GetTimeFormat(locale.yield(), tf.yield(), this, lpFormat, O, 0)) > 0);
+		auto lpsz = StringX<IsUnicode>::Alloc(len - 1);
+		assertl(len == GetTimeFormat(locale.yield(), tf.yield(), this, lpFormat, lpsz, len));
+		return{ (size_t)len, lpsz };
+	}
+	inline StringA FormatTime(Locales locale, TimeFormat tf, LPCSTR lpFormat) const reflect_as(FormatTime<false>(locale, tf, lpFormat));
+	inline StringW FormatTime(Locales locale, TimeFormat tf, LPCWSTR lpFormat) const reflect_as(FormatTime<true>(locale, tf, lpFormat));
+	inline StringA FormatTimeA(Locales locale = Locales::Default, TimeFormat tf = TimeFormat::Default, LPCSTR lpFormat = O) const reflect_as(FormatTime<false>(locale, tf, lpFormat));
+	inline StringW FormatTimeW(Locales locale = Locales::Default, TimeFormat tf = TimeFormat::Default, LPCWSTR lpFormat = O) const reflect_as(FormatTime<true>(locale, tf, lpFormat));
+	inline StringW FormatTime(LPCWSTR lpLocaleName, TimeFormat tf = TimeFormat::Default, LPCWSTR lpFormat = O) const {
+		int len;
+		assertl((len = GetTimeFormatEx(lpLocaleName, tf.yield(), this, lpFormat, O, 0)) > 0);
+		auto lpsz = StringW::Alloc(len - 1);
+		assertl(len == GetTimeFormatEx(lpLocaleName, tf.yield(), this, lpFormat, lpsz, len));
+		return{ (size_t)len, lpsz };
+	}
+public:
+	template<bool IsUnicode = WX::IsUnicode>
+	inline StringX<IsUnicode> toString() const {
+		global_symbolx(GetDateFormat);
+		global_symbolx(GetTimeFormat);
+		int lenDate, lenTime;
+		assertl((lenDate = GetDateFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, O, 0)) > 0);
+		assertl((lenTime = GetTimeFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, O, 0)) > 0);
+		auto lpsz = StringX<IsUnicode>::Alloc(lenDate + lenTime - 1);
+		assertl(lenDate == GetDateFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, lpsz, lenDate));
+		assertl(lenTime == GetTimeFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, lpsz + lenDate, lenTime));
+		lpsz[lenDate - 1] = ' ';
+		return{ (size_t)(lenDate + lenTime - 1), lpsz };
+	}
+	inline StringA toStringA() const reflect_as(toString<false>());
+	inline StringW toStringW() const reflect_as(toString<true>());
+
+public:
+	inline operator StringA() const reflect_as(toString<false>());
+	inline operator StringW() const reflect_as(toString<true>());
+	inline operator FILETIME() const assertl_reflect_to(FILETIME ft, SystemTimeToFileTime(this, &ft), ft);
+};
+using SysTime = SystemTime;
+class FileTime : public RefStruct<FILETIME> {
+public:
+	using super = RefStruct<FILETIME>;
+public:
+	FileTime() {}
+	FileTime(const FILETIME &ft) : super(ft) {}
+	FileTime(LARGE_INTEGER li) { ref_as<LARGE_INTEGER>(self) = li; }
+	FileTime(const SYSTEMTIME &st) assertl(SystemTimeToFileTime(&st, this));
+public:
+	static inline FileTime SystemTime() reflect_to(FileTime ft; GetSystemTimeAsFileTime(&ft), ft);
+public:
+	inline FileTime ToLocal() assertl_reflect_to(FILETIME ft, FileTimeToLocalFileTime(this, &ft), ft);
+	inline FileTime ToUniversal() assertl_reflect_to(FILETIME ft, LocalFileTimeToFileTime(this, &ft), ft);
+public:
+	template<bool IsUnicode = WX::IsUnicode>
+	inline StringX<IsUnicode> toString() const reflect_as(SysTime(self).toString<IsUnicode>());
+	inline StringA toStringA() const reflect_as(toString<false>());
+	inline StringW toStringW() const reflect_as(toString<true>());
+
+public:
+	inline operator StringA() const reflect_as(toStringA());
+	inline operator StringW() const reflect_as(toStringW());
+	inline operator SYSTEMTIME() const assertl_reflect_to(SYSTEMTIME st, FileTimeToSystemTime(this, &st), st);
+	inline operator LARGE_INTEGER() const reflect_as(reuse_as<LARGE_INTEGER>(*this));
+};
+#pragma endregion
+
 /* Rx::Token */
 template<class TCHAR>
 inline Rx<TCHAR>::Token::operator const StringBase<TCHAR>() const reflect_as(CString(len, lpsz));
@@ -950,7 +1299,7 @@ inline Rx<TCHAR>::Token::operator const StringBase<TCHAR>() const reflect_as(CSt
 template<class TCHAR, class AnyEnum>
 StringBase<TCHAR> EnumClassParseX(AnyEnum e) {
 	using EnumType = typename AnyEnum::EnumType;
-	constexpr auto table = EnumTableX<TCHAR, EnumType>;
+	constexpr auto table = EnumTable<TCHAR, EnumType>;
 	auto val = e.yield();
 	for (auto i = 0; i < EnumType::Count; ++i)
 		if (val == EnumType::__Vals[i])
@@ -965,74 +1314,24 @@ template<class AnyEnum>
 inline auto EnumClassParseA(AnyEnum e) reflect_as(EnumClassParseX<CHAR>(e));
 template<class AnyEnum>
 inline auto EnumClassParseW(AnyEnum e) reflect_as(EnumClassParseX<WCHAR>(e));
-/* format */
-static constexpr size_t Len_sprintf_buff = 1024;
-template<class TCHAR = ::TCHAR>
-inline StringBase<TCHAR> format(const TCHAR *lpszFormat, ...) {
-	constexpr bool IsUnicode = IsCharW<TCHAR>;
-	global_symbolx(StringCchVPrintfEx);
-	va_list argList;
-	va_start(argList, lpszFormat);
-	TCHAR buff[Len_sprintf_buff];
-	size_t remain = 0;
-	assertl(SUCCEEDED(StringCchVPrintfEx(buff, Len_sprintf_buff, O, &remain, STRSAFE_NULL_ON_FAILURE, lpszFormat, argList)));
-	va_end(argList);
-	return +CString(buff, Len_sprintf_buff - remain + 1);
-}
-/* Exception:: */
-//    File
+
+#pragma region Exception::
+// File
 template<bool IsUnicode>
 inline StringX<IsUnicode> Exception::File() const reflect_as(Fits<IsUnicode>(FileA()));
 inline StringA Exception::FileA() const reflect_as(CString(szFile, lpszFile));
 inline StringW Exception::FileW() const reflect_as(FitsW(FileA()));
-//   Function
+// Function
 template<bool IsUnicode>
 inline StringX<IsUnicode> Exception::Function() const reflect_as(Fits<IsUnicode>(FunctionA()));
 inline StringA Exception::FunctionA() const reflect_as(CString(szFunc, lpszFunc));
 inline StringW Exception::FunctionW() const reflect_as(FitsW(FunctionA()));
-//    Sentence
+// Sentence
 template<bool IsUnicode>
 inline StringX<IsUnicode> Exception::Sentence() const reflect_as(Fits<IsUnicode>(SentenceA()));
 inline StringA Exception::SentenceA() const reflect_as(CString(szSent, lpszSent));
 inline StringW Exception::SentenceW() const reflect_as(FitsW(SentenceA()));
-//    toString
-template<bool IsUnicode>
-inline StringX<IsUnicode> Exception::toString() const {
-	using LPCTSTR = LPCXSTR<IsUnicode>;
-#define _ERR_FMT_ \
-		"File:          %s\n" \
-		"Function:      %s\n" \
-		"Sentence:      %s\n" \
-		"Line:          %d\n"
-	if (ErrorCode() == 0) {
-		auto_stringx(fmt_n, _ERR_FMT_);
-		return format(
-			fmt_n,
-			(LPCTSTR)File<IsUnicode>(),
-			(LPCTSTR)Function<IsUnicode>(),
-			(LPCTSTR)Sentence<IsUnicode>(),
-			Line()
-		);
-	}
-	auto_stringx(
-		fmt_m, _ERR_FMT_
-		"Error Code:    %d\n"
-		"Error Message: %s\n"
-	);
-	return format(
-		fmt_m,
-		(LPCTSTR)File<IsUnicode>(),
-		(LPCTSTR)Function<IsUnicode>(),
-		(LPCTSTR)Sentence<IsUnicode>(),
-		Line(),
-		ErrorCode(),
-		(LPCTSTR)ErrorMessage<IsUnicode>()
-	);
-#undef _ERR_FMT_
-}
-inline StringA Exception::toStringA() const reflect_as(toString<false>());
-inline StringW Exception::toStringW() const reflect_as(toString<true>());
-//    ErrorMessage
+// ErrorMessage
 template<bool IsUnicode>
 inline StringX<IsUnicode> Exception::ErrorMessage() const {
 	using LPTSTR = LPXSTR<IsUnicode>;
@@ -1047,45 +1346,38 @@ inline StringX<IsUnicode> Exception::ErrorMessage() const {
 }
 inline StringA Exception::ErrorMessageA() const reflect_as(ErrorMessage<false>());
 inline StringW Exception::ErrorMessageW() const reflect_as(ErrorMessage<true>());
-//    operator String
+// toString
+template<bool IsUnicode>
+inline StringX<IsUnicode> Exception::toString() const {
+	using LPCTSTR = LPCXSTR<IsUnicode>;
+	auto_stringx(fmt_1,
+		"File:          %s\n"
+		"Function:      %s\n"
+		"Sentence:      %s\n"
+		"Line:          %d\n");
+	auto_stringx(fmt_2, 
+		"Error Code:    %d\n"
+		"Error Message: %s\n");
+	auto &&str = format(fmt_1,
+		(LPCTSTR)File<IsUnicode>(),
+		(LPCTSTR)Function<IsUnicode>(),
+		(LPCTSTR)Sentence<IsUnicode>(),
+		Line());
+	if (ErrorCode() != 0)
+		str += format(fmt_2,
+			ErrorCode(),
+			(LPCTSTR)ErrorMessage<IsUnicode>());
+	return str;
+}
+inline StringA Exception::toStringA() const reflect_as(toString<false>());
+inline StringW Exception::toStringW() const reflect_as(toString<true>());
+// operator String
 inline Exception::operator StringA() const reflect_as(toStringA());
 inline Exception::operator StringW() const reflect_as(toStringW());
+#pragma endregion
+
 /* MsgBox */
 inline int MsgBox(LPCSTR lpCaption, const Exception &err, HWND hParent) reflect_as(MsgBox(lpCaption, err.toStringA(), MB::IconError | MB::AbortRetryIgnore, hParent));
 inline int MsgBox(LPCWSTR lpCaption, const Exception &err, HWND hParent) reflect_as(MsgBox(lpCaption, err.toStringW(), MB::IconError | MB::AbortRetryIgnore, hParent));
-/* SystemTime:: */
-//    FormatTime
-template<bool IsUnicode>
-inline StringX<IsUnicode> SystemTime::FormatTime(TimeFormat tf, Locales locale) const {
-	global_symbolx(GetTimeFormat);
-	int len;
-	assertl((len = GetTimeFormat(locale.yield(), tf.yield(), &self, O, O, 0)) > 0);
-	auto lpsz = StringX<IsUnicode>::Alloc(len - 1);
-	assertl(len == GetTimeFormat(locale.yield(), tf.yield(), &self, O, lpsz, len));
-	return{ (size_t)len, lpsz };
-}
-inline StringA SystemTime::FormatTimeA(TimeFormat tf, Locales locale) const reflect_as(FormatTime<false>());
-inline StringW SystemTime::FormatTimeW(TimeFormat tf, Locales locale) const reflect_as(FormatTime<true>());
-//    FormatDate
-template<bool IsUnicode>
-inline StringX<IsUnicode> SystemTime::FormatDate(DateFormat df, Locales locale) const {
-	global_symbolx(GetDateFormat);
-	int len;
-	assertl((len = GetDateFormat(locale.yield(), df.yield(), &self, O, O, 0)) > 0);
-	auto lpsz = StringX<IsUnicode>::Alloc(len - 1);
-	assertl(len == GetDateFormat(locale.yield(), df.yield(), &self, O, lpsz, len));
-	return{ (size_t)len, lpsz };
-}
-inline StringA SystemTime::FormatDateA(DateFormat df, Locales locale) const reflect_as(FormatDate<false>(df, locale));
-inline StringW SystemTime::FormatDateW(DateFormat df, Locales locale) const reflect_as(FormatDate<true>(df, locale));
-template<bool IsUnicode>
-inline StringX<IsUnicode> SystemTime::toString() const {
-	return O;
-}
-inline SystemTime::operator StringA() const reflect_as(toString<false>());
-inline SystemTime::operator StringW() const reflect_as(toString<true>());
-/*    FileTime:: */
-template<bool IsUnicode>
-inline StringX<IsUnicode> FileTime::toString() const reflect_as(((SystemTime)self).toString<IsUnicode>());
 
 }

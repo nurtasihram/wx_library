@@ -15,20 +15,18 @@ void duk_errout(duk_context *ctx, const char *err_fmt, ...) {
 
 void load_duk_console(duk_context *ctx) {
 	duk_add_object(ctx, "Console", duk_fn {
-		duk_add_method(ctx, "Attach", 1, duk_fn {
-			DWORD pid = 0;
-			if (duk_is_number(ctx, 0))
-				pid = duk_to_int(ctx, 0);
+		/* void */ duk_add_method(ctx, "Attach", 1, duk_fn {
+			DWORD pid = duk_to_int(ctx, 0);
 			if (wx_try(ctx, [&] { Console.Attach(pid); Console.Reopen(); }))
 				return DUK_RET_REFERENCE_ERROR;
 			return 0;
 		});
-		duk_add_method(ctx, "Alloc", 0, duk_fn {
+		/* void */ duk_add_method(ctx, "Alloc", 0, duk_fn {
 			if (wx_try(ctx, [&] { Console.Alloc(); }))
 				return DUK_RET_REFERENCE_ERROR;
 			return 0;
 		});
-		duk_add_method(ctx, "Reopen", 0, duk_fn {
+		/* void */ duk_add_method(ctx, "Reopen", 0, duk_fn {
 			if (wx_try(ctx, [&] { Console.Reopen(); }))
 				return DUK_RET_REFERENCE_ERROR;
 			return 0;
@@ -43,7 +41,7 @@ void load_duk_console(duk_context *ctx) {
 				return DUK_RET_REFERENCE_ERROR;
 			return 0;
 		});
-		duk_add_method(ctx, "Color", 1, duk_fn{
+		duk_add_method(ctx, "Color", 1, duk_fn {
 			WORD wAttr = duk_to_uint16(ctx, 0);
 			if (wx_try(ctx, [&] { Console.Color(wAttr); }))
 				return DUK_RET_REFERENCE_ERROR;
@@ -85,14 +83,12 @@ void load_duk_console(duk_context *ctx) {
 			Console.Attributes(atr);
 			return 0;
 		});
-		duk_put_prop_r(ctx, "Window",
-			duk_fn {
-				duk_get_global_string(ctx, "Window");
-				duk_push_pointer(ctx, Console.Window());
-				duk_new(ctx, 1);
-				return 1;
-			}
-		);
+		duk_add_prop_r(ctx, "Window", duk_fn {
+			duk_get_global_string(ctx, "Window");
+			duk_push_pointer(ctx, Console.Window());
+			duk_new(ctx, 1);
+			return 1;
+		});
 		duk_add_method(ctx, "ActiveScreenBuffer", 0, duk_fn {
 			if (wx_try(ctx, [&] { Console.ActiveScreenBuffer(); }))
 				return DUK_RET_REFERENCE_ERROR;
@@ -158,7 +154,7 @@ void load_duk_console(duk_context *ctx) {
 				return 1;
 			}
 		);
-		duk_put_prop_r(ctx, "OrigalTitle", duk_fn {
+		duk_add_prop_r(ctx, "OriginalTitle", duk_fn {
 			if (wx_try(ctx, [&] { duk_push_string(ctx, Console.OriginalTitleA()); }))
 				return DUK_RET_REFERENCE_ERROR;
 			return 1;
