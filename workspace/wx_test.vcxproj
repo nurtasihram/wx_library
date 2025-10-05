@@ -153,6 +153,7 @@
     <None Include="..\wx__rm.inl" />
     <None Include="..\wx__gdi.inl" />
     <None Include="..\wx__type.inl" />
+    <None Include="make.bat" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\wx.console.cppm" />
@@ -187,21 +188,21 @@
     </ClCompile>
     <ClCompile Include="..\wx.type.cppm" />
     <ClCompile Include="..\wx.window.cppm" />
-    <ClCompile Include="..\wx_test.cpp" />
+    <ClCompile Include="wx_test.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="..\resources\Resource.h" />
     <ClInclude Include="..\wx_defs.h" />
     <ClInclude Include="..\wx_gdi" />
     <ClInclude Include="..\wx_realtime" />
     <ClInclude Include="..\wx_resource" />
+    <ClInclude Include="resources\Resource.h" />
   </ItemGroup>
   <ItemGroup>
-    <Image Include="..\resources\small.ico" />
-    <Image Include="..\resources\wx_duk.ico" />
+    <Image Include="resources\small.ico" />
+    <Image Include="resources\wx_duk.ico" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="..\resources\wx_duk.rc" />
+    <ResourceCompile Include="resources\wx_duk.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

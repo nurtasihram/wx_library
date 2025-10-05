@@ -1,4 +1,5 @@
 @echo off
+cd ..
 setlocal enabledelayedexpansion
 if /i "%1" == "clean" (
     echo -- Clean started
@@ -73,3 +74,4 @@ if /i "%1" == "clean" (
     echo    help            - show this list
 )
 :end
+cd vs-workspace
