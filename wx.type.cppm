@@ -99,7 +99,7 @@ public: // Property - ProtectFromClose
 	/* W */ inline auto &ProtectFromClose(bool bProtected) reflect_to_child(Information(HANDLE_FLAG_PROTECT_FROM_CLOSE, bProtected ? HANDLE_FLAG_PROTECT_FROM_CLOSE : 0));
 	/* R */ inline bool ProtectFromClose() const reflect_as(Information(HANDLE_FLAG_PROTECT_FROM_CLOSE));
 public:
-	inline operator bool() const reflect_as(hObject &&hObject != INVALID_HANDLE_VALUE);
+	inline operator bool() const reflect_as(hObject && hObject != INVALID_HANDLE_VALUE);
 	inline operator HANDLE() const reflect_as(hObject);
 	inline operator const Handle() const reflect_as(ref_as<Handle>(self));
 	inline void operator=(Child &obj) reflect_to(std::swap(obj.hObject, hObject));
@@ -600,6 +600,93 @@ public:
 inline LRect operator+(LPoint p, const LRect &r) reflect_as(r + p);
 inline LRect operator-(LPoint p, const LRect &r) reflect_as(-(r - p));
 }
+#pragma endregion
+
+#pragma region Message Wrapper
+export class Message : public RefStruct<MSG> {
+public:
+	using super = RefStruct<MSG>;
+public:
+	Message() {}
+	Message(const MSG &msg) : super(msg) {}
+	Message(HWND hwnd, UINT  message, WPARAM wParam, LPARAM lParam) : super(MSG{ hwnd, message, wParam, lParam }) {}
+public: // Property - Window
+	/* W */ inline auto&Window(HWND hwnd) reflect_as(self->hwnd);
+	//template<class Child = void>
+	///* R */ inline WindowShim<Child> Window() const reflect_as(reuse_as<WX::WindowBase<Child>>(self->hwnd));
+public: // Property - ID
+	/* W */ inline auto&ID(UINT msgid) reflect_to_self(self->message = msgid);
+	template<class AnyEnum = UINT>
+	/* R */ inline AnyEnum ID() const reflect_as(reuse_as<AnyEnum>(self->message));
+public: // Property - ParamW
+	template<class AnyType = WPARAM>
+	/* W */ inline auto&ParamW(AnyType wParam) reflect_to_self(self->wParam = small_cast<WPARAM>(wParam));
+	template<class AnyType = WPARAM>
+	/* R */ inline AnyType ParamW() const reflect_as(big_cast<AnyType>(self->wParam));
+public: // Property - ParamL
+	template<class AnyType = WPARAM>
+	/* W */ inline auto&ParamL(AnyType lParam) reflect_to_self(self->lParam = small_cast<LPARAM>(lParam));
+	template<class AnyType = WPARAM>
+	/* R */ inline AnyType ParamL() const reflect_as(big_cast<AnyType>(self->lParam));
+public: // Property - Param
+	template<class WParam = WPARAM, class LParam = LPARAM>
+	/* W */ inline auto&Param(WParam wParam, LParam lParam) reflect_to_self(self->wParam = small_cast<WPARAM>(wParam), self->lParam = small_cast<LPARAM>(lParam));
+public: // Property - Time
+	/* W */ inline auto &Time(DWORD time) reflect_to_self(self->time = time);
+	/* R */ inline DWORD Time() const reflect_as(self->time);
+public: // Property - Point
+	/* W */ inline auto  &Point(POINT pt) reflect_to_self(self->pt = pt);
+	/* R */ inline LPoint Point() const reflect_as(self->pt);
+public:
+	inline bool Translate() const reflect_as(WX::TranslateMessage(this));
+public:
+	template<class RetType = LRESULT, bool IsUnicode = WX::IsUnicode>
+	inline RetType Dispatch() const reflect_as((RetType)DispatchMessage<IsUnicode>(this));
+public:
+	template<class RetType = LRESULT, bool IsUnicode = WX::IsUnicode>
+	inline RetType Send() const reflect_as((RetType)SendMessage<IsUnicode>(self->hwnd, self->message, self->wParam, self->lParam));
+public:
+	template<bool IsUnicode = WX::IsUnicode>
+	inline void Post() reflect_to(WX::PostMessage<IsUnicode>(self->hwnd, self->message, self->wParam, self->lParam));
+public:
+	template<bool IsUnicode = WX::IsUnicode>
+	inline bool Get(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_as(WX::GetMessage<IsUnicode>(this, O, wMsgFilterMin, wMsgFilterMax));
+	template<bool IsUnicode = WX::IsUnicode>
+	inline bool Get(HWND hwnd, UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_as(WX::GetMessage<IsUnicode>(this, hwnd, wMsgFilterMin, wMsgFilterMax));
+	template<bool IsUnicode = WX::IsUnicode>
+	inline bool GetThread(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_as(WX::GetMessage<IsUnicode>(this, (HWND)-1, wMsgFilterMin, wMsgFilterMax));
+public:
+	template<bool IsUnicode = WX::IsUnicode>
+	inline bool GetSafe(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_as(WX::GetMessage<IsUnicode>(this, O, wMsgFilterMin, wMsgFilterMax));
+	template<bool IsUnicode = WX::IsUnicode>
+	inline bool GetSafe(HWND hwnd, UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_as(WX::GetMessage<IsUnicode>(this, hwnd, wMsgFilterMin, wMsgFilterMax));
+	template<bool IsUnicode = WX::IsUnicode>
+	inline bool GetThreadSafe(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_as(WX::GetMessage<IsUnicode>(this, (HWND)-1, wMsgFilterMin, wMsgFilterMax));
+public:
+	class Peeks {
+		LPMSG lpMsg;
+		HWND hwnd;
+		UINT wMsgFilterMin;
+		UINT wMsgFilterMax;
+		UINT wRemoveMsg = PM_NOREMOVE;
+	public:
+		Peeks(LPMSG lpMsg, HWND hwnd, UINT wMsgFilterMin, UINT wMsgFilterMax) :
+			lpMsg(lpMsg), hwnd(hwnd), wMsgFilterMin(wMsgFilterMin), wMsgFilterMax(wMsgFilterMax) {}
+	public:
+		inline auto&Remove() reflect_to_self(this->wRemoveMsg |= PM_REMOVE);
+		inline auto&NoYield() reflect_to_self(this->wRemoveMsg |= PM_NOYIELD);
+		inline auto&Input() reflect_to_self(this->wRemoveMsg |= PM_QS_INPUT);
+		inline auto&Paint() reflect_to_self(this->wRemoveMsg |= PM_QS_PAINT);
+		inline auto&MessagePost() reflect_to_self(this->wRemoveMsg |= PM_QS_POSTMESSAGE);
+		inline auto&MessageSend() reflect_to_self(this->wRemoveMsg |= PM_QS_SENDMESSAGE);
+	public:
+		inline operator bool() reflect_as(WX::PeekMessage<IsUnicode>(lpMsg, hwnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg));
+	};
+	inline Peeks Peek(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_as({ this, O, wMsgFilterMin, wMsgFilterMax });
+	inline Peeks Peek(HWND hwnd, UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_as({ this, hwnd, wMsgFilterMin, wMsgFilterMax });
+	inline Peeks PeekThread(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_as({ this, (HWND)-1, wMsgFilterMin, wMsgFilterMax });
+};
+export using Msg = Message;
 #pragma endregion
 
 #pragma region MsgBox

@@ -282,12 +282,12 @@ inline void GetProcessInformation(HANDLE hProcess, PROCESS_INFORMATION_CLASS Pro
 // GetProcessShutdownParameters
 inline void GetProcessShutdownParameters(LPDWORD lpdwLevel, LPDWORD lpdwFlags)
 	assertl_reflect_as(::GetProcessShutdownParameters(lpdwLevel, lpdwFlags));
-// SetThreadDescription
-inline void SetThreadDescription(HANDLE hThread, PCWSTR lpDescription)
-	assertl_reflect_as(::SetThreadDescription(hThread, lpDescription));
-// GetThreadDescription
-inline void GetThreadDescription(HANDLE hThread, PWSTR* lpDescription)
-	assertl_reflect_as(::GetThreadDescription(hThread, lpDescription));
+//// SetThreadDescription
+//inline void SetThreadDescription(HANDLE hThread, PCWSTR lpDescription)
+//	assertl_reflect_as(::SetThreadDescription(hThread, lpDescription));
+//// GetThreadDescription
+//inline void GetThreadDescription(HANDLE hThread, PWSTR* lpDescription)
+//	assertl_reflect_as(::GetThreadDescription(hThread, lpDescription));
 // TlsGetValue2 - Deprecated
 #pragma endregion
 

@@ -1845,7 +1845,7 @@ inline bool ShowWindowAsync(HWND hWnd, int nCmdShow)
 inline bool FlashWindow(HWND hWnd, BOOL bInvert)
 	reflect_as(::FlashWindow(hWnd, bInvert));
 // FlashWindowEx
-inline bool FlashWindowEx(PFLASHWINFO pfwi)
+inline bool FlashWindow(PFLASHWINFO pfwi)
 	reflect_as(::FlashWindowEx(pfwi));
 // ShowOwnedPopups
 inline void ShowOwnedPopups(HWND hWnd, BOOL fShow)
@@ -3425,10 +3425,10 @@ inline bool PrintDlg(LPPRINTDLGA lppd) ////////
 	reflect_as(::PrintDlgA(lppd));
 inline bool PrintDlg(LPPRINTDLGW lppd) ////////
 	reflect_as(::PrintDlgW(lppd));
-inline bool PrintDlg(LPPRINTDLGEXA lppd) ////////
-	reflect_as(::PrintDlgExA(lppd));
-inline bool PrintDlg(LPPRINTDLGEXW lppd) ////////
-	reflect_as(::PrintDlgExW(lppd));
+//inline bool PrintDlg(LPPRINTDLGEXA lppd) ////////
+//	reflect_as(::PrintDlgExA(lppd));
+//inline bool PrintDlg(LPPRINTDLGEXW lppd) ////////
+//	reflect_as(::PrintDlgExW(lppd));
 inline bool PageSetupDlg(LPPAGESETUPDLGA lppsd) ////////
 	reflect_as(::PageSetupDlgA(lppsd));
 inline bool PageSetupDlg(LPPAGESETUPDLGW lppsd) ////////

@@ -41,7 +41,7 @@ public:
 	Event(Null) {}
 	Event(Event &evt) : super(evt) {}
 	Event(Event &&evt) : super(evt) {}
-public:
+public: // Create
 	template<class LPCTSTR>
 	class CreateStruct {
 		friend class Event;
@@ -57,11 +57,12 @@ public:
 		inline auto &Security(LPSECURITY_ATTRIBUTES pSA) reflect_to_self(this->lpAttributes = pSA);
 		inline auto &Name(LPCTSTR lpName) reflect_to_self(this->lpName = lpName);
 	public:
-		inline operator Event() const reflect_as(CreateEvent(lpAttributes, bManualReset, bInitialState, lpName));
+		inline operator Event() const reflect_as(WX::CreateEvent(lpAttributes, bManualReset, bInitialState, lpName));
 	};
 	static inline CreateStruct<LPCTSTR> Create() reflect_as(O);
 	static inline CreateStruct<LPCSTR> Create(LPCSTR lpName) reflect_as(lpName);
 	static inline CreateStruct<LPCWSTR> Create(LPCWSTR lpName) reflect_as(lpName);
+public: // Open
 	template<class LPCTSTR>
 	class OpenStruct {
 		friend class Event;
@@ -74,15 +75,15 @@ public:
 		inline auto &Inherit(bool bInheritHandle = true) reflect_to_self(this->bInheritHandle = bInheritHandle);
 		inline auto &Name(LPCTSTR lpName) reflect_to_self(this->lpName = lpName);
 	public:
-		inline operator Event() const reflect_as(OpenEvent(dwDesiredAccess.yield(), bInheritHandle, lpName));
+		inline operator Event() const reflect_as(WX::OpenEvent(dwDesiredAccess.yield(), bInheritHandle, lpName));
 	};
 	static inline OpenStruct<LPCTSTR> Open() reflect_as(O);
 	static inline OpenStruct<LPCSTR> Open(LPCSTR lpName) reflect_as(lpName);
 	static inline OpenStruct<LPCWSTR> Open(LPCWSTR lpName) reflect_as(lpName);
 public:
-	inline void Set() reflect_to(SetEvent(self));
-	inline void Reset() reflect_to(ResetEvent(self));
-	inline void Pulse() reflect_to(PulseEvent(self));
+	inline void Set() reflect_to(WX::SetEvent(self));
+	inline void Reset() reflect_to(WX::ResetEvent(self));
+	inline void Pulse() reflect_to(WX::PulseEvent(self));
 public:
 	using super::operator=;
 	inline auto &operator=(bool bState) reflect_to_self(if (bState) Set(); else Reset(););
@@ -106,7 +107,7 @@ public:
 	Mutex(Null) {}
 	Mutex(Mutex &m) : super(m) {}
 	Mutex(Mutex &&m) : super(m) {}
-public:
+public: // Create
 	template<class LPCTSTR>
 	class CreateStruct {
 		friend class Mutex;
@@ -120,11 +121,12 @@ public:
 		inline auto &Security(LPSECURITY_ATTRIBUTES lpMutexAttributes) reflect_to_self(this->lpMutexAttributes = lpMutexAttributes);
 		inline auto &Name(LPCTSTR lpName) reflect_to_self(this->lpName = lpName);
 	public:
-		inline operator Mutex() const assertl_reflect_as(auto h = CreateMutex(lpMutexAttributes, bInitialState, lpName), h);
+		inline operator Mutex() const reflect_as(WX::CreateMutex(lpMutexAttributes, bInitialState, lpName));
 	};
 	static inline CreateStruct<LPCTSTR> Create() reflect_as(O);
 	static inline CreateStruct<LPCSTR> Create(LPCSTR lpName) reflect_as(lpName);
 	static inline CreateStruct<LPCWSTR> Create(LPCWSTR lpName) reflect_as(lpName);
+public: // Open
 	template<class LPCTSTR>
 	class OpenStruct {
 		friend class Mutex;
@@ -138,17 +140,141 @@ public:
 		inline auto &Inherit(bool bInheritHandle = true) reflect_to_self(this->bInheritHandle = bInheritHandle);
 		inline auto &Name(LPCTSTR lpName) reflect_to_self(this->lpName = lpName);
 	public:
-		inline operator Mutex() const reflect_as(OpenMutex(dwDesiredAccess.yield(), bInheritHandle, lpName));
+		inline operator Mutex() const reflect_as(WX::OpenMutex(dwDesiredAccess.yield(), bInheritHandle, lpName));
 	};
 	static inline OpenStruct<LPCTSTR> Open() reflect_as(O);
 	static inline OpenStruct<LPCSTR> Open(LPCSTR lpName) reflect_as(lpName);
 	static inline OpenStruct<LPCWSTR> Open(LPCWSTR lpName) reflect_as(lpName);
 public:
-	inline void Release() reflect_to(ReleaseMutex(self));
+	inline void Release() reflect_to(WX::ReleaseMutex(self));
 public:
 	using super::operator=;
 };
 using CMutex = RefAs<Mutex>;
+#pragma endregion
+
+#pragma region Semaphore
+enum_flags(SemaphoreAccess, HandleAccess,
+	All    = SEMAPHORE_ALL_ACCESS,
+	Modify = SEMAPHORE_MODIFY_STATE);
+class BaseOf_Waitable(Semaphore) {
+public:
+	using super = WaitableBase<Semaphore>;
+	using Access = SemaphoreAccess;
+protected:
+	Semaphore(HANDLE h) : super(h) {}
+	Semaphore(const Semaphore & s) : super(s.hObject) reflect_to(s.hObject = O);
+#if 0
+public:
+	Semaphore() : Semaphore(Create()) {}
+	Semaphore(Null) {}
+	Semaphore(Semaphore & s) : super(s) {}
+	Semaphore(Semaphore && s) : super(s) {}
+public: // Create
+	template<class LPCTSTR>
+	class CreateStruct {
+		friend class Semaphore;
+		LPSECURITY_ATTRIBUTES lpSemaphoreAttributes = O;
+		LONG lInitialCount = 0;
+		LONG lMaximumCount = 1;
+		LPCTSTR lpName;
+	protected:
+		CreateStruct(LPCTSTR lpName) : lpName(lpName) {}
+	public:
+		inline auto &InitialCount(LONG lInitialCount) reflect_to_self(this->lInitialCount = lInitialCount);
+		inline auto &MaximumCount(LONG lMaximumCount) reflect_to_self(this->lMaximumCount = lMaximumCount);
+		inline auto &Security(LPSECURITY_ATTRIBUTES lpSemaphoreAttributes) reflect_to_self(this->lpSemaphoreAttributes = lpSemaphoreAttributes);
+		inline auto &Name(LPCTSTR lpName) reflect_to_self(this->lpName = lpName);
+	public:
+		inline operator Semaphore() const assertl_reflect_as(CreateSemaphore(lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName), h);
+	};
+	static inline CreateStruct<LPCTSTR> Create() reflect_as(O);
+	static inline CreateStruct<LPCSTR> Create(LPCSTR lpName) reflect_as(lpName);
+	static inline CreateStruct<LPCWSTR> Create(LPCWSTR lpName) reflect_as(lpName);
+public: // Open
+	template<class LPCTSTR>
+	class OpenStruct {
+		friend class Semaphore;
+		Access dwDesiredAccess = Access::Modify;
+		bool bInheritHandle = false;
+		LPCTSTR lpName;
+	protected:
+		OpenStruct(LPCTSTR lpName) : lpName(lpName) {}
+	public:
+		inline auto &Accesses(Access dwDesiredAccess) reflect_to_self(this->dwDesiredAccess = dwDesiredAccess);
+		inline auto &Inherit(bool bInheritHandle = true) reflect_to_self(this->bInheritHandle = bInheritHandle);
+		inline auto &Name(LPCTSTR lpName) reflect_to_self(this->lpName = lpName);
+	public:
+		inline operator Semaphore() const reflect_as(WX::OpenSemaphore(dwDesiredAccess.yield(), bInheritHandle, lpName));
+	};
+	static inline OpenStruct<LPCTSTR> Open() reflect_as(O);
+	static inline OpenStruct<LPCSTR> Open(LPCSTR lpName) reflect_as(lpName);
+	static inline OpenStruct<LPCWSTR> Open(LPCWSTR lpName) reflect_as(lpName);
+#endif
+public:
+	using super::operator=;
+};
+#pragma endregion
+
+#pragma region Timer
+enum_flags(TimerAccess, HandleAccess,
+	All    = TIMER_ALL_ACCESS,
+	Modify = TIMER_MODIFY_STATE);
+class BaseOf_Waitable(Timer) {
+public:
+	using super = WaitableBase<Timer>;
+	using Access = TimerAccess;
+protected:
+	Timer(HANDLE h) : super(h) {}
+	Timer(const Timer &t) : super(t.hObject) reflect_to(t.hObject = O);
+#if 0
+public:
+	Timer() : Timer(Create()) {}
+	Timer(Null) {}
+	Timer(Timer &t) : super(t) {}
+	Timer(Timer &&t) : super(t) {}
+public:
+	template<class LPCTSTR>
+	class CreateStruct {
+		friend class Timer;
+		LPSECURITY_ATTRIBUTES lpTimerAttributes = O;
+		bool bManualReset = false;
+		LPCTSTR lpTimerName = O;
+	protected:
+		CreateStruct(LPCTSTR lpTimerName) : lpTimerName(lpTimerName) {}
+	public:
+		inline auto &ManualReset(bool bManualReset = true) reflect_to_self(this->bManualReset = bManualReset);
+		inline auto &Security(LPSECURITY_ATTRIBUTES lpTimerAttributes) reflect_to_self(this->lpTimerAttributes = lpTimerAttributes);
+		inline auto &Name(LPCTSTR lpTimerName) reflect_to_self(this->lpTimerName = lpTimerName);
+	public:
+		inline operator Timer() const reflect_as(WX::CreateWaitableTimer(lpTimerAttributes, bManualReset, lpTimerName));
+	};
+	static inline CreateStruct<LPCTSTR> Create() reflect_as(O);
+	static inline CreateStruct<LPCSTR> Create(LPCSTR lpTimerName) reflect_as(lpTimerName);
+	static inline CreateStruct<LPCWSTR> Create(LPCWSTR lpTimerName) reflect_as(lpTimerName);
+public:
+	template<class LPCTSTR>
+	class OpenStruct {
+		friend class Timer;
+		Access dwDesiredAccess = Access::Modify;
+		BOOL bInheritHandle = FALSE;
+		LPCTSTR lpTimerName;
+	protected:
+		OpenStruct(LPCTSTR lpTimerName) : lpTimerName(lpTimerName) {}
+	public:
+		inline auto &Accesses(Access dwDesiredAccess) reflect_to_self(this->dwDesiredAccess = dwDesiredAccess);
+		inline auto &Inherit(BOOL bInheritHandle = TRUE) reflect_to_self(this->bInheritHandle = bInheritHandle);
+		inline auto &Name(LPCTSTR lpTimerName) reflect_to_self(this->lpTimerName = lpTimerName);
+	public:
+		inline operator Timer() const reflect_as(WX::OpenWaitableTimer(dwDesiredAccess.yield(), bInheritHandle, lpTimerName));
+	};
+	static inline OpenStruct<LPCTSTR> Open() reflect_as(O);
+	static inline OpenStruct<LPCSTR> Open(LPCSTR lpTimerName) reflect_as(lpTimerName);
+	static inline OpenStruct<LPCWSTR> Open(LPCWSTR lpTimerName) reflect_as(lpTimerName);
+#endif
+public:
+	using super::operator=;
+};
 #pragma endregion
 
 struct PTTimes { FileTime CreationTime, ExitTime, KernelTime, UserTime; };
