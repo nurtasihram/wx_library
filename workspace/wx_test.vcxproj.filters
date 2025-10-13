@@ -54,13 +54,13 @@
     <None Include="..\wx__realtime.inl">
       <Filter>wx\prv_inc</Filter>
     </None>
-    <None Include="..\wx__conio.inl">
-      <Filter>wx\prv_inc</Filter>
-    </None>
     <None Include="..\wx__resource.inl">
       <Filter>wx\prv_inc</Filter>
     </None>
     <None Include="make.bat" />
+    <None Include="..\wx__conio.inl">
+      <Filter>wx\prv_inc</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\wx.console.cppm">

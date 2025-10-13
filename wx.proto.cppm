@@ -2044,8 +2044,8 @@ inline int GetClipboardFormatName(UINT format, LPWSTR lpszFormatName, int cchMax
 inline void EmptyClipboard()
 	assertl_reflect_as(::EmptyClipboard());
 // IsClipboardFormatAvailable
-inline void IsClipboardFormatAvailable(UINT format)
-	assertl_reflect_as(::IsClipboardFormatAvailable(format));
+inline bool IsClipboardFormatAvailable(UINT format)
+	reflect_as(::IsClipboardFormatAvailable(format));
 // GetPriorityClipboardFormat
 inline int GetPriorityClipboardFormat(UINT *paFormatPriorityList, int cFormats)
 	assertl_reflect_as(auto h = ::GetPriorityClipboardFormat(paFormatPriorityList, cFormats), h);
@@ -2478,9 +2478,9 @@ inline int DrawText(HDC hdc, LPCSTR lpchText, int cchText, LPRECT lprc, UINT for
 inline int DrawText(HDC hdc, LPCWSTR lpchText, int cchText, LPRECT lprc, UINT format)
 	assertl_reflect_as(auto h = ::DrawTextW(hdc, lpchText, cchText, lprc, format), h);
 // DrawTextEx
-inline int DrawTextEx(HDC hdc, LPSTR lpchText, int cchText, LPRECT lprc, UINT format, LPDRAWTEXTPARAMS lpdtp)
+inline int DrawText(HDC hdc, LPSTR lpchText, int cchText, LPRECT lprc, UINT format, LPDRAWTEXTPARAMS lpdtp)
 	assertl_reflect_as(auto h = ::DrawTextExA(hdc, lpchText, cchText, lprc, format, lpdtp), h);
-inline int DrawTextEx(HDC hdc, LPWSTR lpchText, int cchText, LPRECT lprc, UINT format, LPDRAWTEXTPARAMS lpdtp)
+inline int DrawText(HDC hdc, LPWSTR lpchText, int cchText, LPRECT lprc, UINT format, LPDRAWTEXTPARAMS lpdtp)
 	assertl_reflect_as(auto h = ::DrawTextExW(hdc, lpchText, cchText, lprc, format, lpdtp), h);
 // GrayString
 template<bool IsUnicode = WX::IsUnicode>
@@ -2621,9 +2621,9 @@ inline HANDLE RemoveProp(HWND hWnd, LPCSTR lpString)
 inline HANDLE RemoveProp(HWND hWnd, LPCWSTR lpString)
 	nt_assertl_reflect_to(auto h = ::RemovePropW(hWnd, lpString), h);
 // EnumPropsEx
-inline int EnumPropsEx(HWND hWnd, PROPENUMPROCEXA lpEnumFunc, LPARAM lParam)
+inline int EnumProps(HWND hWnd, PROPENUMPROCEXA lpEnumFunc, LPARAM lParam)
 	assertl_reflect_as(auto h = ::EnumPropsExA(hWnd, lpEnumFunc, lParam), h);
-inline int EnumPropsEx(HWND hWnd, PROPENUMPROCEXW lpEnumFunc, LPARAM lParam)
+inline int EnumProps(HWND hWnd, PROPENUMPROCEXW lpEnumFunc, LPARAM lParam)
 	assertl_reflect_as(auto h = ::EnumPropsExW(hWnd, lpEnumFunc, lParam), h);
 // EnumProps
 inline int EnumProps(HWND hWnd, PROPENUMPROCA lpEnumFunc)
@@ -2657,10 +2657,10 @@ inline void GetWindowRect(HWND hWnd, LPRECT lpRect)
 inline void AdjustWindowRect(LPRECT lpRect, DWORD dwStyle, BOOL bMenu)
 	assertl_reflect_as(::AdjustWindowRect(lpRect, dwStyle, bMenu));
 // AdjustWindowRectEx
-inline void AdjustWindowRectEx(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle)
+inline void AdjustWindowRect(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle)
 	assertl_reflect_as(::AdjustWindowRectEx(lpRect, dwStyle, bMenu, dwExStyle));
 // AdjustWindowRectExForDpi
-inline void AdjustWindowRectExForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi)
+inline void AdjustWindowRectForDpi(LPRECT lpRect, DWORD dwStyle, BOOL bMenu, DWORD dwExStyle, UINT dpi)
 	assertl_reflect_as(::AdjustWindowRectExForDpi(lpRect, dwStyle, bMenu, dwExStyle, dpi));
 // SetWindowContextHelpId
 inline void SetWindowContextHelpId(HWND hwnd, DWORD dwID)
@@ -2680,14 +2680,14 @@ inline int MessageBox(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType)
 inline int MessageBox(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType)
 	assertl_reflect_as(auto h = ::MessageBoxW(hWnd, lpText, lpCaption, uType), h);
 // MessageBoxEx
-inline int MessageBoxEx(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType, WORD wLanguageId)
+inline int MessageBox(HWND hWnd, LPCSTR lpText, LPCSTR lpCaption, UINT uType, WORD wLanguageId)
 	assertl_reflect_as(auto h = ::MessageBoxExA(hWnd, lpText, lpCaption, uType, wLanguageId), h);
-inline int MessageBoxEx(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType, WORD wLanguageId)
+inline int MessageBox(HWND hWnd, LPCWSTR lpText, LPCWSTR lpCaption, UINT uType, WORD wLanguageId)
 	assertl_reflect_as(auto h = ::MessageBoxExW(hWnd, lpText, lpCaption, uType, wLanguageId), h);
 // MessageBoxIndirect
-inline int MessageBoxIndirect(CONST MSGBOXPARAMSA * lpmbp)
+inline int MessageBox(CONST MSGBOXPARAMSA * lpmbp)
 	assertl_reflect_as(auto h = ::MessageBoxIndirectA(lpmbp), h);
-inline int MessageBoxIndirect(CONST MSGBOXPARAMSW * lpmbp)
+inline int MessageBox(CONST MSGBOXPARAMSW * lpmbp)
 	assertl_reflect_as(auto h = ::MessageBoxIndirectW(lpmbp), h);
 // MessageBeep
 inline void MessageBeep(UINT uType)
@@ -3379,8 +3379,8 @@ inline void GetDisplayAutoRotationPreferencesByProcessId(DWORD dwProcessId, ORIE
 inline void SetDisplayAutoRotationPreferences(ORIENTATION_PREFERENCE orientation)
 	assertl_reflect_as(::SetDisplayAutoRotationPreferences(orientation));
 // IsImmersiveProcess
-inline void IsImmersiveProcess(HANDLE hProcess)
-	assertl_reflect_as(::IsImmersiveProcess(hProcess));
+inline bool IsImmersiveProcess(HANDLE hProcess)
+	nt_assertl_reflect_to(auto h = ::IsImmersiveProcess(hProcess), h);
 // SetProcessRestrictionExemption
 inline void SetProcessRestrictionExemption(BOOL fEnableExemption)
 	assertl_reflect_as(::SetProcessRestrictionExemption(fEnableExemption));

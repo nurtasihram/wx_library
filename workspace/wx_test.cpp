@@ -5,12 +5,19 @@
 
 using namespace WX;
 
+struct CommonEvent {
+#define MSG_TRANS(msgid, ret, name, ...) \
+	def_memberof(On##name);
+#include "wx__msg.inl"
+};
+
 class BaseOf_Window(TestWindow) {
 	SFINAE_Window(TestWindow);
 public:
 	TestWindow() {}
-public:
+protected:
 	inline bool OnCreate(LPCREATESTRUCT lpCreateStruct) {
+		Console.Log(T("Alfa\n"));
 		return true;
 	}
 };

@@ -216,65 +216,82 @@ public:
 };
 #pragma endregion
 
-#pragma region Timer
+#pragma region WaitableTimer
 enum_flags(TimerAccess, HandleAccess,
 	All    = TIMER_ALL_ACCESS,
 	Modify = TIMER_MODIFY_STATE);
-class BaseOf_Waitable(Timer) {
+using WaitableTimerAccess = TimerAccess;
+class BaseOf_Waitable(WaitableTimer) {
 public:
-	using super = WaitableBase<Timer>;
+	using super = WaitableBase<WaitableTimer>;
 	using Access = TimerAccess;
 protected:
-	Timer(HANDLE h) : super(h) {}
-	Timer(const Timer &t) : super(t.hObject) reflect_to(t.hObject = O);
+	WaitableTimer(HANDLE h) : super(h) {}
+	WaitableTimer(const WaitableTimer &t) : super(t.hObject) reflect_to(t.hObject = O);
 #if 0
 public:
-	Timer() : Timer(Create()) {}
-	Timer(Null) {}
-	Timer(Timer &t) : super(t) {}
-	Timer(Timer &&t) : super(t) {}
+	WaitableTimer() : WaitableTimer(Create()) {}
+	WaitableTimer(Null) {}
+	WaitableTimer(WaitableTimer &t) : super(t) {}
+	WaitableTimer(WaitableTimer &&t) : super(t) {}
 public:
 	template<class LPCTSTR>
 	class CreateStruct {
-		friend class Timer;
-		LPSECURITY_ATTRIBUTES lpTimerAttributes = O;
+		friend class WaitableTimer;
+		LPSECURITY_ATTRIBUTES lpWaitableTimerAttributes = O;
 		bool bManualReset = false;
-		LPCTSTR lpTimerName = O;
+		LPCTSTR lpWaitableTimerName = O;
 	protected:
-		CreateStruct(LPCTSTR lpTimerName) : lpTimerName(lpTimerName) {}
+		CreateStruct(LPCTSTR lpWaitableTimerName) : lpWaitableTimerName(lpWaitableTimerName) {}
 	public:
 		inline auto &ManualReset(bool bManualReset = true) reflect_to_self(this->bManualReset = bManualReset);
-		inline auto &Security(LPSECURITY_ATTRIBUTES lpTimerAttributes) reflect_to_self(this->lpTimerAttributes = lpTimerAttributes);
-		inline auto &Name(LPCTSTR lpTimerName) reflect_to_self(this->lpTimerName = lpTimerName);
+		inline auto &Security(LPSECURITY_ATTRIBUTES lpWaitableTimerAttributes) reflect_to_self(this->lpWaitableTimerAttributes = lpWaitableTimerAttributes);
+		inline auto &Name(LPCTSTR lpWaitableTimerName) reflect_to_self(this->lpWaitableTimerName = lpWaitableTimerName);
 	public:
-		inline operator Timer() const reflect_as(WX::CreateWaitableTimer(lpTimerAttributes, bManualReset, lpTimerName));
+		inline operator WaitableTimer() const reflect_as(WX::CreateWaitableWaitableTimer(lpWaitableTimerAttributes, bManualReset, lpWaitableTimerName));
 	};
 	static inline CreateStruct<LPCTSTR> Create() reflect_as(O);
-	static inline CreateStruct<LPCSTR> Create(LPCSTR lpTimerName) reflect_as(lpTimerName);
-	static inline CreateStruct<LPCWSTR> Create(LPCWSTR lpTimerName) reflect_as(lpTimerName);
+	static inline CreateStruct<LPCSTR> Create(LPCSTR lpWaitableTimerName) reflect_as(lpWaitableTimerName);
+	static inline CreateStruct<LPCWSTR> Create(LPCWSTR lpWaitableTimerName) reflect_as(lpWaitableTimerName);
 public:
 	template<class LPCTSTR>
 	class OpenStruct {
-		friend class Timer;
+		friend class WaitableTimer;
 		Access dwDesiredAccess = Access::Modify;
 		BOOL bInheritHandle = FALSE;
-		LPCTSTR lpTimerName;
+		LPCTSTR lpWaitableTimerName;
 	protected:
-		OpenStruct(LPCTSTR lpTimerName) : lpTimerName(lpTimerName) {}
+		OpenStruct(LPCTSTR lpWaitableTimerName) : lpWaitableTimerName(lpWaitableTimerName) {}
 	public:
 		inline auto &Accesses(Access dwDesiredAccess) reflect_to_self(this->dwDesiredAccess = dwDesiredAccess);
 		inline auto &Inherit(BOOL bInheritHandle = TRUE) reflect_to_self(this->bInheritHandle = bInheritHandle);
-		inline auto &Name(LPCTSTR lpTimerName) reflect_to_self(this->lpTimerName = lpTimerName);
+		inline auto &Name(LPCTSTR lpWaitableTimerName) reflect_to_self(this->lpWaitableTimerName = lpWaitableTimerName);
 	public:
-		inline operator Timer() const reflect_as(WX::OpenWaitableTimer(dwDesiredAccess.yield(), bInheritHandle, lpTimerName));
+		inline operator WaitableTimer() const reflect_as(WX::OpenWaitableWaitableTimer(dwDesiredAccess.yield(), bInheritHandle, lpWaitableTimerName));
 	};
 	static inline OpenStruct<LPCTSTR> Open() reflect_as(O);
-	static inline OpenStruct<LPCSTR> Open(LPCSTR lpTimerName) reflect_as(lpTimerName);
-	static inline OpenStruct<LPCWSTR> Open(LPCWSTR lpTimerName) reflect_as(lpTimerName);
+	static inline OpenStruct<LPCSTR> Open(LPCSTR lpWaitableTimerName) reflect_as(lpWaitableTimerName);
+	static inline OpenStruct<LPCWSTR> Open(LPCWSTR lpWaitableTimerName) reflect_as(lpWaitableTimerName);
 #endif
 public:
 	using super::operator=;
 };
+using Timer = WaitableTimer;
+#pragma endregion
+
+#pragma region PrivateNamespace
+class BaseOf_Handle(PrivateNamespace) {
+public:
+	using super = HandleBase<PrivateNamespace>;
+protected:
+	PrivateNamespace(HANDLE h) : super(h) {}
+	PrivateNamespace(const PrivateNamespace & t) : super(t.hObject) reflect_to(t.hObject = O);
+public:
+	PrivateNamespace() {}
+	PrivateNamespace(PrivateNamespace &t) : super(t) {}
+	PrivateNamespace(PrivateNamespace &&t) : super(t) {}
+};
+using Namespace = PrivateNamespace;
 #pragma endregion
 
 struct PTTimes { FileTime CreationTime, ExitTime, KernelTime, UserTime; };
@@ -794,7 +811,7 @@ public: // Property - StdError
 using StartupInfo = StartupInfoX<IsUnicode>;
 using StartupInfoA = StartupInfoX<false>;
 using StartupInfoW = StartupInfoX<true>;
-enum_flags(ProccessCreateFlag, DWORD,
+enum_flags(ProcessCreateFlag, DWORD,
 	Default         = 0,
 	DebugProcess                 = DEBUG_PROCESS,
 	DebugOnlyThisProcess         = DEBUG_ONLY_THIS_PROCESS,
@@ -847,7 +864,7 @@ class BaseOf_Waitable(Process) {
 public:
 	using super = WaitableBase<Process>;
 	using Access = ProcessAccess;
-	using CreateFlag = ProccessCreateFlag;
+	using CreateFlag = ProcessCreateFlag;
 protected:
 	Process(HANDLE h) : super(h) {}
 	Process(const Process &p) : super(p) {}
@@ -958,6 +975,8 @@ public: // Property - ExitCode
 	/* R */ inline auto ExitCode() const reflect_to(DWORD dwCode; GetExitCodeProcess(self, &dwCode), dwCode);
 public: // Property - ID
 	/* R */ inline auto ID() const reflect_as(GetProcessId(self));
+public: // Property - SysDPI
+	/* R */ inline UINT SysDPI() const reflect_as(WX::GetSystemDpiForProcess(self));
 public: // Property - Memory
 //	/* W */ inline auto Memory() const reflect_to(PROCESS_MEMORY_COUNTERS pmc; GetProcessMemoryInfo(self, &pmc, sizeof(pmc)), pmc);
 public: // Property - Times
@@ -967,6 +986,8 @@ public: // Property - WorkingSetSize
 	/* R */ inline auto  WorkingSetSize() const assertl_reflect_to(struct _B_(SIZE_T Min, Max;) size, GetProcessWorkingSetSize(self, &size.Min, &size.Max), size);
 public: // Property - HandleCount
 	/* R */ inline DWORD HandleCount() const reflect_to(DWORD dwHandleCount; GetProcessHandleCount(self, &dwHandleCount), dwHandleCount);
+public: // Property - Immersive
+	/* R */ inline bool Immersive() const reflect_as(WX::IsImmersiveProcess(self));
 #pragma endregion
 public:
 	using super::operator=;

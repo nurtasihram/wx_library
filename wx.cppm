@@ -14,6 +14,7 @@ constexpr bool IsUnicode =
 #else
 	false;
 #endif
+
 #pragma region String References
 export {
 template<class TCHAR>
@@ -37,19 +38,19 @@ constexpr bool IsCharW = std::is_same_v<TCHAR, WCHAR> || std::is_same_v<TCHAR, L
 template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
 constexpr auto AnyX(AnyTypeW *w, AnyTypeA *a) {
 	if constexpr (IsUnicode)
-		return w;
+		 return w;
 	else return a;
 }
 template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
 constexpr auto &AnyX(AnyTypeW &w, AnyTypeA &a) {
 	if constexpr (IsUnicode)
-		return w;
+		 return w;
 	else return a;
 }
 template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
 constexpr auto AnyX(AnyTypeW &&w, AnyTypeA &&a) {
 	if constexpr (IsUnicode)
-		return w;
+		 return w;
 	else return a;
 }
 }
@@ -57,7 +58,7 @@ constexpr auto AnyX(AnyTypeW &&w, AnyTypeA &&a) {
 
 #pragma region WX Inside 
 
-#pragma region StaticCompatible
+#pragma region Static Compatible
 template <class AnyCallable, class Ret, class... Args>
 auto __static_compatible(...) -> std::false_type;
 template <class AnyCallable, class Ret, class... Args>
@@ -71,7 +72,7 @@ export {
 }
 #pragma endregion
 
-#pragma region ChainExtender 
+#pragma region Chain Extender 
 export template<class ParentClass, class ChildClass>
 using Chain = std::conditional_t<std::is_void_v<ChildClass>, ParentClass, ChildClass>;
 export template<class ParentClass, class ChildClass>
@@ -97,7 +98,7 @@ std::is_void_v<Class1> || std::is_void_v<Class2> ? false :
 	is_chain_extended_on<subtype_branchof_super<Class1, void>, Class2>;
 #pragma endregion
 
-#pragma region ReuseAndCast
+#pragma region Reuse 77 Casts
 export {
 template<class OutType, class InType>
 inline OutType reuse_as(InType in) {
@@ -186,7 +187,7 @@ constexpr bool IsRef<RefAs<RefType>> = true;
 }
 #pragma endregion
 
-#pragma region ArrayAndCounter 
+#pragma region Array & Counter 
 export {
 template<class AnyType, size_t Len>
 using arrayof = AnyType[Len];

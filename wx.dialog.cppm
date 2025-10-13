@@ -1,10 +1,12 @@
 module;
 
 #include <vector>
-#include "wx_types"
+
+#include "wx_type"
 
 export module wx.dialog;
 
+import wx;
 import wx.proto;
 import wx.window;
 import wx.gdi;
@@ -12,6 +14,10 @@ import wx.gdi;
 export namespace WX {
 
 // CommDlgExtendedError
+
+//template<class AnyChild>
+//class DialogBase : public WindowBase<AnyChild> {
+//};
 
 template<class DIALOGSTRUCT, class AnyChild>
 class DialogCommon : public RefStruct<DIALOGSTRUCT>,
@@ -23,15 +29,14 @@ public:
 	using Child = AnyChild;
 public:
 	DialogCommon() reflect_to(this->lStructSize = sizeof(DIALOGSTRUCT));
-public: // Property - Owner
+public: // Properties
 	/* W */ inline auto &Owner(HWND hwndOwner) reflect_to_child(self->hwndOwner = hwndOwner);
-public: // Property - Module
 	/* W */ inline auto &Module(HINSTANCE hInstance) reflect_to_child(self->hInstance = (decltype(self->hInstance))hInstance);
-public: // Property - TemplateName
 	/* W */ inline auto &TemplateName(LPCTSTR lpTemplateName) reflect_to_child(self->lpTemplateName = lpTemplateName);
+	template<class AnyType>
+	/* W */ inline auto &CustData(AnyType dat) reflect_to_child(self->lCustData = small_cast<LPARAM>(dat));
 public:
-//	LPARAM        lCustData;
-//	LPOFNHOOKPROC lpfnHook;
+	//	LPOFNHOOKPROC lpfnHook;
 };
 
 #pragma region DialogColor
@@ -45,30 +50,42 @@ enum_flags(DialogColorStyle, DWORD,
 	EnableTemplateHandle = CC_ENABLETEMPLATEHANDLE,
 	SolidColor           = CC_SOLIDCOLOR,
 	AnyColor             = CC_ANYCOLOR);
-template<bool IsUnicode>
-class DialogColorX : public DialogCommon<switch_structx(CHOOSECOLOR), DialogColorX<IsUnicode>> {
+template<bool IsUnicode, class AnyChild = void>
+class DialogColorX : public DialogCommon<
+	switch_structx(CHOOSECOLOR),
+	ChainExtender<DialogColorX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(CHOOSECOLOR);
 public:
 	using super = DialogCommon<CHOOSECOLOR, DialogColorX>;
+public:
 	using Style = DialogColorStyle;
 	using ColorSet = arrayof<RGBColor, 16>;
 	using CColorSet = const arrayof<RGBColor, 16>;
 public:
 	DialogColorX() reflect_to(self->lStructSize = sizeof(CHOOSECOLOR));
 public: // Property - Styles
-	/* W */ inline auto &Styles(Style style) reflect_to_self(self->Flags = style.yield());
+	/* W */ inline auto &Styles(Style style) reflect_to_child(self->Flags = style.yield());
 public: // Property - CustColors
-	/* W */ inline auto &CustColors(ColorSet *lpCustColors) reflect_to_self(self->lpCustColors = (COLORREF *)lpCustColors);
+	/* W */ inline auto &CustColors(ColorSet *lpCustColors) reflect_to_child(self->lpCustColors = (COLORREF *)lpCustColors);
 	/* R */ inline CColorSet *CustColors() const reflect_as((CColorSet *)self->lpCustColors);
 public: // Property - Result
-	/* W */ inline auto &Result(COLORREF rgb) reflect_to_self(self->rgbResult = rgb);
+	/* W */ inline auto &Result(COLORREF rgb) reflect_to_child(self->rgbResult = rgb);
 	/* R */ inline RGBColor Result() const reflect_as(self->rgbResult);
 public:
 	inline bool Choose() reflect_as(ChooseColor(this));
 };
-using DialogColor  = DialogColorX<IsUnicode>;
-using DialogColorA = DialogColorX<false>;
-using DialogColorW = DialogColorX<true>;
+template<class AnyChild = void>
+using DialogColor  = DialogColorX<IsUnicode, AnyChild>;
+template<class AnyChild = void>
+using DialogColorA = DialogColorX<false, AnyChild>;
+template<class AnyChild = void>
+using DialogColorW = DialogColorX<true, AnyChild>;
+template<class AnyChild = void>
+using DlgColor = DialogColor<AnyChild>;
+template<class AnyChild = void>
+using DlgColorA = DialogColorA<AnyChild>;
+template<class AnyChild = void>
+using DlgColorW = DialogColorW<AnyChild>;
 #pragma endregion
 
 #pragma region DialogFont
@@ -99,8 +116,10 @@ enum_flags(DialogFontStyle, DWORD,
 	NoScriptSel          = CF_NOSCRIPTSEL,
 	NoVertFonts          = CF_NOVERTFONTS,
 	InActiveFonts        = CF_INACTIVEFONTS);
-template<bool IsUnicode>
-class DialogFontX : public RefStruct<switch_structx(CHOOSEFONT)> {
+template<bool IsUnicode, class AnyChild = void>
+class DialogFontX : public DialogCommon<
+	switch_structx(CHOOSEFONT),
+	ChainExtender<DialogFontX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(CHOOSEFONT);
 	using_structx(FontLogic);
 	using_structx(LOGFONT);
@@ -136,9 +155,18 @@ public: // Property - LogFont
 public:
 	inline bool Choose() reflect_as(ChooseFont(this));
 };
-using DialogFont = DialogFontX<IsUnicode>;
-using DialogFontA = DialogFontX<false>;
-using DialogFontW = DialogFontX<true>;
+template<class AnyChild = void>
+using DialogFont = DialogFontX<IsUnicode, AnyChild>;
+template<class AnyChild = void>
+using DialogFontA = DialogFontX<false, AnyChild>;
+template<class AnyChild = void>
+using DialogFontW = DialogFontX<true, AnyChild>;
+template<class AnyChild = void>
+using DlgFont = DialogFont<AnyChild>;
+template<class AnyChild = void>
+using DlgFontA = DialogFontA<AnyChild>;
+template<class AnyChild = void>
+using DlgFontW = DialogFontW<AnyChild>;
 #pragma endregion
 
 #pragma region DialogFile
@@ -169,8 +197,10 @@ enum_flags(DialogFileStyle, DWORD,
 	EnableSizing         = OFN_ENABLESIZING,
 	DontAddToRecent      = OFN_DONTADDTORECENT,
 	ForcesHowHidden      = OFN_FORCESHOWHIDDEN);
-template<bool IsUnicode>
-class DialogFileX : public RefStruct<switch_structx(OPENFILENAME)> {
+template<bool IsUnicode, class AnyChild = void>
+class DialogFileX : public DialogCommon<
+	switch_structx(OPENFILENAME),
+	ChainExtender<DialogFileX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(OPENFILENAME);
 	using LPTSTR = LPXSTR<IsUnicode>;
 	using LPCTSTR = LPCXSTR<IsUnicode>;
@@ -221,9 +251,18 @@ public:
 	inline bool OpenFile() reflect_as(GetOpenFileName(this));
 	inline bool SaveFile() reflect_as(GetSaveFileName(this));
 };
-using DialogFile = DialogFileX<IsUnicode>;
-using DialogFileA = DialogFileX<false>;
-using DialogFileW = DialogFileX<true>;
+template<class AnyChild = void>
+using DialogFile = DialogFileX<IsUnicode, AnyChild>;
+template<class AnyChild = void>
+using DialogFileA = DialogFileX<false, AnyChild>;
+template<class AnyChild = void>
+using DialogFileW = DialogFileX<true, AnyChild>;
+template<class AnyChild = void>
+using DlgFile = DialogFile<AnyChild>;
+template<class AnyChild = void>
+using DlgFileA = DialogFileA<AnyChild>;
+template<class AnyChild = void>
+using DlgFileW = DialogFileW<AnyChild>;
 #pragma endregion
 
 #pragma region FindReplace
@@ -252,8 +291,10 @@ enum_flags(FindReplaceStyle, DWORD,
 	MatchDiac            = FR_MATCHDIAC,
 	MatchKashida         = FR_MATCHKASHIDA,
 	MatchAlefHamza       = FR_MATCHALEFHAMZA);
-template<bool IsUnicode>
-class DialogTextX : public RefStruct<switch_structx(FINDREPLACE)> {
+template<bool IsUnicode, class AnyChild = void>
+class DialogTextX : public DialogCommon<
+	switch_structx(FINDREPLACE),
+	ChainExtender<DialogTextX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(FINDREPLACE);
 	using String = StringX<IsUnicode>;
 public:
@@ -269,9 +310,18 @@ public:
 	inline HWND Find() reflect_as(FindText(this));
 	inline HWND Replace() reflect_as(ReplaceText(this));
 };
-using DialogText = DialogTextX<IsUnicode>;
-using DialogTextA = DialogTextX<false>;
-using DialogTextW = DialogTextX<true>;
+template<class AnyChild = void>
+using DialogText = DialogTextX<IsUnicode, AnyChild>;
+template<class AnyChild = void>
+using DialogTextA = DialogTextX<false, AnyChild>;
+template<class AnyChild = void>
+using DialogTextW = DialogTextX<true, AnyChild>;
+template<class AnyChild = void>
+using DlgText = DialogText<AnyChild>;
+template<class AnyChild = void>
+using DlgTextA = DialogTextA<AnyChild>;
+template<class AnyChild = void>
+using DlgTextW = DialogTextW<AnyChild>;
 #pragma endregion
 
 #pragma region DialogPrint
@@ -293,6 +343,7 @@ using DialogTextW = DialogTextX<true>;
 //	inline bool Config() reflect_as(CommConfigDialog(L"", hwndOwner, self))
 //};
 
+#if 0
 #pragma region Dialog Template
 
 inline void PushHeap(void *&pHeap, size_t &maxSize, const void *pData, size_t dataSize) {
@@ -305,13 +356,13 @@ template<class AnyType>
 inline void PushHeap(void *&pHeap, size_t &maxSize, const AnyType &type)
 { PushHeap(pHeap, maxSize, &type, sizeof(AnyType)); }
 template<>
-inline void PushHeap<std::wstring>(void *&pHeap, size_t &maxSize, const std::wstring &str)
-{ PushHeap(pHeap, maxSize, str.c_str(), str.size() * 2 + 2); }
+inline void PushHeap<StringW>(void *&pHeap, size_t &maxSize, const StringW &str)
+{ PushHeap(pHeap, maxSize, str, str.Size()); }
 
 class DialogControl {
 	DLGITEMTEMPLATE dit = { 0 };
-	std::wstring className;
-	std::wstring caption;
+	StringW className;
+	StringW caption;
 	WORD sizeParam = 0;
 public:
 	enum_class(Classes, WORD,
@@ -323,10 +374,10 @@ public:
 		ComboBox  = 0x0085);
 
 	DialogControl(Classes classId) : className({ (wchar_t)classId.yield() }) {}
-	DialogControl(LPCWSTR pCaption, Classes classId = Classes::Static) :
-		className({ (wchar_t)classId.yield() }), caption(pCaption) {}
-	DialogControl(LPCWSTR pCaption, WORD id) : 
-		className({ (wchar_t)id }), caption(pCaption) { dit.id = id; }
+	DialogControl(const StringW &caption, Classes classId = Classes::Static) :
+		className({ (wchar_t)classId.yield() }), caption(+caption) {}
+	DialogControl(const StringW &caption, WORD id) :
+		className({ (wchar_t)id }), caption(+caption) { dit.id = id; }
 
 #pragma region Properties
 public: // Property - Style
@@ -342,10 +393,10 @@ public: // Property - Size
 public: // Property - ID
 	/* W */ inline auto &ID(WORD id) reflect_to_self(dit.id = id);
 public: // Property - WindowClass
-	/* W */ inline auto &WindowClass(std::wstring className) reflect_to_self(this->className = className);
+	/* W */ inline auto &WindowClass(const StringW &className) reflect_to_self(this->className = +className);
 	/* W */ inline auto &WindowClass(WORD classId) reflect_to_self(this->className = { (wchar_t)classId });
 public: // Property - Caption
-	/* W */ inline auto &Caption(LPCWSTR lpszCaption) reflect_to_self(this->caption = lpszCaption);
+	/* W */ inline auto &Caption(const StringW &lpszCaption) reflect_to_self(this->caption = +lpszCaption);
 #pragma endregion
 
 private:
@@ -353,12 +404,12 @@ private:
 	inline size_t HeapSize() {
 		return
 			sizeof(DLGITEMTEMPLATE) +
-			(className.size() + caption.size()) * 2 + 2 +
+			className.Size() + caption.Size() + 2 +
 			sizeof(sizeParam) + sizeParam;
 	}
 	inline void PushToHeap(void *&pHeap, size_t &maxSize) {
 		PushHeap(pHeap, maxSize, dit);
-		if (className.size() <= 1) {
+		if (className.Length() <= 1) {
 			WORD aClassId[2] = { 0xFFFF, className[0] };
 			PushHeap(pHeap, maxSize, aClassId);
 		} else PushHeap(pHeap, maxSize, className);
@@ -370,13 +421,13 @@ using DCtl = DialogControl;
 using DClass = DialogControl::Classes;
 class DialogFactory {
 	DLGTEMPLATE dt = { 0 };
-	std::wstring menuName;
-	std::wstring className;
-	std::wstring caption;
+	StringW menuName;
+	StringW className;
+	StringW caption;
 	std::vector<DialogControl> dits;
 public:
 	DialogFactory() {}
-	DialogFactory(LPCWSTR pCaption) : caption(pCaption) {}
+	DialogFactory(const StringW &caption) : caption(+caption) {}
 public:
 	inline auto &Add(const DialogControl &dc) reflect_to_self(dits.push_back(dc));
 #pragma region Properties
@@ -391,29 +442,31 @@ public: // Property - Position
 public: // Property - Size
 	/* W */ inline auto &Size(LSize sz) reflect_to_self(dt.cx = (SHORT)sz.cx, dt.cy = (SHORT)sz.cy);
 public: // Property - Menu
-	/* W */ inline auto &Menu(std::wstring menuName) reflect_to_self(this->menuName = menuName);
+	/* W */ inline auto &Menu(const StringW &menuName) reflect_to_self(this->menuName = +menuName);
 	/* W */ inline auto &Menu(WORD menuId) reflect_to_self(this->menuName = { (wchar_t)menuId });
 public: // Property - WindowClass
-	/* W */ inline auto &WindowClass(std::wstring className) reflect_to_self(this->className = className);
+	/* W */ inline auto &WindowClass(const StringW &className) reflect_to_self(this->className = +className);
 	/* W */ inline auto &WindowClass(WORD classId) reflect_to_self(this->className = { (wchar_t)classId });
 public: // Property - Caption
-	/* W */ inline auto &Caption(std::wstring caption) reflect_to_self(this->caption = caption);
+	/* W */ inline auto &Caption(const StringW &caption) reflect_to_self(this->caption = +caption);
 #pragma endregion
 
 private:
 	inline size_t HeapSize() {
-		auto size = sizeof(DLGTEMPLATE) + (menuName.size() + className.size() + caption.size()) * 2 + 6;
+		auto size =
+			sizeof(DLGTEMPLATE) +
+			menuName.Size() + className.Size() + caption.Size();
 		// size += 0; //************* style & DS_SETFONT ************/
 		for (auto &dit : dits)
 			size += (dit.HeapSize() + 3) & ~3; // Align to DWORD // See Microsoft Learn for more
 		return size;
 	}
 	inline void PushToHeap(void *&pHeap, size_t &maxSize) {
-		if (menuName.size() == 1) {
+		if (menuName.Length() == 1) {
 			WORD aMenuId[2] = { 0xFFFF, menuName[0] };
 			PushHeap(pHeap, maxSize, aMenuId);
 		} else PushHeap(pHeap, maxSize, menuName);
-		if (className.size() == 1) {
+		if (className.Length() == 1) {
 			WORD aClassId[2] = { 0xFFFF, className[0] };
 			PushHeap(pHeap, maxSize, aClassId);
 		} else PushHeap(pHeap, maxSize, className);
@@ -558,5 +611,6 @@ public:
 //};
 
 #pragma endregion
+#endif
 
 }

@@ -6,6 +6,7 @@ module;
 
 export module wx.resource;
 
+import wx;
 import wx.gdi;
 import wx.proto;
 
@@ -13,6 +14,7 @@ export namespace WX {
 
 #pragma region Icon
 class IconInfo : public RefStruct<ICONINFO> {
+public:
 	using super = RefStruct<ICONINFO>;
 public:
 	IconInfo(bool fIcon = true) reflect_to(self->fIcon = fIcon);
@@ -78,8 +80,8 @@ public:
 	using InfoExA = IconInfoExX<false>;
 	using InfoExW = IconInfoExX<true>;
 protected:
-	friend union RefAs<Icon>;
 	mutable HICON hIcon = O;
+	INNER_USE(Icon);
 	Icon(HICON h) : hIcon(h) {}
 	Icon(const Icon &i) : hIcon(i.hIcon) reflect_to(i.hIcon = O);
 public:
@@ -194,9 +196,25 @@ public:
 			WX::DestroyCursor(super::hIcon);
 		super::hIcon = O;
 	}
+public:
+	static inline void Show() reflect_to(WX::ShowCursor(TRUE));
+	static inline void Hide() reflect_to(WX::ShowCursor(FALSE));
+	inline RefAs<Cursor> Set() const reflect_as(WX::SetCursor((HCURSOR)super::hIcon));
+	static inline RefAs<Cursor> Get() reflect_as(WX::GetCursor());
+
 #pragma region Properties
 public: // Property - Hotspot
 	/* R */ inline LPoint Hotspot() const reflect_as(Informations().Hotspot());
+public: // Property - Visible
+	/* W */ static inline void Visible(bool bVisible) reflect_to(WX::ShowCursor(bVisible));
+public: // Property - Position
+	/* R */ static inline LPoint Position() reflect_to(LPoint p; WX::GetCursorPos(&p), p);
+public: // Property - PhysicalPosition
+	/* W */ static inline void PhysicalPosition(LPoint p) reflect_to(WX::SetPhysicalCursorPos(p.x, p.y));
+	/* R */ static inline LPoint PhysicalPosition() reflect_to(LPoint p; WX::GetPhysicalCursorPos(&p), p);
+public: // Property - ClipRect
+	/* W */ static inline void ClipRect(LRect r) reflect_to(WX::ClipCursor(&r));
+	/* R */ static inline LRect ClipRect() reflect_to(LRect r; WX::GetClipCursor(&r), r);
 #pragma endregion
 	inline operator HCURSOR() const reflect_as((HCURSOR)super::hIcon);
 	inline Cursor operator+() const reflect_as(WX::CopyIcon(super::hIcon));
@@ -208,6 +226,57 @@ public:
 	static inline const Cursor &Attach(const HCURSOR &hCursor) reflect_as(ref_as<const Cursor>(hCursor));
 };
 using CCursor = RefAs<Cursor>;
+#pragma endregion
+
+#pragma region Accelerators
+enum_flags(VirtualKey, BYTE,
+	NoInvert = FNOINVERT,
+	Shift    = FSHIFT,
+	Control  = FCONTROL,
+	Alt      = FALT);
+class AccelEntry : public RefStruct<ACCEL> {
+public:
+	using super = RefStruct<ACCEL>;
+public:
+	AccelEntry() {}
+	AccelEntry(WX::VirtualKey vk, WORD key, WORD cmd) : super(ACCEL{ vk.yield(), key, cmd }) {}
+public: // Property - VirtualKey
+	/* W */ inline auto&VirtualKey(WX::VirtualKey vk) reflect_to_self(self->fVirt = vk.yield());
+	/* R */ inline auto VirtualKey() const reflect_as(reuse_as<WX::VirtualKey>(self->fVirt));
+public: // Property - Key
+	/* W */ inline auto&Key(WORD key) reflect_to_self(self->key = key);
+	/* R */ inline WORD Key() const reflect_as(self->key);
+public: // Property - CommandID
+	/* W */ inline auto&CommandID(WORD cmd) reflect_to_self(self->cmd = cmd);
+	/* R */ inline WORD CommandID() const reflect_as(self->cmd);
+};
+class Accelerators {
+protected:
+	mutable HACCEL hAccel = O;
+	INNER_USE(Accelerators);
+	Accelerators(HACCEL h) : hAccel(h) {}
+	Accelerators(const Accelerators &c) : hAccel(c.hAccel) reflect_to(c.hAccel = O);
+public:
+	Accelerators() {}
+	Accelerators(const std::vector<AccelEntry> &entries) : hAccel() {}
+	~Accelerators() reflect_to(Destroy());
+public:
+	static inline Accelerators Create(const std::vector<AccelEntry> &entries)
+		reflect_as(WX::CreateAcceleratorTable((ACCEL *)entries.data(), (int)entries.size()));
+	inline void Destroy() {
+		if (hAccel)
+			WX::DestroyAcceleratorTable(hAccel);
+		hAccel = O;
+	}
+public:
+	inline operator bool() const reflect_as(hAccel);
+	inline operator HACCEL() const reflect_as(hAccel);
+	inline auto &operator=(Accelerators &a) reflect_to_self(std::swap(hAccel, a.hAccel));
+	inline auto &operator=(const Accelerators &a) const reflect_to_self(std::swap(hAccel, a.hAccel));
+};
+using Accel = Accelerators;
+using CAccelerators = RefAs<Accelerators>;
+using CAccel = RefAs<Accelerators>;
 #pragma endregion
 
 #pragma region Menu
@@ -271,8 +340,8 @@ public: // Property - Count
 };
 class Menu {
 protected:
-	INNER_USE(Menu);
 	mutable HMENU hMenu = O;
+	INNER_USE(Menu);
 	Menu(HMENU h) : hMenu(h) {}
 	Menu(const Menu &m) : hMenu(m.hMenu) reflect_to(m.hMenu = O);
 public:
@@ -282,8 +351,8 @@ public:
 	Menu(Menu &&m) : hMenu(m) reflect_to(m.hMenu = O);
 	~Menu() reflect_to(Destroy());
 public:
-	static inline Menu Create() reflect_as(CreateMenu());
-	static inline Menu CreatePopup() reflect_as(CreatePopupMenu());
+	static inline Menu Create() reflect_as(WX::CreateMenu());
+	static inline Menu CreatePopup() reflect_as(WX::CreatePopupMenu());
 	inline void Destroy() {
 		if (self)
 			WX::DestroyMenu(hMenu);
@@ -348,8 +417,8 @@ inline Menu MenuPopup() reflect_as(Menu::CreatePopup());
 #pragma region Module
 class Module {
 protected:
-	friend union RefAs<Module>;
 	mutable HINSTANCE hInst = O;
+	INNER_USE(Module);
 	Module(HINSTANCE h) : hInst(h) {}
 	Module(const Module &m) : hInst(m.hInst) reflect_to(m.hInst = O);
 public:
@@ -376,10 +445,14 @@ public: // Property - Menu
 	/* R */ inline CMenu Menu(LPCSTR lpszName) const reflect_as(WX::LoadMenu(self, lpszName));
 	/* R */ inline CMenu Menu(LPCWSTR lpszName) const reflect_as(WX::LoadMenu(self, lpszName));
 	/* R */ inline CMenu Menu(WORD wID) const reflect_as(WX::LoadMenu(self, MAKEINTRESOURCE(wID)));
+public: // Property - Accelerators
+	/* R */ inline CAccel Accelerators(LPCSTR lpszName) const reflect_as(WX::LoadAccelerators(self, lpszName));
+	/* R */ inline CAccel Accelerators(LPCWSTR lpszName) const reflect_as(WX::LoadAccelerators(self, lpszName));
+	/* R */ inline CAccel Accelerators(WORD wID) const reflect_as(WX::LoadAccelerators(self, MAKEINTRESOURCE(wID)));
 public: // Property - Bitmap
 	/* R */ inline CBitmap Bitmap(LPCSTR lpszName) const reflect_as(WX::LoadBitmap(self, lpszName));
 	/* R */ inline CBitmap Bitmap(LPCWSTR lpszName) const reflect_as(WX::LoadBitmap(self, lpszName));
-	inline CBitmap Bitmap(WORD wID) const reflect_as(WX::LoadBitmap(self, MAKEINTRESOURCE(wID)));
+	/* R */ inline CBitmap Bitmap(WORD wID) const reflect_as(WX::LoadBitmap(self, MAKEINTRESOURCE(wID)));
 public: // Property - Icon
 	/* R */ inline CIcon Icon(LPCSTR lpszName) const reflect_as(WX::LoadIcon(self, lpszName));
 	/* R */ inline CIcon Icon(LPCWSTR lpszName) const reflect_as(WX::LoadIcon(self, lpszName));

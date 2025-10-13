@@ -700,6 +700,8 @@ using CMetaFile = RefAs<MetaFile>;
 #pragma endregion
 
 #pragma region DevCap
+
+#pragma region ColorSpace
 enum_class(MapModes, int,
 	Text           = MM_TEXT,
 	LoMetric       = MM_LOMETRIC,
@@ -890,6 +892,8 @@ public: // Property - Filename
 using ColorSpace = ColorSpaceX<IsUnicode>;
 using ColorSpaceA = ColorSpaceX<false>;
 using ColorSpaceW = ColorSpaceX<true>;
+#pragma endregion
+
 class XForm : public RefStruct<XFORM> {
 public:
 	using super = RefStruct<XFORM>;
@@ -947,6 +951,47 @@ public:
 		assertl(false);
 	}
 };
+
+#if(WINVER >= 0x0400)
+#define DRAWTEXT_1 \
+	, EditControl          = DT_EDITCONTROL   \
+	, PathEllipsis         = DT_PATH_ELLIPSIS \
+	, EndEllipsis          = DT_END_ELLIPSIS  \
+	, ModifyString         = DT_MODIFYSTRING  \
+	, RTLReading           = DT_RTLREADING    \
+	, WordEllipsis         = DT_WORD_ELLIPSIS
+#if(WINVER >= 0x0500)
+#define DRAWTEXT_2 \
+	, NoFullWidthCharBreak = DT_NOFULLWIDTHCHARBREAK
+#if(_WIN32_WINNT >= 0x0500)
+#define DRAWTEXT_3 \
+	, HidePrefix           = DT_HIDEPREFIX \
+	, PrefixOnly           = DT_PREFIXONLY
+#endif
+#endif
+#endif
+
+enum_flags(TextDraw, UINT,
+	  Top               = DT_TOP
+	, Left              = DT_LEFT
+	, Center            = DT_CENTER
+	, Right             = DT_RIGHT
+	, VCenter           = DT_VCENTER
+	, Bottom            = DT_BOTTOM
+	, WordBreak         = DT_WORDBREAK
+	, SingleLine        = DT_SINGLELINE
+	, ExpandTabs        = DT_EXPANDTABS
+	, TabStop           = DT_TABSTOP
+	, NoClip            = DT_NOCLIP
+	, ExternalLeading   = DT_EXTERNALLEADING
+	, CalcRect          = DT_CALCRECT
+	, NoPrefix          = DT_NOPREFIX
+	, Internal          = DT_INTERNAL
+	DRAWTEXT_1
+	DRAWTEXT_2
+	DRAWTEXT_3);
+
+
 class BaseOf_GDI(DevCap, HDC) {
 public:
 	using super = GObjectBase<DevCap, HDC>;
@@ -980,17 +1025,18 @@ public:
 	inline CPalette Palette(HPALETTE hPal, bool bForceBkgd = false) reflect_to(hPal = WX::SelectPalette(self, hPal, bForceBkgd), hPal);
 	inline UINT PaletteRealize() const reflect_as(WX::RealizePalette(self));
 
-	//inline void DrawIcon(HICON hIcon, LPoint p = 0) reflect_as_self(WX::DrawIcon(self, p.x, p.y, hIcon));
-	//inline bool DrawText(String text, Rect r = 0) reflect_as(WX::DrawText(self, text.c_str(), text.size(), r, ));
-	//inline void DrawPixel(COLORREF rgb, LPoint p) reflect_as_self(WX::SetPixel(self, p.x, p.y, rgb) != -1);
-	//template<size_t len>
-	//inline void DrawPolyline(const LPoint(&pts)[len]) reflect_to(WX::Polyline(self, pts, len));
-	//inline void DrawPie(LRect rc, LPoint start, LPoint end) reflect_to(WX::Pie(self, rc.left, rc.top, rc.right, rc.bottom, start.x, start.y, end.x, end.y));
-	//inline void DrawEllipse(LRect rc) reflect_to(Ellipse(self, rc.left, rc.top, rc.right, rc.bottom));
-	//inline void DrawFocus(LRect rc) reflect_to(WX::DrawFocusRect(self, &rc));
-	//inline void Invert(LRect rc) reflect_to(WX::InvertRect(self, rc));
-	//inline void Fill(HBRUSH hbr, LRect rc) reflect_to(WX::FillRect(self, rc, hbr));
-	//inline void Fill(HBRUSH hbr) reflect_as(Fill(hbr, Size()));
+	inline void DrawIcon(HICON hIcon, LPoint p = 0) reflect_to(WX::DrawIcon(self, p.x, p.y, hIcon));
+	inline int  DrawText(String text, LRect r = 0, TextDraw format = TextDraw::Left) reflect_as(WX::DrawText(self, text, (int)text.Length(), r, format.yield()));
+	inline void DrawPixel(COLORREF rgb, LPoint p) reflect_to(WX::SetPixel(self, p.x, p.y, rgb));
+	template<size_t len>
+	inline void DrawPolyline(const LPoint(&pts)[len]) reflect_to(WX::Polyline(self, (CONST POINT *)&pts, len));
+	inline void DrawPie(LRect rc, LPoint start, LPoint end) reflect_to(WX::Pie(self, rc.left, rc.top, rc.right, rc.bottom, start.x, start.y, end.x, end.y));
+	inline void DrawEllipse(LRect rc) reflect_to(Ellipse(self, rc.left, rc.top, rc.right, rc.bottom));
+	inline void DrawFrame(LRect rc) reflect_to(WX::InvertRect(self, rc));
+	inline void Invert(LRect rc) reflect_to(WX::InvertRect(self, rc));
+	inline void DrawFocus(HBRUSH hbr, LRect rc) reflect_to(WX::FrameRect(self, &rc, hbr));
+	inline void Fill(HBRUSH hbr, LRect rc) reflect_to(WX::FillRect(self, rc, hbr));
+	inline void Fill(HBRUSH hbr) reflect_as(Fill(hbr, Size()));
 
 public:
 	class IPixel {
@@ -1040,7 +1086,7 @@ public: // Property - WindowExt
 	/* W */ inline auto&WindowExt(LSize sz) reflect_to_self(WX::SetWindowExtEx(self, sz.cx, sz.cy, O));
 	/* R */ inline auto WindowExt() const reflect_to(LSize sz, WX::GetWindowExtEx(self, &sz), sz);
 public: // Property - Size
-	/* R */ inline auto Size() const reflect_as(LSize{ WX::GetDeviceCaps(self, HORZRES), WX::GetDeviceCaps(self, VERTRES) });
+	/* R */ inline LSize Size() const reflect_as({ WX::GetDeviceCaps(self, HORZRES), WX::GetDeviceCaps(self, VERTRES) });
 public: // Property - WorldTransform
 	/* W */ inline auto&WorldTransform(const XForm &xf) reflect_to_self(WX::SetWorldTransform(self, &xf));
 	/* R */ inline auto WorldTransform() const reflect_to(XForm xf; WX::GetWorldTransform(self, &xf), xf);

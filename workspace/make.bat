@@ -1,9 +1,12 @@
 @echo off
-cd ..
 setlocal enabledelayedexpansion
+set workspace=%cd%
+cd %cd%\..\
+set global_dir=%cd%
+cd !workspace!
 if /i "%1" == "clean" (
     echo -- Clean started
-    set clear_path="gcm.cache" "vs-workspace\x64" "vs-workspace\Debug" "vs-workspace\Release" "vs-workspace\wx_duk" "vs-workspace\wx_test"
+    set clear_path="gcm.cache" "workspace\x64" "workspace\Debug" "workspace\Release" "workspace\wx_test"
     for %%p in (!clear_path!) do (
         rmdir %%p /s /q && echo clean and remove folder %%p
     )
@@ -13,12 +16,13 @@ if /i "%1" == "clean" (
     )
     echo -- Clean finished
 ) else if /i "%1" == "build" (
-    set module_files="wx.cppm" "wx.proto.cppm" "wx.type.cppm" "wx.realtime.cppm" "wx.console.cppm" "wx.gdi.cppm" "wx.resource.cppm" "wx.window.cppm"
-    set source_files="wx_test.cpp"
+    set module_files="!global_dir!\wx.cppm" "!global_dir!\wx.proto.cppm" "!global_dir!\wx.type.cppm" "!global_dir!\wx.realtime.cppm" "!global_dir!\wx.console.cppm" "!global_dir!\wx.gdi.cppm" "!global_dir!\wx.resource.cppm" "!global_dir!\wx.window.cppm"
+    set source_files="!workspace!\wx_test.cpp"
+    set include_paths="%cd%"
     if /i "%2" == "clang" (
         set compiler=clang++
         set compile_mod=-std=c++2a -fmodules -fprebuilt-module-path="./" --precompile
-        set compile_src=-std=c++2a -fmodules -fprebuilt-module-path="./" -c
+        set compile_src=-std=c++2a -fmodules -fprebuilt-module-path="./" -c -I=!include_paths!
         set link_args=
     ) else if /i "%2" == "mingw" (
         set compiler=g++
@@ -74,4 +78,3 @@ if /i "%1" == "clean" (
     echo    help            - show this list
 )
 :end
-cd vs-workspace

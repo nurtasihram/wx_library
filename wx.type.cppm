@@ -612,8 +612,7 @@ public:
 	Message(HWND hwnd, UINT  message, WPARAM wParam, LPARAM lParam) : super(MSG{ hwnd, message, wParam, lParam }) {}
 public: // Property - Window
 	/* W */ inline auto&Window(HWND hwnd) reflect_as(self->hwnd);
-	//template<class Child = void>
-	///* R */ inline WindowShim<Child> Window() const reflect_as(reuse_as<WX::WindowBase<Child>>(self->hwnd));
+	/* R */ inline auto Window() const reflect_as(self->hwnd);
 public: // Property - ID
 	/* W */ inline auto&ID(UINT msgid) reflect_to_self(self->message = msgid);
 	template<class AnyEnum = UINT>

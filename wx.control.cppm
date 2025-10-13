@@ -2,12 +2,14 @@ module;
 
 #include <Windows.h>
 #include <CommCtrl.h>
-#include "wx_types"
+
+#include "wx_type"
 
 export module wx_control;
 
+import wx;
 import wx.proto;
-import wx_window;
+import wx.window;
 
 export namespace WX {
 

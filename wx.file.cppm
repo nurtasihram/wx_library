@@ -1,9 +1,10 @@
 module;
 
-#include "wx_types"
+#include "wx_type"
 
 export module wx.file;
 
+import wx;
 import wx.proto;
 import wx.resource;
 

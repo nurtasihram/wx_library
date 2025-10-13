@@ -93,6 +93,11 @@ template<class AnyChild>
 using WindowShim = RefAs<WindowBase<AnyChild>>;
 
 #pragma region Misc
+enum_class(DPIHostingBehavior, DPI_HOSTING_BEHAVIOR,
+	Invalid = DPI_HOSTING_BEHAVIOR_INVALID,
+	Default = DPI_HOSTING_BEHAVIOR_DEFAULT,
+	Mixed   = DPI_HOSTING_BEHAVIOR_MIXED);
+
 struct KEY_FLAGS {
 	uint16_t wScanCode : 8;
 	uint16_t bExtend : 1;
@@ -112,7 +117,7 @@ public: // Property - Mask
 	/* W */ inline auto&Mask(UINT fMask) reflect_to_self(self.fMask = fMask);
 	/* R */ inline UINT Mask() const reflect_as(self.fMask);
 public: // Property - Range
-	/* W */ inline auto &Range(int nMin, int nMax) reflect_to_self(self.nMin = nMin, self.nMax = nMax, self,fMask = SIF_RANGE);
+	/* W */ inline auto &Range(int nMin, int nMax) reflect_to_self(self.nMin = nMin, self.nMax = nMax, self.fMask = SIF_RANGE);
 	/* R */ inline LSize Range() const reflect_as(LSize{ self.nMin, self.nMax });
 public: // Property - Page
 	/* W */ inline auto&Page(UINT nPage) reflect_to_self(self.nPage = nPage, self.fMask = SIF_PAGE);
@@ -126,6 +131,11 @@ public: // Property - TrackPosition
 };
 
 #pragma region Window Styles
+enum_class(DisplayAffinities, DWORD,
+	None           = WDA_NONE,
+	Monitor        = WDA_MONITOR,
+	Exclusion      = WDA_EXCLUDEFROMCAPTURE);
+
 enum_flags(WindowStyle, LONG,
 	Overlapped          = WS_OVERLAPPED,
 	Popup               = WS_POPUP,
@@ -616,8 +626,8 @@ public: // Property - Rect
 	/* W */ inline auto &Rect(LRect r) reflect_to_self(Size(r), Position(r.left_top()));
 	/* R */ inline LRect Rect() const reflect_as(LRect::left_top(Position(), Size()));
 public: // Property - ClientRect
-	/* W */ inline auto&ClientRect(LRect rc) reflect_to_self(WX::AdjustWindowRectEx(rc, self->style, self->hMenu ? TRUE : FALSE, self->dwExStyle), Rect(rc));
-	/* W */ inline auto&ClientRect(LRect rc, UINT dpi) reflect_to_self(WX::AdjustWindowRectExForDpi(rc, self->style, self->hMenu ? TRUE : FALSE, self->dwExStyle, dpi), Rect(rc));
+	/* W */ inline auto&ClientRect(LRect rc) reflect_to_self(WX::AdjustWindowRect(&rc, self->style, self->hMenu, self->dwExStyle), Rect(rc));
+	/* W */ inline auto&ClientRect(LRect rc, UINT dpi) reflect_to_self(WX::AdjustWindowRectForDpi(&rc, self->style, self->hMenu, self->dwExStyle, dpi), Rect(rc));
 public: // Property - ClientSize
 	/* W */ inline auto&ClientSize(LSize sz) reflect_as(ClientRect(LRect::left_top(Position(), sz)));
 	/* W */ inline auto&ClientSize(LSize sz, UINT dpi) reflect_as(ClientRect(LRect::left_top(Position(), sz), dpi));
@@ -672,7 +682,7 @@ public:
 					return fnEnum(hWnd, lpString, hData);
 				}
 			};
-			return EnumPropsExA(hWnd, _EnumProp, (LPARAM)std::addressof(fnEnumProps));
+			return WX::EnumProps(hWnd, _EnumProp, (LPARAM)std::addressof(fnEnumProps));
 		}
 		elif constexpr (static_compatible<AnyFunc, bool(HWND, LPWSTR, HANDLE)>) {
 			FnEnumPropW fnEnumProps{
@@ -698,7 +708,7 @@ public:
 					return true;
 				}
 			};
-			return EnumPropsExW(hWnd, _EnumProp, (LPARAM)std::addressof(fnEnumProps));
+			return WX::EnumProps(hWnd, _EnumProp, (LPARAM)std::addressof(fnEnumProps));
 		}
 	}
 public:
@@ -807,7 +817,7 @@ public: // Property - MenuName
 public: // Property - Name
 	/* R */ inline StringX<IsUnicode> Name() const {
 		auto lpszName = StringX<IsUnicode>::Alloc(MaxLenClass);
-		auto len = GetClassName(hWnd, lpszName, MaxLenClass);
+		auto len = WX::GetClassName(hWnd, lpszName, MaxLenClass);
 		lpszName = StringX<IsUnicode>::Realloc(len, lpszName);
 		return { (size_t)len, lpszName };
 	}
@@ -840,20 +850,13 @@ public:
 	WindowBase(WindowBase &&w) : hWnd(w.hWnd) reflect_to(w.hWnd = O);
 	~WindowBase() reflect_to(Delete());
 public:
-	template<class AnyClass = AnyChild>
-	static inline WindowShim<AnyClass> Find(LPCSTR lpName, LPCSTR lpClass) reflect_as(WX::FindWindow(lpClass, lpName));
-	template<class AnyClass = AnyChild>
-	static inline WindowShim<AnyClass> Find(LPCWSTR lpName, LPCWSTR lpClass) reflect_as(WX::FindWindow(lpClass, lpName));
-	template<class AnyClass = AnyChild>
-	static inline WindowShim<AnyClass> Find(LPCSTR lpName) reflect_as(WX::FindWindow((LPCSTR)(ULONG_PTR)WindowBase::_ClassAtom, lpName));
-	template<class AnyClass = AnyChild>
-	static inline WindowShim<AnyClass> Find(LPCWSTR lpName) reflect_as(WX::FindWindow((LPCWSTR)(ULONG_PTR)WindowBase::_ClassAtom, lpName));
-	template<class AnyClass = AnyChild>
-	static inline WindowShim<AnyClass> Active() reflect_as(WX::GetActiveWindow());
-	template<class AnyClass = AnyChild>
-	static inline WindowShim<AnyClass> Desktop() reflect_as(WX::GetDesktopWindow());
-	template<class AnyClass = AnyChild>
-	static inline WindowShim<AnyClass> Foreground() reflect_as(WX::GetForegroundWindow());
+	//static inline WindowShim<AnyClass> Find(LPCSTR lpName, LPCSTR lpClass) reflect_as(WX::FindWindow(lpClass, lpName));
+	//static inline WindowShim<AnyClass> Find(LPCWSTR lpName, LPCWSTR lpClass) reflect_as(WX::FindWindow(lpClass, lpName));
+	static inline WindowShim<AnyChild> Find(LPCSTR lpName) reflect_as(WX::FindWindow((LPCSTR)(ULONG_PTR)WindowBase::_ClassAtom, lpName));
+	static inline WindowShim<AnyChild> Find(LPCWSTR lpName) reflect_as(WX::FindWindow((LPCWSTR)(ULONG_PTR)WindowBase::_ClassAtom, lpName));
+	static inline WindowShim<AnyChild> Active() reflect_as(WX::GetActiveWindow());
+	static inline WindowShim<AnyChild> Desktop() reflect_as(WX::GetDesktopWindow());
+	static inline WindowShim<AnyChild> Foreground() reflect_as(WX::GetForegroundWindow());
 	static inline void Foreground(HWND hWnd) reflect_to(WX::SetForegroundWindow(hWnd));
 public:
 	inline void Delete() {
@@ -886,27 +889,32 @@ public: // Flash
 	inline bool Flash(bool bInvert) const reflect_as(WX::FlashWindow(self, bInvert));
 	inline bool Flash(FlashInfo fi) const reflect_as(WX::FlashWindow(&fi));
 public: // Focus
-	inline auto&Focus() reflect_to_child(SetFocus(self));
-	inline bool IsFocus() const reflect_as(GetFocus() == self);
-	template<class AnyClass = AnyChild>
-	static inline WindowShim<AnyClass> Focussed() reflect_as(WX::GetFocus());
+	inline void Focus() const reflect_to(SetFocus(self));
+	inline bool Focussed() const reflect_as(GetFocus() == self);
+public: // Capture
+	inline void Capture() const reflect_to(WX::SetCapture(self));
+	inline bool Captured() const reflect_as(WX::GetCapture() == self);
 public: // Rect & Point
 	inline auto Screen2Client(LPoint pt) const reflect_to(WX::ScreenToClient(self, &pt), pt);
 	inline auto Client2Screen(LPoint pt) const reflect_to(WX::ClientToScreen(self, &pt), pt);
+
 	inline auto Log2Phy(LPoint pt) const reflect_to(WX::LogicalToPhysicalPoint(self, &pt), pt);
 	inline auto Phy2Log(LPoint pt) const reflect_to(WX::PhysicalToLogicalPoint(self, &pt), pt);
-	inline auto Log2PhyDPI(LPoint pt) const reflect_to(WX::LogicalToPhysicalPointForPerMonitorDPI(self, &pt), pt);
-	inline auto Phy2LogDPI(LPoint pt) const reflect_to(WX::PhysicalToLogicalPointForPerMonitorDPI(self, &pt), pt);
 	inline auto Logical2Physical(LPoint pt) const reflect_to(WX::LogicalToPhysicalPoint(self, &pt), pt);
 	inline auto Physical2Logical(LPoint pt) const reflect_to(WX::PhysicalToLogicalPoint(self, &pt), pt);
+
+	inline auto Log2PhyDPI(LPoint pt) const reflect_to(WX::LogicalToPhysicalPointForPerMonitorDPI(self, &pt), pt);
+	inline auto Phy2LogDPI(LPoint pt) const reflect_to(WX::PhysicalToLogicalPointForPerMonitorDPI(self, &pt), pt);
 	inline auto Logical2PhysicalDPI(LPoint pt) const reflect_to(WX::LogicalToPhysicalPointForPerMonitorDPI(self, &pt), pt);
 	inline auto Physical2LogicalDPI(LPoint pt) const reflect_to(WX::PhysicalToLogicalPointForPerMonitorDPI(self, &pt), pt);
-	inline auto AdjRect(LRect rc) const reflect_to(WX::AdjustWindowRect(&rc, Styles().yield(), this->Menu()), rc);
-	inline auto AdjRect() const reflect_to(LRect rc, AdjRect(rc), rc);
-	inline auto AdjectRect(LRect rc) const reflect_to(WX::AdjustWindowRect(&rc, Styles().yield(), this->Menu()), rc);
-	inline auto AdjectRect() const reflect_to(LRect rc, AdjRect(rc), rc);
+
+	inline auto AdjRect(LRect rc) const reflect_to(WX::AdjustWindowRect(&rc, Styles().yield(), this->Menu(), this->StylesEx().yield()), rc);
+	inline auto AdjustRect(LRect rc) const reflect_to(WX::AdjustWindowRect(&rc, Styles().yield(), this->Menu(), this->StylesEx().yield()), rc);
+
+	inline auto AdjRectDPI(LRect rc, UINT dpi) const reflect_to(WX::AdjustWindowRectForDpi(&rc, Styles().yield(), this->Menu(), this->StylesEx().yield(), dpi), rc);
+	inline auto AdjustRectDPI(LRect rc, UINT dpi) const reflect_to(WX::AdjustWindowRectForDpi(&rc, Styles().yield(), this->Menu(), this->StylesEx().yield(), dpi), rc);
 public: // Position
-	inline auto &BringToTop() reflect_to_child(WX::BringWindowToTop(self));
+	inline void BringToTop() const reflect_to_child(WX::BringWindowToTop(self));
 	inline void Move(LRect rc, bool bRedraw = true) const
 		reflect_to(WX::MoveWindow(self, rc.top, rc.left, rc.xsize(), rc.ysize(), bRedraw));
 public: // Timer
@@ -918,11 +926,11 @@ public: // Touch & Mouse
 		reflect_to(WX::RegisterTouchWindow(self, (bFine * TWF_FINETOUCH) | (bWantPalm * TWF_WANTPALM)));
 	inline void UnregisterTouch() reflect_to(WX::UnregisterTouchWindow(self));
 	inline TrackMouseEventBox TrackMouse() const reflect_as((HWND)self);
-public:
+public: // Draw & Paint
 	inline void Update() reflect_to(WX::UpdateWindow(self));
 	inline void Validate(LPCRECT lpRect = O) const reflect_to(WX::ValidateRect(self, lpRect));
 	inline void Invalidate(LPCRECT lpRect = O, bool fErase = false) const reflect_to(WX::InvalidateRect(self, lpRect, fErase));
-public:
+	inline void LockUpdate() const reflect_to(WX::LockWindowUpdate(self));
 	//class PaintBox : public PaintStruct {
 	//	HWND hwnd;
 	//	HDC hdc1;
@@ -933,7 +941,7 @@ public:
 	//	inline void End() const assertl_reflect_as(EndPaint(hwnd, &self));
 	//};
 	//inline PaintBox BeginPaint() reflect_as((HWND)self);
-
+public: // Child & Parent
 	inline bool HasChild(HWND hWnd) reflect_as(WX::IsChild(self, hWnd));
 
 #pragma region Enum
@@ -995,7 +1003,7 @@ protected:
 			reflect_to(Child::OnCatch(msg, err), false)
 		else {
 			static_assert(!member_OnCatch_of<AnyChild>::callable, "OnCatch uncompatible");
-			switch (msg.Window()->MsgBox(T("Window Error"), err)) {
+			switch (WX::MsgBox(T("Window Error"), err, msg.Window())) {
 				case IDRETRY:
 					wx_answer_retry;
 				case IDIGNORE:
@@ -1226,6 +1234,8 @@ public: // Property - Visible
 public: // Proterty - Enabled
 	/* W */ inline auto&Enabled(bool bEnable) reflect_to_child(WX::EnableWindow(self, bEnable));
 	/* R */ inline bool Enabled() const reflect_as(WX::IsWindowEnabled(self));
+public: // Property - Unicode
+	/* R */ inline bool Unicode() const reflect_as(WX::IsWindowUnicode(self));
 public: // Property - ClientRect
 	/* R */ inline LRect ClientRect() const reflect_to(LRect r; WX::GetClientRect(self, &r), r);
 public: // Property - ClientSize
@@ -1239,6 +1249,10 @@ public: // Property - Size
 public: // Property - Rect
 	/* W */ inline auto&Rect(LRect rWin) reflect_to_child(LSize sz = rWin.size(); WX::SetWindowPos(self, O, rWin.top, rWin.left, sz.cx, sz.cy, SWP_NOZORDER | SWP_NOACTIVATE));
 	/* R */ inline LRect Rect() const reflect_to(LRect r; WX::GetWindowRect(self, &r), r);
+public: // Property - DPI
+	/* R */ inline UINT DPI() const reflect_as(WX::GetDpiForWindow(self));
+public: // Property - DPIHostingBehavior
+	/* R */ inline WX::DPIHostingBehavior DPIHostingBehavior() const reflect_as(WX::GetWindowDpiHostingBehavior(self));
 public: // Property - Placement
 	/* W */ inline auto&Placement(const WINDOWPLACEMENT &wp) reflect_to_child(WX::SetWindowPlacement(self, &wp));
 	/* R */ inline WindowPlacement Placement() const reflect_to(WindowPlacement wp; WX::GetWindowPlacement(self, &wp), wp);
@@ -1291,9 +1305,9 @@ public: // Property - ScrollPositionV
 public: // Property - ScrollVisible
 	/* W */ inline auto&ScrollVisible(bool bShow) reflect_to_child(WX::ShowScrollBar(self, SB_BOTH, bShow));
 public: // Property - ScrollVisibleH
-	/* W */ inline auto &ScrollVisibleH(bool bShow) reflect_to_child(WX::ShowScrollBar(self, SB_HORZ, bShow));
+	/* W */ inline auto&ScrollVisibleH(bool bShow) reflect_to_child(WX::ShowScrollBar(self, SB_HORZ, bShow));
 public: // Property - ScrollVisibleV
-	/* W */ inline auto &ScrollVisibleV(bool bShow) reflect_to_child(WX::ShowScrollBar(self, SB_VERT, bShow));
+	/* W */ inline auto&ScrollVisibleV(bool bShow) reflect_to_child(WX::ShowScrollBar(self, SB_VERT, bShow));
 public: // Property - ScrollInfoH
 	/* W */ inline auto&ScrollInfoH(int nBar, const SCROLLINFO &si, bool bRedraw = true) reflect_to_child(WX::SetScrollInfo(self, nBar, &si, bRedraw));
 	/* R */ inline ScrollInfo ScrollInfoH(int nBar) const reflect_to(ScrollInfo si; WX::GetScrollInfo(self, nBar, &si), si);
@@ -1312,7 +1326,9 @@ public: // Property - Region
 ///	/* R */ inline void Region() const { WX::GetWindowRgn() }
 public: // Property - RegionBox
 	/* R */ inline LRect RegionBox() const reflect_to(LRect rc;  WX::GetWindowRgnBox(self, &rc), rc);
-public: // 
+public: // Property - DisplayAffinity
+	/* W */ inline auto&DisplayAffinity(DisplayAffinities dwAffinity) reflect_to_child(WX::SetWindowDisplayAffinity(self, dwAffinity.yield()));
+	/* R */ inline auto DisplayAffinity() const reflect_to(DWORD dwAffinity = 0; WX::GetWindowDisplayAffinity(self, &dwAffinity), reuse_as<DisplayAffinities>(dwAffinity));
 public: // Property - Icon
 	/* W */ inline auto&Icon(HICON hIcon) reflect_to_child(Send<HICON>(WM_SETICON, ICON_BIG, hIcon));
 	/* R */ inline CIcon Icon() const reflect_as(Send<HICON>(WM_GETICON, ICON_BIG));
@@ -1369,6 +1385,9 @@ public: // Property - Class
 	/* R */ inline const WindowIClass<true> ClassW() const reflect_to_self();
 public: // Property - DC
 	/* R */ inline CDC DC() const reflect_as(WX::GetDC(self));
+public: // Property - ContextHelpID
+	/* W */ inline auto &ContextHelpID(DWORD dwContextHelpID) reflect_to_child(WX::SetWindowContextHelpId(self, dwContextHelpID));
+	/* R */ inline DWORD ContextHelpID() const reflect_as(WX::GetWindowContextHelpId(self));
 public: // Property - ProcessID
 	/* R */ inline DWORD ProcessID() const reflect_to(DWORD dwProcessId = 0; WX::GetWindowThreadProcessId(self, &dwProcessId), dwProcessId);
 public: // Property - ThreadID
@@ -1398,6 +1417,69 @@ template<class AnyChild, class SubXCreate, class Style, class StyleEx>
 using WXCreate = typename WindowBase<AnyChild>::template XCreate<SubXCreate, Style, StyleEx>;
 template<class AnyChild> ATOM WindowBase<AnyChild>::_ClassAtom = 0;
 template<class AnyChild> HINSTANCE WindowBase<AnyChild>::_hClassModule = O;
+#pragma endregion
+
+#pragma region Clipboard
+class ClipboardIFormat {
+	mutable UINT uFormat;
+protected:
+	ClipboardIFormat(UINT uFormat) : uFormat(uFormat) {}
+	ClipboardIFormat(const ClipboardIFormat &f) : uFormat(f.uFormat) {}
+public:
+	ClipboardIFormat(ClipboardIFormat &f) : uFormat(f.uFormat) {}
+	ClipboardIFormat(ClipboardIFormat &&f) : uFormat(f.uFormat) {}
+public:
+	//inline void Register() const reflect_to(WX::RegisterClipboardFormat(uFormat));
+	inline bool Available() const reflect_as(WX::IsClipboardFormatAvailable(uFormat));
+	inline ClipboardIFormat Next() reflect_as(WX::EnumClipboardFormats(uFormat));
+	//inline void AddListener(HWND hwnd) reflect_to(WX::AddClipboardFormatListener(hwnd));
+	//inline void RemoveListener(HWND hwnd) reflect_to(WX::RemoveClipboardFormatListener(hwnd));
+public: // Property - Count
+	/* R */ inline int Count() const reflect_as(WX::CountClipboardFormats());
+public: // Property - Name
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline StringX<IsUnicode> Name() const {
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenClass);
+		auto len = WX::GetClipboardFormatName(uFormat, lpsz, MaxLenClass);
+		StringX<IsUnicode>::Resize(lpsz, len);
+		return { (size_t)len, lpsz };
+	}
+	/* R */ inline StringA NameA() const reflect_as(Name<false>());
+	/* R */ inline StringW NameW() const reflect_as(Name<true>());
+public:
+	inline operator bool() const reflect_as(WX::IsClipboardFormatAvailable(uFormat));
+	inline operator HANDLE() const reflect_as(WX::GetClipboardData(uFormat));
+	inline void operator=(HANDLE hMem) reflect_to(WX::SetClipboardData(uFormat, hMem));
+	inline auto &operator++() reflect_to_self(uFormat = WX::EnumClipboardFormats(uFormat));
+	inline auto &operator++() const reflect_to_self(uFormat = WX::EnumClipboardFormats(uFormat));
+	inline ClipboardIFormat operator++(int) reflect_to(auto f = uFormat; uFormat = WX::EnumClipboardFormats(uFormat), f);
+	inline const ClipboardIFormat operator++(int) const reflect_to(auto f = uFormat; uFormat = WX::EnumClipboardFormats(uFormat), f);
+};
+class ClipboardItf {
+public:
+	using IFormat = ClipboardIFormat;
+public:
+	static inline void Open(HWND hWnd) reflect_to(WX::OpenClipboard(hWnd));
+	static inline void Close() reflect_to(WX::CloseClipboard());
+public:
+	static inline bool ChangeChain(HWND hWndRemove, HWND hWndNewNext) reflect_as(WX::ChangeClipboardChain(hWndRemove, hWndNewNext));
+	static inline void Empty() reflect_to(WX::EmptyClipboard());
+
+public: // Formats
+	static inline UINT RegisterFormat(LPCSTR lpszFormat) reflect_as(WX::RegisterClipboardFormat(lpszFormat));
+
+public: // Property - SequenceNumber
+	/* R */ inline DWORD SequenceNumber() const reflect_as(WX::GetClipboardSequenceNumber());
+public: // Property - Owner
+	template<class Child>
+	/* R */ inline WindowShim<Child> Owner() const reflect_as(WX::GetClipboardOwner());
+public: // Property - Viewer
+	/* W */ inline auto &Viewer(HWND hWnd) reflect_to_self(WX::SetClipboardViewer(hWnd));
+	template<class Child>
+	/* R */ inline WindowShim<Child> Viewer() const reflect_as(WX::GetClipboardViewer());
+public: // Property - Format
+//	/* W */ inline auto &Format()
+};
 #pragma endregion
 
 }
