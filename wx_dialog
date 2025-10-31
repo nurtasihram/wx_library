@@ -1,0 +1,13 @@
+#pragma once
+
+#include "wx_type"
+
+import wx.window;
+#ifndef WX_CPPM_DIALOG
+import wx.dialog;
+#else
+#	undef WX_CPPM_DIALOG
+#endif
+
+#define SFINAE_Dialog(name) friend class WX::DialogBase<name>; friend class WX::WindowBase<name>
+#define BaseOf_Dialog(name) name : public WX::DialogBase<name>
