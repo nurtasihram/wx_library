@@ -324,9 +324,9 @@ inline auto __makeResult(EnumType val) {
 	constexpr auto right = is_chain_extended_on<Enum2, Enum1>;
 	static_assert(left || right, "Convertless");
 	if constexpr (left)
-		return (Enum1)val;
+		return reuse_as<Enum1>((typename Enum1::ProtoType)val);
 	elif constexpr (right)
-		return (Enum1)val;
+		return reuse_as<Enum2>((typename Enum2::ProtoType)val);
 }
 template<class AnyType>
 struct EnumUnitBase {
