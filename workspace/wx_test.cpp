@@ -1,7 +1,7 @@
 #include "wx_main"
 #include "wx_realtime"
-//#include "wx.window.h"
 #include "wx_window"
+#include "wx_console"
 
 using namespace WX;
 

@@ -412,7 +412,7 @@ public:
 	template<class... Args>
 	inline auto &operator()(const Args& ...args) reflect_to_child(Log(Cats(args...)));
 };
-inline ConsoleItf<> Console;
+ConsoleItf<> Console;
 class ConsoleCtl : public ConsoleItf<ConsoleCtl> {
 public:
 	~ConsoleCtl() reflect_to(Free());
