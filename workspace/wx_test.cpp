@@ -53,6 +53,7 @@ protected:
 };
 
 int WxMain() {
+	auto p = add_if_convertible("A", 2);
 	Console.Title("WX - Tests");
 	Console.Log(COMPILATION_INFO);
 	TestWindow wnd;
