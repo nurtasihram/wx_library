@@ -22,6 +22,17 @@ protected:
 	}
 };
 
+template<class Type1, class Type2>
+concept IsConvertibleTo = requires(Type1 a) {
+	{ static_cast<Type2>(a) };
+};
+
+template<class Type1, class Type2>
+	requires IsConvertibleTo<Type1, Type2>
+inline auto add_if_convertible(Type1 a, Type2 b) {
+	return a + b;
+}
+
 class BaseOf_Thread(TestWindowMsgProc) {
 	SFINAE_Thread(TestWindowMsgProc);
 private:
@@ -42,6 +53,7 @@ protected:
 };
 
 int WxMain() {
+	auto p = add_if_convertible("A", 2);
 	Console.Title("WX - Tests");
 	Console.Log(COMPILATION_INFO);
 	TestWindow wnd;
