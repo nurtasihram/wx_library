@@ -1,0 +1,47 @@
+#pragma once
+
+#pragma comment(lib,"gdi32.lib")
+#pragma comment(lib,"OneCore.lib")
+#pragma comment(linker, "\"" \
+	"/manifestdependency:" \
+	" type='win32'" \
+	" name='Microsoft.Windows.Common-Controls'" \
+	" version='6.0.0.0'" \
+	" processorArchitecture='*'" \
+	" publicKeyToken='6595b64144ccf1df'" \
+	" language='*'" \
+"\"")
+
+#include "wx_console"
+
+using namespace WX;
+
+int WxMain();
+
+int _WxMain() {
+	try {
+		return WxMain();
+	} catch (WX::Exception err) {
+		Console.Log(T("WxMain Exception:\n"), err);
+		system("pause");
+	}
+	return -1;
+}
+
+int main() {
+	return _WxMain();
+}
+
+int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
+					   _In_opt_ HINSTANCE hPrevInstance,
+					   _In_ LPTSTR    lpCmdLine,
+					   _In_ int       nCmdShow) {
+#ifndef WX_NO_CONSOLE_IN_WINMAIN
+	Console.Alloc();
+	Console.Select();
+	Console.Reopen();
+#else
+#	undef WX_NO_CONSOLE_IN_WINMAIN
+#endif
+	return _WxMain();
+}

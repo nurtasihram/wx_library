@@ -1,0 +1,12 @@
+#pragma once
+
+#include "wx_type"
+
+#ifndef WX_CPPM_WINDOW
+import wx.window;
+#else
+#	undef WX_CPPM_WINDOW
+#endif
+
+#define SFINAE_Window(name) friend class WX::WindowBase<name>
+#define BaseOf_Window(name) name : public WX::WindowBase<name>
