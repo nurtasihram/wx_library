@@ -1,0 +1,134 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="wx">
+      <UniqueIdentifier>{22439c11-5106-47a3-9c1c-96f46d63299c}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx\modules">
+      <UniqueIdentifier>{afbb335f-5919-417c-9ef7-f68f0f686c53}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx\pub_inc">
+      <UniqueIdentifier>{982ee1c3-1a48-41a3-bdb6-789854c76b7b}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx\prv_inc">
+      <UniqueIdentifier>{5cf44679-5f8e-494d-89d1-41a9863638f6}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{22a948a8-a54d-4325-b092-134516ebd254}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\wx_console">
+      <Filter>wx\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_dialog">
+      <Filter>wx\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_dll">
+      <Filter>wx\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_main">
+      <Filter>wx\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_type">
+      <Filter>wx\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_window">
+      <Filter>wx\pub_inc</Filter>
+    </None>
+    <None Include="..\wx__rm.inl">
+      <Filter>wx\prv_inc</Filter>
+    </None>
+    <None Include="..\wx__msg_ctl.inl">
+      <Filter>wx\prv_inc</Filter>
+    </None>
+    <None Include="..\wx__msg.inl">
+      <Filter>wx\prv_inc</Filter>
+    </None>
+    <None Include="..\wx__gdi.inl">
+      <Filter>wx\prv_inc</Filter>
+    </None>
+    <None Include="..\wx__type.inl">
+      <Filter>wx\prv_inc</Filter>
+    </None>
+    <None Include="..\wx__realtime.inl">
+      <Filter>wx\prv_inc</Filter>
+    </None>
+    <None Include="..\wx__resource.inl">
+      <Filter>wx\prv_inc</Filter>
+    </None>
+    <None Include="make.bat" />
+    <None Include="..\wx__conio.inl">
+      <Filter>wx\prv_inc</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\wx.console.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.control.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.dialog.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.file.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.gdi.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.proto.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.realtime.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.resource.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.security.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.type.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.window.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="wx_test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\wx_defs.h">
+      <Filter>wx\prv_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_realtime">
+      <Filter>wx\pub_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_gdi">
+      <Filter>wx\pub_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_resource">
+      <Filter>wx\pub_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="resources\Resource.h">
+      <Filter>resources</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\small.ico">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="resources\wx_duk.ico">
+      <Filter>resources</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources\wx_duk.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+</Project>
