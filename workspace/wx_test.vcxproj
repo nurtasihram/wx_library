@@ -201,8 +201,10 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <None Include="..\wx_console" />
+    <None Include="..\wx_control" />
     <None Include="..\wx_dialog" />
     <None Include="..\wx_dll" />
+    <None Include="..\wx_file" />
     <None Include="..\wx_main" />
     <None Include="..\wx_type" />
     <None Include="..\wx_window" />
