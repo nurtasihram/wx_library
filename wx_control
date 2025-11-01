@@ -1,6 +1,8 @@
 #pragma once
 
 #include "wx_window"
+#include "wx_gdi"
+#include "wx_resource"
 
 #ifndef WX_CPPM_CONTROL
 import wx.control;
