@@ -3,13 +3,13 @@ module;
 #include <Windows.h>
 #include <CommCtrl.h>
 
-#include "wx_window"
+#define WX_CPPM_CONTROL
+#include "wx_control"
 
 export module wx_control;
 
 import wx;
 import wx.proto;
-import wx.window;
 
 export namespace WX {
 
