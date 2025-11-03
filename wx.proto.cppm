@@ -1446,7 +1446,7 @@ inline void CreateDirectory(LPCSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityA
 // from fileapi.h
 inline void CreateDirectory(LPCWSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
 	assertl_reflect_as(::CreateDirectoryW(lpPathName, lpSecurityAttributes));
-#if defined(NTDDI_WIN11_GE) && (NTDDI_VERSION >= NTDDI_WIN11_GE)
+#if defined(NTDDI_WIN11_GE) && (NTDDI_VERSION >= NTDDI_WIN11_GE) && !__GNUC__
 // CreateDirectory2
 inline void CreateDirectory(LPCSTR lpPathName, DWORD dwDesiredAccess, DWORD dwShareMode,
 							DIRECTORY_FLAGS DirectoryFlags, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
@@ -2979,7 +2979,7 @@ inline HICON CreateIconFromResource(PBYTE presbits, DWORD dwResSize, BOOL fIcon,
 // CreateIconFromResourceEx
 inline HICON CreateIconFromResourceEx(PBYTE presbits, DWORD dwResSize, BOOL fIcon, DWORD dwVer, int cxDesired, int cyDesired, UINT Flags)
 	assertl_reflect_as(auto h = ::CreateIconFromResourceEx(presbits, dwResSize, fIcon, dwVer, cxDesired, cyDesired, Flags), h);
-#if (NTDDI_VERSION >= NTDDI_WIN10_CO)
+#if (NTDDI_VERSION >= NTDDI_WIN10_CO) && !__GNUC__
 // SetThreadCursorCreationScaling
 inline UINT SetThreadCursorCreationScaling(UINT cursorDpi)
 	reflect_as(::SetThreadCursorCreationScaling(cursorDpi));

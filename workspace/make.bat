@@ -18,16 +18,16 @@ if /i "%1" == "clean" (
 ) else if /i "%1" == "build" (
     set module_files="!global_dir!\wx.cppm" "!global_dir!\wx.proto.cppm" "!global_dir!\wx.type.cppm" "!global_dir!\wx.realtime.cppm" "!global_dir!\wx.console.cppm" "!global_dir!\wx.gdi.cppm" "!global_dir!\wx.resource.cppm" "!global_dir!\wx.window.cppm"
     set source_files="!workspace!\wx_test.cpp"
-    set include_paths="%cd%"
+    set include_paths="!global_dir!"
     if /i "%2" == "clang" (
         set compiler=clang++
         set compile_mod=-std=c++2a -fmodules -fprebuilt-module-path="./" --precompile
-        set compile_src=-std=c++2a -fmodules -fprebuilt-module-path="./" -c -I=!include_paths!
+        set compile_src=-std=c++2a -fmodules -fprebuilt-module-path="./" -c -I!include_paths! -Wunused-command-line-argument
         set link_args=
     ) else if /i "%2" == "mingw" (
         set compiler=g++
         set compile_mod=-c -std=c++20 -fmodules
-        set compile_src=-c -std=c++20 -fmodules
+        set compile_src=-c -std=c++20 -fmodules -I!include_paths!
         set link_args=-lgdi32 -lcomdlg32
     ) else (
         echo Unknown compiler %2

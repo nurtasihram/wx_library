@@ -13,11 +13,70 @@ import wx.gdi;
 
 export namespace WX {
 
-// CommDlgExtendedError
+class DialogIItem {
+	template<class>
+	friend class DialogBase;
+	mutable HWND hDlg;
+	mutable int nIDDlgItem;
+private:
+	DialogIItem(HWND hDlg, int nIDDlgItem) : hDlg(hDlg), nIDDlgItem(nIDDlgItem) {}
+	DialogIItem(const DialogIItem &) = delete;
+public:
+	DialogIItem(DialogIItem &dii) : hDlg(dii.hDlg), nIDDlgItem(dii.nIDDlgItem) {}
+public:
+	template<class RetType = LRESULT, class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
+	inline RetType Send(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const
+		reflect_as(big_cast<RetType>(WX::SendDlgItemMessage(hDlg, nIDDlgItem, (UINT)(msgid), small_cast<WPARAM>(wParam), small_cast<LPARAM>(lParam))));
+#pragma region Properties
+public: // Property - Int
+	/* W */ inline auto &Int(INT value) reflect_to_self(WX::SetDlgItemInt(hDlg, nIDDlgItem, value, true));
+	/* W */ inline auto &Int(UINT value) reflect_to_self(WX::SetDlgItemInt(hDlg, nIDDlgItem, value, false));
+	/* R */ inline INT   Int() const reflect_as(WX::GetDlgItemInt(hDlg, nIDDlgItem, O, true));
+public: // Property - UInt
+	/* R */ inline UINT  UInt() const reflect_as(WX::GetDlgItemInt(hDlg, nIDDlgItem, O, false));
+public: // Property - ButtonCheck
+	/* W */ inline auto &CheckButton(bool bCheck) reflect_to_self(WX::CheckDlgButton(hDlg, nIDDlgItem, bCheck ? BST_CHECKED : BST_UNCHECKED));
+	/* R */ inline bool CheckButton() const reflect_as(WX::IsDlgButtonChecked(hDlg, nIDDlgItem) == BST_CHECKED);
+public: // Property - Text
+	template<class TCHAR>
+	/* W */ inline auto &Text(const TCHAR *lpsz) reflect_to_self(WX::SetDlgItemText(hDlg, nIDDlgItem, lpsz));
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenNotice>
+	/* R */ inline StringX<IsUnicode> Text() const {
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
+		auto len = WX::SetDlgItemText(hDlg, nIDDlgItem, lpsz, (int)MaxLen);
+		StringX<IsUnicode>::Resize(lpsz, len);
+		return { (size_t)len, lpsz };
+	}
+	/* R */ inline StringA TextA() const reflect_as(Text<false>());
+	/* R */ inline StringW TextW() const reflect_as(Text<true>());
+public: // Property - Window
+	template<class AnyChild = void>
+	/* R */ inline WindowShim<AnyChild> Window() reflect_as(WX::GetDlgItem(hDlg, nIDDlgItem));
+	template<class AnyChild = void>
+	/* R */ inline CWindowShim<AnyChild> Window() const reflect_as(WX::GetDlgItem(hDlg, nIDDlgItem));
+#pragma endregion
+public:
+	inline operator HWND() const reflect_as(WX::GetDlgItem(hDlg, nIDDlgItem));
+	template<class AnyChild>
+	inline operator WindowShim<AnyChild>() reflect_as(WX::GetDlgItem(hDlg, nIDDlgItem));
+	template<class AnyChild>
+	inline operator CWindowShim<AnyChild>() const reflect_as(WX::GetDlgItem(hDlg, nIDDlgItem));
+};
+template<class AnyChild>
+class DialogBase : public WindowBase<AnyChild> {
+public:
+public:
+	template<class IsUnicode>
+	class CreateStructX {
 
-//template<class AnyChild>
-//class DialogBase : public WindowBase<AnyChild> {
-//};
+	};
+	// inline auto Create()
+	// inline auto Box()
+	template<class AnyType = INT_PTR>
+	inline void End(AnyType nResult) reflect_to(WX::EndDialog(self, small_cast<INT_PTR>(nResult)));
+};
+
+//////////// ! -- TODO: Add exception system with CommDlgExtendedError -- !  ////////////
 
 template<class DIALOGSTRUCT, class AnyChild>
 class DialogCommon : public RefStruct<DIALOGSTRUCT>,
@@ -32,7 +91,7 @@ public:
 public: // Properties
 	/* W */ inline auto &Owner(HWND hwndOwner) reflect_to_child(self->hwndOwner = hwndOwner);
 	/* W */ inline auto &Module(HINSTANCE hInstance) reflect_to_child(self->hInstance = (decltype(self->hInstance))hInstance);
-	/* W */ inline auto &TemplateName(LPCTSTR lpTemplateName) reflect_to_child(self->lpTemplateName = lpTemplateName);
+	/* W */ inline auto &Template(LPCTSTR lpTemplateName) reflect_to_child(self->lpTemplateName = lpTemplateName);
 	template<class AnyType>
 	/* W */ inline auto &CustData(AnyType dat) reflect_to_child(self->lCustData = small_cast<LPARAM>(dat));
 public:
@@ -123,6 +182,7 @@ class DialogFontX : public DialogCommon<
 	using_structx(CHOOSEFONT);
 	using_structx(FontLogic);
 	using_structx(LOGFONT);
+	using_structx(String);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 public:
 	using super = RefStruct<CHOOSEFONT>;
@@ -147,6 +207,8 @@ public: // Property - Color
 	/* W */ inline auto    &Color(COLORREF rgbColors) reflect_to_self(self->rgbColors = rgbColors);
 	/* R */ inline RGBColor Color() const reflect_as(self->rgbColors);
 	// HDC             hDC;
+public: // Property - Style
+	/* W */ inline auto &Style(const String &str) reflect_to_self(self->lpszStyle = +str);
 	// LPWSTR          lpszStyle;
 public: // Property - LogFont
 	/* W */ inline auto &LogFont(LOGFONT *lpLogFont) reflect_to_self(self->lpLogFont = lpLogFont);
@@ -494,7 +556,7 @@ public:
 using DFact = DialogFactory;
 
 class DialogItem {
-	template<class AnyChild>
+	template<class>
 	friend class DialogBase;
 	HWND hDlg = O;
 	int nIDDlgItem = 0;
@@ -530,8 +592,8 @@ public:
 //template<class AnyChild>
 //class DialogBase : public WindowBase<AnyChild> {
 //private:
-//	def_memberof(Forming);
-//	def_memberof(InitDialog);
+//	use_member(Forming);
+//	use_member(InitDialog);
 //public:
 //	using super = WindowBase<AnyChild>;
 //	using Child = AnyChild;
@@ -577,7 +639,7 @@ public:
 //				if (!Wnd.UserData(pThis))
 //					return (INT_PTR)false;
 //				(HWND &)*reuse_as<Window *>(pThis) = hDlg;
-//				if constexpr (member_InitDialog_of<Child>::callable) {
+//				if constexpr (member_InitDialog_of<Child>::is_addressable) {
 //					using fn_type = bool();
 //					misdef_assert((member_InitDialog_of<Child>::template compatible_to<fn_type>),
 //								  "Member InitDialog must be a method compatible to bool()");
@@ -594,7 +656,7 @@ public:
 //#define _CALL_(name) pThis->name
 //#define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
 //					case msgid: \
-//						if constexpr (super::template member_##name##_of<Child>::callable) { \
+//						if constexpr (super::template member_##name##_of<Child>::is_addressable) { \
 //							using fn_type = ret argslist; \
 //							misdef_assert((super::template member_##name##_of<Child>::template compatible_to<fn_type>), \
 //										  "Member " #name " must be a method compatible to " #ret #argslist); \
@@ -603,7 +665,7 @@ public:
 //						} break;
 //#include "wx__msg.inl"
 //			}
-//			if constexpr (super::template member_Callback_of<Child>::callable)
+//			if constexpr (super::template member_Callback_of<Child>::is_addressable)
 //				return ((Child *)pThis)->Callback(msgid, wParam, lParam);
 //		} catch (MSG) {}
 //		return (INT_PTR)false;

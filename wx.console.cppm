@@ -343,20 +343,20 @@ public:
 public: // Property - Title
 	template<class TCHAR>
 	/* W */ static inline void Title(const TCHAR *lpTitle) reflect_to(WX::SetConsoleTitle(lpTitle));
-	template<bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenTitle>
 	/* R */ static inline StringX<IsUnicode> Title() {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenTitle);
-		auto len = WX::GetConsoleTitle(lpsz, MaxLenTitle);
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
+		auto len = WX::GetConsoleTitle(lpsz, MaxLen);
 		StringX<IsUnicode>::Resize(lpsz, len);
 		return{ (size_t)len, lpsz };
 	}
 	/* R */ static inline StringA TitleA() reflect_as(Title<false>());
 	/* R */ static inline StringW TitleW() reflect_as(Title<true>());
 public: // Property - OriginalTitle
-	template<bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenTitle>
 	/* R */ static inline StringX<IsUnicode> OriginalTitle() {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenTitle);
-		auto len = WX::GetConsoleOriginalTitle(lpsz, MaxLenTitle);
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
+		auto len = WX::GetConsoleOriginalTitle(lpsz, MaxLen);
 		StringX<IsUnicode>::Resize(lpsz, len);
 		return{ (size_t)len, lpsz };
 	}

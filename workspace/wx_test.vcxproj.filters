@@ -61,6 +61,12 @@
     <None Include="..\wx__conio.inl">
       <Filter>wx\prv_inc</Filter>
     </None>
+    <None Include="..\wx_file">
+      <Filter>wx\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_control">
+      <Filter>wx\pub_inc</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\wx.console.cppm">

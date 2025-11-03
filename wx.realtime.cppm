@@ -392,13 +392,6 @@ public: // Property - ProcessID
 	/* R */ inline auto ProcessID() const reflect_as(WX::GetProcessIdOfThread(self));
 public: // Property - Times
 	/* R */ inline auto Times() reflect_to(PTTimes t; WX::GetThreadTimes(self, &t.CreationTime, &t.ExitTime, &t.KernelTime, &t.UserTime), t);
-public: // Property - 
-	///* R */ inline StringW DescriptionW() {
-	//	LPWSTR lpDesc = O;
-	//	assertl(SUCCEEDED(GetThreadDescription(self, &lpDesc)));
-	//	if (!lpDesc) return O;
-	//	return CString(lpDesc, MaxLenNotice);
-	//}
 #pragma endregion
 public:
 	using super::operator=;
@@ -424,30 +417,31 @@ protected:
 		return -2; // unreachable
 	}
 protected:
-	def_memberof(OnRun);
+	use_member(OnRun);
 	inline DWORD Run() {
+		static_assert(member_OnRun_of<AnyChild>::is_addressable,
+					  "Member OnRun uncallable, unexisted or undefined");
 		if constexpr (member_OnRun_of<AnyChild>::template compatible_to<DWORD()>)
-			reflect_as(child.OnRun())
-		elif constexpr (member_OnRun_of<AnyChild>::template compatible_to<void()>)
-			reflect_to(child.OnRun(), 0)
+			return child.OnRun();
 		else {
-			static_assert(member_OnRun_of<AnyChild>::callable, "OnRun uncallable or unexisted");
-			static_assert(!member_OnRun_of<AnyChild>::callable, "OnRun uncompatible");
-			return 0;
+			static_assert(member_OnRun_of<AnyChild>::template compatible_to<void()>,
+						  "Member OnRun must be compatible to DWORD() or void()");
+			return (child.OnRun(), 0);
 		}
 	}
-	def_memberof(OnCatch);
+	use_member(OnCatch);
 	inline wx_answer Catch(const Exception &err) {
 		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Exception)>)
-			reflect_as(child.OnCatch(err))
+			return child.OnCatch(err);
 		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
-			reflect_as(child.OnCatch())
+			return child.OnCatch();
 		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Exception)>)
-			reflect_to(child.OnCatch(err), false)
+			return (child.OnCatch(err), false);
 		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
-			reflect_to(child.OnCatch(), false)
+			return (child.OnCatch(), false);
 		else {
-			static_assert(!member_OnCatch_of<AnyChild>::callable, "OnCatch uncompatible");
+			static_assert(!member_OnCatch_of<AnyChild>::is_addressable,
+						  "Member OnCatch must be compatible as wx_answer(Exception), wx_answer(), void(Exception) or void()");
 			switch (MsgBox(Cats(T("Thread[PID:"), ID(), T("] error")), err.toString())) {
 				case IDIGNORE:
 					wx_answer_ignore;
@@ -459,14 +453,15 @@ protected:
 			wx_answer_abort(err);
 		}
 	}
-	def_memberof(OnFinal);
+	use_member(OnFinal);
 	inline DWORD Final() {
 		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<DWORD()>)
-			reflect_as(child.OnFinal())
+			return child.OnFinal();
 		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
-			reflect_to(child.OnFinal(), -1)
+			return (child.OnFinal(), -1);
 		else {
-			static_assert(!member_OnFinal_of<AnyChild>::callable, "OnFinal uncallable");
+			static_assert(!member_OnFinal_of<AnyChild>::is_addressable,
+						  "Member OnFinal must be compatible to DWORD() or void()");
 			return -3;
 		}
 	}
@@ -509,10 +504,10 @@ protected:
 		InlineStartClosure(const AnyCallable &f) : f(f) {}
 		DWORD operator()() override {
 			if constexpr (static_compatible<AnyCallable, DWORD()>)
-				reflect_as(f())
+				return f();
 			else {
 				static_assert(static_compatible<AnyCallable, void()>, "Error uncompatible");
-				reflect_to(f(), 0)
+				return (f(), 0L);
 			}
 		}
 	};
@@ -529,14 +524,14 @@ protected:
 		InlineExceptionClosure(const AnyCatch &lOnCatch) : lOnCatch(lOnCatch) {}
 		bool OnCatch(const Exception &err) override {
 			if constexpr (static_compatible<AnyCatch, wx_answer(Exception)>)
-				reflect_as(lOnCatch(err))
+				return lOnCatch(err);
 			elif constexpr (static_compatible<AnyCatch, wx_answer()>)
-				reflect_as(lOnCatch())
+				return lOnCatch();
 			elif constexpr (static_compatible<AnyCatch, void(Exception)>)
-				reflect_to(lOnCatch(err), false)
+				return (lOnCatch(err), false);
 			else {
 				static_assert(static_compatible<AnyCatch, void()>, "OnCatch uncompatible");
-				reflect_to(lOnCatch(err), false);
+				return (lOnCatch(err), false);
 			}
 		}
 	};
@@ -674,15 +669,17 @@ public: // Property - Count
 		return count;
 	}
 public: // Property - Entries
+	template<size_t MaxLen = MaxLenNotice>
 	/* R */ inline std::vector<String> Entries() const {
 		size_t count = Count();
 		std::vector<String> list(count);
 		auto lpEnv = this->lpEnv;
 		for (const String &e : list)
-			lpEnv += (e = CString(lpEnv, MaxLenNotice)).Length() + 1;
+			lpEnv += (e = CString(lpEnv, v)).Length() + 1;
 		return list;
 	}
 public: // Property - Variables
+	template<size_t MaxLen = MaxLenNotice>
 	/* R */ inline std::vector<Variable> Variables() const {
 		size_t count = Count();
 		std::vector<Variable> list(count);
@@ -691,7 +688,7 @@ public: // Property - Variables
 			auto lpName = lpEnv;
 			while (*lpEnv++ != '=');
 			e.name = CString(lpEnv - lpName - 1, lpName);
-			e.value = CString(lpEnv, MaxLenNotice);
+			e.value = CString(lpEnv, MaxLen);
 			lpEnv += e.value.Length() + 1;
 		}
 		return list;
@@ -777,10 +774,12 @@ public:
 	StartupInfoX(const STARTUPINFO &si) : super(si) {}
 public: // Property - Desktop
  	/* W */ inline auto&Desktop(LPTSTR lpDesktop) reflect_to_self(self->lpDesktop = lpDesktop);
- 	/* R */ inline const String Desktop() const reflect_as(CString(self->lpDesktop, MaxLenTitle));
+	template<size_t MaxLen = MaxLenTitle>
+ 	/* R */ inline const String Desktop() const reflect_as(CString(self->lpDesktop, MaxLen));
 public: // Property - Title
  	/* W */ inline auto &Title(LPTSTR lpTitle) reflect_to_self(self->lpTitle = lpTitle);
- 	/* R */ inline const String Title() const reflect_as(CString(self->lpTitle, MaxLenTitle));
+	template<size_t MaxLen = MaxLenTitle>
+	/* R */ inline const String Title() const reflect_as(CString(self->lpTitle, MaxLen));
 public: // Property - Position
 	/* W */ inline auto  &Position(LPoint pos) reflect_to_self(self->dwFlags |= STARTF_USEPOSITION, self->dwX = pos.x, self->dwY = pos.y);
 	/* R */ inline LPoint Position() const reflect_as({ (LONG)self->dwX, (LONG)self->dwY });

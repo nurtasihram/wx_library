@@ -44,23 +44,26 @@
 #define locale_charmode(unicode) static constexpr bool IsUnicode = unicode
 
 #pragma region SFINAE Type Helper
-#define def_memberof(name) \
+#define use_member(name) \
 template <class AnyClass> class member_##name##_of { \
-	template<class _AnyClass> \
-	static auto __refof_##name(int) -> decltype(&_AnyClass::name); \
-	template<class _AnyClass> \
-	static auto __refof_##name(...) -> void; \
-	template<class _AnyClass, class Ret, class... Args> \
-	static auto __compatible(Ret(*)(Args...)) -> std::is_convertible< \
-		decltype(std::declval<_AnyClass>().name(std::declval<Args>()...)), Ret>; \
-	template<class _AnyClass> \
-	static auto __compatible(...) -> std::false_type; \
+	template<class AnyType> static auto ist(int) -> decltype(std::declval<typename AnyType::name>(), std::true_type()); \
+	template<class AnyType> static auto ist(...) -> std::false_type; \
+	template<class AnyType> static auto adr(int) -> decltype(&AnyType::name, std::true_type()); \
+	template<class AnyType> static auto adr(...) -> std::false_type; \
+	template<class AnyType, class Ret, class... Args> \
+	static auto cmp(Ret(*)(Args...)) -> \
+		std::is_convertible<decltype(std::declval<AnyType>().name(std::declval<Args>()...)), Ret>; \
+	template<class AnyType, class Ret, class... Args> \
+	static auto cmp(Ret(AnyType::**)(Args...)) -> \
+		std::is_convertible<decltype(AnyType::name(std::declval<Args>()...)), Ret>; \
+	template<class AnyType> \
+	static auto cmp(...) -> std::false_type; \
 public: \
-	using type = decltype(__refof_##name<AnyClass>(0)); \
-	static constexpr bool callable = !std::is_void_v<type>; \
+	static constexpr bool is_type = decltype(ist<AnyClass>(0))::value; \
+	static constexpr bool is_addressable = decltype(adr<AnyClass>(0))::value; \
 	template<class AnyType> \
 	static constexpr bool compatible_to = \
-		decltype(__compatible<AnyClass>(std::declval<AnyType *>()))::value; }
+		decltype(cmp<AnyClass>(std::declval<AnyType *>()))::value; }
 #define subtype_branch(name) \
 template<class AnyType, class OtherType> \
 static auto __subtype_branchof_##name(int) -> typename AnyType::name; \

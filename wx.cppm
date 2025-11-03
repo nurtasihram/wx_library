@@ -209,9 +209,9 @@ constexpr size_t SizeOf = SizeOf_t<AnyType>::val;
 #pragma endregion
 
 #pragma region Enum
-def_memberof(HasProtoEnum);
+use_member(HasProtoEnum);
 export template<class AnyType>
-constexpr bool IsEnum = member_HasProtoEnum_of<AnyType>::callable;
+constexpr bool IsEnum = member_HasProtoEnum_of<AnyType>::is_addressable;
 template<class TCHAR>
 class Rx {
 	using LPCTSTR = const TCHAR *;
@@ -1082,8 +1082,8 @@ class StringBase {
 	mutable size_t Len : sizeof(void *) * 8 - 3;
 	mutable size_t Flags : 3;
 private:
-	template<class _TCHAR> friend const StringBase<_TCHAR> CString(size_t uLen, const _TCHAR *lpString);
-	template<class _TCHAR> friend const StringBase<_TCHAR> CString(const _TCHAR *lpString, size_t maxLen);
+	template<class _TCHAR> friend const StringBase<_TCHAR> CString(size_t, const _TCHAR *);
+	template<class _TCHAR> friend const StringBase<_TCHAR> CString(const _TCHAR *, size_t );
 	StringBase(size_t len, UINT flags, LPTSTR lpBuffer) :
 		lpsz(lpBuffer), Len((UINT)len), Flags(flags) {
 		if (len <= 0 || !lpBuffer) {
@@ -1382,6 +1382,9 @@ inline TCHAR *Copies(TCHAR *lpBuffer, const StringBase<TCHAR> &str, const Args &
 template<class TCHAR>
 inline void Copy(StringBase<TCHAR> &str, const TCHAR *lpSrc)
 	reflect_to(StringCchCopy(str, str.Length(), lpSrc));
+template<class TCHAR, size_t len>
+inline void Copy(TCHAR(&str)[len], const StringBase<TCHAR> &src)
+	reflect_to(StringCchCopy(str, len, src));
 template<class AnyType>
 inline void Fill(AnyType *lpArray, const AnyType &Sample, size_t Len) {
 	while (Len--)

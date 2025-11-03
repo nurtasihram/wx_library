@@ -483,10 +483,10 @@ public: // Property - Member
 	template<class AnyType>
 	inline AnyType *Member(LPCSTR lpName) reflect_as((AnyType *)::GetProcAddress(self, lpName));
 public: // Property - FileName
-	template<bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenPath>
 	/* R */ inline StringX<IsUnicode> FileName() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenPath);
-		auto len = GetModuleFileName(self, lpsz, MaxLenPath);
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
+		auto len = GetModuleFileName(self, lpsz, MaxLen);
 		StringX<IsUnicode>::Resize(lpsz, len);
 		return { (size_t)len, lpsz };
 	}

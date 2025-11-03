@@ -81,7 +81,7 @@ public:
 	using super = WindowBase<AnyChild>;
 protected:
 	SFINAE_Window(AnyChild);
-	def_memberof(CtlClassName);
+	use_member(CtlClassName);
 	subtype_branch(xCreate);
 public:
 	ControlCommon() { misuse_assert(!std::is_void_v<AnyChild>, "Base of class ControlCommon cannot be void"); }
@@ -193,7 +193,7 @@ using HeaderItem = HeaderItemX<IsUnicode>;
 using HeaderItemA = HeaderItemX<false>;
 using HeaderItemW = HeaderItemX<true>;
 class HeaderArray {
-	template<class AnyChild>
+	template<class>
 	friend class HeaderBase;
 	CWindow header;
 private:

@@ -5,12 +5,6 @@
 
 using namespace WX;
 
-struct CommonEvent {
-#define MSG_TRANS(msgid, ret, name, ...) \
-	def_memberof(On##name);
-#include "wx__msg.inl"
-};
-
 class BaseOf_Window(TestWindow) {
 	SFINAE_Window(TestWindow);
 public:
@@ -21,17 +15,6 @@ protected:
 		return true;
 	}
 };
-
-template<class Type1, class Type2>
-concept IsConvertibleTo = requires(Type1 a) {
-	{ static_cast<Type2>(a) };
-};
-
-template<class Type1, class Type2>
-	requires IsConvertibleTo<Type1, Type2>
-inline auto add_if_convertible(Type1 a, Type2 b) {
-	return a + b;
-}
 
 class BaseOf_Thread(TestWindowMsgProc) {
 	SFINAE_Thread(TestWindowMsgProc);
@@ -53,7 +36,6 @@ protected:
 };
 
 int WxMain() {
-	auto p = add_if_convertible("A", 2);
 	Console.Title("WX - Tests");
 	Console.Log(COMPILATION_INFO);
 	TestWindow wnd;

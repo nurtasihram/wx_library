@@ -33,15 +33,17 @@ public:
 		atom = 0;
 	}
 public: // Property - Name
-	template<bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenClass);
-		auto len = WX::GetAtomName(self, lpsz, MaxLenClass);
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
+		auto len = WX::GetAtomName(self, lpsz, MaxLen);
 		StringX<IsUnicode>::Resize(lpsz, len);
 		return { (size_t)len, lpsz };
 	}
-	/* R */ inline StringA NameA() const reflect_as(Name<false>());
-	/* R */ inline StringW NameW() const reflect_as(Name<true>());
+	template<size_t MaxLen = MaxLenClass>
+	/* R */ inline StringA NameA() const reflect_as(Name<false, MaxLen>());
+	template<size_t MaxLen = MaxLenClass>
+	/* R */ inline StringW NameW() const reflect_as(Name<true, MaxLen>());
 public:
 	inline operator bool() const reflect_as(atom);
 	inline operator ATOM() const reflect_as(atom);
@@ -67,15 +69,17 @@ public:
 		atom = 0;
 	}
 public: // Property - Name
-	template<bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenClass);
-		auto len = WX::GetAtomName(self, lpsz, MaxLenClass);
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
+		auto len = WX::GetAtomName(self, lpsz, MaxLen);
 		StringX<IsUnicode>::Resize(lpsz, len);
 		return { (size_t)len, lpsz };
 	}
-	/* R */ inline StringA NameA() const reflect_as(Name<false>());
-	/* R */ inline StringW NameW() const reflect_as(Name<true>());
+	template<size_t MaxLen = MaxLenClass>
+	/* R */ inline StringA NameA() const reflect_as(Name<false, MaxLen>());
+	template<size_t MaxLen = MaxLenClass>
+	/* R */ inline StringW NameW() const reflect_as(Name<true, MaxLen>());
 public:
 	inline operator bool() const reflect_as(atom);
 	inline operator ATOM() const reflect_as(atom);
@@ -85,18 +89,120 @@ public:
 using CGlobalAtom = RefAs<GlobalAtom>;
 #pragma endregion
 
+#pragma region Monitor
+class MonitorInformations : public RefStruct<MONITORINFO> {
+public:
+	using super = RefStruct<MONITORINFO>;
+public:
+	MonitorInformations() reflect_to(self->cbSize = sizeof(MONITORINFO));
+	MonitorInformations(const MONITORINFO &mi) : super(mi) {}
+public: // Property - Rect
+	/* W */ inline auto &Rect(const LRect &rc) reflect_to_self(self->rcMonitor = rc);
+	/* R */ inline LRect Rect() const reflect_as(self->rcMonitor);
+public: // Property - WorkRect
+	/* W */ inline auto &WorkRect(const LRect &rc) reflect_to_self(self->rcWork = rc);
+	/* R */ inline LRect WorkRect() const reflect_as(self->rcWork);
+public: // Property - Primary
+	/* W */ inline auto &Primary(bool bPrimary) reflect_to_self(self->dwFlags = bPrimary ? self->dwFlags | MONITORINFOF_PRIMARY : self->dwFlags & ~MONITORINFOF_PRIMARY);
+	/* R */ inline bool  Primary() const reflect_as((self->dwFlags & MONITORINFOF_PRIMARY) != 0);
+};
+using MonitorInfo = MonitorInformations;
+template<bool IsUnicode = WX::IsUnicode>
+class MonitorInformationsExX : public RefStruct<switch_structx(MONITORINFOEX)> {
+	using MONITORINFOEX = std::conditional_t<IsUnicode, MONITORINFOEXW, MONITORINFOEXA>;
+	using String = StringX<IsUnicode>;
+public:
+	using super = RefStruct<MONITORINFOEX>;
+public:
+	MonitorInformationsExX() reflect_to(self->cbSize = sizeof(MONITORINFOEX));
+	MonitorInformationsExX(const MONITORINFOEX &mie) : super(mie) {}
+public: // Property - Rect
+	/* W */ inline auto &Rect(const LRect &rc) reflect_to_self(self->rcMonitor = rc);
+	/* R */ inline LRect Rect() const reflect_as(self->rcMonitor);
+public: // Property - WorkRect
+	/* W */ inline auto &WorkRect(const LRect &rc) reflect_to_self(self->rcWork = rc);
+	/* R */ inline LRect WorkRect() const reflect_as(self->rcWork);
+public: // Property - Primary
+	/* W */ inline auto &Primary(bool bPrimary) reflect_to_self(self->dwFlags = bPrimary ? self->dwFlags | MONITORINFOF_PRIMARY : self->dwFlags & ~MONITORINFOF_PRIMARY);
+	/* R */ inline bool  Primary() const reflect_as((self->dwFlags &MONITORINFOF_PRIMARY) != 0);
+public: // Property - DeviceName
+	/* W */ inline auto &DeviceName(const String &name) reflect_to_self(WX::Copy(self->szDevice, name));
+	/* R */ inline String DeviceName() const reflect_as(+CString(self->szDevice, CountOf(self->szDevice)));
+public:
+	inline operator MONITORINFO &() reflect_as(*(MONITORINFO *)this);
+	inline operator MonitorInfo &() reflect_as(*(MonitorInfo *)this);
+	inline operator MONITORINFO() const reflect_as(*(MONITORINFO *)this);
+	inline operator MonitorInfo() const reflect_as(*(MonitorInfo *)this);
+};
+template<bool IsUnicode = WX::IsUnicode>
+using MonitorInfoExX = MonitorInformationsExX<IsUnicode>;
+using MonitorInformationsEx = MonitorInformationsExX<>;
+using MonitorInformationsExA = MonitorInformationsExX<false>;
+using MonitorInformationsExW = MonitorInformationsExX<true>;
+using MonitorInfoEx = MonitorInformationsExX<>;
+using MonitorInfoExA = MonitorInformationsExX<false>;
+using MonitorInfoExW = MonitorInformationsExX<true>;
+class Monitor {
+	mutable HMONITOR hMonitor = O;
+protected:
+	INNER_USE(Monitor);
+	Monitor(HMONITOR h) : hMonitor(h) {}
+	Monitor(const Monitor &m) = delete;
+public:
+	Monitor() {}
+	Monitor(Null) {}
+public: // Property - Info
+	/* R */ inline MonitorInfo Info() const reflect_to(MonitorInfo mi; WX::GetMonitorInfo(hMonitor, &mi), mi);
+public: // Property - InfoEx
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline MonitorInfoExX<IsUnicode> InfoEx() const reflect_to(MonitorInfoExX<IsUnicode> mie; WX::GetMonitorInfo<IsUnicode>(hMonitor, &mie), mie);
+	/* R */ inline MonitorInfoExA InfoExA() const reflect_as(InfoEx<false>());
+	/* R */ inline MonitorInfoExW InfoExW() const reflect_as(InfoEx<true>());
+public:
+	inline operator HMONITOR() const reflect_as(hMonitor);
+};
+#pragma endregion
+
+#pragma region Desktop
+class Desktop {
+	mutable HDESK hDesk = O;
+protected:
+	INNER_USE(Desktop);
+	Desktop(HDESK h) : hDesk(h) {}
+	Desktop(const Desktop &d) = delete;
+public:
+	Desktop() {}
+	Desktop(Null) {}
+public:
+	inline operator HDESK() const reflect_as(hDesk);
+};
+#pragma endregion
+
+#pragma region WindowStation
+class WindowStation {
+	mutable HWINSTA hWinSta = O;
+protected:
+	INNER_USE(WindowStation);
+	WindowStation(HWINSTA h) : hWinSta(h) {}
+	WindowStation(const WindowStation &w) = delete;
+public:
+	WindowStation() {}
+	WindowStation(Null) {}
+public:
+	inline operator HWINSTA() const reflect_as(hWinSta);
+};
+#pragma endregion
+
 template<class AnyChild>
 class WindowBase;
 using Window = WindowBase<void>;
 using CWindow = RefAs<Window>;
 template<class AnyChild>
 using WindowShim = RefAs<WindowBase<AnyChild>>;
+template<class AnyChild>
+using CWindowShim = RefAs<const WindowBase<AnyChild>>;
 
 #pragma region Misc
-enum_class(DPIHostingBehavior, DPI_HOSTING_BEHAVIOR,
-	Invalid = DPI_HOSTING_BEHAVIOR_INVALID,
-	Default = DPI_HOSTING_BEHAVIOR_DEFAULT,
-	Mixed   = DPI_HOSTING_BEHAVIOR_MIXED);
 
 struct KEY_FLAGS {
 	uint16_t wScanCode : 8;
@@ -129,6 +235,11 @@ public: // Property - TrackPosition
 	/* W */ inline auto&TrackPosition(int nTrackPos) reflect_to_self(self.nTrackPos = nTrackPos, self.fMask = SIF_TRACKPOS);
 	/* R */ inline int  TrackPosition() const reflect_as(self.nTrackPos);
 };
+
+enum_class(DPIHostingBehavior, DPI_HOSTING_BEHAVIOR,
+	Invalid = DPI_HOSTING_BEHAVIOR_INVALID,
+	Default = DPI_HOSTING_BEHAVIOR_DEFAULT,
+	Mixed   = DPI_HOSTING_BEHAVIOR_MIXED);
 
 #pragma region Window Styles
 enum_class(DisplayAffinities, DWORD,
@@ -308,12 +419,16 @@ public:
 	WindowPosition(const WINDOWPOS &w) : super(w) {}
 public: // Property - Window
 	/* W */ inline auto&Window(HWND hwnd) reflect_as(self->hwnd = hwnd);
-	template<class AnyChild>
-	/* R */ inline WindowBase<AnyChild> Window() const reflect_as(self->hwnd);
+	template<class AnyChild = void>
+	/* R */ inline WindowShim<AnyChild> Window() reflect_as(self->hwnd);
+	template<class AnyChild = void>
+	/* R */ inline CWindowShim<AnyChild> Window() const reflect_as(self->hwnd);
 public: // Property - WindowInsertAfter
 	/* W */ inline auto &WindowInsertAfter(HWND hwndInsertAfter) reflect_to_self(self->hwndInsertAfter = hwndInsertAfter);
-	template<class AnyChild>
-	/* R */ inline WindowBase<AnyChild> WindowInsertAfter() const reflect_as(self->hwndInsertAfter);
+	template<class AnyChild = void>
+	/* R */ inline WindowShim<AnyChild> WindowInsertAfter() reflect_as(self->hwndInsertAfter);
+	template<class AnyChild = void>
+	/* R */ inline CWindowShim<AnyChild> WindowInsertAfter() const reflect_as(self->hwndInsertAfter);
 public: // Property - Position
 	/* W */ inline auto  &Position(LPoint p) reflect_to_self(self->x = p.x, self->y = p.y);
 	/* R */ inline LPoint Position() const reflect_as({ self->x, self->y });
@@ -518,16 +633,18 @@ public: // Property - Background
 public: // Property - MenuName
 	/* W */ inline auto&MenuName(LPCTSTR lpszMenuName) reflect_to_child(self->lpszMenuName = lpszMenuName);
 	/* W */ inline auto&MenuName(WORD wID) reflect_to_child(self->lpszMenuName = (LPCTSTR)MAKEINTRESOURCE(wID));
-	/* R */ inline const String MenuName() const reflect_as(CString(self->lpszMenuName, MaxLenPath));
+	template<size_t MaxLen = MaxLenPath>
+	/* R */ inline const String MenuName() const reflect_as(CString(self->lpszMenuName, MaxLen));
 public: // Property - Name
 	/* W */ inline auto&Name(LPCTSTR lpszClassName) reflect_to_child(self->lpszClassName = lpszClassName);
+	template<size_t MaxLen = MaxLenClass>
 	/* R */ inline String Name() const {
 		auto_stringx(fmt, "#%d");
 		if (!self->lpszClassName)
 			return O;
 		if (IS_INTRESOURCE(self->lpszClassName))
 			return format(fmt, (ATOM)(ULONG_PTR)self->lpszClassName);
-		return CString(self->lpszClassName, MaxLenClass);
+		return CString(self->lpszClassName, MaxLen);
 	}
 public: // Property - Atom
 	/* W */ inline auto&Atom(ATOM classAtom) reflect_to_child(self->lpszClassName = (LPCTSTR)MAKEINTRESOURCE(classAtom));
@@ -594,8 +711,10 @@ public: // Property - Menu
 	/* R */ inline CMenu Menu() const reflect_as(self->hMenu);
 public: // Property - Parent
 	/* W */ inline auto&Parent(HWND hwndParent) reflect_to_self(self->hwndParent = hwndParent);
-	template<class _AnyChild = void>
-	/* R */ inline WindowBase<_AnyChild> Parent() const reflect_as(self->hwndParent);
+	template<class AnyChild = void>
+	/* R */ inline WindowShim<AnyChild> Parent() reflect_as(self->hwndParent);
+	template<class AnyChild = void>
+	/* R */ inline CWindowShim<AnyChild> Parent() const reflect_as(self->hwndParent);
 public: // Property - Styles
 	/* W */ inline auto &Styles(Style style) reflect_to_self(self->style = style.yield());
 	/* R */ inline Style Styles() const reflect_as(ref_as<Style>(self->style));
@@ -605,12 +724,13 @@ public: // Property - Caption
 public: // Property - ClassName
 	/* W */ inline auto  &ClassName(LPCTSTR lpszClassName) reflect_to_self(self->lpszClass = lpszClassName);
 	/* W */ inline auto  &ClassName(ATOM classAtom) reflect_to_self(self->lpszClass = (LPCTSTR)MAKEINTRESOURCE(classAtom));
+	template<size_t MaxLen = MaxLenClass>
 	/* R */ inline String ClassName() const {
 		if (!self->lpszClass)
 			return O;
 		if (IS_INTRESOURCE(self->lpszClass))
 			return format("#%d", (ATOM)(ULONG_PTR)self->lpszClass);
-		return CString(self->lpszClass, MaxLenClass);
+		return CString(self->lpszClass, MaxLen);
 	}
 	/* R */ inline ATOM   ClassAtom() const reflect_as(IS_INTRESOURCE(self->lpszClass) ? (ATOM)(ULONG_PTR)self->lpszClass : 0);
 public: // Property - StylesEx
@@ -632,15 +752,15 @@ public: // Property - ClientSize
 	/* W */ inline auto&ClientSize(LSize sz) reflect_as(ClientRect(LRect::left_top(Position(), sz)));
 	/* W */ inline auto&ClientSize(LSize sz, UINT dpi) reflect_as(ClientRect(LRect::left_top(Position(), sz), dpi));
 public:
-	template <class _AnyChild = void>
-	inline WindowShim<_AnyChild> Create() const reflect_as(
+	template <class AnyChild = void>
+	inline WindowShim<AnyChild> Create() const reflect_as(
 		WX::CreateWindow(
 			self->dwExStyle, self->lpszClass, self->lpszName, self->style,
 			self->x, self->y, self->cx, self->cy,
 			self->hwndParent, self->hMenu, self->hInstance,
 			self->lpCreateParams));
-	template <class _AnyChild = void>
-	inline WindowShim<_AnyChild> CreateMDI() const reflect_as(WX::CreateMDIWindow(
+	template <class AnyChild = void>
+	inline WindowShim<AnyChild> CreateMDI() const reflect_as(WX::CreateMDIWindow(
 		self->dwExStyle, self->lpszClass, self->lpszName, self->style,
 		self->x, self->y, self->cx, self->cy,
 		self->hwndParent, self->hMenu, self->hInstance,
@@ -652,11 +772,28 @@ using CreateStructW = CreateStructX<true>;
 #pragma endregion
 
 #pragma region WindowBase
+class LayeredDisplayAffinity {
+	template<class>
+	friend class WindowBase;
+	COLORREF crKey = 0;
+	BYTE bAlpha = 0;
+	DWORD dwFlags = 0;
+public:
+	LayeredDisplayAffinity() {}
+	LayeredDisplayAffinity(Null) {}
+	LayeredDisplayAffinity(const LayeredDisplayAffinity &) = default;
+public: // Property - Key
+	/* W */ inline auto &Key(COLORREF key) reflect_to_self(crKey = key);
+	/* R */ inline RGBColor Key() const reflect_as(crKey);
+public: // Property - Alpha
+	/* W */ inline auto &Alpha(BYTE alpha) reflect_to_self(bAlpha = alpha);
+	/* R */ inline BYTE Alpha() const reflect_as(bAlpha);
+};
 template<class TCHAR>
 class WindowIProps {
 	using LPCTSTR = const TCHAR *;
-	template<class AnyChild>
-	class WindowBase;
+	template<class>
+	friend class WindowBase;
 	mutable HWND hWnd;
 	mutable LPCTSTR lpString;
 private:
@@ -671,8 +808,8 @@ private:
 	using FnEnumPropA = Function<bool(HWND, LPSTR, HANDLE)>;
 	using FnEnumPropW = Function<bool(HWND, LPWSTR, HANDLE)>;
 private:
-	static BOOL _EnumProp(HWND hWnd, LPSTR lpString, HANDLE hData, ULONG_PTR lParam) reflect_as((*(FnEnumPropA *)lParam)(hWnd, lpString, hData));
-	static BOOL _EnumProp(HWND hWnd, LPWSTR lpString, HANDLE hData, ULONG_PTR lParam) reflect_as((*(FnEnumPropW *)lParam)(hWnd, lpString, hData));
+	static BOOL _EnumPropA(HWND hWnd, LPSTR lpString, HANDLE hData, ULONG_PTR lParam) reflect_as((*(FnEnumPropA *)lParam)(hWnd, lpString, hData));
+	static BOOL _EnumPropW(HWND hWnd, LPWSTR lpString, HANDLE hData, ULONG_PTR lParam) reflect_as((*(FnEnumPropW *)lParam)(hWnd, lpString, hData));
 public:
 	template<class AnyFunc>
 	inline int Enum(AnyFunc fnEnum) {
@@ -682,7 +819,7 @@ public:
 					return fnEnum(hWnd, lpString, hData);
 				}
 			};
-			return WX::EnumProps(hWnd, _EnumProp, (LPARAM)std::addressof(fnEnumProps));
+			return WX::EnumProps(hWnd, _EnumPropA, (LPARAM)std::addressof(fnEnumProps));
 		}
 		elif constexpr (static_compatible<AnyFunc, bool(HWND, LPWSTR, HANDLE)>) {
 			FnEnumPropW fnEnumProps{
@@ -690,7 +827,7 @@ public:
 					return fnEnum(hWnd, lpString, hData);
 				}
 			};
-			return EnumPropsExW(hWnd, _EnumProp, (LPARAM)std::addressof(fnEnumProps));
+			return WX::EnumProps(hWnd, _EnumPropW, (LPARAM)std::addressof(fnEnumProps));
 		}
 		elif constexpr (static_compatible<AnyFunc, void(HWND, LPSTR, HANDLE)>) {
 			FnEnumPropA fnEnumProps{
@@ -699,16 +836,17 @@ public:
 					return true;
 				}
 			};
-			return EnumPropsExA(hWnd, _EnumProp, (LPARAM)std::addressof(fnEnumProps));
+			return WX::EnumProps(hWnd, _EnumPropA, (LPARAM)std::addressof(fnEnumProps));
 		} else {
-			static_assert(static_compatible<AnyFunc, void(HWND, LPWSTR, HANDLE)>, "Invalid function type for EnumProp");
+			static_assert(static_compatible<AnyFunc, void(HWND, LPWSTR, HANDLE)>,
+						  "Invalid function type for EnumProp");
 			FnEnumPropW fnEnumProps{
 				[&](HWND hWnd, LPWSTR lpString, HANDLE hData) {
 					return fnEnum(hWnd, lpString, hData);
 					return true;
 				}
 			};
-			return WX::EnumProps(hWnd, _EnumProp, (LPARAM)std::addressof(fnEnumProps));
+			return WX::EnumProps(hWnd, _EnumPropW, (LPARAM)std::addressof(fnEnumProps));
 		}
 	}
 public:
@@ -716,7 +854,7 @@ public:
 	inline void operator=(HANDLE hData) reflect_as(WX::SetProp(hWnd, lpString, hData));
 };
 class WindowIWords {
-	template<class AnyChild>
+	template<class>
 	friend class WindowBase;
 	mutable HWND hWnd;
 	mutable int nIndex;
@@ -731,7 +869,7 @@ public:
 };
 template<bool IsUnicode = WX::IsUnicode>
 class WindowILongs {
-	template<class AnyChild>
+	template<class>
 	friend class WindowBase;
 	mutable HWND hWnd;
 	mutable int nIndex;
@@ -750,8 +888,8 @@ public:
 };
 template<bool IsUnicode = WX::IsUnicode>
 class WindowIClass {
-	template<class AnyChild>
-	class WindowBase;
+	template<class>
+	friend class WindowBase;
 	mutable HWND hWnd;
 	class Word {
 		friend class WindowIClass;
@@ -813,11 +951,13 @@ public: // Property - Background
 public: // Property - MenuName
 //	/* W */ inline auto&MenuName(LPCTSTR lpszMenuName) reflect_to_self(Longs(GCLP_MENUNAME) = lpszMenuName);
 //	/* W */ inline auto&MenuName(LPCTSTR lpszMenuName) reflect_to_self(Longs(GCLP_MENUNAME) = lpszMenuName);
-//	/* R */ inline const String MenuName() const reflect_as(CString((LPCTSTR)Longs(GCLP_MENUNAME), MaxLenPath));
+// 	template<size_t MaxLen = MaxLenPath>
+//	/* R */ inline const String MenuName() const reflect_as(CString((LPCTSTR)Longs(GCLP_MENUNAME), MaxLen));
 public: // Property - Name
+	template<size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
-		auto lpszName = StringX<IsUnicode>::Alloc(MaxLenClass);
-		auto len = WX::GetClassName(hWnd, lpszName, MaxLenClass);
+		auto lpszName = StringX<IsUnicode>::Alloc(MaxLen);
+		auto len = WX::GetClassName(hWnd, lpszName, MaxLen);
 		lpszName = StringX<IsUnicode>::Realloc(len, lpszName);
 		return { (size_t)len, lpszName };
 	}
@@ -839,7 +979,7 @@ public:
 	using StyleEx = WStyleEx;
 protected:
 	INNER_USE(WindowBase);
-	template<bool IsUnicode, class Style, class StyleEx>
+	template<bool, class, class>
 	friend class CreateStructX;
 	WindowBase(HWND h) : hWnd(h) {}
 	WindowBase(const WindowBase &w) : hWnd(w.hWnd) reflect_to(w.hWnd = O);
@@ -852,11 +992,11 @@ public:
 public:
 	//static inline WindowShim<AnyClass> Find(LPCSTR lpName, LPCSTR lpClass) reflect_as(WX::FindWindow(lpClass, lpName));
 	//static inline WindowShim<AnyClass> Find(LPCWSTR lpName, LPCWSTR lpClass) reflect_as(WX::FindWindow(lpClass, lpName));
-	static inline WindowShim<AnyChild> Find(LPCSTR lpName) reflect_as(WX::FindWindow((LPCSTR)(ULONG_PTR)WindowBase::_ClassAtom, lpName));
-	static inline WindowShim<AnyChild> Find(LPCWSTR lpName) reflect_as(WX::FindWindow((LPCWSTR)(ULONG_PTR)WindowBase::_ClassAtom, lpName));
-	static inline WindowShim<AnyChild> Active() reflect_as(WX::GetActiveWindow());
-	static inline WindowShim<AnyChild> Desktop() reflect_as(WX::GetDesktopWindow());
-	static inline WindowShim<AnyChild> Foreground() reflect_as(WX::GetForegroundWindow());
+	static inline Shim Find(LPCSTR lpName) reflect_as(WX::FindWindow((LPCSTR)(ULONG_PTR)WindowBase::_ClassAtom, lpName));
+	static inline Shim Find(LPCWSTR lpName) reflect_as(WX::FindWindow((LPCWSTR)(ULONG_PTR)WindowBase::_ClassAtom, lpName));
+	static inline Shim Active() reflect_as(WX::GetActiveWindow());
+	static inline Shim Desktop() reflect_as(WX::GetDesktopWindow());
+	static inline Shim Foreground() reflect_as(WX::GetForegroundWindow());
 	static inline void Foreground(HWND hWnd) reflect_to(WX::SetForegroundWindow(hWnd));
 public:
 	inline void Delete() {
@@ -980,10 +1120,10 @@ public:
 
 #pragma region Message Procedure Reflect System
 protected: // Default Procedure
-	def_memberof(DefProc);
-	def_memberof(Callback);
+	use_member(DefProc);
+	use_member(Callback);
 	static LRESULT CallDefProc(HWND hWnd, UINT msgid, WPARAM wParam, LPARAM lParam) {
-		if constexpr (member_DefProc_of<Child>::callable) {
+		if constexpr (member_DefProc_of<Child>::is_addressable) {
 			misdef_assert((!std::is_member_pointer_v<decltype(&Child::DefProc)>),
 						  "DefProc must be a static method.");
 			using tfn_WndProc = LRESULT(HWND, UINT, WPARAM, LPARAM);
@@ -991,18 +1131,18 @@ protected: // Default Procedure
 						  "DefProc must be compatible to LRESULT(HWND, UINT, WPARAM, LPARAM)");
 			return Child::DefProc(hWnd, msgid, wParam, lParam);
 		}
-		else return DefWindowProc<>(hWnd, msgid, wParam, lParam);
+		else return WX::DefWindowProc(hWnd, msgid, wParam, lParam);
 	}
 	inline LRESULT HandleNext() const { throw MSG{ 0 }; }
 protected:
-	def_memberof(OnCatch);
+	use_member(OnCatch);
 	static inline wx_answer Catch(Msg msg, const Exception &err) {
 		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Msg, Exception)>)
-			reflect_as(Child::OnCatch(msg, err))
+			return Child::OnCatch(msg, err);
 		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Msg, Exception)>)
-			reflect_to(Child::OnCatch(msg, err), false)
+			return (Child::OnCatch(msg, err), false);
 		else {
-			static_assert(!member_OnCatch_of<AnyChild>::callable, "OnCatch uncompatible");
+			static_assert(!member_OnCatch_of<AnyChild>::is_addressable, "OnCatch uncompatible");
 			switch (WX::MsgBox(T("Window Error"), err, msg.Window())) {
 				case IDRETRY:
 					wx_answer_retry;
@@ -1014,21 +1154,34 @@ protected:
 			wx_answer_abort(err);
 		}
 	}
-	def_memberof(OnFinal);
+	use_member(OnFinal);
 	static inline LRESULT Final(Msg msg) {
 		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<LRESULT(Msg)>)
-			reflect_as(Child::OnFinal(msg))
+			return Child::OnFinal(msg);
 		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void(Msg)>)
-			reflect_to(Child::OnFinal(msg), -1)
+			return (Child::OnFinal(msg), -1);
 		else {
-			static_assert(!member_OnFinal_of<AnyChild>::callable, "OnFinal uncallable");
+			static_assert(!member_OnFinal_of<AnyChild>::is_addressable, "OnFinal uncallable");
 			return -3;
 		}
 	}
-protected:
+public:
+//	class Reflectors {
+//#define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
+//		private: use_member(On##name); \
+//		public: static constexpr bool has_On##name = member_On##name##_of<Child>::is_addressable; \
+//		static inline LRESULT On##name(Child &c, argslist) { \
+//			using fn_type = ret argslist; \
+//			misdef_assert((member_On##name##_of<Child>::template compatible_to<fn_type>), \
+//						  "Member On" #name " must be a method compatible to " #ret #argslist); \
+//			return call; \
+//		}
+//#include "wx__msg.inl"
+//	};
 #define MSG_TRANS(msgid, ret, name, ...) \
-	def_memberof(On##name);
+	use_member(On##name);
 #include "wx__msg.inl"
+protected:
 	static LRESULT CALLBACK MainProc(HWND hWnd, UINT msgid, WPARAM wParam, LPARAM lParam) {
 		auto&Wnd = WindowBase::Attach(hWnd);
 		auto pThis = Wnd.UserData<Child *>();
@@ -1054,26 +1207,26 @@ protected:
 #define _CALL_(name) pThis->On##name
 #define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
 				case msgid: \
-					if constexpr (member_On##name##_of<Child>::callable) { \
+					if constexpr (member_On##name##_of<Child>::is_addressable) { \
 						using fn_type = ret argslist; \
-						if constexpr (member_On##name##_of<Child>::template compatible_to<ret()>) { \
-							if constexpr (std::is_void_v<ret>) { \
-								   return (pThis->On##name(), 0L); \
-							} else return (LRESULT)pThis->name(); \
-						} elif constexpr (member_On##name##_of<Child>::template compatible_to<LRESULT()>) { \
+						if constexpr (member_On##name##_of<Child>::template compatible_to<ret()>) \
+							if constexpr (std::is_void_v<ret>) \
+								 return (pThis->On##name(), 0L); \
+							else return (LRESULT)pThis->name(); \
+						elif constexpr (member_On##name##_of<Child>::template compatible_to<LRESULT()>) \
 							return pThis->On##name(); \
-						} elif constexpr (member_On##name##_of<Child>::template compatible_to<void(WPARAM, LPARAM)>) { \
+						elif constexpr (member_On##name##_of<Child>::template compatible_to<void(WPARAM, LPARAM)>) \
 							return (pThis->On##name(wParam, lParam), 0L); \
-						} elif constexpr (member_On##name##_of<Child>::template compatible_to<LRESULT(WPARAM, LPARAM)>) { \
+						elif constexpr (member_On##name##_of<Child>::template compatible_to<LRESULT(WPARAM, LPARAM)>) \
 							return pThis->On##name(wParam, lParam); \
-						} else { \
+						else { \
 							misdef_assert((member_On##name##_of<Child>::template compatible_to<fn_type>), \
 										  "Member On" #name " must be a method compatible to " #ret #argslist ", " #ret "(), void(WPARAM, LPARAM) or LRESULT(WPARAM, LPARAM)" ); \
 							return call; } \
 					} break;
 #include "wx__msg.inl"
 				}
-			if constexpr (member_Callback_of<Child>::callable) {
+			if constexpr (member_Callback_of<Child>::is_addressable) {
 				misdef_assert(member_Callback_of<Child>::template compatible_to<LRESULT(WPARAM, LPARAM)>, 
 							  "Member Callback must be a method compatible to LRESULT(WPARAM, LPARAM)");
 				return pThis->Callback(msgid, wParam, lParam);
@@ -1277,10 +1430,10 @@ public: // Property - String
 	/* R */ inline StringA TextA() const reflect_as(Text<false>());
 	/* R */ inline StringW TextW() const reflect_as(Text<true>());
 public: // Property - ModuleFileName
-	template<bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenPath>
 	/* R */ inline StringX<IsUnicode> ModuleFileName() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenPath);
-		int len = WX::GetWindowModuleFileName(self, lpsz, MaxLenPath);
+		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
+		int len = WX::GetWindowModuleFileName(self, lpsz, MaxLen);
 		StringX<IsUnicode>::Resize(lpsz, len);
 		return { (size_t)len, lpsz };
 	}
@@ -1289,7 +1442,9 @@ public: // Property - ModuleFileName
 public: // Property - Parent
 	/* W */ inline auto&Parent(HWND hParent) reflect_to_child(WX::SetParent(self, hParent));
 	template<class AnyClass = void>
-	/* R */ inline WindowShim<AnyClass> Parent() const reflect_as(WX::GetParent(self));
+	/* R */ inline WindowShim<AnyClass> Parent() reflect_as(WX::GetParent(self));
+	template<class AnyClass = void>
+	/* R */ inline CWindowShim<AnyClass> Parent() const reflect_as(WX::GetParent(self));
 //public: // Property - Next
 //	template<class AnyClass = void>
 //	/* R */ inline WindowShim<AnyClass> Next() const reflect_as(WX::GetNextWindow(self, GW_HWNDNEXT));
@@ -1309,11 +1464,11 @@ public: // Property - ScrollVisibleH
 public: // Property - ScrollVisibleV
 	/* W */ inline auto&ScrollVisibleV(bool bShow) reflect_to_child(WX::ShowScrollBar(self, SB_VERT, bShow));
 public: // Property - ScrollInfoH
-	/* W */ inline auto&ScrollInfoH(int nBar, const SCROLLINFO &si, bool bRedraw = true) reflect_to_child(WX::SetScrollInfo(self, nBar, &si, bRedraw));
-	/* R */ inline ScrollInfo ScrollInfoH(int nBar) const reflect_to(ScrollInfo si; WX::GetScrollInfo(self, nBar, &si), si);
+	/* W */ inline auto&ScrollInfoH(const SCROLLINFO &si, bool bRedraw = true) reflect_to_child(WX::SetScrollInfo(self, SB_HORZ, &si, bRedraw));
+	/* R */ inline ScrollInfo ScrollInfoH() const reflect_to(ScrollInfo si; WX::GetScrollInfo(self, SB_HORZ, &si), si);
 public: // Property - ScrollInfoV
-	/* W */ inline auto&ScrollInfoV(int nBar, const SCROLLINFO &si, bool bRedraw = true) reflect_to_child(WX::SetScrollInfo(self, nBar, &si, bRedraw));
-	/* R */ inline ScrollInfo ScrollInfoV(int nBar) const reflect_to(ScrollInfo si; WX::GetScrollInfo(self, nBar, &si), si);
+	/* W */ inline auto&ScrollInfoV(const SCROLLINFO &si, bool bRedraw = true) reflect_to_child(WX::SetScrollInfo(self, SB_VERT, &si, bRedraw));
+	/* R */ inline ScrollInfo ScrollInfoV() const reflect_to(ScrollInfo si; WX::GetScrollInfo(self, SB_VERT, &si), si);
 public: // Property - TitleBarInfo
 	/* W */ inline WX::TitleBarInfo TitleBarInfo() const reflect_to(WX::TitleBarInfo tbi; WX::GetTitleBarInfo(self, &tbi), tbi);
 public: // Property - Menu
@@ -1329,6 +1484,9 @@ public: // Property - RegionBox
 public: // Property - DisplayAffinity
 	/* W */ inline auto&DisplayAffinity(DisplayAffinities dwAffinity) reflect_to_child(WX::SetWindowDisplayAffinity(self, dwAffinity.yield()));
 	/* R */ inline auto DisplayAffinity() const reflect_to(DWORD dwAffinity = 0; WX::GetWindowDisplayAffinity(self, &dwAffinity), reuse_as<DisplayAffinities>(dwAffinity));
+public: // Property - LayeredDisplayAffinity
+	/* W */ inline auto &LayeredDisplayAffinity(WX::LayeredDisplayAffinity lda) reflect_to_child(WX::SetLayeredWindowAttributes(self, lda.crKey, lda.bAlpha, lda.dwFlags));
+	/* R */ inline auto LayeredDisplayAffinity() const reflect_to(WX::LayeredDisplayAffinity lda; WX::GetLayeredWindowAttributes(self, &lda.crKey, &lda.bAlpha, &lda.dwFlags), lda);
 public: // Property - Icon
 	/* W */ inline auto&Icon(HICON hIcon) reflect_to_child(Send<HICON>(WM_SETICON, ICON_BIG, hIcon));
 	/* R */ inline CIcon Icon() const reflect_as(Send<HICON>(WM_GETICON, ICON_BIG));
@@ -1360,7 +1518,9 @@ public: // Property - Module
 public: // Property - HwndParent
 	/* W */ inline auto&HwndParent(HWND hHwndParent) reflect_as(Longs(GWLP_HWNDPARENT) = hHwndParent);
 	template<class AnyClass = void>
-	/* R */ inline WindowShim<AnyClass> HwndParent() const reflect_as(Longs(GWLP_HWNDPARENT));
+	/* R */ inline WindowShim<AnyClass> HwndParent() reflect_as(Longs(GWLP_HWNDPARENT));
+	template<class AnyClass = void>
+	/* R */ inline CWindowShim<AnyClass> HwndParent() const reflect_as(Longs(GWLP_HWNDPARENT));
 public: // Property - Styles
 	/* W */ inline auto&Styles(Style style) reflect_as(Longs(GWL_STYLE) = style);
 	/* R */ inline Style Styles() const reflect_as((Style)Longs(GWL_STYLE));
@@ -1420,6 +1580,26 @@ template<class AnyChild> HINSTANCE WindowBase<AnyChild>::_hClassModule = O;
 #pragma endregion
 
 #pragma region Clipboard
+
+enum_class(ClipboardStandardFormats, UINT,
+	Text           = CF_TEXT,
+	Bitmap         = CF_BITMAP,
+	MetafilePict   = CF_METAFILEPICT,
+	Sylk           = CF_SYLK,
+	Dif            = CF_DIF,
+	Tiff           = CF_TIFF,
+	OemText        = CF_OEMTEXT,
+	Dib            = CF_DIB,
+	Palette        = CF_PALETTE,
+	PenData        = CF_PENDATA,
+	Riff           = CF_RIFF,
+	Wave           = CF_WAVE,
+	UnicodeText    = CF_UNICODETEXT,
+	EnhMetaFile    = CF_ENHMETAFILE,
+	HDrop          = CF_HDROP,
+	Locale         = CF_LOCALE,
+	BitmapV5Header = CF_DIBV5);
+
 class ClipboardIFormat {
 	mutable UINT uFormat;
 protected:
@@ -1437,7 +1617,7 @@ public:
 public: // Property - Count
 	/* R */ inline int Count() const reflect_as(WX::CountClipboardFormats());
 public: // Property - Name
-	template<bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
 		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenClass);
 		auto len = WX::GetClipboardFormatName(uFormat, lpsz, MaxLenClass);
@@ -1467,19 +1647,29 @@ public:
 
 public: // Formats
 	static inline UINT RegisterFormat(LPCSTR lpszFormat) reflect_as(WX::RegisterClipboardFormat(lpszFormat));
-
+#pragma region Properties
 public: // Property - SequenceNumber
 	/* R */ inline DWORD SequenceNumber() const reflect_as(WX::GetClipboardSequenceNumber());
 public: // Property - Owner
-	template<class Child>
-	/* R */ inline WindowShim<Child> Owner() const reflect_as(WX::GetClipboardOwner());
+	template<class AnyChild = void>
+	/* R */ inline WindowShim<AnyChild> Owner() reflect_as(WX::GetClipboardOwner());
+	template<class AnyChild = void>
+	/* R */ inline CWindowShim<AnyChild> Owner() const reflect_as(WX::GetClipboardOwner());
 public: // Property - Viewer
 	/* W */ inline auto &Viewer(HWND hWnd) reflect_to_self(WX::SetClipboardViewer(hWnd));
-	template<class Child>
-	/* R */ inline WindowShim<Child> Viewer() const reflect_as(WX::GetClipboardViewer());
+	template<class AnyChild = void>
+	/* R */ inline WindowShim<AnyChild> Viewer() reflect_as(WX::GetClipboardViewer());
+	template<class AnyChild = void>
+	/* R */ inline CWindowShim<AnyChild> Viewer() const reflect_as(WX::GetClipboardViewer());
+public: // Property - Opener
+	template<class AnyChild = void>
+	/* R */ inline WindowShim<AnyChild> Opener() reflect_as(WX::GetOpenClipboardWindow());
+	template<class AnyChild = void>
+	/* R */ inline CWindowShim<AnyChild> Opener() const reflect_as(WX::GetOpenClipboardWindow());
 public: // Property - Format
 //	/* W */ inline auto &Format()
-};
+#pragma endregion
+} Clipboard;
 #pragma endregion
 
 }

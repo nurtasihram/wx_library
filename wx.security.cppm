@@ -1,8 +1,10 @@
 module;
 
-#include "wx_types"
+#include <windows.h>
 #include <aclapi.h>
 #include <sddl.h>
+
+#include "wx_type"
 
 export module wx.security;
 
@@ -13,7 +15,7 @@ using RID = DWORD;
 
 class SecurityIdentifiersAuthority {
 	mutable SID_IDENTIFIER_AUTHORITY sia{ 0 };
-	[[maybe_unused]] WORD ___ = 0;
+	[[maybe_unused]] WORD _ = 0;
 public:
 	SecurityIdentifiersAuthority() { static_assert(sizeof(self) == 8, "alignment error"); }
 	SecurityIdentifiersAuthority(const arrayof<BYTE, 6> &sia) : sia(ref_as<const SID_IDENTIFIER_AUTHORITY>(sia)) {}
@@ -91,8 +93,8 @@ public: //
 	//GetWindowsAccountDomainSid
 	//IsWellKnownSid
 	inline operator bool() const reflect_as(this->pSID ? IsValidSid(this->pSID) : false);
-	inline operator StringA() const assertl_reflect_to(AutoPointer<_M_(Local, CHAR)> szSID(LocalHeap), ConvertSidToStringSidA(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
-	inline operator StringW() const assertl_reflect_to(AutoPointer<_M_(Local, WCHAR)> szSID(LocalHeap), ConvertSidToStringSidW(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
+//	inline operator StringA() const assertl_reflect_to(AutoPointer<_M_(Local, CHAR)> szSID(LocalHeap), ConvertSidToStringSidA(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
+//	inline operator StringW() const assertl_reflect_to(AutoPointer<_M_(Local, WCHAR)> szSID(LocalHeap), ConvertSidToStringSidW(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
 	inline PSID operator&() const reflect_as(this->pSID);
 	inline SecurityIdentifier operator+() const {
 		if (!*this) return O;

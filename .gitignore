@@ -374,5 +374,5 @@ CONERR$
 *.pcm
 gcm.cache/
 
-.exe
-.exe.manifest
+*.exe
+*.exe.manifest
