@@ -101,7 +101,8 @@ enum_flags(MapAccess, DWORD,
 	ReadWrite = FILE_MAP_WRITE | FILE_MAP_READ);
 //enum_flags(FileDispose)
 struct FileTimes { FileTime Creation, LastAccess, LastWrite; };
-struct FileBaseInfo : public RefStruct<FILE_BASIC_INFO> {
+class FileBaseInfo : public RefStruct<FILE_BASIC_INFO> {
+public:
 	using super = RefStruct<FILE_BASIC_INFO>;
 public:
 	FileBaseInfo() {}
@@ -517,15 +518,11 @@ protected:
 public:
 	Comm() {}
 public:
-	inline void ClearBreak() 
-		reflect_to(WX::ClearCommBreak(self));
+	inline void ClearBreak() reflect_to(WX::ClearCommBreak(self));
 //	inline void ClearErrors(CommClear cc = CommClear::All) reflect_to(WX::ClearCommError(self, &cc.yield(), O));
-	inline void Setup(DWORD dwInQueue, DWORD dwOutQueue) 
-		reflect_to(WX::SetupComm(self, dwInQueue, dwOutQueue));
-	inline void Purge(CommPurge cp = CommPurge::All)
-		reflect_to(WX::PurgeComm(self, cp.yield()));
-	inline void Transmit(char ch) 
-		reflect_to(WX::TransmitCommChar(self, ch));
+	inline void Setup(DWORD dwInQueue, DWORD dwOutQueue) reflect_to(WX::SetupComm(self, dwInQueue, dwOutQueue));
+	inline void Purge(CommPurge cp = CommPurge::All) reflect_to(WX::PurgeComm(self, cp.yield()));
+	inline void Transmit(char ch)  reflect_to(WX::TransmitCommChar(self, ch));
 //	inline void WaitEvent(CommEvent ce = CommEvent::RxChar) reflect_to(WX::WaitCommEvent(self, &ce.yield(), O));
 	static inline Comm Open(ULONG uPortNumber, FileAccess desiredAccess, DWORD dwFlagsAndAttributes = 0)
 		reflect_as(WX::OpenCommPort(uPortNumber, desiredAccess.yield(), dwFlagsAndAttributes));

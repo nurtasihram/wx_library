@@ -43,11 +43,7 @@ public:
 	HandleBase(HandleBase &&obj) : hObject(obj.hObject) reflect_to(obj.hObject = O);
 	~HandleBase() reflect_to(Close());
 public:
-	inline void Close() {
-		if (hObject)
-			WX::CloseHandle(hObject);
-		hObject = O;
-	}
+	inline void Close() reflect_to(if (hObject) (WX::CloseHandle(hObject), hObject = O));
 public:
 	inline bool Compare(HANDLE h) const reflect_as(WX::CompareObjectHandles(self, h));
 	//inline auto CopyTo() {
@@ -136,6 +132,7 @@ public:
 	}
 	static inline void *Lock(void *ptr) reflect_as(LocalLock(ptr));
 	static inline void Unlock(void *ptr) assertl_reflect_as(LocalUnlock(ptr));
+	static inline void AutoFree(void *&ptr) reflect_to(if (ptr) (Free(ptr), ptr = O));
 } inline LocalHeap;
 #pragma endregion
 

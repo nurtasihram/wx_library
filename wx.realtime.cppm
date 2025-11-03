@@ -675,7 +675,7 @@ public: // Property - Entries
 		std::vector<String> list(count);
 		auto lpEnv = this->lpEnv;
 		for (const String &e : list)
-			lpEnv += (e = CString(lpEnv, v)).Length() + 1;
+			lpEnv += (e = CString(lpEnv, MaxLen)).Length() + 1;
 		return list;
 	}
 public: // Property - Variables
@@ -887,11 +887,7 @@ public:
 	public:
 		CreateStruct(const CreateStruct &cs) { *this = cs, cs.lpCommandLine = O; }
 		CreateStruct(LPCTSTR lpApplicationName, const String &Cmdl) : lpApplicationName(lpApplicationName), lpCommandLine(*Cmdl) {}
-		~CreateStruct() {
-			if (lpCommandLine)
-				String::Free(lpCommandLine),
-				lpCommandLine = O;
-		}
+		~CreateStruct() reflect_to(String::AutoFree(lpCommandLine));
 	public:
 		inline auto &Security(LPSECURITY_ATTRIBUTES lpProcessAttributes) reflect_to_self(this->lpProcessAttributes = lpProcessAttributes);
 		inline auto &SecurityThread(LPSECURITY_ATTRIBUTES lpThreadAttributes) reflect_to_self(this->lpThreadAttributes = lpThreadAttributes);

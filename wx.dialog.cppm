@@ -3,6 +3,7 @@ module;
 #include <vector>
 
 #include "wx_type"
+#include "wx__rm.inl"
 
 export module wx.dialog;
 
@@ -43,7 +44,7 @@ public: // Property - Text
 	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenNotice>
 	/* R */ inline StringX<IsUnicode> Text() const {
 		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
-		auto len = WX::SetDlgItemText(hDlg, nIDDlgItem, lpsz, (int)MaxLen);
+		auto len = WX::GetDlgItemText(hDlg, nIDDlgItem, lpsz, (int)MaxLen);
 		StringX<IsUnicode>::Resize(lpsz, len);
 		return { (size_t)len, lpsz };
 	}
@@ -74,6 +75,9 @@ public:
 	// inline auto Box()
 	template<class AnyType = INT_PTR>
 	inline void End(AnyType nResult) reflect_to(WX::EndDialog(self, small_cast<INT_PTR>(nResult)));
+#pragma region Properties
+public: //
+#pragma endregion
 };
 
 //////////// ! -- TODO: Add exception system with CommDlgExtendedError -- !  ////////////
@@ -131,7 +135,7 @@ public: // Property - Result
 	/* W */ inline auto &Result(COLORREF rgb) reflect_to_child(self->rgbResult = rgb);
 	/* R */ inline RGBColor Result() const reflect_as(self->rgbResult);
 public:
-	inline bool Choose() reflect_as(ChooseColor(this));
+	inline bool Choose() reflect_as(WX::ChooseColor(this));
 };
 template<class AnyChild = void>
 using DialogColor  = DialogColorX<IsUnicode, AnyChild>;
@@ -189,33 +193,37 @@ public:
 	using Style = DialogFontStyle;
 public:
 	DialogFontX() reflect_to(self->lStructSize = sizeof(CHOOSEFONT));
+	~DialogFontX() reflect_to(String::AutoFree(self->lpszStyle));
 public: // Property - Styles
 	/* W */ inline auto &Styles(Style style) reflect_to_self(self->Flags = style.yield());
 public: // Property - FontTypes
 	/* W */ inline auto    &FontTypes(FontType ft) reflect_to_self(self->nFontType = ft.yield());
 	/* R */ inline FontType FontTypes() const reflect_as(reuse_as<FontType>(self->nFontType));
 public: // Property - SizeMin
-	/* W */ inline auto &SizeMin(INT nSizeMin) reflect_to_self(self->nSizeMin = nSizeMin);
+	/* W */ inline auto&SizeMin(INT nSizeMin) reflect_to_self(self->nSizeMin = nSizeMin);
 	/* R */ inline INT   SizeMin() const reflect_as(self->nSizeMin);
 public: // Property - SizeMax
-	/* W */ inline auto &SizeMax(INT nSizeMax) reflect_to_self(self->nSizeMax = nSizeMax);
-	/* R */ inline INT   SizeMax() const reflect_as(self->nSizeMax);
+	/* W */ inline auto&SizeMax(INT nSizeMax) reflect_to_self(self->nSizeMax = nSizeMax);
+	/* R */ inline INT  SizeMax() const reflect_as(self->nSizeMax);
 public: // Property - PointSize
-	/* W */ inline auto &PointSize(INT iPointSize) reflect_to_self(self->iPointSize = iPointSize);
-	/* R */ inline INT   PointSize() const reflect_as(self->iPointSize);
+	/* W */ inline auto&PointSize(INT iPointSize) reflect_to_self(self->iPointSize = iPointSize);
+	/* R */ inline INT  PointSize() const reflect_as(self->iPointSize);
 public: // Property - Color
 	/* W */ inline auto    &Color(COLORREF rgbColors) reflect_to_self(self->rgbColors = rgbColors);
 	/* R */ inline RGBColor Color() const reflect_as(self->rgbColors);
-	// HDC             hDC;
-public: // Property - Style
-	/* W */ inline auto &Style(const String &str) reflect_to_self(self->lpszStyle = +str);
-	// LPWSTR          lpszStyle;
+public: // Property - DC
+	/* W */ inline auto&DC(HDC hDC) reflect_to_self(self->hDC = hDC);
+	/* R */ inline CDC  DC() const reflect_as(self->hDC);
+public: // Property - FontStyle
+	/* W */ inline auto &FontStyle(const String &style) reflect_to_self(String::AutoCopy(self->lpszStyle, style));
+	template<size_t MaxLen = MaxLenNotice>
+	/* R */ inline const String FontStyle() const reflect_as(CString(self->lpszStyle, MaxLen));
 public: // Property - LogFont
 	/* W */ inline auto &LogFont(LOGFONT *lpLogFont) reflect_to_self(self->lpLogFont = lpLogFont);
 	/* W */ inline auto &LogFont(FontLogic *lpLogFont) reflect_to_self(self->lpLogFont = (LOGFONT *)lpLogFont);
 	/* R */ inline auto LogFont() const reflect_as(self->lpLogFont);
 public:
-	inline bool Choose() reflect_as(ChooseFont(this));
+	inline bool Choose() reflect_as(WX::ChooseFont(this));
 };
 template<class AnyChild = void>
 using DialogFont = DialogFontX<IsUnicode, AnyChild>;
@@ -279,7 +287,7 @@ public: // Property - FileOffset
 public: // Property - FileExtension
 	/* R */ inline WORD FileExtension() const reflect_as(self->nFileExtension);
 public: // Property - File
-	/* W */ inline auto &File(LPTSTR lpstrFile) reflect_to_self(self->lpstrFile = lpstrFile);
+//	/* W */ inline auto &File(const String &strFile) reflect_to_self(self->lpstrFile = lpstrFile);
 	/* W */ inline auto &File(String &strFile) reflect_to_self(self->lpstrFile = strFile, self->nMaxFile = (DWORD)strFile.Length());
 	/* R */ inline const String File() const reflect_as(CString(self->lpstrFile, self->nMaxFile));
 public: // Property - FileMaxLen
@@ -310,8 +318,8 @@ public: // Property - Title
 public: // Property - DefExt
 	/* W */ inline auto &DefExt(LPCTSTR lpstrDefExt) reflect_to_self(self->lpstrDefExt = lpstrDefExt);
 public:
-	inline bool OpenFile() reflect_as(GetOpenFileName(this));
-	inline bool SaveFile() reflect_as(GetSaveFileName(this));
+	inline bool OpenFile() reflect_as(WX::GetOpenFileName(this));
+	inline bool SaveFile() reflect_as(WX::GetSaveFileName(this));
 };
 template<class AnyChild = void>
 using DialogFile = DialogFileX<IsUnicode, AnyChild>;
@@ -369,8 +377,8 @@ public: // Properties
 	/* R */ inline const String FindWhat() reflect_as(CString(self->lpstrFindWhat, self->wFindWhatLen));
 	/* R */ inline const String ReplaceWith() reflect_as(CString(self->lpstrReplaceWith, self->wReplaceWithLen));
 public:
-	inline HWND Find() reflect_as(FindText(this));
-	inline HWND Replace() reflect_as(ReplaceText(this));
+	inline HWND Find() reflect_as(WX::FindText(this));
+	inline HWND Replace() reflect_as(WX::ReplaceText(this));
 };
 template<class AnyChild = void>
 using DialogText = DialogTextX<IsUnicode, AnyChild>;

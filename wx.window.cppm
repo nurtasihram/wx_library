@@ -27,11 +27,7 @@ public:
 public:
 	static inline Atom Find(LPCSTR lpString) reflect_as(WX::FindAtom(lpString));
 	static inline Atom Find(LPCWSTR lpString) reflect_as(WX::FindAtom(lpString));
-	inline void Delete() {
-		if (atom)
-			WX::DeleteAtom(atom);
-		atom = 0;
-	}
+	inline void Delete() reflect_to(if (atom) (WX::DeleteAtom(atom), atom = 0));
 public: // Property - Name
 	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {

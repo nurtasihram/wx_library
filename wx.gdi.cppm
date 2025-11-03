@@ -47,6 +47,7 @@ public:
 public:
 	static inline auto &Attach(BaseHandle &hObj) reflect_as(ref_as<AnyChild>(hObj));
 	static inline const auto &Attach(const BaseHandle &hObj) reflect_as(ref_as<const AnyChild>(hObj));
+	static inline void AutoDelete(BaseHandle &hObj) reflect_to(if (hObj) (WX::DeleteObject(hObj), hObj = O));
 };
 using CGObject = RefAs<GObject>;
 #pragma endregion
@@ -492,7 +493,7 @@ enum_class(SysColor, intptr_t,
 	GradientInactiveCaption = COLOR_GRADIENTINACTIVECAPTION,
 	MenuHiLight             = COLOR_MENUHILIGHT,
 	MenuBar                 = COLOR_MENUBAR);
-enum_class(HatchStyle, int,
+enum_class(HatchStyles, int,
 	Horizontal              = HS_HORIZONTAL,    /* ----- */
 	Vertical                = HS_VERTICAL,      /* ||||| */
 	FDiagonal               = HS_FDIAGONAL,     /* \\\\\ */
@@ -514,11 +515,11 @@ public:
 	Brush(WX::SysColor sc) : super(SysColor(sc)) {}
 	Brush(COLORREF rgb) : super(CreateSolid(rgb)) {}
 	Brush(HBITMAP hbm) : super(CreatePattern(hbm)) {}
-	Brush(HatchStyle hs, COLORREF rgb) : super(CreateHatch(rgb, hs)) {}
+	Brush(HatchStyles hs, COLORREF rgb) : super(CreateHatch(rgb, hs)) {}
 public:
 	static inline Brush CreateSolid(COLORREF rgb)                reflect_as(WX::CreateSolidBrush(rgb));
 	static inline Brush CreatePattern(HBITMAP hbm)               reflect_as(WX::CreatePatternBrush(hbm));
-	static inline Brush CreateHatch(COLORREF rgb, HatchStyle hs) reflect_as(WX::CreateHatchBrush(hs.yield(), rgb));
+	static inline Brush CreateHatch(COLORREF rgb, HatchStyles hs) reflect_as(WX::CreateHatchBrush(hs.yield(), rgb));
 public:
 	static inline Brush White()   reflect_as((HBRUSH)WX::GetStockObject(WHITE_BRUSH));
 	static inline Brush LitGray() reflect_as((HBRUSH)WX::GetStockObject(LTGRAY_BRUSH));
@@ -990,7 +991,6 @@ enum_flags(TextDraw, UINT,
 	DRAWTEXT_1
 	DRAWTEXT_2
 	DRAWTEXT_3);
-
 
 class BaseOf_GDI(DevCap, HDC) {
 public:

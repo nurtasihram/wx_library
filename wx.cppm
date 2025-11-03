@@ -1073,9 +1073,9 @@ class StringBase {
 	using LPTSTR = TCHAR *;
 	using LPCTSTR = const TCHAR *;
 	enum StrFlags : size_t {
-		STR_DEF = 0,
+		STR_REF = 0,
 		STR_READONLY = 1,
-		STR_MOVABLE = 2,
+		STR_MUTABLE = 2,
 		STR_RELEASE = 4
 	};
 	mutable LPTSTR lpsz = O;
@@ -1084,33 +1084,33 @@ class StringBase {
 private:
 	template<class _TCHAR> friend const StringBase<_TCHAR> CString(size_t, const _TCHAR *);
 	template<class _TCHAR> friend const StringBase<_TCHAR> CString(const _TCHAR *, size_t );
-	StringBase(size_t len, UINT flags, LPTSTR lpBuffer) :
+	StringBase(const StringBase &) = delete;
+	StringBase(LPTSTR lpBuffer, size_t len, UINT flags) :
 		lpsz(lpBuffer), Len((UINT)len), Flags(flags) {
 		if (len <= 0 || !lpBuffer) {
 			Len = 0;
 			lpsz = O;
 		}
 	}
-	StringBase(size_t len, LPCTSTR lpString) : StringBase(len, STR_READONLY, const_cast<LPTSTR>(lpString)) {}
+	StringBase(size_t len, LPCTSTR lpString) : StringBase(const_cast<LPTSTR>(lpString), len, STR_READONLY) {}
 public:
 	StringBase() : Len(0), Flags(0) {}
 	StringBase(Null) : Len(0), Flags(0) {}
-	StringBase(const StringBase &) = delete;
-	StringBase(StringBase &str) : StringBase(str.Len, str.Flags, str.lpsz) { str.Len = 0, str.Flags = STR_DEF, str.lpsz = 0; }
-	StringBase(StringBase &&str) : StringBase(str.Len, str.Flags, str.lpsz) { str.Len = 0, str.Flags = STR_DEF, str.lpsz = 0; }
-	explicit StringBase(size_t Len) : lpsz(Alloc(Len)), Len(Len), Flags(STR_MOVABLE | STR_RELEASE) {}
-	StringBase(size_t Len, LPTSTR lpBuffer) : StringBase(Len, STR_MOVABLE | STR_RELEASE, lpBuffer) {}
-	StringBase(TCHAR ch) : lpsz(Alloc(1)), Len(1), Flags(STR_MOVABLE | STR_RELEASE) reflect_to(lpsz[0] = ch);
-	template<size_t len> StringBase(TCHAR(&str)[len]) : StringBase(len - 1, STR_DEF, str) {}
-	template<size_t len> StringBase(const TCHAR(&str)[len]) : lpsz(const_cast<LPTSTR>(str)), Len(len - 1), Flags(STR_READONLY) {}
-	~StringBase() { operator~(); }
+	StringBase(StringBase &&str) : StringBase(str.lpsz, str.Len, str.Flags) { str.lpsz = O, str.Len = 0, str.Flags = STR_REF; }
+	explicit StringBase(size_t Len) : lpsz(Alloc(Len)), Len(Len), Flags(STR_MUTABLE | STR_RELEASE) {}
+	StringBase(size_t Len, LPTSTR lpBuffer) : StringBase(lpBuffer, Len, STR_MUTABLE | STR_RELEASE) {}
+	StringBase(TCHAR ch) : lpsz(Alloc(1)), Len(1), Flags(STR_MUTABLE | STR_RELEASE) reflect_to(lpsz[0] = ch);
+	template<size_t len> StringBase(TCHAR(&str)[len]) : StringBase(str, len - 1, STR_REF) {}
+	template<size_t len> StringBase(const TCHAR(&str)[len]) : StringBase(const_cast<LPTSTR>(str), len - 1, STR_READONLY) {}
+	~StringBase() reflect_to(Free());
 public: // Memories Management
 	static inline LPTSTR Realloc(size_t len, LPTSTR lpsz) {
 		if (!lpsz && len <= 0) return O;
-		if (len <= 0) {
+		if (lpsz && len <= 0) {
 			Free(lpsz);
 			return O;
 		}
+		if (!lpsz) return Alloc(len);
 		return (LPTSTR)realloc(lpsz, (len + 1) * sizeof(TCHAR));
 	}
 	static inline LPTSTR Alloc(size_t len) {
@@ -1120,21 +1120,41 @@ public: // Memories Management
 		ZeroMemory(lpsz, nlen);
 		return lpsz;
 	}
-	static inline void Free(void *lpsz) reflect_to(free(lpsz));
+	static inline void Free(void *lpsz) reflect_to(if (lpsz) free(lpsz));
 	static inline LPTSTR Resize(LPTSTR &lpsz, size_t len) reflect_as(lpsz = Realloc(len, lpsz));
+	static inline void AutoFree(LPTSTR &lpsz) reflect_to(Free(lpsz); lpsz = O);
+	static inline void AutoCopy(LPTSTR &lpsz, const StringBase &str) {
+		Resize(lpsz, str.Length());
+		str.CopyTo(lpsz, str.Length() + 1);
+	}
 public:
-	inline void Trunc() {
-		if (!(Flags & STR_MOVABLE))
+	inline bool IsAlloced() const reflect_as(lpsz && (Flags &STR_RELEASE));
+	inline void Free() {
+		if (IsAlloced()) {
+			Free(lpsz);
+			lpsz = O;
+		}
+		Len = 0;
+	}
+	inline bool IsReadOnly() const reflect_as(Flags & STR_READONLY);
+	inline bool IsMutable() const reflect_as(Flags & STR_MUTABLE);
+	inline void ToMutable() {
+		if (!IsMutable())
 			self = +self;
+	}
+	inline void Shrink() {
 		Len = (UINT)WX::Length(lpsz, Len + 1);
-		lpsz = Realloc(Len, lpsz);
+		if (IsMutable())
+			lpsz = Realloc(Len, lpsz);
 	}
 	inline void Resize(size_t NewLen) {
-		if (!(Flags & STR_MOVABLE))
-			self = +self;
 		if (NewLen <= 0) return;
-		auto OldLen = WX::Length(lpsz, Len + 1);
 		Len = (UINT)NewLen;
+		if (IsReadOnly())
+			return;
+		if (!IsMutable())
+			return;
+		auto OldLen = WX::Length(lpsz, Len + 1);
 		lpsz = Realloc(NewLen, lpsz);
 		if (NewLen < OldLen)
 			lpsz[OldLen] = 0;
@@ -1163,16 +1183,15 @@ public:
 	inline size_t Length() const reflect_as(lpsz ? Len : 0);
 	inline size_t Size() const reflect_as(lpsz ? (Len + 1) * sizeof(TCHAR) : 0);
 public:
+	inline LPTSTR begin() reflect_as(Len ? lpsz : O);
+	inline LPTSTR end() reflect_as(Len &&lpsz ? lpsz + Len : O);
+	inline LPCTSTR begin() const reflect_as(Len ? lpsz : O);
+	inline LPCTSTR end() const reflect_as(Len &&lpsz ? lpsz + Len : O);
+public:
 	inline operator bool() const reflect_as(lpsz &&Len);
 	inline operator LPCTSTR () const reflect_as(Len ? lpsz : O);
 	inline StringBase operator&() reflect_as({ Len, 0, lpsz });
 	inline const StringBase operator&() const reflect_as({ Len, lpsz });
-	inline void operator~() const {
-		if (lpsz && (Flags & STR_RELEASE))
-			Free(lpsz);
-		lpsz = O;
-		Len = 0;
-	}
 	inline LPTSTR operator*() const {
 		if (!lpsz || !Len) return O;
 		auto lpsz = StringBase::Alloc(Len);
@@ -1195,34 +1214,31 @@ public:
 		lpsz[nLen] = '\0';
 		return{ nLen, lpsz };
 	}
-	auto operator=(StringBase &) const = delete;
+public:
 	auto operator=(const StringBase &str) = delete;
+	inline auto &operator=(const StringBase &str) const noexcept {
+		lpsz = str.lpsz;
+		Len = str.Len;
+		Flags = STR_READONLY;
+		retself;
+	}
 	inline auto &operator=(StringBase &&str) noexcept {
-		uintptr_t c;
-		c = Len, Len = str.Len, str.Len = c;
-		c = Flags, Flags = str.Flags, str.Flags = Flags;
-		std::swap(lpsz, str.lpsz);
+		lpsz = str.lpsz, str.lpsz = O;
+		Len = str.Len, str.Len = 0;
+		Flags = str.Flags, str.Flags = STR_REF;
 		retself;
 	}
 	inline auto &operator=(StringBase &str) noexcept {
-		uintptr_t c;
-		c = Len, Len = str.Len, str.Len = c;
-		c = Flags, Flags = str.Flags, str.Flags = Flags;
-		std::swap(lpsz, str.lpsz);
-		retself;
-	}
-	inline auto &operator=(const StringBase &str) const noexcept {
-		uintptr_t c;
-		c = Len, Len = str.Len, str.Len = c;
-		c = Flags, Flags = str.Flags, str.Flags = Flags;
-		std::swap(lpsz, str.lpsz);
+		lpsz = str.lpsz;
+		Len = str.Len;
+		Flags = STR_REF;
 		retself;
 	}
 	inline auto &operator+=(const StringBase &str) {
 		if (!str.lpsz || !str.Len) retself;
 		if (!lpsz || !Len) return self = +str;
 		auto nLen = Len + str.Len;
-		if (!(Flags & STR_MOVABLE) || (Flags & STR_READONLY)) {
+		if (!IsMutable() || IsReadOnly()) {
 			auto lpsz = StringBase::Alloc(Len);
 			CopyMemory(lpsz, this->lpsz, (Len + 1) * sizeof(TCHAR));
 			if (!(Flags & STR_RELEASE))
@@ -1234,22 +1250,6 @@ public:
 		Len = nLen;
 		retself;
 	}
-	//inline StringBase operator+(const StringBase &str) && reflect_as(self += str);
-	//inline StringBase operator+(const StringBase &str) & reflect_as(self + str);
-	//inline StringBase operator+(const StringBase &str) const & {
-	//	if (!str.lpsz || !str.Len) return *this;
-	//	if (!lpsz || Len) return +str;
-	//	auto nLen = Len + str.Len;
-	//	auto lpsz = StringBase::Alloc(nLen);
-	//	CopyMemory(lpsz, this->lpsz, Len * sizeof(TCHAR));
-	//	CopyMemory(lpsz + Len, str.lpsz, (str.Len + 1) * sizeof(TCHAR));
-	//	return{ nLen, lpsz };
-	//}
-public:
-	inline LPTSTR begin() reflect_as(Len ? lpsz : O);
-	inline LPTSTR end() reflect_as(Len &&lpsz ? lpsz + Len : O);
-	inline LPCTSTR begin() const reflect_as(Len ? lpsz : O);
-	inline LPCTSTR end() const reflect_as(Len &&lpsz ? lpsz + Len : O);
 };
 /* Literal operator of String  */
 inline const StringA operator ""_A(LPCSTR lpString, size_t uLen) {

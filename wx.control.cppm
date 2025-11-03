@@ -409,7 +409,7 @@ public:
 	/* R */ inline String TipText(WORD id) const {
 		String str = MaxLenNotice;
 		if (super::Send(SB_GETTIPTEXT, MAKEWPARAM(id, MaxLenNotice + 1), str))
-			return str.Trunc();
+			return str.Shrink();
 		return O;
 	}
 public: 
@@ -1064,7 +1064,7 @@ public:
 	/* R */ inline TCHAR PasswordChar() const reflect_as(super::Send(EM_GETPASSWORDCHAR));
 //public: 
 //	/* W */ inline auto  &CueBanner(LPCTSTR lpString, bool bFocused = false) reflect_to_child(Edit_SetCueBannerTextFocused(self, lpString, bFocused));
-//	/* R */ inline String CueBanner() const assertl_reflect_to(String cbt = MaxLenNotice, Edit_GetCueBannerText(self, cbt, MaxLenNotice + 1), cbt.Trunc());
+//	/* R */ inline String CueBanner() const assertl_reflect_to(String cbt = MaxLenNotice, Edit_GetCueBannerText(self, cbt, MaxLenNotice + 1), cbt.Shrink());
 //public: 
 //	/* W */ inline auto &SearchWeb(bool bSearchWeb) reflect_to_child(Edit_EnableSearchWeb(self, bSearchWeb));
 //public: 
