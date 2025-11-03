@@ -72,13 +72,7 @@ public:
 	//}
 	~SecurityIdentifier() reflect_to(Delete());
 public:
-	inline bool Delete() {
-		if (pSID)
-			if (!LocalFree(pSID))
-				return false;
-		pSID = O;
-		return true;
-	}
+	inline void Delete() reflect_to(Local::AutoFree(pSID));
 public:
 	inline bool EqualDomain(PSID pSID) assertl_reflect_to(BOOL eq, EqualDomainSid(this->pSID, pSID, &eq), eq);
 	inline bool EqualPrefix(PSID pSID) reflect_as(EqualPrefixSid(this->pSID, pSID));
@@ -162,10 +156,9 @@ public:
 	using Permission = AccessPermission;
 	using Inherit = AccessInherit;
 	using Modes = AccessModes;
-
+public:
 	AccessExplicit(Modes mode = Modes::Set) : super{ 0 } reflect_to(this->grfAccessMode = mode.yield());
 	AccessExplicit(const EXPLICIT_ACCESS &ea) : super(ea) {}
-
 public: // Permissions
 	/* W */ inline auto &Permissions(Permission permission) reflect_to_self(this->grfAccessPermissions = permission.yield());
 public: // Inherit
@@ -214,28 +207,28 @@ enum_class(AccessControlEntryFlag, BYTE,
 	FailedAccess                    = FAILED_ACCESS_ACE_FLAG,
 	TrustProtectedFilter            = TRUST_PROTECTED_FILTER_ACE_FLAG);
 using AceFlag = AccessControlEntryFlag;
+struct AccessMask {
+public:
+	WORD SpecificRights;
+	BYTE StandardRights;
+	BYTE AccessSystemAcl : 1;
+private:
+	[[maybe_unused]] BYTE _ : 3;
+public:
+	BYTE GenericAll : 1;
+	BYTE GenericExecute : 1;
+	BYTE GenericWrite : 1;
+	BYTE GenericRead : 1;
+};
 class AccessControlEntry {
 	PACCESS_ALLOWED_ACE pACE = O;
 public:
 	using Types = AceTypes;
 	using Flag = AceFlag;
-	struct AccessMask {
-	public:
-		WORD SpecificRights;
-		BYTE StandardRights;
-		BYTE AccessSystemAcl : 1;
-	private:
-		[[maybe_unused]] BYTE Reserved : 3;
-	public:
-		BYTE GenericAll : 1;
-		BYTE GenericExecute : 1;
-		BYTE GenericWrite : 1;
-		BYTE GenericRead : 1;
-	};
-
+public:
 //	AccessControlEntry(const SecID &sid) : pACE(Local) {}
 	AccessControlEntry(Null) {}
-
+public:
 #pragma region Properties
 public: // Property - Type
 	/* W */ inline auto &Type(Types AceType) reflect_to_self(ref_as<Types>(pACE->Header.AceType = AceType.yield()));
@@ -256,7 +249,7 @@ public: // Property - SecurityIdentifier
 	//}
 	/* R */ inline const SecID &SecurityIdentifier() const reflect_as(*reuse_as<const SecID *>(&pACE->SidStart));
 #pragma endregion
-
+public:
 	inline PACCESS_ALLOWED_ACE operator&() reflect_as(pACE);
 };
 using Ace = AccessControlEntry;
@@ -290,15 +283,13 @@ public:
 		inline Iterator operator++(int) reflect_as({ acl, dwAceIndex++ });
 		inline const Iterator operator++(int) const reflect_as({ acl, dwAceIndex++ });
 	};
-
+public:
 	AccessControlList() {}
 	AccessControlList(Null) {}
 	AccessControlList(AccessControlList &acl) : pACL(&acl) reflect_to(acl.pACL = O);
 	AccessControlList(AccessControlList &&acl) : pACL(&acl) reflect_to(acl.pACL = O);
 	AccessControlList(const AccessControlList &) = delete;
-
 	AccessControlList(std::initializer_list<AccessExplicit> list) assertl(SetEntriesInAcl((ULONG)list.size(), (EXPLICIT_ACCESS *)list.begin(), O, &pACL) == ERROR_SUCCESS);
-
 #pragma region
 	//inline void Add() { AddAce(pACL, ); }
 
@@ -318,11 +309,9 @@ public:
 	//inline void AddResourceAttribute() {}
 	//inline void AddScopedPolicyID() { }
 #pragma endregion
-
 	//inline auto FindFirstFree() {
 	//	FindFirstFreeAce(pACL, );
 	//}
-
 #pragma region Properties
 public: // Property - Count
 	/* R */ inline DWORD Count() const assertl_reflect_to(ACL_SIZE_INFORMATION asi, GetAclInformation(pACL, &asi, sizeof(asi), AclSizeInformation), asi.AceCount);
@@ -338,17 +327,17 @@ public: // Property - Revision
 	/* W */ inline auto &Revision(DWORD dwRevision) assertl_reflect_to_self(ACL_REVISION_INFORMATION ari = { dwRevision }, GetAclInformation(pACL, &ari, sizeof(ACL_REVISION_INFORMATION), AclRevisionInformation));
 	/* R */ inline DWORD Revision() const assertl_reflect_to(ACL_REVISION_INFORMATION ari, GetAclInformation(pACL, &ari, sizeof(ACL_REVISION_INFORMATION), AclRevisionInformation), ari.AclRevision);
 #pragma endregion
-
-	inline Iterator operator[](DWORD dwAceIndex) reflect_as({ self, dwAceIndex });
-	inline const Iterator operator[](DWORD dwAceIndex) const reflect_as({ self, dwAceIndex });
-	
+public:
 	inline Iterator begin() reflect_as({ self, 0 });
 	inline const Iterator begin() const reflect_as({ self, 0 });
 	inline Iterator end() reflect_as({ self, Count() });
 	inline const Iterator end() const reflect_as({ self, Count() });
-
+public:
 	inline PACL &operator&() const reflect_as(pACL);
 	inline operator bool() const reflect_as(pACL ? IsValidAcl(pACL) : false);
+	inline Iterator operator[](DWORD dwAceIndex) reflect_as({ self, dwAceIndex });
+	inline const Iterator operator[](DWORD dwAceIndex) const reflect_as({ self, dwAceIndex });
+
 };
 using AceList = AccessControlList;
 #pragma endregion
@@ -499,8 +488,8 @@ public:
 	SecurityDescriptor(const SecurityDescriptor &sd) = delete;
 	SecurityDescriptor(LPCSTR lpszDesc) assertl_reflect_to(ULONG size, ConvertStringSecurityDescriptorToSecurityDescriptorA(lpszDesc, SDDL_REVISION_1, &pSD, &size));
 	SecurityDescriptor(LPCWSTR lpszDesc) assertl_reflect_to(ULONG size, ConvertStringSecurityDescriptorToSecurityDescriptorW(lpszDesc, SDDL_REVISION_1, &pSD, &size));
-
-	inline void Delete() reflect_to(Local::Free(pSD); pSD = O);
+public:
+	inline void Delete() reflect_to(Local::AutoFree(pSD));
 	inline SecurityDescriptor operator+() const {
 		if (!*this) return O;
 		auto size = Size();
@@ -508,13 +497,11 @@ public:
 		CopyMemory(npSD, pSD, size);
 		return npSD;
 	}
-
 	//inline SecurityDescriptor RelativeSelf() {
 	//	//if (!*this) return O;
 	//	// MakeSelfRelativeSD(pSD, )
 	//	return O;
 	//}
-
 #pragma region Properties
 public: // Property - Size
 	/* R */ inline DWORD Size() const assertl_reflect_as(DWORD len = GetSecurityDescriptorLength(pSD), len);
@@ -540,7 +527,7 @@ public: // Property - Owner
 	/* W */ inline xSID<false> Owner(PSID pSID) reflect_as({ self, pSID });
 	/* R */ inline const xSID<false> Owner() const reflect_to_self();
 #pragma endregion
-
+public:
 	inline PSECURITY_DESCRIPTOR operator&() const reflect_as(pSD);
 	inline operator bool() const reflect_as(pSD ? IsValidSecurityDescriptor(pSD) : false);
 };
@@ -557,14 +544,15 @@ public:
 	SecurityAttributes(const SecurityAttributes &) = delete;
 	SecurityAttributes(const SECURITY_ATTRIBUTES &sa) : SECURITY_ATTRIBUTES(sa) {}
 	constexpr SecurityAttributes(bool bInherit, PSECURITY_DESCRIPTOR pSD = O) : SECURITY_ATTRIBUTES{ sizeof(*this), pSD, bInherit } {}
-
+#pragma region Properties
 public: // Property - Inherit
 	/* W */ inline auto &Inherit(bool bInheritHandle) reflect_to_self(this->bInheritHandle = bInheritHandle);
 	/* R */ inline bool  Inherit() const reflect_as(this->bInheritHandle);
 public: // Property - Descriptor
 	/* W */ inline auto &Descriptor(const SecDesc &sd) reflect_to_self(this->lpSecurityDescriptor = &sd);
 	/* R */ inline SecDesc &Descriptor() const reflect_as(ref_as<SecDesc>(this->lpSecurityDescriptor));
-
+#pragma endregion
+public:
 	inline PSECURITY_ATTRIBUTES operator&() const reflect_as(reuse_as<PSECURITY_ATTRIBUTES>(this));
 };
 using SecAttr = SecurityAttributes;

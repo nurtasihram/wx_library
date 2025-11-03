@@ -6,7 +6,7 @@ module;
 #define WX_CPPM_CONTROL
 #include "wx_control"
 
-export module wx_control;
+export module wx.control;
 
 import wx;
 import wx.proto;
@@ -90,12 +90,11 @@ protected:
 	static WndProc DefProc;
 	struct xClass : public super::XClass {
 		xClass() {
-			this->Name(AnyChild::CtlClassName);
-			this->GetInfo();
+			//this->Name(AnyChild::CtlClassName);
+			//this->GetInfo();
 			this->Name(AnyChild::CClassName());
-			DefProc = this->lpfnWndProc;
-			this->lpfnWndProc = AnyChild::MainProc;
-			
+			//DefProc = this->lpfnWndProc;
+			//this->lpfnWndProc = AnyChild::MainProc;
 		}
 	};
 public:
@@ -406,12 +405,12 @@ public:
 	}
 public: 
 	/* W */ inline auto  &TipText(WORD id, LPCTSTR tip) reflect_to_self(super::Send(SB_SETTIPTEXT, id, (LPARAM)(LPCTSTR)tip));
-	/* R */ inline String TipText(WORD id) const {
-		String str = MaxLenNotice;
-		if (super::Send(SB_GETTIPTEXT, MAKEWPARAM(id, MaxLenNotice + 1), str))
-			return str.Trunc();
-		return O;
-	}
+	///* R */ inline String TipText(WORD id) const {
+	//	String str = MaxLenNotice;
+	//	if (super::Send(SB_GETTIPTEXT, MAKEWPARAM(id, MaxLenNotice + 1), str))
+	//		return str.Shrink();
+	//	return O;
+	//}
 public: 
 	/* W */ inline auto &UnicodeFormat(bool bUnicode) reflect_to_self(super::Send(SB_SETUNICODEFORMAT, bUnicode));
 	/* R */ inline bool  UnicodeFormat() const reflect_as(super::Send(SB_GETUNICODEFORMAT));
@@ -605,9 +604,9 @@ public:
 public:
 	ListViewBase() {}
 public:
-	inline void InsertItem(const ListViewItem &lvi) assertl_reflect_as(ListView_InsertItem(self, &lvi));
-	inline void DeleteItem(int i) assertl_reflect_as(ListView_DeleteItem(self, i));
-	inline void DeleteAllItem()  assertl_reflect_as(ListView_DeleteAllItems(self));
+	//inline void InsertItem(const ListViewItem &lvi) assertl_reflect_as(ListView_InsertItem(self, &lvi));
+	//inline void DeleteItem(int i) assertl_reflect_as(ListView_DeleteItem(self, i));
+	//inline void DeleteAllItem()  assertl_reflect_as(ListView_DeleteAllItems(self));
 
 #pragma region Properties
 public: 
@@ -851,11 +850,8 @@ public:
 	using super = ControlCommon<Child>;
 	using Style = ButtonStyle;
 	using State = ButtonState;
-	using BSplitInfo = ButtonSplitInfo;
-	using BImageList = ButtonImageList;
 public:
 	ButtonBase() {}
-
 public:
 	void Click() const reflect_to(super::Send(BM_CLICK));
 
@@ -878,7 +874,7 @@ public: // Property - TextMargin
 	/* R */ inline LRect TextMargin() const reflect_to(LRect margin, super::Send(BCM_GETTEXTMARGIN, 0, &margin), margin);
 public: // Property - SplitInfo
 	/* W */ inline auto&SplitInfo(const BUTTON_SPLITINFO &bsi) reflect_to_child(super::Send(BCM_SETSPLITINFO, 0, &bsi));
-	/* R */ inline auto SplitInfo() const reflect_to(BSplitInfo bsi, super::Send(BCM_GETSPLITINFO, 0, &bsi), bsi);
+	/* R */ inline auto SplitInfo() const reflect_to(ButtonSplitInfo bsi, super::Send(BCM_GETSPLITINFO, 0, &bsi), bsi);
 public: // Property - Shield
 	/* W */ inline auto &Shield(bool bShield) reflect_to_self(super::Send(BCM_SETSHIELD, 0, bShield));
 public: // Property - DropdownState
@@ -890,8 +886,8 @@ public: // Property - Bitmap
 	/* W */ inline auto &Bitmap(HBITMAP hBitmap) reflect_to_child(super::Send(BM_SETIMAGE, IMAGE_BITMAP, (LPARAM)hBitmap));
 	/* R */ inline CBitmap Bitmap() const reflect_as((HBITMAP)super::Send(BM_GETIMAGE, IMAGE_BITMAP));
 public: // Property - ImageList
-	/* W */ inline auto &ImageList(const BUTTON_IMAGELIST &iml) reflect_to(child(super::Send(BCM_SETIMAGELIST, 0, &iml)));
-	/* R */ inline auto ImageList() const assertl_reflect_to(BImageList iml, Button_GetImageList(self, &iml), iml);
+	/* W */ inline auto &ImageList(const BUTTON_IMAGELIST &iml) reflect_to_child(super::Send(BCM_SETIMAGELIST, 0, &iml));
+	/* R */ inline auto ImageList() const assertl_reflect_to(ButtonImageList iml, super::Send(BCM_GETTEXTMARGIN, 0, &iml), iml);
 public: // Property - CheckStates
 	/* W */ inline auto &CheckStates(State s) reflect_to_self(super::Send(BM_SETCHECK, s.yield()));
 	/* R */ inline State CheckStates() const reflect_as(super::template Send<State>(BM_GETCHECK));
@@ -965,7 +961,7 @@ public: // Property - ImageCursor
 	/* R */ inline CCursor ImageCursor() const reflect_as(super::template Send<HCURSOR>(STM_GETIMAGE, IMAGE_CURSOR));
 public: // Property - ImageEnhMeta
 	/* W */ inline auto &ImageEnhMeta(HENHMETAFILE hMeta) reflect_to_child(super::Send(STM_SETIMAGE, IMAGE_ENHMETAFILE, hMeta));
-	/* R */ inline CEnhMeta ImageEnhMeta() const reflect_as(super::template Send<HENHMETAFILE>(STM_GETIMAGE, IMAGE_ENHMETAFILE));
+//	/* R */ inline CEnhMeta ImageEnhMeta() const reflect_as(super::template Send<HENHMETAFILE>(STM_GETIMAGE, IMAGE_ENHMETAFILE));
 #pragma endregion
 };
 using Static = StaticBase<void>;
@@ -1064,7 +1060,7 @@ public:
 	/* R */ inline TCHAR PasswordChar() const reflect_as(super::Send(EM_GETPASSWORDCHAR));
 //public: 
 //	/* W */ inline auto  &CueBanner(LPCTSTR lpString, bool bFocused = false) reflect_to_child(Edit_SetCueBannerTextFocused(self, lpString, bFocused));
-//	/* R */ inline String CueBanner() const assertl_reflect_to(String cbt = MaxLenNotice, Edit_GetCueBannerText(self, cbt, MaxLenNotice + 1), cbt.Trunc());
+//	/* R */ inline String CueBanner() const assertl_reflect_to(String cbt = MaxLenNotice, Edit_GetCueBannerText(self, cbt, MaxLenNotice + 1), cbt.Shrink());
 //public: 
 //	/* W */ inline auto &SearchWeb(bool bSearchWeb) reflect_to_child(Edit_EnableSearchWeb(self, bSearchWeb));
 //public: 
@@ -1276,13 +1272,6 @@ enum_flags(ScrollBarStyle, CCStyle,
 	SizeBoxBottomRightAlign = SBS_SIZEBOXBOTTOMRIGHTALIGN,
 	SizeBox                 = SBS_SIZEBOX,
 	SizeGrip                = SBS_SIZEGRIP);
-class ScrollInfo : public RefStruct<SCROLLINFO> {
-public:
-	using super = RefStruct<SCROLLINFO>;
-public:
-	ScrollInfo() reflect_to(self->cbSize = sizeof(SCROLLINFO));
-public:
-};
 class ScrollBarInfo : public RefStruct<SCROLLBARINFO> {
 public:
 	using super = RefStruct<SCROLLBARINFO>;

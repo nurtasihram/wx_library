@@ -11,6 +11,7 @@ import wx.type;
 
 #pragma region WX Macros
 #define child (this->child_())
+#define pchild (&this->child_())
 #define retchild return child
 #define reflect_to_child(...) { __VA_ARGS__; retchild; }
 

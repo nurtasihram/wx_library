@@ -12,6 +12,29 @@ import wx.proto;
 
 export namespace WX {
 
+enum_class(ResourceTypes, LPTSTR,
+	Cursor        = RT_CURSOR,
+	Bitmap        = RT_BITMAP,
+	Icon          = RT_ICON,
+	Menu          = RT_MENU,
+	Dialog        = RT_DIALOG,
+	String        = RT_STRING,
+	FontDir       = RT_FONTDIR,
+	Font          = RT_FONT,
+	Accelerator   = RT_ACCELERATOR,
+	RCDATA        = RT_RCDATA,
+	MessageTable  = RT_MESSAGETABLE,
+	GroupCursor   = RT_GROUP_CURSOR,
+	GroupIcon     = RT_GROUP_ICON,
+	Version       = RT_VERSION,
+	DlgInclude    = RT_DLGINCLUDE,
+	PlugPlay      = RT_PLUGPLAY,
+	VXD           = RT_VXD,
+	AniCursor     = RT_ANICURSOR,
+	AniIcon       = RT_ANIICON,
+	HTML          = RT_HTML,
+	Manifest      = RT_MANIFEST);
+
 #pragma region Icon
 class IconInfo : public RefStruct<ICONINFO> {
 public:
@@ -20,10 +43,8 @@ public:
 	IconInfo(bool fIcon = true) reflect_to(self->fIcon = fIcon);
 	IconInfo(const ICONINFO &i) : super(i) {}
 	~IconInfo() {
-		if (self->hbmMask)
-			Bitmap::Attach(self->hbmMask).Delete();
-		if (self->hbmColor)
-			Bitmap::Attach(self->hbmColor).Delete();
+		Bitmap::AutoDelete(self->hbmMask);
+		Bitmap::AutoDelete(self->hbmColor);
 	}
 public: // Property - Hotspot
 	/* W */ inline auto &Hotspot(LPoint s) reflect_to_self(self->xHotspot = s.x, self->yHotspot = s.y);
@@ -46,10 +67,8 @@ public:
 	IconInfoExX() reflect_to(self->cbSize = sizeof(self); self->fIcon = true);
 	IconInfoExX(const ICONINFOEX &i) : super(i) {}
 	~IconInfoExX() {
-		if (self->hbmMask)
-			Bitmap::Attach(self->hbmMask).Delete();
-		if (self->hbmColor)
-			Bitmap::Attach(self->hbmColor).Delete();
+		Bitmap::AutoDelete(self->hbmMask);
+		Bitmap::AutoDelete(self->hbmColor);
 	}
 public: // Property - Hotspot
 	/* W */ inline auto &Hotspot(LSize s) reflect_to_self(self->xHotspot = s.cx, self->yHotspot = s.cy);

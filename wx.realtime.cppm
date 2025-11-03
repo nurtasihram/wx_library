@@ -317,19 +317,19 @@ using Thread = ThreadBase<>;
 using CThread = RefAs<Thread>;
 template<>
 class BaseOf_Waitable(ThreadBase<>) {
+	friend class Process;
 public:
 	using super = WaitableBase<ThreadBase<>>;
 	using Access = ThreadAccess;
 protected:
 	INNER_USE(Thread);
-	friend class Process;
 	ThreadBase(HANDLE h) : super(h) {}
 	ThreadBase(const ThreadBase &t) : super(t.hObject) reflect_to(t.hObject = O);
 public:
 	ThreadBase() {}
 	ThreadBase(Null) {}
-	ThreadBase(ThreadBase &t) : super(t.hObject) reflect_to(t.hObject = O);
-	ThreadBase(ThreadBase &&t) : super(t.hObject) reflect_to(t.hObject = O);
+	ThreadBase(ThreadBase &t) : super(t.hObject) {}
+	ThreadBase(ThreadBase &&t) : super(t.hObject) {}
 public:
 	template<class AnyChild = void>
 	class CreateStruct : public ChainExtender<CreateStruct<AnyChild>, AnyChild> {
@@ -343,12 +343,13 @@ public:
 		CreateStruct(LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter) : lpStartAddress(lpStartAddress), lpParameter(lpParameter) {}
 		CreateStruct(const CreateStruct &) = default;
 	public:
+		inline auto &Param(LPVOID lpParameter) reflect_to_child(this->lpParameter = lpParameter);
 		inline auto &Security(LPSECURITY_ATTRIBUTES lpThreadAttributes) reflect_to_child(this->lpThreadAttributes = lpThreadAttributes);
 		inline auto &StackSize(size_t dwStackSize) reflect_to_child(this->dwStackSize = dwStackSize, this->dwCreationFlags &= ~STACK_SIZE_PARAM_IS_A_RESERVATION);
 		inline auto &Suspend(bool bSuspend = true) reflect_to_child(this->dwCreationFlags = bSuspend ? (this->dwCreationFlags | CREATE_SUSPENDED) : (this->dwCreationFlags & ~CREATE_SUSPENDED));
 	public:
-		template<class _Child>
-		inline ThreadBase<_Child> Create() reflect_as(WX::CreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, O));
+		template<class Child>
+		inline RefAs<ThreadBase<Child>> Create() reflect_as(WX::CreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, O));
 	};
 	static inline CreateStruct<> Create(LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter = O) reflect_as({ lpStartAddress, lpParameter });
 	class OpenStruct {
@@ -399,73 +400,13 @@ public:
 template<class AnyChild>
 class ThreadBase : public Thread,
 	public ChainExtender<ThreadBase<AnyChild>, AnyChild> {
+	friend class ThreadBase<>;
 public:
 	using super = Thread;
-protected:
-	friend class ThreadBase<>;
+	using Child = Chain<ThreadBase, AnyChild>;
 	using ChainExtender<ThreadBase<AnyChild>, AnyChild>::child_;
-	static DWORD WINAPI Proc(LPVOID lpThis) {
-		auto pThis = static_cast<ThreadBase *>(lpThis);
-	retry:
-		try {
-			return pThis->Run();
-		} catch (Exception err) {
-			if (pThis->Catch(err))
-				goto retry;
-			return pThis->Final();
-		}
-		return -2; // unreachable
-	}
 protected:
-	use_member(OnRun);
-	inline DWORD Run() {
-		static_assert(member_OnRun_of<AnyChild>::is_addressable,
-					  "Member OnRun uncallable, unexisted or undefined");
-		if constexpr (member_OnRun_of<AnyChild>::template compatible_to<DWORD()>)
-			return child.OnRun();
-		else {
-			static_assert(member_OnRun_of<AnyChild>::template compatible_to<void()>,
-						  "Member OnRun must be compatible to DWORD() or void()");
-			return (child.OnRun(), 0);
-		}
-	}
-	use_member(OnCatch);
-	inline wx_answer Catch(const Exception &err) {
-		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Exception)>)
-			return child.OnCatch(err);
-		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
-			return child.OnCatch();
-		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Exception)>)
-			return (child.OnCatch(err), false);
-		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
-			return (child.OnCatch(), false);
-		else {
-			static_assert(!member_OnCatch_of<AnyChild>::is_addressable,
-						  "Member OnCatch must be compatible as wx_answer(Exception), wx_answer(), void(Exception) or void()");
-			switch (MsgBox(Cats(T("Thread[PID:"), ID(), T("] error")), err.toString())) {
-				case IDIGNORE:
-					wx_answer_ignore;
-				case IDRETRY:
-					wx_answer_retry;
-				case IDABORT:
-					break;
-			}
-			wx_answer_abort(err);
-		}
-	}
-	use_member(OnFinal);
-	inline DWORD Final() {
-		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<DWORD()>)
-			return child.OnFinal();
-		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
-			return (child.OnFinal(), -1);
-		else {
-			static_assert(!member_OnFinal_of<AnyChild>::is_addressable,
-						  "Member OnFinal must be compatible to DWORD() or void()");
-			return -3;
-		}
-	}
-protected:
+	INNER_USE(ThreadBase);
 	ThreadBase(HANDLE h) : super(h) {}
 	ThreadBase(const ThreadBase &t) : super(t) {}
 public:
@@ -479,17 +420,82 @@ public:
 		using super = Thread::CreateStruct<CreateStruct>;
 	protected:
 		friend class ThreadBase;
-		ThreadBase &_this;
-		CreateStruct(ThreadBase & _this) : super(Proc, &_this), _this(_this) {}
+		Child *pChild;
+		CreateStruct(Child &c) : super(_ThrProc, &c), pChild(&c) {}
 	public:
-		inline bool Create() reflect_as(this->_this = super::template Create<AnyChild>());
-		inline operator bool() reflect_as(this->_this.StillActive() ? false : Create());
+		~CreateStruct() reflect_to(AutoCreate());
+	public:
+		inline void AutoCreate() {
+			if (!*pChild) 
+				(*(ThreadBase *)pChild).hObject = super::template Create<AnyChild>();
+		}
+	public: // Remove properties
+		inline auto &Param(LPVOID) = delete;
 	};
-	inline CreateStruct Create() reflect_to_self();
-protected:
-	inline auto &operator=(ThreadBase &t) reflect_to_child(std::swap(this->hObject, t.hObject));
-	inline auto &operator=(ThreadBase &&t) reflect_to_child(std::swap(this->hObject, t.hObject));
-	inline auto &operator=(const ThreadBase &t) const reflect_to_child(std::swap(this->hObject, t.hObject));
+	inline CreateStruct Create() reflect_to_child();
+protected: // Thread Procedure
+	use_member(OnRun);
+	static DWORD WINAPI _ThrProc(LPVOID lpChild) {
+		auto pChild = static_cast<Child *>(lpChild);
+	retry:
+		try {
+			misdef_assert(member_OnRun_of<AnyChild>::is_addressable,
+						  "Member OnRun uncallable, unexisted or undefined");
+			if constexpr (member_OnRun_of<AnyChild>::template compatible_to<DWORD()>)
+				reflect_as(pChild->OnRun())
+			else {
+				misdef_assert(member_OnRun_of<AnyChild>::template compatible_to<void()>,
+							  "Member OnRun must be compatible to DWORD() or void()");
+				reflect_as((pChild->OnRun(), 0L))
+			}
+		} catch (Exception err) {
+			if (Catch(pChild, err))
+				goto retry;
+			return Final(pChild, err);
+		}
+		return -2; // unreachable
+	}
+protected: // Thread Procedure Exception System
+	use_member(OnCatch);
+	static inline wx_answer Catch(Child *pChild, const Exception &err) {
+		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Exception)>)
+			reflect_as(pChild->OnCatch(err))
+		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
+			reflect_as(pChild->OnCatch())
+		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Exception)>)
+			reflect_as((pChild->OnCatch(err), false))
+		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
+			reflect_as((pChild->OnCatch(), false))
+		else {
+			misdef_assert(!member_OnCatch_of<AnyChild>::is_addressable,
+						  "Member OnCatch must be compatible to wx_answer(Exception), wx_answer(), void(Exception) or void()");
+			switch (MsgBox(Cats(T("Thread[PID:"), (*(ThreadBase *)pChild).ID(), T("] error")), err.toString())) {
+				case IDIGNORE:
+					wx_answer_ignore;
+				case IDRETRY:
+					wx_answer_retry;
+				case IDABORT:
+					break;
+			}
+			wx_answer_abort(err);
+		}
+	}
+	use_member(OnFinal);
+	static inline DWORD Final(Child *pChild, const Exception &err) {
+		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<DWORD(Exception)>)
+			reflect_as(pChild->OnFinal(err))
+		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<DWORD()>)
+			reflect_as(pChild->OnFinal())
+		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void(Exception)>)
+			reflect_as((pChild->OnFinal(err), -1))
+		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
+			reflect_as((pChild->OnFinal(), -1))
+		else {
+			misdef_assert(!member_OnFinal_of<AnyChild>::is_addressable,
+						  "Member OnFinal must be compatible to DWORD(Exception), DWORD(), void(Exception), void()");
+			reflect_as(-3)
+		}
+	}
 };
 class BaseOf_Thread(LThread) {
 	SFINAE_Thread(LThread);
@@ -504,15 +510,17 @@ protected:
 		InlineStartClosure(const AnyCallable &f) : f(f) {}
 		DWORD operator()() override {
 			if constexpr (static_compatible<AnyCallable, DWORD()>)
-				return f();
+				reflect_as(f())
 			else {
-				static_assert(static_compatible<AnyCallable, void()>, "Error uncompatible");
-				return (f(), 0L);
+				misdef_assert((static_compatible<AnyCallable, void()>),
+							  "Lambda closure must be compatible to DWORD() or void()");
+				reflect_as((f(), 0L))
 			}
 		}
 	};
 	StartClosure *lpStart = O;
 	inline DWORD OnRun() reflect_as((*lpStart)());
+#pragma region Thread Procedure Exception System
 protected:
 	struct ExceptionClosure {
 		virtual ~ExceptionClosure() {}
@@ -524,14 +532,15 @@ protected:
 		InlineExceptionClosure(const AnyCatch &lOnCatch) : lOnCatch(lOnCatch) {}
 		bool OnCatch(const Exception &err) override {
 			if constexpr (static_compatible<AnyCatch, wx_answer(Exception)>)
-				return lOnCatch(err);
+				reflect_as(lOnCatch(err))
 			elif constexpr (static_compatible<AnyCatch, wx_answer()>)
-				return lOnCatch();
+				reflect_as(lOnCatch())
 			elif constexpr (static_compatible<AnyCatch, void(Exception)>)
-				return (lOnCatch(err), false);
+				reflect_as((lOnCatch(err), false))
 			else {
-				static_assert(static_compatible<AnyCatch, void()>, "OnCatch uncompatible");
-				return (lOnCatch(err), false);
+				misdef_assert((static_compatible<AnyCatch, void()>),
+							  "Member OnCatch must be compatible to wx_answer(Exception), wx_answer(), void(Exception) or void()");
+				reflect_as((lOnCatch(err), false))
 			}
 		}
 	};
@@ -540,6 +549,7 @@ protected:
 public:
 	template<class AnyCatch>
 	void SetOnCatch(const AnyCatch &Catch) reflect_to(lpException = new InlineExceptionClosure<AnyCatch>(Catch));
+#pragma endregion
 public:
 	template<class AnyCallable>
 	LThread(const AnyCallable &OnRun) : lpStart(new InlineStartClosure<AnyCallable>(OnRun)) {}
@@ -675,7 +685,7 @@ public: // Property - Entries
 		std::vector<String> list(count);
 		auto lpEnv = this->lpEnv;
 		for (const String &e : list)
-			lpEnv += (e = CString(lpEnv, v)).Length() + 1;
+			lpEnv += (e = CString(lpEnv, MaxLen)).Length() + 1;
 		return list;
 	}
 public: // Property - Variables
@@ -887,11 +897,7 @@ public:
 	public:
 		CreateStruct(const CreateStruct &cs) { *this = cs, cs.lpCommandLine = O; }
 		CreateStruct(LPCTSTR lpApplicationName, const String &Cmdl) : lpApplicationName(lpApplicationName), lpCommandLine(*Cmdl) {}
-		~CreateStruct() {
-			if (lpCommandLine)
-				String::Free(lpCommandLine),
-				lpCommandLine = O;
-		}
+		~CreateStruct() reflect_to(String::AutoFree(lpCommandLine));
 	public:
 		inline auto &Security(LPSECURITY_ATTRIBUTES lpProcessAttributes) reflect_to_self(this->lpProcessAttributes = lpProcessAttributes);
 		inline auto &SecurityThread(LPSECURITY_ATTRIBUTES lpThreadAttributes) reflect_to_self(this->lpThreadAttributes = lpThreadAttributes);

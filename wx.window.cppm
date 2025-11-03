@@ -1,8 +1,10 @@
 module;
 
 #include <typeinfo>
+
 #define WX_CPPM_WINDOW
 #include "wx_window"
+#include "wx_realtime"
 
 export module wx.window;
 
@@ -27,11 +29,7 @@ public:
 public:
 	static inline Atom Find(LPCSTR lpString) reflect_as(WX::FindAtom(lpString));
 	static inline Atom Find(LPCWSTR lpString) reflect_as(WX::FindAtom(lpString));
-	inline void Delete() {
-		if (atom)
-			WX::DeleteAtom(atom);
-		atom = 0;
-	}
+	inline void Delete() reflect_to(if (atom) (WX::DeleteAtom(atom), atom = 0));
 public: // Property - Name
 	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
@@ -555,21 +553,6 @@ public:
 };
 using TME = TrackMouseEventBox;
 
-class PaintStruct : public RefStruct<PAINTSTRUCT> {
-public:
-	using super = RefStruct<PAINTSTRUCT>;
-public:
-	PaintStruct() {}
-	PaintStruct(const PAINTSTRUCT &ps) : super(ps) {}
-public: // Property - DC
-	/* R */ inline CDC DC() reflect_as(self->hdc);
-public: // Property - Erase
-	/* W */ inline auto&Erase(bool fErase) reflect_to_self(self->fErase = fErase);
-	/* R */ inline bool Erase() const reflect_as(self->fErase);
-public: // Property - Rect
-	/* W */ inline auto&Rect(LRect rcPaint) reflect_to_self(self->rcPaint = rcPaint);
-	/* R */ inline LRect Rect() const reflect_as(self->rcPaint);
-};
 #pragma endregion
 
 #pragma region WindowClass
@@ -630,9 +613,10 @@ public: // Property - Cursor
 public: // Property - Background
 	/* W */ inline auto&Background(CBrush brush) reflect_to_child(self->hbrBackground = brush);
 	/* R */ inline CBrush Background() const reflect_as(self->hbrBackground);
+public: // Property - Menu
+	/* W */ inline auto&Menu(LPCTSTR lpszMenuName) reflect_to_child(self->lpszMenuName = lpszMenuName);
+	/* W */ inline auto&Menu(WORD wID) reflect_to_child(self->lpszMenuName = (LPCTSTR)MAKEINTRESOURCE(wID));
 public: // Property - MenuName
-	/* W */ inline auto&MenuName(LPCTSTR lpszMenuName) reflect_to_child(self->lpszMenuName = lpszMenuName);
-	/* W */ inline auto&MenuName(WORD wID) reflect_to_child(self->lpszMenuName = (LPCTSTR)MAKEINTRESOURCE(wID));
 	template<size_t MaxLen = MaxLenPath>
 	/* R */ inline const String MenuName() const reflect_as(CString(self->lpszMenuName, MaxLen));
 public: // Property - Name
@@ -692,6 +676,8 @@ using WindowClassExW = WindowClassExX<true>;
 template<bool IsUnicode, class Style = WStyle, class StyleEx = WStyleEx>
 class CreateStructX : public RefStruct<switch_structx(CREATESTRUCT)> {
 	using_structx(CREATESTRUCT);
+	using_structx(WNDCLASS);
+	using_structx(WNDCLASSEX);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
 public:
@@ -702,7 +688,7 @@ public:
 public: // Property - Param
 	/* W */ inline auto&Param(LPVOID lpCreateParams) reflect_to_self(self->lpCreateParams = lpCreateParams);
 	template<class AnyType = void>
-	/* R */ inline AnyType *Param() reflect_as((AnyType *)self->lpCreateParams);
+	/* R */ inline AnyType *Param() const reflect_as((AnyType *)self->lpCreateParams);
 public: // Property - Module
 	/* W */ inline auto   &Module(HINSTANCE hInstance) reflect_to_self(self->hInstance = hInstance);
 	/* R */ inline CModule Module() const reflect_as(self->hInstance);
@@ -721,9 +707,12 @@ public: // Property - Styles
 public: // Property - Caption
 	/* W */ inline auto  &Caption(LPCTSTR name) reflect_to_self(self->lpszName = name);
 	/* R */ inline String Caption() const reflect_as(CString(self->lpszName, MaxLenTitle));
+public: // Property - Class
+	/* W */ inline auto&Class(LPCTSTR lpszClassName) reflect_to_self(self->lpszClass = lpszClassName);
+	/* W */ inline auto&Class(ATOM classAtom) reflect_to_self(self->lpszClass = (LPCTSTR)MAKEINTRESOURCE(classAtom));
+	/* W */ inline auto&Class(const WNDCLASS &wc) reflect_to_self(self->lpszClass = wc.lpszClassName);
 public: // Property - ClassName
-	/* W */ inline auto  &ClassName(LPCTSTR lpszClassName) reflect_to_self(self->lpszClass = lpszClassName);
-	/* W */ inline auto  &ClassName(ATOM classAtom) reflect_to_self(self->lpszClass = (LPCTSTR)MAKEINTRESOURCE(classAtom));
+	/* W */ inline auto &ClassName(LPCTSTR lpszClassName) reflect_to_self(self->lpszClass = lpszClassName);
 	template<size_t MaxLen = MaxLenClass>
 	/* R */ inline String ClassName() const {
 		if (!self->lpszClass)
@@ -732,7 +721,8 @@ public: // Property - ClassName
 			return format("#%d", (ATOM)(ULONG_PTR)self->lpszClass);
 		return CString(self->lpszClass, MaxLen);
 	}
-	/* R */ inline ATOM   ClassAtom() const reflect_as(IS_INTRESOURCE(self->lpszClass) ? (ATOM)(ULONG_PTR)self->lpszClass : 0);
+public: // Property - ClassAtom
+	/* R */ inline ATOM ClassAtom() const reflect_as(IS_INTRESOURCE(self->lpszClass) ? (ATOM)(ULONG_PTR)self->lpszClass : 0);
 public: // Property - StylesEx
 	/* W */ inline auto   &StylesEx(StyleEx dwExStyle) reflect_to_self(self->dwExStyle = dwExStyle.yield());
 	/* R */ inline StyleEx StylesEx() const reflect_as(ref_as<StyleEx>(self->dwExStyle));
@@ -772,6 +762,8 @@ using CreateStructW = CreateStructX<true>;
 #pragma endregion
 
 #pragma region WindowBase
+
+#pragma region Misc
 class LayeredDisplayAffinity {
 	template<class>
 	friend class WindowBase;
@@ -791,9 +783,9 @@ public: // Property - Alpha
 };
 template<class TCHAR>
 class WindowIProps {
-	using LPCTSTR = const TCHAR *;
 	template<class>
 	friend class WindowBase;
+	using LPCTSTR = const TCHAR *;
 	mutable HWND hWnd;
 	mutable LPCTSTR lpString;
 private:
@@ -838,11 +830,11 @@ public:
 			};
 			return WX::EnumProps(hWnd, _EnumPropA, (LPARAM)std::addressof(fnEnumProps));
 		} else {
-			static_assert(static_compatible<AnyFunc, void(HWND, LPWSTR, HANDLE)>,
-						  "Invalid function type for EnumProp");
+			misuse_assert((static_compatible<AnyFunc, void(HWND, LPWSTR, HANDLE)>),
+						  "Enumeration function must compatible to bool(HWND, LPTSTR, HANDLE) or void(HWND, LPTSTR, HANDLE)");
 			FnEnumPropW fnEnumProps{
 				[&](HWND hWnd, LPWSTR lpString, HANDLE hData) {
-					return fnEnum(hWnd, lpString, hData);
+					fnEnum(hWnd, lpString, hData);
 					return true;
 				}
 			};
@@ -948,9 +940,9 @@ public: // Property - Cursor
 public: // Property - Background
 	/* W */ inline auto  &Background(CBrush brush) reflect_to_self(Longs(GCLP_HBRBACKGROUND) = brush);
 	/* R */ inline CBrush Background() const reflect_as((HBRUSH)Longs(GCLP_HBRBACKGROUND));
-public: // Property - MenuName
-//	/* W */ inline auto&MenuName(LPCTSTR lpszMenuName) reflect_to_self(Longs(GCLP_MENUNAME) = lpszMenuName);
-//	/* W */ inline auto&MenuName(LPCTSTR lpszMenuName) reflect_to_self(Longs(GCLP_MENUNAME) = lpszMenuName);
+public: // Property - Menu
+	/* W */ inline auto&Menu(LPCTSTR lpszName) reflect_to_self(Longs(GCLP_MENUNAME) = lpszName);
+	/* W */ inline auto&Menu(WORD wID) reflect_to_self(Longs(GCLP_MENUNAME) = (LPCTSTR)MAKEINTRESOURCE(wID));
 // 	template<size_t MaxLen = MaxLenPath>
 //	/* R */ inline const String MenuName() const reflect_as(CString((LPCTSTR)Longs(GCLP_MENUNAME), MaxLen));
 public: // Property - Name
@@ -968,8 +960,12 @@ public:
 	inline operator WindowClassX<IsUnicode>() const reflect_to(WindowClassX<IsUnicode> wc; GetClassInfo(Module(), (ATOM)Atom(), &wc), wc);
 	inline auto&operator=(const WindowIClass &wic) reflect_to_self(hWnd = wic.hWnd);
 };
+#pragma endregion
+
 template<class AnyChild>
 class WindowBase : public ChainExtender<WindowBase<AnyChild>, AnyChild> {
+	template<bool, class, class>
+	friend class CreateStructX;
 	mutable HWND hWnd = O;
 public:
 	using Child = Chain<WindowBase, AnyChild>;
@@ -979,8 +975,6 @@ public:
 	using StyleEx = WStyleEx;
 protected:
 	INNER_USE(WindowBase);
-	template<bool, class, class>
-	friend class CreateStructX;
 	WindowBase(HWND h) : hWnd(h) {}
 	WindowBase(const WindowBase &w) : hWnd(w.hWnd) reflect_to(w.hWnd = O);
 public:
@@ -1037,33 +1031,26 @@ public: // Capture
 public: // Rect & Point
 	inline auto Screen2Client(LPoint pt) const reflect_to(WX::ScreenToClient(self, &pt), pt);
 	inline auto Client2Screen(LPoint pt) const reflect_to(WX::ClientToScreen(self, &pt), pt);
-
 	inline auto Log2Phy(LPoint pt) const reflect_to(WX::LogicalToPhysicalPoint(self, &pt), pt);
 	inline auto Phy2Log(LPoint pt) const reflect_to(WX::PhysicalToLogicalPoint(self, &pt), pt);
 	inline auto Logical2Physical(LPoint pt) const reflect_to(WX::LogicalToPhysicalPoint(self, &pt), pt);
 	inline auto Physical2Logical(LPoint pt) const reflect_to(WX::PhysicalToLogicalPoint(self, &pt), pt);
-
 	inline auto Log2PhyDPI(LPoint pt) const reflect_to(WX::LogicalToPhysicalPointForPerMonitorDPI(self, &pt), pt);
 	inline auto Phy2LogDPI(LPoint pt) const reflect_to(WX::PhysicalToLogicalPointForPerMonitorDPI(self, &pt), pt);
 	inline auto Logical2PhysicalDPI(LPoint pt) const reflect_to(WX::LogicalToPhysicalPointForPerMonitorDPI(self, &pt), pt);
 	inline auto Physical2LogicalDPI(LPoint pt) const reflect_to(WX::PhysicalToLogicalPointForPerMonitorDPI(self, &pt), pt);
-
 	inline auto AdjRect(LRect rc) const reflect_to(WX::AdjustWindowRect(&rc, Styles().yield(), this->Menu(), this->StylesEx().yield()), rc);
 	inline auto AdjustRect(LRect rc) const reflect_to(WX::AdjustWindowRect(&rc, Styles().yield(), this->Menu(), this->StylesEx().yield()), rc);
-
 	inline auto AdjRectDPI(LRect rc, UINT dpi) const reflect_to(WX::AdjustWindowRectForDpi(&rc, Styles().yield(), this->Menu(), this->StylesEx().yield(), dpi), rc);
 	inline auto AdjustRectDPI(LRect rc, UINT dpi) const reflect_to(WX::AdjustWindowRectForDpi(&rc, Styles().yield(), this->Menu(), this->StylesEx().yield(), dpi), rc);
 public: // Position
 	inline void BringToTop() const reflect_to_child(WX::BringWindowToTop(self));
-	inline void Move(LRect rc, bool bRedraw = true) const
-		reflect_to(WX::MoveWindow(self, rc.top, rc.left, rc.xsize(), rc.ysize(), bRedraw));
+	inline void Move(LRect rc, bool bRedraw = true) const reflect_to(WX::MoveWindow(self, rc.top, rc.left, rc.xsize(), rc.ysize(), bRedraw));
 public: // Timer
-	inline auto SetTimer(UINT uElapse, UINT_PTR nIDEvent = 0, TIMERPROC lpTimerFunc = O)
-		reflect_as(WX::SetTimer(self, nIDEvent, uElapse, lpTimerFunc));
+	inline auto SetTimer(UINT uElapse, UINT_PTR nIDEvent = 0, TIMERPROC lpTimerFunc = O) reflect_as(WX::SetTimer(self, nIDEvent, uElapse, lpTimerFunc));
 	inline void KillTimer(UINT_PTR nIDEvent) reflect_to(WX::KillTimer(self, nIDEvent));
 public: // Touch & Mouse
-	inline void RegisterTouch(bool bFine = true, bool bWantPalm = false)
-		reflect_to(WX::RegisterTouchWindow(self, (bFine * TWF_FINETOUCH) | (bWantPalm * TWF_WANTPALM)));
+	inline void RegisterTouch(bool bFine = true, bool bWantPalm = false) reflect_to(WX::RegisterTouchWindow(self, (bFine * TWF_FINETOUCH) | (bWantPalm * TWF_WANTPALM)));
 	inline void UnregisterTouch() reflect_to(WX::UnregisterTouchWindow(self));
 	inline TrackMouseEventBox TrackMouse() const reflect_as((HWND)self);
 public: // Draw & Paint
@@ -1071,18 +1058,18 @@ public: // Draw & Paint
 	inline void Validate(LPCRECT lpRect = O) const reflect_to(WX::ValidateRect(self, lpRect));
 	inline void Invalidate(LPCRECT lpRect = O, bool fErase = false) const reflect_to(WX::InvalidateRect(self, lpRect, fErase));
 	inline void LockUpdate() const reflect_to(WX::LockWindowUpdate(self));
-	//class PaintBox : public PaintStruct {
-	//	HWND hwnd;
-	//	HDC hdc1;
-	//public:
-	//	PaintBox(HWND hwnd) : hwnd(hwnd), hdc1(BeginPaint(hwnd, &self)) {}
-	//	~PaintBox() reflect_to(End());
-	//	inline CDC DDC() const reflect_as(hdc1);
-	//	inline void End() const assertl_reflect_as(EndPaint(hwnd, &self));
-	//};
 	//inline PaintBox BeginPaint() reflect_as((HWND)self);
 public: // Child & Parent
 	inline bool HasChild(HWND hWnd) reflect_as(WX::IsChild(self, hWnd));
+public: // Message Senders
+	template<class RetType = LRESULT, class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
+	inline RetType Send(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const reflect_as(big_cast<RetType>(WX::SendMessage(self, (UINT)(msgid), small_cast<WPARAM>(wParam), small_cast<LPARAM>(lParam))));
+	//template<class WParam = WPARAM, class LParam = LPARAM>
+	//inline auto&SendTimeout(UINT msgid, WParam wParam = 0, LParam lParam = 0) {
+	//	WX::SendMessageTimeout(self, msgid, wParam, lParam, )
+	//}
+	template<class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
+	inline auto&Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const reflect_to_child(WX::PostMessage(self, reuse_as<UINT>(msgid), reuse_as<WPARAM>(wParam), reuse_as<LPARAM>(lParam)));
 
 #pragma region Enum
 public:
@@ -1096,7 +1083,8 @@ public:
 			if constexpr (static_compatible<AnyFunc, bool(HWND)>)
 				return fnEnum(hWnd);
 			else {
-				static_assert(static_compatible<AnyFunc, void(HWND)>, "Invalid function type for Enum");
+				misuse_assert((static_compatible<AnyFunc, void(HWND)>),
+							  "Enumeration function must compatible to bool(HWND) or void(HWND)");
 				fnEnum(hWnd);
 				return true;
 			}
@@ -1109,7 +1097,8 @@ public:
 			if constexpr (static_compatible<AnyFunc, bool(HWND)>)
 				return fnEnum(hWnd);
 			else {
-				static_assert(static_compatible<AnyFunc, void(HWND)>, "Invalid function type for EnumChild");
+				misuse_assert((static_compatible<AnyFunc, void(HWND)>),
+							  "Enumeration function must compatible to bool(HWND) or void(HWND)");
 				fnEnum(hWnd);
 				return true;
 			}
@@ -1119,9 +1108,8 @@ public:
 #pragma endregion
 
 #pragma region Message Procedure Reflect System
-protected: // Default Procedure
+protected: // Default Message Procedure
 	use_member(DefProc);
-	use_member(Callback);
 	static LRESULT CallDefProc(HWND hWnd, UINT msgid, WPARAM wParam, LPARAM lParam) {
 		if constexpr (member_DefProc_of<Child>::is_addressable) {
 			misdef_assert((!std::is_member_pointer_v<decltype(&Child::DefProc)>),
@@ -1133,17 +1121,104 @@ protected: // Default Procedure
 		}
 		else return WX::DefWindowProc(hWnd, msgid, wParam, lParam);
 	}
-	inline LRESULT HandleNext() const { throw MSG{ 0 }; }
-protected:
+public: // Reflectors management
+	class Reflectors {
+		Child *pChild;
+	public:
+		Reflectors(Child *pChild) : pChild(pChild) {}
+#define CALL(name) pChild->On##name
+#define SEND(ret, msgid, wparam, lparam) pChild->On##name(wparam, lparam)
+#define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
+		private: use_member(On##name); \
+		public: static constexpr bool User##name = member_On##name##_of<Child>::is_addressable; \
+		inline LRESULT CallOn##name argslist { \
+			using fn_type = ret argslist; \
+			if constexpr (member_On##name##_of<Child>::template compatible_to<ret()>) \
+				if constexpr (std::is_void_v<ret>) \
+					 reflect_as((pChild->On##name(), 0L)) \
+				else reflect_as((LRESULT)pChild->name()) \
+			elif constexpr (member_On##name##_of<Child>::template compatible_to<LRESULT()>) \
+				reflect_as(pChild->On##name()) \
+			elif constexpr (member_On##name##_of<Child>::template compatible_to<void(WPARAM, LPARAM)>) \
+				reflect_as((send, 0L)) \
+			elif constexpr (member_On##name##_of<Child>::template compatible_to<LRESULT(WPARAM, LPARAM)>) \
+				reflect_as(send) \
+			elif constexpr (member_On##name##_of<Child>::template compatible_to<fn_type>) { \
+				misdef_assert((member_On##name##_of<Child>::template compatible_to<fn_type>), \
+							  "Member On" #name " must be a method compatible to " #ret #argslist ", " #ret "(), void(WPARAM, LPARAM) or LRESULT(WPARAM, LPARAM)" ); \
+				reflect_as(pChild->On##name args); \
+			} \
+		}
+#include "wx__msg.inl"
+	public:
+		inline operator bool() const reflect_as(pChild);
+	};
+protected: // Message Procedure
+	use_member(Callback);
+	static LRESULT CALLBACK MainProc(HWND hWnd, UINT msgid, WPARAM wParam, LPARAM lParam) {
+		auto&Wnd = WindowBase::Attach(hWnd);
+		auto pChild = Wnd.UserData<Child *>();
+	retry:
+		try {
+			switch (msgid) {
+				case WM_NCCREATE: {
+					auto lpCreate = (LPCREATESTRUCT)lParam;
+					pChild = (Child *)lpCreate->lpCreateParams;
+					Wnd.UserData(pChild);
+					(*(WindowBase *)pChild).hWnd = hWnd;
+					break;
+				}
+				case WM_COMMAND:
+					if (auto wnd = ref_as<Window>(lParam))
+						wnd.Send(WM_USER + (UINT)HIWORD(wParam));
+					break;
+			}
+			if (Reflectors ref = pChild) {
+				switch (msgid) {
+					case WM_NULL:
+						break;
+#define CALL(name) ref.CallOn##name
+#define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
+					case msgid: \
+						if constexpr (Reflectors::User##name) { \
+							return call; \
+						} break;
+#include "wx__msg.inl"
+				}
+			}
+			if constexpr (member_Callback_of<Child>::is_addressable) {
+				misdef_assert(member_Callback_of<Child>::template compatible_to<LRESULT(WPARAM, LPARAM)>, 
+							  "Member Callback must be a method compatible to LRESULT(WPARAM, LPARAM)");
+				return pChild->Callback(msgid, wParam, lParam);
+			}
+		} catch (MSG msg) {
+			if (msg.message)
+				return CallDefProc(msg.hwnd, msg.message, msg.wParam, msg.lParam);
+		} catch (Exception err) {
+			MsgException msgErr{ err, Msg{ hWnd, msgid, wParam, lParam } };
+			if (Catch(pChild, msgErr))
+				goto retry;
+			return Final(pChild, msgErr);
+		}
+		return CallDefProc(hWnd, msgid, wParam, lParam);
+	}
+protected: // Default Message Definitions
+	inline void OnDestroy() reflect_to(WX::PostQuitMessage(0));
+protected: // Message Procedure Exception System
 	use_member(OnCatch);
-	static inline wx_answer Catch(Msg msg, const Exception &err) {
-		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Msg, Exception)>)
-			return Child::OnCatch(msg, err);
-		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Msg, Exception)>)
-			return (Child::OnCatch(msg, err), false);
+	static inline wx_answer Catch(Child *pChild, const MsgException &err) {
+		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(MsgException)>)
+			reflect_as(pChild->OnCatch(err))
+		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
+			reflect_as(pChild->OnCatch())
+		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(MsgException)>)
+			reflect_as((pChild->OnCatch(err), false))
+		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
+			reflect_as((pChild->OnCatch(), false))
 		else {
-			static_assert(!member_OnCatch_of<AnyChild>::is_addressable, "OnCatch uncompatible");
-			switch (WX::MsgBox(T("Window Error"), err, msg.Window())) {
+			misdef_assert(!member_OnCatch_of<AnyChild>::is_addressable,
+						  "Member OnCatch must be compatible to wx_answer(Exception), wx_answer(), void(MsgException) or void()");
+			switch (WX::MsgBox(T("Window Error"), err, err.Msg().Window())) {
 				case IDRETRY:
 					wx_answer_retry;
 				case IDIGNORE:
@@ -1155,127 +1230,67 @@ protected:
 		}
 	}
 	use_member(OnFinal);
-	static inline LRESULT Final(Msg msg) {
-		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<LRESULT(Msg)>)
-			return Child::OnFinal(msg);
-		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void(Msg)>)
-			return (Child::OnFinal(msg), -1);
+	static inline LRESULT Final(Child *pChild, const MsgException &err) {
+		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<LRESULT(MsgException)>)
+			reflect_as(pChild->OnFinal(err))
+		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<LRESULT()>)
+			reflect_as(pChild->OnFinal())
+		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void(MsgException)>)
+			reflect_as((pChild->OnFinal(err), -1))
+		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
+			reflect_as((pChild->OnFinal(), -1))
 		else {
-			static_assert(!member_OnFinal_of<AnyChild>::is_addressable, "OnFinal uncallable");
-			return -3;
+			misdef_assert(!member_OnFinal_of<AnyChild>::is_addressable,
+						  "Member OnFinal must be compatible to LRESULT(MsgException), LRESULT(), void(MsgException), void()");
+			reflect_as(-3)
 		}
 	}
-public:
-//	class Reflectors {
-//#define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
-//		private: use_member(On##name); \
-//		public: static constexpr bool has_On##name = member_On##name##_of<Child>::is_addressable; \
-//		static inline LRESULT On##name(Child &c, argslist) { \
-//			using fn_type = ret argslist; \
-//			misdef_assert((member_On##name##_of<Child>::template compatible_to<fn_type>), \
-//						  "Member On" #name " must be a method compatible to " #ret #argslist); \
-//			return call; \
-//		}
-//#include "wx__msg.inl"
-//	};
-#define MSG_TRANS(msgid, ret, name, ...) \
-	use_member(On##name);
-#include "wx__msg.inl"
-protected:
-	static LRESULT CALLBACK MainProc(HWND hWnd, UINT msgid, WPARAM wParam, LPARAM lParam) {
-		auto&Wnd = WindowBase::Attach(hWnd);
-		auto pThis = Wnd.UserData<Child *>();
-	retry:
-		try {
-			switch (msgid) {
-				case WM_NCCREATE: {
-					auto lpCreate = (LPCREATESTRUCT)lParam;
-					pThis = (Child *)lpCreate->lpCreateParams;
-					Wnd.UserData(pThis);
-					(*(WindowBase *)pThis).hWnd = hWnd;
-					break;
-				}
-				case WM_COMMAND:
-					if (auto wnd = ref_as<Window>(lParam))
-						wnd.Send(WM_USER + (UINT)HIWORD(wParam));
-					break;
-			}
-			if (pThis)
-				switch (msgid) {
-					case WM_NULL:
-						break;
-#define _CALL_(name) pThis->On##name
-#define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
-				case msgid: \
-					if constexpr (member_On##name##_of<Child>::is_addressable) { \
-						using fn_type = ret argslist; \
-						if constexpr (member_On##name##_of<Child>::template compatible_to<ret()>) \
-							if constexpr (std::is_void_v<ret>) \
-								 return (pThis->On##name(), 0L); \
-							else return (LRESULT)pThis->name(); \
-						elif constexpr (member_On##name##_of<Child>::template compatible_to<LRESULT()>) \
-							return pThis->On##name(); \
-						elif constexpr (member_On##name##_of<Child>::template compatible_to<void(WPARAM, LPARAM)>) \
-							return (pThis->On##name(wParam, lParam), 0L); \
-						elif constexpr (member_On##name##_of<Child>::template compatible_to<LRESULT(WPARAM, LPARAM)>) \
-							return pThis->On##name(wParam, lParam); \
-						else { \
-							misdef_assert((member_On##name##_of<Child>::template compatible_to<fn_type>), \
-										  "Member On" #name " must be a method compatible to " #ret #argslist ", " #ret "(), void(WPARAM, LPARAM) or LRESULT(WPARAM, LPARAM)" ); \
-							return call; } \
-					} break;
-#include "wx__msg.inl"
-				}
-			if constexpr (member_Callback_of<Child>::is_addressable) {
-				misdef_assert(member_Callback_of<Child>::template compatible_to<LRESULT(WPARAM, LPARAM)>, 
-							  "Member Callback must be a method compatible to LRESULT(WPARAM, LPARAM)");
-				return pThis->Callback(msgid, wParam, lParam);
-			}
-		} catch (MSG msg) {
-			if (msg.message)
-				return CallDefProc(msg.hwnd, msg.message, msg.wParam, msg.lParam);
-		} catch (Exception err) {
-			Msg msg{ hWnd, msgid, wParam, lParam };
-			if (!pThis)
-				throw err;
-			if (pThis->Catch(msg, err))
-				goto retry;
-			return pThis->Final(msg);
-		}
-		return CallDefProc(hWnd, msgid, wParam, lParam);
-	}
-protected:
-	inline void OnDestroy() reflect_to(WX::PostQuitMessage(0));
 public:
 	class CallPack {
 		HWND hwnd;
 	public:
 		CallPack(HWND hwnd) : hwnd(hwnd) {}
+#define SEND(ret, msgid, wparam, lparam) \
+			(ret)(CallDefProc(hwnd, msgid, wparam, lparam))
 #define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
 			inline ret name argslist reflect_as(send);
-#define _SEND_(ret, msgid, wparam, lparam) \
-			ret(CallDefProc(hwnd, msgid, wparam, lparam))
 #include "wx__msg.inl"
 	};
 	inline CallPack DefProcCall() reflect_as((HWND)self);
 #pragma endregion
 
-#pragma region Classes
+#pragma region Class Management
 protected:
 	static ATOM _ClassAtom;
-	static HINSTANCE _hClassModule;
+	use_member(CClassNameA);
+	use_member(CClassNameW);
 public:
-	static inline auto&ClassNameA() {
-		static const StringA _ClassNameA = CString(typeid(Child).name(), MaxLenClass);
-		return _ClassNameA;
+	static inline auto&CClassNameA() {
+		if constexpr (member_CClassNameA_of<AnyChild>::template compatible_to<StringA(AnyChild:: *)()>)
+			reflect_as(AnyChild::CClassNameA())
+		else {
+			misdef_assert(!member_CClassNameA_of<AnyChild>::is_existed,
+						  "Member CClassNameA must be compatible to StringA()");
+			static const StringA _ClassNameA = CString(typeid(Child).name(), MaxLenClass);
+			return _ClassNameA;
+		}
 	}
-	static inline auto&ClassNameW() {
-		static const StringW _ClassNameW = FitsW(CString(typeid(Child).name(), MaxLenClass));
-		return _ClassNameW;
+	static inline auto&CClassNameW() {
+		if constexpr (member_CClassNameW_of<AnyChild>::template compatible_to<StringW(AnyChild:: *)()>)
+			reflect_as(AnyChild::CClassNameW())
+		else {
+			misdef_assert(!member_CClassNameW_of<AnyChild>::is_existed,
+						  "Member CClassNameA must be compatible to StringW()");
+			static const StringW _ClassNameW = FitsW(CClassNameA());
+			return _ClassNameW;
+		}
 	}
-	template<bool IsUnicode>
-	static inline auto&ClassName() reflect_as(AnyX<IsUnicode>(ClassNameW, ClassNameA)());
-	static inline auto&ClassName() reflect_as(ClassName<IsUnicode>());
+	template<bool IsUnicode = WX::IsUnicode>
+	static inline auto&CClassName() {
+		if constexpr (IsUnicode)
+			 reflect_as(CClassNameW())
+		else reflect_as(CClassNameA())
+	}
 protected:
 	template<bool IsUnicode>
 	class XClassX : public WindowClassX<IsUnicode> {
@@ -1285,7 +1300,7 @@ protected:
 	public:
 		XClassX() {
 			super::WndProc(MainProc);
-			super::Name(ClassName<IsUnicode>());
+			super::Name(CClassName<IsUnicode>());
 			super::Cursor(IDC_ARROW);
 			super::Styles(ClassStyle::Redraw);
 			super::Background(SysColor::Window);
@@ -1303,7 +1318,7 @@ protected:
 	public:
 		XClassExX() {
 			super::WndProc(MainProc);
-			super::Name(ClassName<IsUnicode>());
+			super::Name(CClassName<IsUnicode>());
 			super::Cursor(IDC_ARROW);
 			super::Styles(ClassStyle::Redraw);
 			super::Background(SysColor::Window);
@@ -1312,40 +1327,62 @@ protected:
 	using XClassEx = XClassExX<IsUnicode>;
 	using XClassExA = XClassExX<false>;
 	using XClassExW = XClassExX<true>;
+protected:
+	use_member(CClass);
+	use_member(Register);
+public:
+	static inline const auto &CClass() {
+		static XClassEx _Class;
+		return _Class;
+	}
 public:
 	static inline ATOM Register() {
 		if (_ClassAtom) return _ClassAtom;
-		static XClassEx _Class;
-		return _ClassAtom = _Class.Register();
+		return _ClassAtom = CClass().Register();
 	}
 	static inline void Unregister() {
 		if (_ClassAtom)
-			WX::UnregisterClass(MAKEINTRESOURCE(_ClassAtom), _hClassModule);
+			CClass().Unregister();
 		_ClassAtom = 0;
 	}
 #pragma endregion
 
-#pragma region Creature
+#pragma region Creature Management
 protected:
 	template<bool IsUnicode, class Style = WStyle, class StyleEx = WStyleEx>
-	class CreateStructX : public WX::CreateStructX<IsUnicode, Style, StyleEx>  {
+	class CreateStructX : public WX::CreateStructX<IsUnicode, Style, StyleEx> {
+		friend class WindowBase;
 		using_structx(CREATESTRUCT);
 		using LPCTSTR = LPCXSTR<IsUnicode>;
 	public:
 		using super = WX::CreateStructX<IsUnicode, Style, StyleEx>;
 	public:
-		CreateStructX() {
+		CreateStructX(Child &c) {
 			super::Size(CW_USEDEFAULT);
 			super::Position(CW_USEDEFAULT);
 			super::Styles(WS::OverlappedWindow);
-			super::Caption(WindowBase::ClassName());
-			super::ClassName(WindowBase::_ClassAtom);
+			super::Class(WindowBase::Register());
+			super::Param(std::addressof(c));
 		}
-		CreateStructX(const CREATESTRUCT &lpCreate) : super(lpCreate)
-			reflect_to(super::ClassName(WindowBase::_ClassAtom));
+		CreateStructX(const CREATESTRUCT &lpCreate, Child &c) : super(lpCreate) {
+			super::Class(WindowBase::Register());
+			super::Param(std::addressof(c));
+		}
+		~CreateStructX() reflect_to(AutoCreate());
+	public:
+		inline void AutoCreate() const {
+			if (auto pChild = super::template Param<Child>(); !*pChild)
+				super::Create();
+		}
+		inline void AutoCreateMDI() const {
+			if (auto pChild = super::template Param<Child>(); !*pChild)
+				super::CreateMDI();
+		}
+	private: // Remove properties
+		/* W */ using super::Param;
 	public: // Deleted properties
-		/* W */ inline auto&ClassName(LPCTSTR) = delete;
-		/* W */ inline auto&ClassName(ATOM) = delete;
+		/* W */ inline auto&Class(LPCTSTR) = delete;
+		/* W */ inline auto&Class(ATOM) = delete;
 	};
 	template<class Style = WStyle, class StyleEx = WStyleEx>
 	using CreateStruct = CreateStructX<IsUnicode, Style, StyleEx>;
@@ -1354,25 +1391,13 @@ protected:
 	template<class Style = WStyle, class StyleEx = WStyleEx>
 	using CreateStructW = CreateStructX<true, Style, StyleEx>;
 public:
-	inline void Create() reflect_to(Register(); hWnd = CreateStruct<>().Param(this).Create());
-	inline void Create(CreateStructA<> cs) reflect_to(Register(); hWnd = cs.Param(this).Create());
-	inline void Create(CreateStructW<> cs) reflect_to(Register(); hWnd = cs.Param(this).Create());
+	inline auto Create() reflect_as(CreateStruct(child));
+	inline void Create(const CREATESTRUCTA &cs) reflect_to(Create(CreateStructA(cs, child)));
+	inline void Create(const CREATESTRUCTW &cs) reflect_to(Create(CreateStructW(cs, child)));
+	inline void Create(CreateStructA<> cs) reflect_to(hWnd = cs.Param(pchild).Create());
+	inline void Create(CreateStructW<> cs) reflect_to(hWnd = cs.Param(pchild).Create());
 	inline void Destroy() reflect_to(WX::DestroyWindow(self));
 	inline void Close() reflect_to(WX::CloseWindow(self));
-#pragma endregion
-
-#pragma region Message System
-public:
-	template<class RetType = LRESULT, class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
-	inline RetType Send(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const
-		reflect_as(big_cast<RetType>(WX::SendMessage(self, (UINT)(msgid), small_cast<WPARAM>(wParam), small_cast<LPARAM>(lParam))));
-	//template<class WParam = WPARAM, class LParam = LPARAM>
-	//inline auto&SendTimeout(UINT msgid, WParam wParam = 0, LParam lParam = 0) {
-	//	WX::SendMessageTimeout(self, msgid, wParam, lParam, )
-	//}
-	template<class MsgType = UINT, class WParam = WPARAM, class LParam = LPARAM>
-	inline auto&Post(MsgType msgid, WParam wParam = 0, LParam lParam = 0) const
-		reflect_to_child(WX::PostMessage(self, reuse_as<UINT>(msgid), reuse_as<WPARAM>(wParam), reuse_as<LPARAM>(lParam)));
 #pragma endregion
 
 #pragma region Properties
@@ -1576,7 +1601,6 @@ public:
 template<class AnyChild, class SubXCreate, class Style, class StyleEx>
 using WXCreate = typename WindowBase<AnyChild>::template XCreate<SubXCreate, Style, StyleEx>;
 template<class AnyChild> ATOM WindowBase<AnyChild>::_ClassAtom = 0;
-template<class AnyChild> HINSTANCE WindowBase<AnyChild>::_hClassModule = O;
 #pragma endregion
 
 #pragma region Clipboard

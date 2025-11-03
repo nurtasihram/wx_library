@@ -43,11 +43,7 @@ public:
 	HandleBase(HandleBase &&obj) : hObject(obj.hObject) reflect_to(obj.hObject = O);
 	~HandleBase() reflect_to(Close());
 public:
-	inline void Close() {
-		if (hObject)
-			WX::CloseHandle(hObject);
-		hObject = O;
-	}
+	inline void Close() reflect_to(if (hObject) (WX::CloseHandle(hObject), hObject = O));
 public:
 	inline bool Compare(HANDLE h) const reflect_as(WX::CompareObjectHandles(self, h));
 	//inline auto CopyTo() {
@@ -136,6 +132,7 @@ public:
 	}
 	static inline void *Lock(void *ptr) reflect_as(LocalLock(ptr));
 	static inline void Unlock(void *ptr) assertl_reflect_as(LocalUnlock(ptr));
+	static inline void AutoFree(void *&ptr) reflect_to(if (ptr) (Free(ptr), ptr = O));
 } inline LocalHeap;
 #pragma endregion
 
@@ -603,7 +600,8 @@ inline LRect operator-(LPoint p, const LRect &r) reflect_as(-(r - p));
 #pragma endregion
 
 #pragma region Message Wrapper
-export class Message : public RefStruct<MSG> {
+export {
+class Message : public RefStruct<MSG> {
 public:
 	using super = RefStruct<MSG>;
 public:
@@ -685,7 +683,22 @@ public:
 	inline Peeks Peek(HWND hwnd, UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_as({ this, hwnd, wMsgFilterMin, wMsgFilterMax });
 	inline Peeks PeekThread(UINT wMsgFilterMin = 0, UINT wMsgFilterMax = 0) reflect_as({ this, (HWND)-1, wMsgFilterMin, wMsgFilterMax });
 };
-export using Msg = Message;
+using Msg = Message;
+class MessageException : public Exception {
+	Message msg;
+public:
+	using super = Exception;
+public:
+	MessageException(const Exception &err, const Message &msg) : 
+		super(err), msg(msg) {}
+public:
+	inline const WX::Msg &Msg() const reflect_as(msg);
+	inline const WX::Msg &Message() const reflect_as(msg);
+public:
+	inline operator const WX::Msg &() const reflect_as(msg);
+};
+using MsgException = MessageException;
+}
 #pragma endregion
 
 #pragma region MsgBox

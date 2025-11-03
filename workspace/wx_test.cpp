@@ -1,17 +1,23 @@
 #include "wx_main"
 #include "wx_realtime"
 #include "wx_window"
+#include "wx_control"
 #include "wx_console"
 
 using namespace WX;
 
 class BaseOf_Window(TestWindow) {
 	SFINAE_Window(TestWindow);
+	Static txt;
 public:
 	TestWindow() {}
 protected:
 	inline bool OnCreate(LPCREATESTRUCT lpCreateStruct) {
-		Console.Log(T("Alfa\n"));
+		//txt.Create(self)
+		//	.Styles(WS::Child | WS::Visible)
+		//	.Position(10, 10)
+		//	.Size(200, 20)
+		//	.Text("Hello, WX!");
 		return true;
 	}
 };
@@ -40,7 +46,7 @@ int WxMain() {
 	Console.Log(COMPILATION_INFO);
 	TestWindow wnd;
 	TestWindowMsgProc thd = wnd;
-	assertl(thd.Create());
+	thd.Create();
 	thd.Wait();
 	return thd.ExitCode();
 }

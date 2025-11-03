@@ -61,6 +61,7 @@ template <class AnyClass> class member_##name##_of { \
 public: \
 	static constexpr bool is_type = decltype(ist<AnyClass>(0))::value; \
 	static constexpr bool is_addressable = decltype(adr<AnyClass>(0))::value; \
+	static constexpr bool is_existed = is_type || is_addressable; \
 	template<class AnyType> \
 	static constexpr bool compatible_to = \
 		decltype(cmp<AnyClass>(std::declval<AnyType *>()))::value; }

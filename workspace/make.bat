@@ -16,7 +16,7 @@ if /i "%1" == "clean" (
     )
     echo -- Clean finished
 ) else if /i "%1" == "build" (
-    set module_files="!global_dir!\wx.cppm" "!global_dir!\wx.proto.cppm" "!global_dir!\wx.type.cppm" "!global_dir!\wx.realtime.cppm" "!global_dir!\wx.console.cppm" "!global_dir!\wx.gdi.cppm" "!global_dir!\wx.resource.cppm" "!global_dir!\wx.window.cppm"
+    set module_files="!global_dir!\wx.cppm" "!global_dir!\wx.proto.cppm" "!global_dir!\wx.type.cppm" "!global_dir!\wx.realtime.cppm" "!global_dir!\wx.console.cppm" "!global_dir!\wx.gdi.cppm" "!global_dir!\wx.resource.cppm" "!global_dir!\wx.window.cppm" "!global_dir!\wx.control.cppm"
     set source_files="!workspace!\wx_test.cpp"
     set include_paths="!global_dir!"
     if /i "%2" == "clang" (
