@@ -2,6 +2,9 @@
 
 #include "wx_type"
 
+import wx;
+import wx.window;
+import wx.gdi;
 import wx.window;
 #ifndef WX_CPPM_DIALOG
 import wx.dialog;

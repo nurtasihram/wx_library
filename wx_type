@@ -6,7 +6,7 @@
 import wx;
 import wx.type;
 #else
-#	undef WX_CPPM_TYPE
+#    undef WX_CPPM_TYPE
 #endif
 
 #pragma region WX Macros

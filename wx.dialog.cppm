@@ -1,16 +1,69 @@
 module;
 
-#include <vector>
-
-#include "wx_type"
-#include "wx__rm.inl"
+#define WX_CPPM_DIALOG
+#include "wx_dialog"
 
 export module wx.dialog;
 
-import wx;
 import wx.proto;
-import wx.window;
-import wx.gdi;
+
+#pragma region Win32 API
+namespace WX {
+
+#pragma region CommDlg.h
+#undef GetOpenFileName
+inline bool GetOpenFileName(LPOPENFILENAMEA lpofn)
+	reflect_as(::GetOpenFileNameA(lpofn));
+inline bool GetOpenFileName(LPOPENFILENAMEW lpofn)
+	reflect_as(::GetOpenFileNameW(lpofn));
+inline bool GetSaveFileName(LPOPENFILENAMEA lpofn)
+#undef GetSaveFileName
+	reflect_as(::GetSaveFileNameA(lpofn));
+inline bool GetSaveFileName(LPOPENFILENAMEW lpofn)
+	reflect_as(::GetSaveFileNameW(lpofn));
+#undef GetFileTitle
+inline short GetFileTitle(LPCSTR lpFileName, LPSTR lpBuffer, WORD cchSize)
+	assertl_reflect_as(auto res = ::GetFileTitleA(lpFileName, lpBuffer, cchSize); res >= 0, res);
+inline short GetFileTitle(LPCWSTR lpFileName, LPWSTR lpBuffer, WORD cchSize)
+	assertl_reflect_as(auto res = ::GetFileTitleW(lpFileName, lpBuffer, cchSize); res >= 0, res);
+#undef ChooseColor
+inline bool ChooseColor(LPCHOOSECOLORA lpcc)
+	reflect_as(::ChooseColorA(lpcc));
+inline bool ChooseColor(LPCHOOSECOLORW lpcc)
+	reflect_as(::ChooseColorW(lpcc));
+#undef FindText
+inline HWND FindText(LPFINDREPLACEA lpfr)
+	reflect_as(::FindTextA(lpfr));
+inline HWND FindText(LPFINDREPLACEW lpfr)
+	reflect_as(::FindTextW(lpfr));
+#undef ReplaceText
+inline HWND ReplaceText(LPFINDREPLACEA lpfr)
+	reflect_as(::ReplaceTextA(lpfr));
+inline HWND ReplaceText(LPFINDREPLACEW lpfr)
+	reflect_as(::ReplaceTextW(lpfr));
+#undef ChooseFont
+inline bool ChooseFont(LPCHOOSEFONTA lpcf)
+	reflect_as(::ChooseFontA(lpcf));
+inline bool ChooseFont(LPCHOOSEFONTW lpcf)
+	reflect_as(::ChooseFontW(lpcf));
+#undef PrintDlg
+inline bool PrintDlg(LPPRINTDLGA lppd)
+	reflect_as(::PrintDlgA(lppd));
+inline bool PrintDlg(LPPRINTDLGW lppd)
+	reflect_as(::PrintDlgW(lppd));
+//inline bool PrintDlg(LPPRINTDLGEXA lppd)
+//	reflect_as(::PrintDlgExA(lppd));
+//inline bool PrintDlg(LPPRINTDLGEXW lppd)
+//	reflect_as(::PrintDlgExW(lppd));
+#undef PageSetupDlg
+inline bool PageSetupDlg(LPPAGESETUPDLGA lppsd)
+	reflect_as(::PageSetupDlgA(lppsd));
+inline bool PageSetupDlg(LPPAGESETUPDLGW lppsd)
+	reflect_as(::PageSetupDlgW(lppsd));
+#pragma endregion
+
+}
+#pragma endregion
 
 export namespace WX {
 

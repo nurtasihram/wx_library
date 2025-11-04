@@ -3392,47 +3392,4 @@ inline void SetProcessRestrictionExemption(BOOL fEnableExemption)
 // RegisterCloakedNotification
 #pragma endregion
 
-#pragma region CommDlg.h
-inline bool GetOpenFileName(LPOPENFILENAMEA lpofn) ////////
-	reflect_as(::GetOpenFileNameA(lpofn));
-inline bool GetOpenFileName(LPOPENFILENAMEW lpofn) ////////
-	reflect_as(::GetOpenFileNameW(lpofn));
-inline bool GetSaveFileName(LPOPENFILENAMEA lpofn) ////////
-	reflect_as(::GetSaveFileNameA(lpofn));
-inline bool GetSaveFileName(LPOPENFILENAMEW lpofn) ////////
-	reflect_as(::GetSaveFileNameW(lpofn));
-inline short GetFileTitle(LPCSTR lpFileName, LPSTR lpBuffer, WORD cchSize)
-	assertl_reflect_as(auto res = ::GetFileTitleA(lpFileName, lpBuffer, cchSize); res >= 0, res);
-inline short GetFileTitle(LPCWSTR lpFileName, LPWSTR lpBuffer, WORD cchSize)
-	assertl_reflect_as(auto res = ::GetFileTitleW(lpFileName, lpBuffer, cchSize); res >= 0, res);
-inline bool ChooseColor(LPCHOOSECOLORA lpcc) ////////
-	reflect_as(::ChooseColorA(lpcc));
-inline bool ChooseColor(LPCHOOSECOLORW lpcc) ////////
-	reflect_as(::ChooseColorW(lpcc));
-inline HWND FindText(LPFINDREPLACEA lpfr) ////////
-	reflect_as(::FindTextA(lpfr));
-inline HWND FindText(LPFINDREPLACEW lpfr) ////////
-	reflect_as(::FindTextW(lpfr));
-inline HWND ReplaceText(LPFINDREPLACEA lpfr) ////////
-	reflect_as(::ReplaceTextA(lpfr));
-inline HWND ReplaceText(LPFINDREPLACEW lpfr) ////////
-	reflect_as(::ReplaceTextW(lpfr));
-inline bool ChooseFont(LPCHOOSEFONTA lpcf) ////////
-	reflect_as(::ChooseFontA(lpcf));
-inline bool ChooseFont(LPCHOOSEFONTW lpcf) ////////
-	reflect_as(::ChooseFontW(lpcf));
-inline bool PrintDlg(LPPRINTDLGA lppd) ////////
-	reflect_as(::PrintDlgA(lppd));
-inline bool PrintDlg(LPPRINTDLGW lppd) ////////
-	reflect_as(::PrintDlgW(lppd));
-//inline bool PrintDlg(LPPRINTDLGEXA lppd) ////////
-//	reflect_as(::PrintDlgExA(lppd));
-//inline bool PrintDlg(LPPRINTDLGEXW lppd) ////////
-//	reflect_as(::PrintDlgExW(lppd));
-inline bool PageSetupDlg(LPPAGESETUPDLGA lppsd) ////////
-	reflect_as(::PageSetupDlgA(lppsd));
-inline bool PageSetupDlg(LPPAGESETUPDLGW lppsd) ////////
-	reflect_as(::PageSetupDlgW(lppsd));
-#pragma endregion
-
 }

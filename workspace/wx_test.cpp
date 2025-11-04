@@ -1,14 +1,14 @@
 #include "wx_main"
 #include "wx_realtime"
 #include "wx_window"
-#include "wx_control"
+//#include "wx_control"
 #include "wx_console"
 
 using namespace WX;
 
 class BaseOf_Window(TestWindow) {
 	SFINAE_Window(TestWindow);
-	Static txt;
+//	Static txt;
 public:
 	TestWindow() {}
 protected:
