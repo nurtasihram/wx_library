@@ -87,8 +87,8 @@ public: //
 	//GetWindowsAccountDomainSid
 	//IsWellKnownSid
 	inline operator bool() const reflect_as(this->pSID ? IsValidSid(this->pSID) : false);
-//	inline operator StringA() const assertl_reflect_to(AutoPointer<_M_(Local, CHAR)> szSID(LocalHeap), ConvertSidToStringSidA(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
-//	inline operator StringW() const assertl_reflect_to(AutoPointer<_M_(Local, WCHAR)> szSID(LocalHeap), ConvertSidToStringSidW(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
+//	inline operator StringA() const assertl_reflect_to(HeapPointer<_M_(Local, CHAR)> szSID(LocalHeap), ConvertSidToStringSidA(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
+//	inline operator StringW() const assertl_reflect_to(HeapPointer<_M_(Local, WCHAR)> szSID(LocalHeap), ConvertSidToStringSidW(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
 	inline PSID operator&() const reflect_as(this->pSID);
 	inline SecurityIdentifier operator+() const {
 		if (!*this) return O;
@@ -355,7 +355,7 @@ class SecurityDescriptor {
 		bool bDefault = false, bPresent = false, bModified = false;
 		xACL(const SecurityDescriptor &sd) : sd(const_cast<SecurityDescriptor &>(sd)) {
 			BOOL bDefault = false, bPresent = false;
-			if constexpr (_SACL_1_DACL_0_)
+			if_c (_SACL_1_DACL_0_)
 				 assertl(GetSecurityDescriptorSacl(&sd, &bPresent, &pACL, &bDefault))
 			else assertl(GetSecurityDescriptorDacl(&sd, &bPresent, &pACL, &bDefault))
 			this->bDefault = bDefault, this->bPresent = bPresent;
@@ -363,7 +363,7 @@ class SecurityDescriptor {
 		xACL(SecurityDescriptor &sd, PACL pACL) : sd(sd), pACL(pACL), bPresent(true), bModified(true) {}
 		inline void __Set() {
 			if (bModified) {
-				if constexpr (_SACL_1_DACL_0_)
+				if_c (_SACL_1_DACL_0_)
 					 assertl(SetSecurityDescriptorSacl(&sd, bPresent, pACL, bDefault))
 				else assertl(SetSecurityDescriptorDacl(&sd, bPresent, pACL, bDefault))
 			}
@@ -400,7 +400,7 @@ class SecurityDescriptor {
 		bool bDefault = false, bModified = false;
 		xSID(const SecurityDescriptor &sd) : sd(const_cast<SecurityDescriptor &>(sd)) {
 			BOOL bDefault = false;
-			if constexpr (_GSID_1_OSID_0_)
+			if_c (_GSID_1_OSID_0_)
 				 assertl(GetSecurityDescriptorGroup(&sd, &pSID, &bDefault))
 			else assertl(GetSecurityDescriptorOwner(&sd, &pSID, &bDefault))
 			this->bDefault = bDefault;
@@ -408,7 +408,7 @@ class SecurityDescriptor {
 		xSID(SecurityDescriptor &sd, PSID pSID) : sd(sd), pSID(pSID), bModified(true) {}
 		inline void __Set() {
 			if (bModified) {
-				if constexpr (_GSID_1_OSID_0_)
+				if_c (_GSID_1_OSID_0_)
 					 assertl(SetSecurityDescriptorGroup(&sd, pSID, bDefault))
 				else assertl(SetSecurityDescriptorOwner(&sd, pSID, bDefault))
 			}

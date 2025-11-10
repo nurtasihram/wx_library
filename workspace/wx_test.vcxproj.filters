@@ -45,22 +45,7 @@
     <None Include="..\wx__msg.inl">
       <Filter>wx\prv_inc</Filter>
     </None>
-    <None Include="..\wx__gdi.inl">
-      <Filter>wx\prv_inc</Filter>
-    </None>
-    <None Include="..\wx__type.inl">
-      <Filter>wx\prv_inc</Filter>
-    </None>
-    <None Include="..\wx__realtime.inl">
-      <Filter>wx\prv_inc</Filter>
-    </None>
-    <None Include="..\wx__resource.inl">
-      <Filter>wx\prv_inc</Filter>
-    </None>
     <None Include="make.bat" />
-    <None Include="..\wx__conio.inl">
-      <Filter>wx\prv_inc</Filter>
-    </None>
     <None Include="..\wx_file">
       <Filter>wx\pub_inc</Filter>
     </None>
@@ -106,6 +91,9 @@
       <Filter>wx\modules</Filter>
     </ClCompile>
     <ClCompile Include="wx_test.cpp" />
+    <ClCompile Include="..\wx.string.cppm">
+      <Filter>wx\modules</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\wx_defs.h">

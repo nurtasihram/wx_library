@@ -390,15 +390,3 @@
 #undef GetAltTabInfo
 #undef GetRawInputDeviceInfo
 #pragma endregion
-
-#pragma region CommDlg.h
-#undef GetOpenFileName
-#undef GetSaveFileName
-#undef GetFileTitle
-#undef ChooseColor
-#undef FindText
-#undef ReplaceText
-#undef ChooseFont
-#undef PrintDlg
-#undef PageSetupDlg
-#pragma endregion

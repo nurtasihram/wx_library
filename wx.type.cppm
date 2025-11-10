@@ -2,17 +2,67 @@ module;
 
 #define WX_CPPM_TYPE
 #include "wx_type"
-import wx;
-#include "wx__type.inl"
 
 export module wx.type;
 
+import wx;
 import wx.proto;
 
+#pragma region Win32 Prototype Includes
 namespace WX {
 
+#pragma region datetimeapi.h
+#undef GetDateFormat
+// GetDateFormat
+inline int GetDateFormat(LCID Locale, DWORD dwFlags, const SYSTEMTIME *lpDate, LPCSTR lpFormat, LPSTR lpDateStr, int cchDate)
+	assertl_reflect_as(auto res = ::GetDateFormatA(Locale, dwFlags, lpDate, lpFormat, lpDateStr, cchDate); res > 0, res);
+inline int GetDateFormat(LCID Locale, DWORD dwFlags, const SYSTEMTIME *lpDate, LPCWSTR lpFormat, LPWSTR lpDateStr, int cchDate)
+	assertl_reflect_as(auto res = ::GetDateFormatW(Locale, dwFlags, lpDate, lpFormat, lpDateStr, cchDate); res > 0, res);
+#undef GetTimeFormat
+// GetTimeFormat
+inline int GetTimeFormat(LCID Locale, DWORD dwFlags, const SYSTEMTIME *lpTime, LPCSTR lpFormat, LPSTR lpTimeStr, int cchTime)
+	assertl_reflect_as(auto res = ::GetTimeFormatA(Locale, dwFlags, lpTime, lpFormat, lpTimeStr, cchTime); res > 0, res);
+inline int GetTimeFormat(LCID Locale, DWORD dwFlags, const SYSTEMTIME *lpTime, LPCWSTR lpFormat, LPWSTR lpTimeStr, int cchTime)
+	assertl_reflect_as(auto res = ::GetTimeFormatW(Locale, dwFlags, lpTime, lpFormat, lpTimeStr, cchTime); res > 0, res);
+#undef GetTimeFormatEx
+// GetTimeFormatEx
+inline int GetTimeFormat(LPCWSTR lpLocaleName, DWORD dwFlags, const SYSTEMTIME *lpTime, LPCWSTR lpFormat, LPWSTR lpTimeStr, int cchTime)
+	assertl_reflect_as(auto res = ::GetTimeFormatEx(lpLocaleName, dwFlags, lpTime, lpFormat, lpTimeStr, cchTime); res > 0, res);
+#undef GetDateFormatEx
+// GetDateFormatEx
+inline int GetDateFormat(LPCWSTR lpLocaleName, DWORD dwFlags, const SYSTEMTIME *lpDate, LPCWSTR lpFormat, LPWSTR lpDateStr, int cchDate, LPCWSTR lpCalendar)
+	assertl_reflect_as(auto res = ::GetDateFormatEx(lpLocaleName, dwFlags, lpDate, lpFormat, lpDateStr, cchDate, lpCalendar); res > 0, res);
+// GetDurationFormatEx - Deprecated
+#pragma endregion
+
+#pragma region handleapi.h
+// CloseHandle
+inline void CloseHandle(HANDLE hObject)
+	assertl_reflect_as(::CloseHandle(hObject));
+// DuplicateHandle
+inline void DuplicateHandle(HANDLE hSourceProcessHandle, HANDLE hSourceHandle,
+							HANDLE hTargetProcessHandle, LPHANDLE lpTargetHandle,
+							DWORD dwDesiredAccess, BOOL bInheritHandle, DWORD dwOptions)
+	assertl_reflect_as(::DuplicateHandle(hSourceProcessHandle, hSourceHandle,
+										 hTargetProcessHandle, lpTargetHandle,
+										 dwDesiredAccess, bInheritHandle, dwOptions));
+// CompareObjectHandles
+inline bool CompareObjectHandles(HANDLE hObject1, HANDLE hObject2)
+	reflect_as(::CompareObjectHandles(hObject1, hObject2));
+// GetHandleInformation
+inline void GetHandleInformation(HANDLE hObject, LPDWORD lpdwFlags)
+	assertl_reflect_as(::GetHandleInformation(hObject, lpdwFlags));
+// SetHandleInformation
+inline void SetHandleInformation(HANDLE hObject, DWORD dwMask, DWORD dwFlags)
+	assertl_reflect_as(::SetHandleInformation(hObject, dwMask, dwFlags));
+#pragma endregion
+
+}
+#pragma endregion
+
+export namespace WX {
+
 #pragma region HandleBase
-export {
 enum_flags(HandleAccess, DWORD,
 	Delete         = DELETE,
 	ReadCtl        = READ_CONTROL,
@@ -105,13 +155,9 @@ public:
 	static inline auto &Attach(HANDLE &hObj) reflect_as(ref_as<Child>(hObj));
 	static inline auto &Attach(const HANDLE &hObj) reflect_as(ref_as<const Child>(hObj));
 };
-}
 #pragma endregion
 
 #pragma region Heaps
-
-export {
-
 #pragma region Local
 enum_flags(LocalAllocFlags, UINT,
 	Fixed    = LMEM_FIXED,
@@ -231,16 +277,16 @@ CHeap ThisHeap = Heap{};
 #pragma endregion
 
 template<class HeapType, class AnyType = void>
-class AutoPointer {
+class HeapPointer {
 	HeapType &heap;
 	mutable AnyType *p = O;
 public:
 	using AllocFlags = typename HeapType::AllocFlags;
-	AutoPointer() : heap(ThisHeap) {}
-	explicit AutoPointer(size_t size) : heap(ThisHeap), p(heap.Alloc(size)) {}
-	AutoPointer(AllocFlags flags, size_t size = SizeOf<AnyType>) : heap(ThisHeap), p((AnyType *)heap.Alloc(size, flags)) {}
-	explicit AutoPointer(HeapType &heap) : heap(heap) {}
-	~AutoPointer() reflect_to(Free());
+	HeapPointer() : heap(ThisHeap) {}
+	explicit HeapPointer(size_t size) : heap(ThisHeap), p(heap.Alloc(size)) {}
+	HeapPointer(AllocFlags flags, size_t size = SizeOf<AnyType>) : heap(ThisHeap), p((AnyType *)heap.Alloc(size, flags)) {}
+	explicit HeapPointer(HeapType &heap) : heap(heap) {}
+	~HeapPointer() reflect_to(Free());
 public:
 	inline AnyType *Alloc(size_t size = SizeOf<AnyType>) {
 		if (size <= 0)
@@ -264,13 +310,9 @@ public:
 	inline AnyType *operator->() reflect_as(p);
 	inline const AnyType *operator->() const reflect_as(p);
 };
-
-}
-
 #pragma endregion
 
 #pragma region Times
-export {
 enum_class(Locales, LCID,
 	Default                = LOCALE_CUSTOM_DEFAULT,
 	Unspecified            = LOCALE_CUSTOM_UNSPECIFIED,
@@ -405,11 +447,9 @@ public:
 	inline operator SYSTEMTIME() const assertl_reflect_to(SYSTEMTIME st, FileTimeToSystemTime(this, &st), st);
 	inline operator LARGE_INTEGER() const reflect_as(reuse_as<LARGE_INTEGER>(*this));
 };
-}
 #pragma endregion
 
 #pragma region Point Size Rect
-export {
 struct LPoint : public POINT {
 public:
 	LPoint() : POINT{ 0 } {}
@@ -596,11 +636,9 @@ public:
 };
 inline LRect operator+(LPoint p, const LRect &r) reflect_as(r + p);
 inline LRect operator-(LPoint p, const LRect &r) reflect_as(-(r - p));
-}
 #pragma endregion
 
 #pragma region Message Wrapper
-export {
 class Message : public RefStruct<MSG> {
 public:
 	using super = RefStruct<MSG>;
@@ -698,11 +736,9 @@ public:
 	inline operator const WX::Msg &() const reflect_as(msg);
 };
 using MsgException = MessageException;
-}
 #pragma endregion
 
 #pragma region MsgBox
-export {
 enum_flags(MB, int,
 	Ok                  = MB_OK,
 	OkCancel            = MB_OKCANCEL,
@@ -743,10 +779,8 @@ inline int MsgBox(LPCSTR lpCaption, const Exception &err, HWND hParent = O)
 	reflect_as(MsgBox(lpCaption, err.toStringA(), MB::IconError | MB::AbortRetryIgnore, hParent));
 inline int MsgBox(LPCWSTR lpCaption, const Exception &err, HWND hParent = O)
 	reflect_as(MsgBox(lpCaption, err.toStringW(), MB::IconError | MB::AbortRetryIgnore, hParent));
-}
 #pragma endregion
 
-export {
 enum_class(WindowShowFlags, int,
 	Hide             = SW_HIDE,
 	ShowNormal       = SW_SHOWNORMAL,
@@ -764,9 +798,7 @@ enum_class(WindowShowFlags, int,
 	ForceMinimize    = SW_FORCEMINIMIZE,
 	Max              = SW_MAX);
 using SW = WindowShowFlags;
-}
 
-export
 class RGBColor {
 protected:
 	COLORREF cr;
