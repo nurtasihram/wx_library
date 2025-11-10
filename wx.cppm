@@ -5,103 +5,18 @@ module;
 
 export module wx;
 
-namespace WX {
-
-export
-constexpr bool IsUnicode =
-#if defined(UNICODE)
-	UNICODE;
-#elif defined(_UNICODE)
-	_UNICODE,
-#else
-	false;
-#endif
-
-#pragma region String References
-export {
-template<class TCHAR>
-class StringBase;
-using String = StringBase<TCHAR>;
-using StringA = StringBase<CHAR>;
-using StringW = StringBase<WCHAR>;
-template<bool IsUnicode>
-using StringX = switch_structx(String);
-
-template<bool IsUnicode>
-using XCHAR = std::conditional_t<IsUnicode, WCHAR, CHAR>;
-template<bool IsUnicode>
-using LPXSTR = std::conditional_t<IsUnicode, LPWSTR, LPSTR>;
-template<bool IsUnicode>
-using LPCXSTR = std::conditional_t<IsUnicode, LPCWSTR, LPCSTR>;
-template<class TCHAR>
-constexpr bool IsCharA = std::is_same_v<TCHAR, CHAR> || std::is_same_v<TCHAR, LPSTR> || std::is_same_v<TCHAR, LPCSTR>;
-template<class TCHAR>
-constexpr bool IsCharW = std::is_same_v<TCHAR, WCHAR> || std::is_same_v<TCHAR, LPWSTR> || std::is_same_v<TCHAR, LPCWSTR>;
-template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
-constexpr auto AnyX(AnyTypeW *w, AnyTypeA *a) {
-	if constexpr (IsUnicode)
-		 return w;
-	else return a;
-}
-template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
-constexpr auto &AnyX(AnyTypeW &w, AnyTypeA &a) {
-	if constexpr (IsUnicode)
-		 return w;
-	else return a;
-}
-template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
-constexpr auto AnyX(AnyTypeW &&w, AnyTypeA &&a) {
-	if constexpr (IsUnicode)
-		 return w;
-	else return a;
-}
-}
-#pragma endregion
-
-#pragma region WX Inside 
-
-#pragma region Static Compatible
-template <class AnyCallable, class Ret, class... Args>
-auto __static_compatible(...) -> std::false_type;
-template <class AnyCallable, class Ret, class... Args>
-auto __static_compatible(int) -> std::is_convertible<
-	decltype(std::declval<AnyCallable>()(std::declval<Args>()...)), Ret>;
-export {
-	template<class AnyCallable, class FuncType>
-	constexpr bool static_compatible = false;
-	template<class AnyCallable, class Ret, class... Args>
-	constexpr bool static_compatible<AnyCallable, Ret(Args...)> = decltype(__static_compatible<AnyCallable, Ret, Args...>(0))::value;
-}
-#pragma endregion
-
-#pragma region Chain Extender 
-export template<class ParentClass, class ChildClass>
-using Chain = std::conditional_t<std::is_void_v<ChildClass>, ParentClass, ChildClass>;
-export template<class ParentClass, class ChildClass>
-struct ChainExtender {
-	using Child = Chain<ParentClass, ChildClass>;
-	using Self = ParentClass;
-	constexpr ChainExtender() {
-		if constexpr (!std::is_void_v<ChildClass>)
-			child_assert(ParentClass, ChildClass);
-	}
-	Child &child_() reflect_as(*static_cast<Child *>(this));
-	const Child &child_() const reflect_as(*static_cast<const Child *>(this));
-	Self &self_() reflect_as(*static_cast<Self *>(this));
-	const Self &self_() const reflect_as(*static_cast<const Self *>(this));
-};
-#define static // In G++ maybe fail on static in template
 subtype_branch(super);
-#undef static
-export template<class Class1, class Class2>
-constexpr bool is_chain_extended_on =
-std::is_void_v<Class1> || std::is_void_v<Class2> ? false :
-	std::is_same_v<Class1, Class2> ? true :
-	is_chain_extended_on<subtype_branchof_super<Class1, void>, Class2>;
-#pragma endregion
 
-#pragma region Reuse 77 Casts
-export {
+// for static_compatible
+template <class AnyCallable, class Ret, class... Args>
+static auto __static_compatible(...) -> std::false_type;
+template <class AnyCallable, class Ret, class... Args>
+static auto __static_compatible(int) -> std::is_convertible<
+	decltype(std::declval<AnyCallable>()(std::declval<Args>()...)), Ret>;
+
+export namespace WX {
+
+#pragma region Type Reference Helpers
 template<class OutType, class InType>
 inline OutType reuse_as(InType in) {
 	misuse_assert(sizeof(OutType) == sizeof(InType), "Must fit same size");
@@ -122,242 +37,26 @@ inline OutType &ref_as(InType &in) {
 	misuse_assert(sizeof(OutType) == sizeof(InType), "Must fit same size");
 	return *(OutType *)(&in);
 }
-template<class AnyRef>
-union RefAs {
-private:
-	AnyRef t;
-public:
-	template<class AnyType>
-	RefAs(AnyType &arg) : t(arg) {}
-	template<class AnyType>
-	RefAs(AnyType &&arg) : t(std::forward<AnyType>(arg)) {}
-	template<class AnyType>
-	RefAs(const AnyType &arg) : t(arg) {}
-	~RefAs() {}
-public:
-	template<class AnyType>
-	inline operator AnyType() reflect_as((AnyType)t);
-	template<class AnyType>
-	inline operator AnyType() const reflect_as((AnyType)t);
-	inline operator AnyRef &() reflect_as(t);
-	inline operator const AnyRef &() const reflect_as(t);
-	inline operator AnyRef *() reflect_as(std::addressof(t));
-	inline operator const AnyRef *() const reflect_as(std::addressof(t));
-	inline auto &operator*() reflect_as(t);
-	inline auto &operator*() const reflect_as(t);
-	inline auto operator&() reflect_as(std::addressof(t));
-	inline auto operator&() const reflect_as(std::addressof(t));
-	inline auto operator->() reflect_as(std::addressof(t));
-	inline auto operator->() const reflect_as(std::addressof(t));
-};
-template<class AnyType>
-union RefAs<AnyType *> {
-private:
-	AnyType *ptr;
-public:
-	template<class OtherType>
-	RefAs(OtherType *ptr) : ptr((AnyType *)ptr) {}
-public:
-	inline operator AnyType *() reflect_as(ptr);
-	inline operator const AnyType *() const reflect_as(ptr);
-	inline auto &operator*() reflect_as(*ptr);
-	inline auto &operator*() const reflect_as(*ptr);
-	inline auto *operator&() reflect_as(&ptr);
-	inline auto *operator&() const reflect_as(&ptr);
-	inline auto *operator->() reflect_as(ptr);
-	inline auto *operator->() const reflect_as(ptr);
-};
-template <class AnyStruct>
-class RefStruct : protected AnyStruct {
-public:
-	RefStruct() reflect_to(ZeroMemory(this, sizeof(AnyStruct)));
-	RefStruct(const AnyStruct &s) : AnyStruct(s) {}
-public:
-	inline operator AnyStruct &() reflect_to_self();
-	inline operator const AnyStruct &() const reflect_to_self();
-	inline AnyStruct &operator*() reflect_to_self();
-	inline const AnyStruct &operator *() const reflect_to_self();
-	inline AnyStruct *operator&() reflect_as(this);
-	inline const AnyStruct *operator&() const reflect_as(this);
-	inline AnyStruct *operator->() reflect_as(this);
-	inline const AnyStruct *operator->() const reflect_as(this);
-};
-template <class OtherType>
-constexpr bool IsRef = false;
-template<class RefType>
-constexpr bool IsRef<RefAs<RefType>> = true;
-}
 #pragma endregion
 
 #pragma region Array & Counter 
-export {
 template<class AnyType, size_t Len>
 using arrayof = AnyType[Len];
 template<class...Args>
 constexpr size_t ArgsCount(Args...) reflect_as(sizeof...(Args));
-template<class AnyType>
-constexpr size_t lengthof = 0;
 template<class AnyType, size_t Len>
-constexpr size_t lengthof<const arrayof<AnyType, Len> &> = Len;
-template<class AnyType, size_t Len>
-constexpr auto &_CountOf(const arrayof<AnyType, Len> &a) reflect_as(a);
+constexpr size_t CountOf(const arrayof<AnyType, Len> &) reflect_as(Len);
 template<class AnyType>
 struct SizeOf_t { static constexpr size_t val = sizeof(AnyType); };
 template<>
 struct SizeOf_t<void> { static constexpr size_t val = 0; };
 template<class AnyType>
 constexpr size_t SizeOf = SizeOf_t<AnyType>::val;
-}
-#pragma endregion
-
-#pragma region Enum
-use_member(HasProtoEnum);
-export template<class AnyType>
-constexpr bool IsEnum = member_HasProtoEnum_of<AnyType>::is_addressable;
-template<class TCHAR>
-class SimpleRegex {
-	using LPCTSTR = const TCHAR *;
-	using String = StringBase<TCHAR>;
-	static constexpr bool __a_z(TCHAR w) reflect_as('a' <= w && w <= 'z');
-	static constexpr bool __A_Z(TCHAR w) reflect_as('A' <= w && w <= 'Z');
-	static constexpr bool __0_9(TCHAR w) reflect_as('0' <= w && w <= '9');
-	static constexpr bool __A_z(TCHAR w) reflect_as(__a_z(w) || __A_Z(w));
-	static constexpr bool _word(TCHAR w) reflect_as(__A_z(w) || __0_9(w));
-	static constexpr bool _Word(TCHAR w) reflect_as(_word(w) || w == '_');
-	static constexpr bool __s(TCHAR w) reflect_as(w == '\n' || w == '\r' || w == '\t' || w == ' ');
-	struct Token {
-		friend class SimpleRegex;
-		LPCTSTR lpsz;
-		size_t len;
-	public:
-		constexpr Token() : lpsz(O), len(0) {}
-		constexpr Token(LPCTSTR lpsz, LPCTSTR hpsz) : lpsz(lpsz), len(hpsz - lpsz) {}
-		constexpr operator LPCTSTR() const reflect_as(lpsz);
-		operator const String() const;
-	};
-	struct Map { Token key, val; };
-	template<size_t len>
-	class Maps {
-		friend class SimpleRegex;
-		Map map[len];
-	public:
-		static constexpr size_t Length = len;
-		constexpr Map operator[](size_t ind) const { return map[ind]; }
-	};
-	struct MapN { Map map; LPCTSTR hpsz; };
-	static constexpr MapN _GetMap(LPCTSTR lpsz) {
-		LPCTSTR hpsz = lpsz;
-		// skip blank
-		while (auto ch = hpsz[0])
-			if (__s(hpsz[0]))
-				++hpsz;
-			else
-				break;
-		// get key
-		lpsz = hpsz;
-		while (auto ch = hpsz[0])
-			if (_Word(hpsz[0]))
-				++hpsz;
-			else
-				break;
-		Token key{ lpsz, hpsz };
-		// skip blank
-		while (auto ch = hpsz[0])
-			if (__s(hpsz[0]))
-				++hpsz;
-			else
-				break;
-		// get equal
-		if (hpsz[0] != '=')
-			return{ {}, {} };
-		++hpsz;
-		// skip blank
-		while (auto ch = hpsz[0])
-			if (__s(hpsz[0]))
-				++hpsz;
-			else
-				break;
-		// get val
-		lpsz = hpsz;
-		while (auto ch = hpsz[0])
-			if (hpsz[0] != ',')
-				++hpsz;
-			else
-				break;
-		Token val{ lpsz, hpsz };
-		if (hpsz[0] == ',')
-			++hpsz;
-		return{ { key, val }, hpsz };
-	}
-	template<size_t count>
-	static constexpr Maps<count> GetMaps(LPCTSTR lpsz) {
-		Maps<count> maps;
-		for (size_t i = 0; i < count; ++i) {
-			auto map = _GetMap(lpsz);
-			lpsz = map.hpsz;
-			maps.map[i] = map.map;
-		}
-		return maps;
-	}
-public:
-	template<class AnyEnum>
-	static constexpr auto Table() {
-		misuse_assert(IsEnum<AnyEnum>, "template type must be based on EnumBase");
-		if constexpr (IsEnum<AnyEnum>) {
-			if constexpr (IsCharW<TCHAR>)
-				reflect_as(GetMaps<AnyEnum::Count>(AnyEnum::__EntriesW))
-			else reflect_as(GetMaps<AnyEnum::Count>(AnyEnum::__EntriesA))
-		}
-	}
-};
-#pragma region EnumSupports
-export {
-/* EnumTableX */
-template<class AnyEnum, class TCHAR = ::TCHAR>
-constexpr auto EnumTable = SimpleRegex<TCHAR>::template Table<AnyEnum>();
-template<class AnyEnum>
-constexpr auto EnumTableA = EnumTable<AnyEnum, CHAR>;
-template<class AnyEnum>
-constexpr auto EnumTableW = EnumTable<AnyEnum, WCHAR>;
-/* (misc) */
-template<class Enum1, class Enum2, class EnumType>
-inline auto __makeResult(EnumType val) {
-	constexpr auto left = is_chain_extended_on<Enum1, Enum2>;
-	constexpr auto right = is_chain_extended_on<Enum2, Enum1>;
-	static_assert(left || right, "Convertless");
-	if constexpr (left)
-		return reuse_as<Enum1>((typename Enum1::ProtoType)val);
-	elif constexpr (right)
-		return reuse_as<Enum2>((typename Enum2::ProtoType)val);
-}
-template<class AnyType>
-struct EnumUnitBase {
-	using ProtoType = AnyType;
-	using ProtoUnit = EnumUnitBase;
-	ProtoType val;
-	constexpr EnumUnitBase(ProtoType val) : val(val) {}
-	static constexpr size_t CountAll = 0;
-};
-template<class AnyType>
-using EnumUnit = std::conditional_t<IsEnum<AnyType>, AnyType, EnumUnitBase<AnyType>>;
-template<class SubClass, class BaseType>
-struct EnumBase {
-	static constexpr bool HasProtoEnum = IsEnum<BaseType>;
-	using ProtoEnum = std::conditional_t<HasProtoEnum, BaseType, void>;
-	using ProtoUnit = typename EnumUnit<BaseType>::ProtoUnit;
-	using ProtoType = typename ProtoUnit::ProtoType;
-	static constexpr size_t CountAll() reflect_as(HasProtoEnum ? SubClass::Count + ProtoEnum::CountAll() : SubClass::Count); \
-};
-}
-#pragma endregion
 #pragma endregion
 
 #pragma region ToProto
-export {
 template<class AnyType>
-struct to_proto_t {
-	using type = AnyType;
-};
+struct to_proto_t { using type = AnyType; };
 template<class AnyType>
 struct to_proto_t<AnyType *> : to_proto_t<AnyType> {};
 template<class AnyType>
@@ -370,11 +69,9 @@ template<class AnyType>
 struct to_proto_t<volatile AnyType> : to_proto_t<AnyType> {};
 template<class AnyType>
 using to_proto = typename to_proto_t<AnyType>::type;
-}
 #pragma endregion
 
-#pragma region TypeList 
-export {
+#pragma region TypeList
 template<class...>
 struct TypeList;
 template<>
@@ -429,8 +126,8 @@ struct TypeList<Type0, Types...> : TypeList<Types...> {
 	using IndexOf = typename index<ind>::type;
 	template<size_t ind>
 	inline auto &indexof() {
-		if constexpr (ind == 0)
-			return TypeList<Types...>::template indexof<ind - 1>();
+		if_c (ind == 0)
+			 return TypeList<Types...>::template indexof<ind - 1>();
 		else return type;
 	}
 	using ind_seq = std::index_sequence_for<Type0, Types...>;
@@ -445,7 +142,6 @@ public:
 	template<class AnyType>
 	inline auto invoke(AnyType &f) reflect_as(call(f, ind_seq{}));
 };
-}
 #pragma endregion
 
 #pragma region FunctionOf
@@ -492,15 +188,18 @@ struct __functionof<Ret(Args..., ...)> {
 	static constexpr bool is_static = true;
 	static constexpr bool is_ellipsis = true;
 };
-export
 template<class OtherType>
 using functionof = __functionof<to_proto<OtherType>>;
 #pragma endregion
 
+#pragma region Static Compatible
+template<class AnyCallable, class FuncType>
+constexpr bool static_compatible = false;
+template<class AnyCallable, class Ret, class... Args>
+constexpr bool static_compatible<AnyCallable, Ret(Args...)> = decltype(__static_compatible<AnyCallable, Ret, Args...>(0))::value;
 #pragma endregion
 
 #pragma region Compilation Informations
-export {
 /* _CPLUSPLUS_STANDARD */
 #define _CPLUSPLUS_STANDARDA _MACRO_CALL(STROFA, __cplusplus)
 #define _CPLUSPLUS_STANDARDW _MACRO_CALL(STROFW, __cplusplus)
@@ -696,7 +395,293 @@ inline TCHAR TARGET_NTDDI []{ _NTDDI  };
 inline  CHAR COMPILATION_INFOA[]{ _COMPILATION_INFOA };
 inline WCHAR COMPILATION_INFOW[]{ _COMPILATION_INFOW };
 inline TCHAR COMPILATION_INFO []{ _COMPILATION_INFO  };
+#pragma endregion
+
+#pragma region Chain Extender 
+template<class ParentClass, class ChildClass>
+using Chain = std::conditional_t<std::is_void_v<ChildClass>, ParentClass, ChildClass>;
+template<class ParentClass, class ChildClass>
+struct ChainExtender {
+	using Child = Chain<ParentClass, ChildClass>;
+	using Self = ParentClass;
+	constexpr ChainExtender() {
+		if_c(!std::is_void_v<ChildClass>)
+			child_assert(ParentClass, ChildClass);
+	}
+	Child &child_() reflect_as(*static_cast<Child *>(this));
+	const Child &child_() const reflect_as(*static_cast<const Child *>(this));
+	Self &self_() reflect_as(*static_cast<Self *>(this));
+	const Self &self_() const reflect_as(*static_cast<const Self *>(this));
+};
+template<class Class1, class Class2>
+constexpr bool is_chain_extended_on =
+std::is_void_v<Class1> || std::is_void_v<Class2> ? false :
+	std::is_same_v<Class1, Class2> ? true :
+	is_chain_extended_on<subtype_branchof_super<Class1, void>, Class2>;
+#pragma endregion
+
+#pragma region Class Reference
+template<class AnyRef>
+union RefAs {
+private:
+	AnyRef t;
+public:
+	template<class AnyType>
+	RefAs(AnyType &arg) : t(arg) {}
+	template<class AnyType>
+	RefAs(AnyType &&arg) : t(std::forward<AnyType>(arg)) {}
+	template<class AnyType>
+	RefAs(const AnyType &arg) : t(arg) {}
+	~RefAs() {}
+public:
+	template<class AnyType>
+	inline operator AnyType() reflect_as((AnyType)t);
+	template<class AnyType>
+	inline operator AnyType() const reflect_as((AnyType)t);
+	inline operator AnyRef &() reflect_as(t);
+	inline operator const AnyRef &() const reflect_as(t);
+	inline operator AnyRef *() reflect_as(std::addressof(t));
+	inline operator const AnyRef *() const reflect_as(std::addressof(t));
+	inline auto &operator*() reflect_as(t);
+	inline auto &operator*() const reflect_as(t);
+	inline auto operator&() reflect_as(std::addressof(t));
+	inline auto operator&() const reflect_as(std::addressof(t));
+	inline auto operator->() reflect_as(std::addressof(t));
+	inline auto operator->() const reflect_as(std::addressof(t));
+};
+template<class AnyType>
+union RefAs<AnyType *> {
+private:
+	AnyType *ptr;
+public:
+	template<class OtherType>
+	RefAs(OtherType *ptr) : ptr((AnyType *)ptr) {}
+public:
+	inline operator AnyType *() reflect_as(ptr);
+	inline operator const AnyType *() const reflect_as(ptr);
+	inline auto &operator*() reflect_as(*ptr);
+	inline auto &operator*() const reflect_as(*ptr);
+	inline auto *operator&() reflect_as(&ptr);
+	inline auto *operator&() const reflect_as(&ptr);
+	inline auto *operator->() reflect_as(ptr);
+	inline auto *operator->() const reflect_as(ptr);
+};
+template <class AnyStruct>
+class RefStruct : protected AnyStruct {
+public:
+	RefStruct() reflect_to(ZeroMemory(this, sizeof(AnyStruct)));
+	RefStruct(const AnyStruct &s) : AnyStruct(s) {}
+public:
+	inline operator AnyStruct &() reflect_to_self();
+	inline operator const AnyStruct &() const reflect_to_self();
+	inline AnyStruct &operator*() reflect_to_self();
+	inline const AnyStruct &operator *() const reflect_to_self();
+	inline AnyStruct *operator&() reflect_as(this);
+	inline const AnyStruct *operator&() const reflect_as(this);
+	inline AnyStruct *operator->() reflect_as(this);
+	inline const AnyStruct *operator->() const reflect_as(this);
+};
+template <class OtherType>
+constexpr bool IsRef = false;
+template<class RefType>
+constexpr bool IsRef<RefAs<RefType>> = true;
+#pragma endregion
+
 }
+
+namespace WX {
+
+export
+constexpr bool IsUnicode =
+#if defined(UNICODE)
+	UNICODE;
+#elif defined(_UNICODE)
+	_UNICODE;
+#else
+	false;
+#endif
+
+#pragma region String References
+export {
+template<class TCHAR>
+class StringBase;
+using String = StringBase<TCHAR>;
+using StringA = StringBase<CHAR>;
+using StringW = StringBase<WCHAR>;
+template<bool IsUnicode>
+using StringX = switch_structx(String);
+
+template<bool IsUnicode>
+using XCHAR = std::conditional_t<IsUnicode, WCHAR, CHAR>;
+template<bool IsUnicode>
+using LPXSTR = std::conditional_t<IsUnicode, LPWSTR, LPSTR>;
+template<bool IsUnicode>
+using LPCXSTR = std::conditional_t<IsUnicode, LPCWSTR, LPCSTR>;
+template<class TCHAR>
+constexpr bool IsCharA = std::is_same_v<TCHAR, CHAR> || std::is_same_v<TCHAR, LPSTR> || std::is_same_v<TCHAR, LPCSTR>;
+template<class TCHAR>
+constexpr bool IsCharW = std::is_same_v<TCHAR, WCHAR> || std::is_same_v<TCHAR, LPWSTR> || std::is_same_v<TCHAR, LPCWSTR>;
+template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
+constexpr auto AnyX(AnyTypeW *w, AnyTypeA *a) {
+	if_c (IsUnicode)
+		 return w;
+	else return a;
+}
+template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
+constexpr auto &AnyX(AnyTypeW &w, AnyTypeA &a) {
+	if_c (IsUnicode)
+		 return w;
+	else return a;
+}
+template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
+constexpr auto AnyX(AnyTypeW &&w, AnyTypeA &&a) {
+	if_c (IsUnicode)
+		 return w;
+	else return a;
+}
+}
+#pragma endregion
+
+#pragma region Enum
+use_member(HasProtoEnum);
+export template<class AnyType>
+constexpr bool IsEnum = member_HasProtoEnum_of<AnyType>::is_addressable;
+template<class TCHAR>
+class SimpleRegex {
+	using LPCTSTR = const TCHAR *;
+	using String = StringBase<TCHAR>;
+	static constexpr bool __a_z(TCHAR w) reflect_as('a' <= w && w <= 'z');
+	static constexpr bool __A_Z(TCHAR w) reflect_as('A' <= w && w <= 'Z');
+	static constexpr bool __0_9(TCHAR w) reflect_as('0' <= w && w <= '9');
+	static constexpr bool __A_z(TCHAR w) reflect_as(__a_z(w) || __A_Z(w));
+	static constexpr bool _word(TCHAR w) reflect_as(__A_z(w) || __0_9(w));
+	static constexpr bool _Word(TCHAR w) reflect_as(_word(w) || w == '_');
+	static constexpr bool __s(TCHAR w) reflect_as(w == '\n' || w == '\r' || w == '\t' || w == ' ');
+	struct Token {
+		friend class SimpleRegex;
+		LPCTSTR lpsz;
+		size_t len;
+	public:
+		constexpr Token() : lpsz(O), len(0) {}
+		constexpr Token(LPCTSTR lpsz, LPCTSTR hpsz) : lpsz(lpsz), len(hpsz - lpsz) {}
+		constexpr operator LPCTSTR() const reflect_as(lpsz);
+		operator const String() const;
+	};
+	struct Map { Token key, val; };
+	template<size_t len>
+	class Maps {
+		friend class SimpleRegex;
+		Map map[len];
+	public:
+		static constexpr size_t Length = len;
+		constexpr Map operator[](size_t ind) const { return map[ind]; }
+	};
+	struct MapN { Map map; LPCTSTR hpsz; };
+	static constexpr MapN _GetMap(LPCTSTR lpsz) {
+		LPCTSTR hpsz = lpsz;
+		// skip blank
+		while (auto ch = hpsz[0])
+			if (__s(hpsz[0]))
+				++hpsz;
+			else
+				break;
+		// get key
+		lpsz = hpsz;
+		while (auto ch = hpsz[0])
+			if (_Word(hpsz[0]))
+				++hpsz;
+			else
+				break;
+		Token key{ lpsz, hpsz };
+		// skip blank
+		while (auto ch = hpsz[0])
+			if (__s(hpsz[0]))
+				++hpsz;
+			else
+				break;
+		// get equal
+		if (hpsz[0] != '=')
+			return{ {}, {} };
+		++hpsz;
+		// skip blank
+		while (auto ch = hpsz[0])
+			if (__s(hpsz[0]))
+				++hpsz;
+			else
+				break;
+		// get val
+		lpsz = hpsz;
+		while (auto ch = hpsz[0])
+			if (hpsz[0] != ',')
+				++hpsz;
+			else
+				break;
+		Token val{ lpsz, hpsz };
+		if (hpsz[0] == ',')
+			++hpsz;
+		return{ { key, val }, hpsz };
+	}
+	template<size_t count>
+	static constexpr Maps<count> GetMaps(LPCTSTR lpsz) {
+		Maps<count> maps;
+		for (size_t i = 0; i < count; ++i) {
+			auto map = _GetMap(lpsz);
+			lpsz = map.hpsz;
+			maps.map[i] = map.map;
+		}
+		return maps;
+	}
+public:
+	template<class AnyEnum>
+	static constexpr auto Table() {
+		misuse_assert(IsEnum<AnyEnum>, "template type must be based on EnumBase");
+		if_c (IsEnum<AnyEnum>) {
+			if_c (IsCharW<TCHAR>)
+				reflect_as(GetMaps<AnyEnum::Count>(AnyEnum::__EntriesW))
+			else reflect_as(GetMaps<AnyEnum::Count>(AnyEnum::__EntriesA))
+		}
+	}
+};
+#pragma region EnumSupports
+export {
+/* EnumTableX */
+template<class AnyEnum, class TCHAR = ::TCHAR>
+constexpr auto EnumTable = SimpleRegex<TCHAR>::template Table<AnyEnum>();
+template<class AnyEnum>
+constexpr auto EnumTableA = EnumTable<AnyEnum, CHAR>;
+template<class AnyEnum>
+constexpr auto EnumTableW = EnumTable<AnyEnum, WCHAR>;
+/* (misc) */
+template<class Enum1, class Enum2, class EnumType>
+inline auto __makeResult(EnumType val) {
+	constexpr auto left = is_chain_extended_on<Enum1, Enum2>;
+	constexpr auto right = is_chain_extended_on<Enum2, Enum1>;
+	static_assert(left || right, "Convertless");
+	if_c (left)
+		return reuse_as<Enum1>((typename Enum1::ProtoType)val);
+	elif_c (right)
+		return reuse_as<Enum2>((typename Enum2::ProtoType)val);
+}
+template<class AnyType>
+struct EnumUnitBase {
+	using ProtoType = AnyType;
+	using ProtoUnit = EnumUnitBase;
+	ProtoType val;
+	constexpr EnumUnitBase(ProtoType val) : val(val) {}
+	static constexpr size_t CountAll = 0;
+};
+template<class AnyType>
+using EnumUnit = std::conditional_t<IsEnum<AnyType>, AnyType, EnumUnitBase<AnyType>>;
+template<class SubClass, class BaseType>
+struct EnumBase {
+	static constexpr bool HasProtoEnum = IsEnum<BaseType>;
+	using ProtoEnum = std::conditional_t<HasProtoEnum, BaseType, void>;
+	using ProtoUnit = typename EnumUnit<BaseType>::ProtoUnit;
+	using ProtoType = typename ProtoUnit::ProtoType;
+	static constexpr size_t CountAll() reflect_as(HasProtoEnum ? SubClass::Count + ProtoEnum::CountAll() : SubClass::Count); \
+};
+}
+#pragma endregion
 #pragma endregion
 
 #pragma region Exception
@@ -772,7 +757,7 @@ public:
 	FunctionPackage(PackType &f) : func(f) {}
 	RetType operator()(Args ...args) override {
 		static_assert(static_compatible<PackType, RetType(Args...)>, "Argument list uncompatible");
-		if constexpr (std::is_pointer_v<PackType>)
+		if_c (std::is_pointer_v<PackType>)
 			reflect_to(assertl(func), func(args...))
 		else reflect_as(func(args...));
 	}
@@ -1173,10 +1158,15 @@ public:
 		retself;
 	}
 public:
+	inline LPTSTR str() {
+		if (!lpsz || !Len) return O;
+		assertl(!IsReadOnly());
+		return lpsz;
+	}
 	inline LPCTSTR c_str() const reflect_as(lpsz && Len ? lpsz : O);
 	inline LPCTSTR c_str_safe() const {
 		if (!Len || !lpsz) {
-			if constexpr (IsUnicode)
+			if_c (IsUnicode)
 				return L"";
 			else
 				return "";
@@ -1188,10 +1178,11 @@ public:
 	inline size_t Size() const reflect_as(lpsz ? (Len + 1) * sizeof(TCHAR) : 0);
 public:
 	inline LPTSTR begin() reflect_as(Len ? lpsz : O);
-	inline LPTSTR end() reflect_as(Len &&lpsz ? lpsz + Len : O);
+	inline LPTSTR end() reflect_as(Len && lpsz ? lpsz + Len : O);
 	inline LPCTSTR begin() const reflect_as(Len ? lpsz : O);
 	inline LPCTSTR end() const reflect_as(Len &&lpsz ? lpsz + Len : O);
 public:
+	inline operator LPTSTR () reflect_as(str());
 	inline operator bool() const reflect_as(lpsz &&Len);
 	inline operator LPCTSTR () const reflect_as(Len ? lpsz : O);
 	inline StringBase operator&() reflect_as({ Len, 0, lpsz });
@@ -1302,9 +1293,9 @@ inline StringW FitsW(const StringA &str, CodePages cp = CodePages::Active) {
 }
 template<bool IsUnicode = WX::IsUnicode, class TCHAR = ::TCHAR>
 inline auto Fits(StringBase<TCHAR> str) {
-	if constexpr (std::is_same_v<XCHAR<IsUnicode>, TCHAR>)
+	if_c (std::is_same_v<XCHAR<IsUnicode>, TCHAR>)
 		return str;
-	elif constexpr (IsUnicode)
+	elif_c (IsUnicode)
 		return FitsW(str);
 	else return FitsA(str);
 }
@@ -1313,19 +1304,19 @@ inline String Fits(const CharType *lpString, size_t MaxLen, CodePages cp = CodeP
 	if (!lpString || !MaxLen) return O;
 	auto uLen = WX::Length(lpString, MaxLen);
 	if (!uLen) return O;
-	if constexpr (std::is_same_v<CharType, TCHAR>) {
+	if_c (std::is_same_v<CharType, TCHAR>) {
 		auto lpsz = String::Alloc(uLen);
 		CopyMemory(lpsz, lpString, (uLen + 1) * sizeof(TCHAR));
 		return{ uLen, lpsz };
 	}
 	else {
 		int tLen;
-		if constexpr (IsUnicode)
+		if_c (IsUnicode)
 			assertl((tLen = MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, O, 0)) > 0)
 		else assertl((tLen = WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, O, 0, O, O)) > 0)
 			// if (tLen != uLen) warnning glyphs missing 
 			auto lpsz = String::Alloc(tLen);
-		if constexpr (IsUnicode)
+		if_c (IsUnicode)
 			assertl(tLen == MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen))
 		else assertl(tLen == WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen, O, O))
 			lpsz[tLen] = 0;
@@ -1654,11 +1645,11 @@ public:
 	template<class TCHAR = ::TCHAR, class AnyType>
 	inline StringBase<TCHAR> toString(AnyType i) const {
 		TCHAR lpBuffer[maxLength] = { 0 }, *hpString, *lpString;
-		if constexpr (std::is_unsigned_v<AnyType>)
+		if_c (std::is_unsigned_v<AnyType>)
 			lpString = push((uintptr_t)i, lpBuffer, hpString, maxLength);
-		elif constexpr (std::is_integral_v<AnyType>)
+		elif_c (std::is_integral_v<AnyType>)
 			lpString = push((intptr_t)i, lpBuffer, hpString, maxLength);
-		elif constexpr (std::is_floating_point_v<AnyType>)
+		elif_c (std::is_floating_point_v<AnyType>)
 			lpString = push(i, lpBuffer, hpString, maxLength);
 		return +CString(hpString - lpString, lpString);
 	}
@@ -1687,7 +1678,7 @@ StringBase<TCHAR> EnumClassParseX(AnyEnum e) {
 	for (auto i = 0; i < EnumType::Count; ++i)
 		if (val == EnumType::__Vals[i])
 			return table[i].key;
-	if constexpr (EnumType::HasProtoEnum)
+	if_c (EnumType::HasProtoEnum)
 		return EnumClassParseX<TCHAR>(reuse_as<typename EnumType::ProtoEnum>(e));
 	else return format_numeral("d").toString<TCHAR>(val);
 }
@@ -1718,7 +1709,7 @@ inline StringW Exception::SentenceW() const reflect_as(FitsW(SentenceA()));
 
 template<bool IsUnicode>
 inline StringX<IsUnicode> Exception::ErrorMessage() const {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(ErrorMessageW())
 	else reflect_as(ErrorMessageA());
 }
@@ -1783,7 +1774,7 @@ inline StringBase<TCHAR> Concat(const StringBase<TCHAR> &str, const Args &... ar
 }
 template<class TCHAR, class AnyNumberal>
 inline StringBase<TCHAR> X(const TCHAR *form, AnyNumberal i) {
-	if constexpr (IsCharW<TCHAR>)
+	if_c (IsCharW<TCHAR>)
 		 reflect_as(format_numeral(form).toStringW(i))
 	else reflect_as(format_numeral(form).toStringA(i))
 }

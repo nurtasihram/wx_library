@@ -8,6 +8,136 @@ import wx;
 import wx.proto;
 import wx.resource;
 
+#pragma region Prototype Includes
+namespace WX {
+	
+#pragma region fileapi.h
+// FindFirstChangeNotification
+inline HANDLE FindFirstChangeNotification(LPCSTR lpPathName, BOOL bWatchSubtree, DWORD dwNotifyFilter)
+	assertl_reflect_as(auto h = ::FindFirstChangeNotificationA(lpPathName, bWatchSubtree, dwNotifyFilter); h != INVALID_HANDLE_VALUE, h);
+inline HANDLE FindFirstChangeNotification(LPCWSTR lpPathName, BOOL bWatchSubtree, DWORD dwNotifyFilter)
+	assertl_reflect_as(auto h = ::FindFirstChangeNotificationW(lpPathName, bWatchSubtree, dwNotifyFilter); h != INVALID_HANDLE_VALUE, h);
+// FindNextFile
+inline void FindNextFileA(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData)
+	assertl_reflect_as(::FindNextFileA(hFindFile, lpFindFileData));
+inline void FindNextFile(HANDLE hFindFile, LPWIN32_FIND_DATAW lpFindFileData)
+	assertl_reflect_as(::FindNextFileW(hFindFile, lpFindFileData));
+// GetDiskFreeSpace
+inline void GetDiskFreeSpace(LPCSTR lpRootPathName, LPDWORD lpSectorsPerCluster, LPDWORD lpBytesPerSector,
+							  LPDWORD lpNumberOfFreeClusters, LPDWORD lpTotalNumberOfClusters)
+	assertl_reflect_as(::GetDiskFreeSpaceA(lpRootPathName, lpSectorsPerCluster, lpBytesPerSector,
+										   lpNumberOfFreeClusters, lpTotalNumberOfClusters));
+inline void GetDiskFreeSpace(LPCWSTR lpRootPathName, LPDWORD lpSectorsPerCluster, LPDWORD lpBytesPerSector,
+							 LPDWORD lpNumberOfFreeClusters, LPDWORD lpTotalNumberOfClusters)
+	assertl_reflect_as(::GetDiskFreeSpaceW(lpRootPathName, lpSectorsPerCluster, lpBytesPerSector,
+										   lpNumberOfFreeClusters, lpTotalNumberOfClusters));
+// GetDiskFreeSpaceEx
+inline void GetDiskFreeSpace(LPCSTR lpDirectoryName, PULARGE_INTEGER lpFreeBytesAvailable,
+							   PULARGE_INTEGER lpTotalNumberOfBytes, PULARGE_INTEGER lpTotalNumberOfFreeBytes)
+	assertl_reflect_as(::GetDiskFreeSpaceExA(lpDirectoryName, lpFreeBytesAvailable, lpTotalNumberOfBytes, lpTotalNumberOfFreeBytes));
+inline void GetDiskFreeSpace(LPCWSTR lpDirectoryName, PULARGE_INTEGER lpFreeBytesAvailable,
+							   PULARGE_INTEGER lpTotalNumberOfBytes, PULARGE_INTEGER lpTotalNumberOfFreeBytes)
+	assertl_reflect_as(::GetDiskFreeSpaceExW(lpDirectoryName, lpFreeBytesAvailable, lpTotalNumberOfBytes, lpTotalNumberOfFreeBytes));
+// GetDiskSpaceInformation
+inline void GetDiskSpaceInformation(LPCSTR rootPath, DISK_SPACE_INFORMATION *diskSpaceInfo)
+	assertl_reflect_as(SUCCEEDED(::GetDiskSpaceInformationA(rootPath, diskSpaceInfo)));
+inline void GetDiskSpaceInformation(LPCWSTR rootPath, DISK_SPACE_INFORMATION *diskSpaceInfo)
+	assertl_reflect_as(SUCCEEDED(::GetDiskSpaceInformationW(rootPath, diskSpaceInfo)));
+// GetDriveType
+inline UINT GetDriveType(LPCSTR lpRootPathName)
+	reflect_as(::GetDriveTypeA(lpRootPathName));
+inline UINT GetDriveType(LPCWSTR lpRootPathName)
+	reflect_as(::GetDriveTypeW(lpRootPathName));
+// GetFinalPathNameByHandle
+inline DWORD GetFinalPathNameByHandle(HANDLE hFile, LPSTR lpszFilePath, DWORD cchFilePath, DWORD dwFlags)
+	assertl_reflect_as(auto n = ::GetFinalPathNameByHandleA(hFile, lpszFilePath, cchFilePath, dwFlags), n);
+inline DWORD GetFinalPathNameByHandle(HANDLE hFile, LPWSTR lpszFilePath, DWORD cchFilePath, DWORD dwFlags)
+	assertl_reflect_as(auto n = ::GetFinalPathNameByHandleW(hFile, lpszFilePath, cchFilePath, dwFlags), n);
+// GetLongPathName
+inline DWORD GetLongPathName(LPCSTR lpszShortPath, LPSTR lpszLongPath, DWORD cchBuffer)
+	assertl_reflect_as(auto n = ::GetLongPathNameA(lpszShortPath, lpszLongPath, cchBuffer), n);
+inline DWORD GetLongPathName(LPCWSTR lpszShortPath, LPWSTR lpszLongPath, DWORD cchBuffer)
+	assertl_reflect_as(auto n = ::GetLongPathNameW(lpszShortPath, lpszLongPath, cchBuffer), n);
+// GetTempFileName
+inline UINT GetTempFileName(LPCSTR lpPathName, LPCSTR lpPrefixString, UINT uUnique, LPSTR lpTempFileName)
+	assertl_reflect_as(auto n = ::GetTempFileNameA(lpPathName, lpPrefixString, uUnique, lpTempFileName), n);
+inline UINT GetTempFileName(LPCWSTR lpPathName, LPCWSTR lpPrefixString, UINT uUnique, LPWSTR lpTempFileName)
+	assertl_reflect_as(auto n = ::GetTempFileNameW(lpPathName, lpPrefixString, uUnique, lpTempFileName), n);
+// GetVolumeInformationByHandle
+inline void GetVolumeInformationByHandle(HANDLE hFile, LPWSTR lpVolumeNameBuffer, DWORD nVolumeNameSize,
+										 LPDWORD lpVolumeSerialNumber, LPDWORD lpMaximumComponentLength,
+										 LPDWORD lpFileSystemFlags, LPWSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize)
+	assertl_reflect_as(::GetVolumeInformationByHandleW(hFile, lpVolumeNameBuffer, nVolumeNameSize,
+													   lpVolumeSerialNumber, lpMaximumComponentLength, lpFileSystemFlags,
+													   lpFileSystemNameBuffer, nFileSystemNameSize));
+// GetVolumeInformation
+inline void GetVolumeInformation(LPCSTR lpRootPathName, LPSTR lpVolumeNameBuffer, DWORD nVolumeNameSize,
+									LPDWORD lpVolumeSerialNumber, LPDWORD lpMaximumComponentLength,
+									LPDWORD lpFileSystemFlags, LPSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize)
+	assertl_reflect_as(::GetVolumeInformationA(lpRootPathName, lpVolumeNameBuffer, nVolumeNameSize,
+											   lpVolumeSerialNumber, lpMaximumComponentLength, lpFileSystemFlags,
+											   lpFileSystemNameBuffer, nFileSystemNameSize));
+inline void GetVolumeInformation(LPCWSTR lpRootPathName, LPWSTR lpVolumeNameBuffer, DWORD nVolumeNameSize,
+								 LPDWORD lpVolumeSerialNumber, LPDWORD lpMaximumComponentLength,
+								 LPDWORD lpFileSystemFlags, LPWSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize)
+	assertl_reflect_as(::GetVolumeInformationW(lpRootPathName, lpVolumeNameBuffer, nVolumeNameSize,
+											   lpVolumeSerialNumber, lpMaximumComponentLength, lpFileSystemFlags,
+											   lpFileSystemNameBuffer, nFileSystemNameSize));
+// FindFirstStream
+inline HANDLE FindFirstStream(LPCWSTR lpFileName, STREAM_INFO_LEVELS InfoLevel, LPVOID lpFindStreamData, DWORD dwFlags)
+	assertl_reflect_as(auto h = ::FindFirstStreamW(lpFileName, InfoLevel, lpFindStreamData, dwFlags), h);
+// FindNextStream
+inline void FindNextStream(HANDLE hFindStream, LPVOID lpFindStreamData)
+	assertl_reflect_as(::FindNextStreamW(hFindStream, lpFindStreamData));
+// GetTempPath
+inline DWORD GetTempPath(LPSTR lpBuffer, DWORD nSize)
+	assertl_reflect_as(auto n = ::GetTempPathA(nSize, lpBuffer), n);
+inline DWORD GetTempPath(LPWSTR lpBuffer, DWORD nSize)
+	assertl_reflect_as(auto n = ::GetTempPathW(nSize, lpBuffer), n);
+// FindFirstFileName
+inline HANDLE FindFirstFileName(LPCWSTR lpFileName, DWORD dwFlags, LPDWORD StringLength, LPWSTR LinkName)
+	assertl_reflect_as(auto h = ::FindFirstFileNameW(lpFileName, dwFlags, StringLength, LinkName); h != INVALID_HANDLE_VALUE, h);
+// FindNextFileName
+inline void FindNextFileName(HANDLE hFindStream, LPDWORD StringLength, LPWSTR LinkName)
+	assertl_reflect_as(::FindNextFileNameW(hFindStream, StringLength, LinkName));
+#if (NTDDI_VERSION >= NTDDI_WIN10_FE)
+// GetTempPath2
+inline DWORD GetTempPath2(LPSTR lpBuffer, DWORD nSize)
+	assertl_reflect_as(auto n = ::GetTempPath2A(nSize, lpBuffer), n);
+inline DWORD GetTempPath2(LPWSTR lpBuffer, DWORD nSize)
+	assertl_reflect_as(auto n = ::GetTempPath2W(nSize, lpBuffer), n);
+#endif
+// CreateDirectory
+// from fileapi.h
+inline void CreateDirectory(LPCSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
+	assertl_reflect_as(::CreateDirectoryA(lpPathName, lpSecurityAttributes));
+// from fileapi.h
+inline void CreateDirectory(LPCWSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
+	assertl_reflect_as(::CreateDirectoryW(lpPathName, lpSecurityAttributes));
+#if defined(NTDDI_WIN11_GE) && (NTDDI_VERSION >= NTDDI_WIN11_GE) && !__GNUC__
+// CreateDirectory2
+inline void CreateDirectory(LPCSTR lpPathName, DWORD dwDesiredAccess, DWORD dwShareMode,
+							DIRECTORY_FLAGS DirectoryFlags, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
+	assertl_reflect_as(::CreateDirectory2A(lpPathName, dwDesiredAccess, dwShareMode, DirectoryFlags, lpSecurityAttributes));
+inline void CreateDirectory(LPCWSTR lpPathName, DWORD dwDesiredAccess, DWORD dwShareMode,
+							DIRECTORY_FLAGS DirectoryFlags, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
+	assertl_reflect_as(::CreateDirectory2W(lpPathName, dwDesiredAccess, dwShareMode, DirectoryFlags, lpSecurityAttributes));
+// RemoveDirectory2
+inline void RemoveDirectory(LPCSTR lpPathName, DIRECTORY_FLAGS DirectoryFlags)
+	assertl_reflect_as(::RemoveDirectory2A(lpPathName, DirectoryFlags));
+inline void RemoveDirectory(LPCWSTR lpPathName, DIRECTORY_FLAGS DirectoryFlags)
+	assertl_reflect_as(::RemoveDirectory2W(lpPathName, DirectoryFlags));
+// DeleteFile2
+inline void DeleteFile(LPCSTR lpFileName, DWORD Flags)
+	assertl_reflect_as(::DeleteFile2A(lpFileName, Flags));
+inline void DeleteFile(LPCWSTR lpFileName, DWORD Flags)
+	assertl_reflect_as(::DeleteFile2W(lpFileName, Flags));
+#endif
+#pragma endregion
+
+}
+#pragma endregion
+
 export namespace WX {
 
 #pragma region File
@@ -479,7 +609,7 @@ public: // Property - CurrentRxQueue
 	//WCHAR wcProvChar[1];
 };
 class CommConfig : public RefStruct<COMMCONFIG> {
-	AutoPointer<Heap, COMMCONFIG> lpCC;
+	HeapPointer<Heap, COMMCONFIG> lpCC;
 public:
 	CommConfig() {}
 public: // Property - ProviderSubType
