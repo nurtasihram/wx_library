@@ -3,19 +3,16 @@ module;
 #include <Windows.h>
 #include <CommDlg.h>
 
-#include "wx_type"
-#include "wx__rm.inl"
+#define WX_CPPM_DIALOG
+#include "wx_dialog"
 
 export module wx.dialog;
 
-import wx;
 import wx.proto;
-import wx.window;
 import wx.gdi;
 
-#pragma region Prototype Includes
+#pragma region Win32 Prototype Includes
 namespace WX {
-
 
 //////////// ! -- TODO: Add exception system with CommDlgExtendedError -- !  ////////////
 
@@ -72,7 +69,7 @@ inline bool PageSetupDlg(LPPAGESETUPDLGW lppsd)
 #pragma endregion
 
 }
-#pragma region Prototype Includes
+#pragma endregion
 
 export namespace WX {
 

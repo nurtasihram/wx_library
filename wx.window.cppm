@@ -1,15 +1,10 @@
 module;
 
-#include <typeinfo>
-
 #define WX_CPPM_WINDOW
 #include "wx_window"
-#include "wx_realtime"
 
 export module wx.window;
 
-import wx;
-import wx.type;
 import wx.proto;
 import wx.gdi;
 import wx.resource;
@@ -59,8 +54,8 @@ public:
 	GlobalAtom(ATOM atom) : atom(atom) {}
 	~GlobalAtom() reflect_to(Delete());
 public:
-	static inline Atom Find(LPCSTR lpString) reflect_as(WX::GlobalFindAtom(lpString));
-	static inline Atom Find(LPCWSTR lpString) reflect_as(WX::GlobalFindAtom(lpString));
+	static inline RefAs<GlobalAtom> Find(LPCSTR lpString) reflect_as(WX::GlobalFindAtom(lpString));
+	static inline RefAs<GlobalAtom> Find(LPCWSTR lpString) reflect_as(WX::GlobalFindAtom(lpString));
 	inline void Delete() {
 		if (atom)
 			WX::GlobalDeleteAtom(atom);
@@ -722,6 +717,7 @@ public: // Property - ClassName
 		return CString(self->lpszClass, MaxLen);
 	}
 public: // Property - ClassAtom
+	/* W */ inline auto&ClassAtom(ATOM classAtom) reflect_to_self(self->lpszClass = (LPCTSTR)MAKEINTRESOURCE(classAtom));
 	/* R */ inline ATOM ClassAtom() const reflect_as(IS_INTRESOURCE(self->lpszClass) ? (ATOM)(ULONG_PTR)self->lpszClass : 0);
 public: // Property - StylesEx
 	/* W */ inline auto   &StylesEx(StyleEx dwExStyle) reflect_to_self(self->dwExStyle = dwExStyle.yield());
@@ -860,16 +856,16 @@ public:
 	inline void operator=(WORD wNewWord) reflect_to(WX::SetWindowWord(hWnd, nIndex, wNewWord));
 };
 template<bool IsUnicode = WX::IsUnicode>
-class WindowILongs {
+class WindowILongsX {
 	template<class>
 	friend class WindowBase;
 	mutable HWND hWnd;
 	mutable int nIndex;
 private:
-	WindowILongs(HWND hWnd, int nIndex) : hWnd(hWnd), nIndex(nIndex) {}
-	WindowILongs(const WindowILongs &) = delete;
+	WindowILongsX(HWND hWnd, int nIndex) : hWnd(hWnd), nIndex(nIndex) {}
+	WindowILongsX(const WindowILongsX &) = delete;
 public:
-	WindowILongs(WindowILongs &wic) : hWnd(wic.hWnd), nIndex(wic.nIndex) {}
+	WindowILongsX(WindowILongsX &wic) : hWnd(wic.hWnd), nIndex(wic.nIndex) {}
 public:
 	inline operator LONG_PTR() const reflect_as(WX::GetWindowLongPtr<IsUnicode>(hWnd, nIndex));
 	template<class AnyType>
@@ -878,13 +874,14 @@ public:
 	template<class AnyType>
 	inline void operator=(AnyType dwNewLong) reflect_to(WX::SetWindowLongPtr<IsUnicode>(hWnd, nIndex, small_cast<LONG_PTR>(dwNewLong)));
 };
+using WindowILongs = WindowILongsX<IsUnicode>;
+using WindowILongsA = WindowILongsX<false>;
+using WindowILongsW = WindowILongsX<true>;
 template<bool IsUnicode = WX::IsUnicode>
-class WindowIClass {
-	template<class>
-	friend class WindowBase;
+class WindowIClassX {
 	mutable HWND hWnd;
 	class Word {
-		friend class WindowIClass;
+		friend class WindowIClassX;
 		mutable HWND hWnd;
 		mutable int nIndex;
 		Word(HWND hWnd, int nIndex) : hWnd(hWnd), nIndex(nIndex) {}
@@ -893,10 +890,10 @@ class WindowIClass {
 		inline void operator=(WORD word) reflect_to(WX::SetClassWord(hWnd, nIndex, word));
 	};
 	class Long {
-		friend class WindowIClass;
+		friend class WindowIClassX;
 		mutable HWND hWnd;
 		mutable int nIndex;
-		Long(HWND hWnd, int nIndex) : hWnd(hWnd), nIndex(nIndex) {}
+		Long(HWND hWnd, int nIndex) : hWnd(hWnd), nIndex(nIndex) {} 
 	public:
 		inline operator LONG_PTR() const reflect_as(WX::GetClassLongPtr<IsUnicode>(hWnd, nIndex));
 		template<class AnyType>
@@ -906,10 +903,12 @@ class WindowIClass {
 		inline void operator=(AnyType dwNewLong) reflect_to(WX::GetClassLongPtr<IsUnicode>(hWnd, nIndex, small_cast<AnyType>(dwNewLong)));
 	};
 private:
-	WindowIClass(HWND hWnd) : hWnd(hWnd) {}
-	WindowIClass(const WindowIClass &) = delete;
+	template<class>
+	friend class WindowBase;
+	WindowIClassX(HWND hWnd) : hWnd(hWnd) {}
+	WindowIClassX(const WindowIClassX &) = delete;
 public:
-	WindowIClass(WindowIClass &wic) : hWnd(wic.hWnd) {}
+	WindowIClassX(WindowIClassX &wic) : hWnd(wic.hWnd) {}
 public: // Property - Words
 	/* W */ inline Word Words(int nIndex) reflect_as({ hWnd, nIndex });
 	/* W */ inline const Word Words(int nIndex) const reflect_as({ hWnd, nIndex });
@@ -954,12 +953,15 @@ public: // Property - Name
 		return { (size_t)len, lpszName };
 	}
 public: // Property - Atom
-	/* W */ inline auto &Atom(ATOM classAtom) reflect_to_self(Word(GCW_ATOM, classAtom));
-	/* R */ inline CAtom Atom() const reflect_as(Word(GCW_ATOM));
+	/* W */ inline auto &Atom(ATOM classAtom) reflect_to_self(Words(GCW_ATOM) = classAtom);
+	/* R */ inline CAtom Atom() const reflect_as(Words(GCW_ATOM));
 public:
-	inline operator WindowClassX<IsUnicode>() const reflect_to(WindowClassX<IsUnicode> wc; GetClassInfo(Module(), (ATOM)Atom(), &wc), wc);
-	inline auto&operator=(const WindowIClass &wic) reflect_to_self(hWnd = wic.hWnd);
+	inline operator WindowClassX<IsUnicode>() const reflect_to(WindowClassX<IsUnicode> wc; WX::GetClassInfo(Module(), (ATOM)Atom(), &wc), wc);
+	inline auto&operator=(const WindowIClassX &wic) reflect_to_self(hWnd = wic.hWnd);
 };
+using WindowIClass = WindowIClassX<IsUnicode>;
+using WindowIClassA = WindowIClassX<false>;
+using WindowIClassW = WindowIClassX<true>;
 #pragma endregion
 
 template<class AnyChild>
@@ -1327,23 +1329,36 @@ protected:
 	using XClassEx = XClassExX<IsUnicode>;
 	using XClassExA = XClassExX<false>;
 	using XClassExW = XClassExX<true>;
-protected:
-	use_member(CClass);
-	use_member(Register);
-public:
-	static inline const auto &CClass() {
+private:
+	static inline const auto &DefCClass() {
 		static XClassEx _Class;
-		return _Class;
+		reflect_as(_Class)
+	}
+private:
+	use_member(Register);
+	static inline ATOM DefRegister() {
+		if (_ClassAtom) return _ClassAtom;
+		return _ClassAtom = DefCClass().Register();
 	}
 public:
-	static inline ATOM Register() {
-		if (_ClassAtom) return _ClassAtom;
-		return _ClassAtom = CClass().Register();
+	static inline auto Register() {
+		if_c (member_Register_of<AnyChild>::is_addressable)
+			 reflect_as(AnyChild::Register())
+		else reflect_as(DefRegister())
 	}
-	static inline void Unregister() {
+private:
+	static inline void DefUnregister() {
 		if (_ClassAtom)
-			CClass().Unregister();
+			DefCClass().Unregister();
 		_ClassAtom = 0;
+	}
+public:
+	static inline void Unregister() {
+		if_c (!IsEqual(AnyChild::Unregister, Unregister)) 
+			 reflect_as(AnyChild::Unregister())
+		elif_c (AnyChild::Unregister != Unregister)
+			 reflect_as(AnyChild::Unregister())
+		else reflect_as(DefUnregister())
 	}
 #pragma endregion
 
@@ -1527,13 +1542,13 @@ public: // Property - Words
 	/* R */ inline const WindowIWords Words(int nIndex) const reflect_as({ (HWND)self, nIndex });
 public: // Property - Longs
 	template<bool IsUnicode = WX::IsUnicode>
-	/* R */ inline WindowILongs<IsUnicode> Longs(int nIndex) reflect_as({ (HWND)self, nIndex });
-	/* R */ inline WindowILongs<false> LongsA(int nIndex) reflect_as({ (HWND)self, nIndex });
-	/* R */ inline WindowILongs<true> LongsW(int nIndex) reflect_as({ (HWND)self, nIndex });
+	/* R */ inline WindowILongsX<IsUnicode> Longs(int nIndex) reflect_as({ (HWND)self, nIndex });
+	/* R */ inline WindowILongsA LongsA(int nIndex) reflect_as({ (HWND)self, nIndex });
+	/* R */ inline WindowILongsW LongsW(int nIndex) reflect_as({ (HWND)self, nIndex });
 	template<bool IsUnicode = WX::IsUnicode>
-	/* R */ inline const WindowILongs<IsUnicode> Longs(int nIndex) const reflect_as({ (HWND)self, nIndex });
-	/* R */ inline const WindowILongs<false> LongsA(int nIndex) const reflect_as({ (HWND)self, nIndex });
-	/* R */ inline const WindowILongs<true> LongsW(int nIndex) const reflect_as({ (HWND)self, nIndex });
+	/* R */ inline const WindowILongsX<IsUnicode> Longs(int nIndex) const reflect_as({ (HWND)self, nIndex });
+	/* R */ inline const WindowILongsA LongsA(int nIndex) const reflect_as({ (HWND)self, nIndex });
+	/* R */ inline const WindowILongsW LongsW(int nIndex) const reflect_as({ (HWND)self, nIndex });
 public: // Property - WndProc
 	/* W */ inline auto&WndProc(WNDPROC lpfnWndProc) reflect_as(Longs(GWLP_WNDPROC) = lpfnWndProc);
 	/* R */ inline WX::WndProc WndProc() const reflect_as((WX::WndProc)Longs(GWLP_WNDPROC));
@@ -1562,12 +1577,14 @@ public: // Property - ID
 	/* R */ inline LONG_PTR ID() const reflect_as(Longs(GWLP_ID));
 #pragma endregion
 public: // Property - Class
-	/* R */ inline WindowIClass<> Class() reflect_to_self();
-	/* R */ inline WindowIClass<false> ClassA() reflect_to_self();
-	/* R */ inline WindowIClass<true> ClassW() reflect_to_self();
-	/* R */ inline const WindowIClass<> Class() const reflect_to_self();
-	/* R */ inline const WindowIClass<false> ClassA() const reflect_to_self();
-	/* R */ inline const WindowIClass<true> ClassW() const reflect_to_self();
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline WindowIClassX<IsUnicode> Class() reflect_as(hWnd);
+	/* R */ inline WindowIClassA ClassA() reflect_to_self();
+	/* R */ inline WindowIClassW ClassW() reflect_to_self();
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline const WindowIClassX<IsUnicode> Class() const reflect_to_self();
+	/* R */ inline const WindowIClassA ClassA() const reflect_to_self();
+	/* R */ inline const WindowIClassW ClassW() const reflect_to_self();
 public: // Property - DC
 	/* R */ inline CDC DC() const reflect_as(WX::GetDC(self));
 public: // Property - ContextHelpID

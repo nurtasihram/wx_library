@@ -16,6 +16,23 @@ static auto __static_compatible(int) -> std::is_convertible<
 
 export namespace WX {
 
+constexpr bool IsUnicode =
+#if defined(UNICODE)
+	UNICODE;
+#elif defined(_UNICODE)
+	_UNICODE;
+#else
+	false;
+#endif
+
+template<class Type1, class Type2>
+constexpr bool is_equal = false;
+template<class SameType>
+constexpr bool is_equal<SameType, SameType> = true;
+
+template<class Type1, class Type2>
+constexpr bool IsEqual(Type1, Type2) reflect_as(is_equal<Type1, Type2>);
+
 #pragma region Type Reference Helpers
 template<class OutType, class InType>
 inline OutType reuse_as(InType in) {
@@ -42,8 +59,6 @@ inline OutType &ref_as(InType &in) {
 #pragma region Array & Counter 
 template<class AnyType, size_t Len>
 using arrayof = AnyType[Len];
-template<class...Args>
-constexpr size_t ArgsCount(Args...) reflect_as(sizeof...(Args));
 template<class AnyType, size_t Len>
 constexpr size_t CountOf(const arrayof<AnyType, Len> &) reflect_as(Len);
 template<class AnyType>
@@ -491,16 +506,6 @@ constexpr bool IsRef<RefAs<RefType>> = true;
 
 namespace WX {
 
-export
-constexpr bool IsUnicode =
-#if defined(UNICODE)
-	UNICODE;
-#elif defined(_UNICODE)
-	_UNICODE;
-#else
-	false;
-#endif
-
 #pragma region String References
 export {
 template<class TCHAR>
@@ -758,7 +763,7 @@ public:
 	RetType operator()(Args ...args) override {
 		static_assert(static_compatible<PackType, RetType(Args...)>, "Argument list uncompatible");
 		if_c (std::is_pointer_v<PackType>)
-			reflect_to(assertl(func), func(args...))
+			 assertl_reflect_as(func, func(args...))
 		else reflect_as(func(args...));
 	}
 };
@@ -790,7 +795,7 @@ public:
 	inline bool operator==(Null) const reflect_as(!func);
 	inline Function operator&() reflect_to_self();
 	inline const Function operator&() const reflect_to_self();
-	inline Ret operator()(Args...args) const reflect_to(assertl(func), (*func)(args...));
+	inline Ret operator()(Args...args) const assertl_reflect_as(func, func(args...));
 	inline auto &operator=(const Function &f) const noexcept reflect_to_self(func = f.func, bAllocated = false);
 	inline auto &operator=(const Function &f) noexcept reflect_to_self(func = f.func, bAllocated = false);
 	inline auto &operator=(Function &&f) noexcept reflect_to_self(func = f.func, f.func = O, bAllocated = true);
@@ -1183,7 +1188,7 @@ public:
 	inline LPCTSTR end() const reflect_as(Len &&lpsz ? lpsz + Len : O);
 public:
 	inline operator LPTSTR () reflect_as(str());
-	inline operator bool() const reflect_as(lpsz &&Len);
+	inline operator bool() const reflect_as(lpsz && Len);
 	inline operator LPCTSTR () const reflect_as(Len ? lpsz : O);
 	inline StringBase operator&() reflect_as({ Len, 0, lpsz });
 	inline const StringBase operator&() const reflect_as({ Len, lpsz });
@@ -1272,6 +1277,7 @@ inline const StringBase<CharType> CString(const CharType *lpString, size_t MaxLe
 }
 /* Fits */
 inline StringA FitsA(const StringW &str, CodePages cp = CodePages::Active) {
+	if (!str) return O;
 	int tLen, uLen = (int)str.Length();
 	LPCWSTR lpString = str;
 	assertl((tLen = WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, O, 0, O, O)) > 0);
@@ -1282,6 +1288,7 @@ inline StringA FitsA(const StringW &str, CodePages cp = CodePages::Active) {
 	return{ (size_t)tLen, lpsz };
 }
 inline StringW FitsW(const StringA &str, CodePages cp = CodePages::Active) {
+	if (!str) return O;
 	int tLen, uLen = (int)str.Length();
 	LPCSTR lpString = str;
 	assertl((tLen = MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, O, 0)) > 0);
@@ -1294,10 +1301,10 @@ inline StringW FitsW(const StringA &str, CodePages cp = CodePages::Active) {
 template<bool IsUnicode = WX::IsUnicode, class TCHAR = ::TCHAR>
 inline auto Fits(StringBase<TCHAR> str) {
 	if_c (std::is_same_v<XCHAR<IsUnicode>, TCHAR>)
-		return str;
+		 reflect_as(str)
 	elif_c (IsUnicode)
-		return FitsW(str);
-	else return FitsA(str);
+		 reflect_as(FitsW(str))
+	else reflect_as(FitsA(str))
 }
 template<class CharType>
 inline String Fits(const CharType *lpString, size_t MaxLen, CodePages cp = CodePages::Active) {

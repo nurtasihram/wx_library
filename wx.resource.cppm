@@ -5,7 +5,6 @@ module;
 
 export module wx.resource;
 
-import wx;
 import wx.gdi;
 import wx.proto;
 

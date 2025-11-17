@@ -8,7 +8,6 @@ module;
 
 export module wx.control;
 
-import wx;
 import wx.proto;
 
 export namespace WX {
@@ -90,9 +89,9 @@ protected:
 	static WndProc DefProc;
 	struct xClass : public super::XClass {
 		xClass() {
-			//this->Name(AnyChild::CtlClassName);
-			//this->GetInfo();
-			this->Name(AnyChild::CClassName());
+			this->Name(AnyChild::CtlClassName);
+			this->GetInfo();
+			//this->Name(AnyChild::CClassName());
 			//DefProc = this->lpfnWndProc;
 			//this->lpfnWndProc = AnyChild::MainProc;
 		}
@@ -100,6 +99,14 @@ protected:
 public:
 	inline auto Create() = delete;
 	inline auto Create(HWND hParent) reflect_as(super::Create().Styles(WS::Child).Parent(hParent));
+public:
+	static inline ATOM Register() {
+		auto cw = WX::CreateStruct().Class(AnyChild::CtlClassName).Create();
+		auto am = cw->Class().Atom();
+		cw->Destroy();
+		return am;
+	}
+	// reflect_as(xClass().Register());
 };
 template<class AnyChild>
 WndProc ControlCommon<AnyChild>::DefProc;

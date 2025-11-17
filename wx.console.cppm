@@ -1,9 +1,5 @@
 module;
 
-#include <Windows.h>
-#include <WinCon.h>
-#include <stdio.h>
-
 #define WX_CPPM_CONSOLE
 #include "wx_console"
 
@@ -11,7 +7,7 @@ export module wx.console;
 
 import wx.proto;
 
-#pragma region Prototype Includes
+#pragma region Win32 Prototype Includes
 namespace WX {
 
 #pragma region procssenv.h (part)
@@ -208,11 +204,11 @@ inline void WriteConsoleOutput(HANDLE hConsoleOutput, const CHAR_INFO *lpBuffer,
 #undef ReadConsoleOutput
 // ReadConsoleOutput
 template<bool IsUnicode = WX::IsUnicode>
-inline void ReadConsoleOutput(HANDLE hConsoleInput, CHAR_INFO *lpBuffer, COORD dwBufferSize, COORD dwBufferCoord,
+inline void ReadConsoleOutput(HANDLE hConsoleOutput, CHAR_INFO *lpBuffer, COORD dwBufferSize, COORD dwBufferCoord,
 							  PSMALL_RECT lpReadRegion) {
 	if constexpr (IsUnicode)
-		 assertl_reflect_as(::ReadConsoleOutputW(hConsoleInput, lpBuffer, dwBufferSize, dwBufferCoord, lpReadRegion))
-	else assertl_reflect_as(::ReadConsoleOutputA(hConsoleInput, lpBuffer, dwBufferSize, dwBufferCoord, lpReadRegion))
+		 assertl_reflect_as(::ReadConsoleOutputW(hConsoleOutput, lpBuffer, dwBufferSize, dwBufferCoord, lpReadRegion))
+	else assertl_reflect_as(::ReadConsoleOutputA(hConsoleOutput, lpBuffer, dwBufferSize, dwBufferCoord, lpReadRegion))
 }
 #undef GetConsoleTitle
 // GetConsoleTitle
@@ -594,7 +590,7 @@ public:
 		reflect_as(WX::ReadConsoleOutputCharacter(self, lpszBuffer, nLength, dwReadCoord, &nLength), nLength);
 	inline DWORD Read(LPWSTR lpszBuffer, DWORD nLength, LPoint dwReadCoord = 0)
 		reflect_as(WX::ReadConsoleOutputCharacter(self, lpszBuffer, nLength, dwReadCoord, &nLength), nLength);
-	inline DWORD Read(StringA &str, LPoint dwReadCoord = 0) reflect_as(Read(str, (DWORD)str.Length(), dwReadCoord));
+	inline DWORD Read(StringA& str, LPoint dwReadCoord = 0) reflect_as(Read(str, (DWORD)str.Length(), dwReadCoord));
 	inline DWORD Read(StringW& str, LPoint dwReadCoord = 0) reflect_as(Read(str, (DWORD)str.Length(), dwReadCoord));
 	template<size_t len>
 	inline DWORD Read(CHAR(&lpszBuffer)[len], LPoint dwReadCoord = 0)
@@ -620,7 +616,6 @@ public:
 	template<size_t len>
 	inline DWORD Read(Attribute(&lpAttributes)[len], LPoint dwReadCoord = 0)
 		reflect_as(Read((WORD*)lpAttributes, (DWORD)len, dwReadCoord));
-
 #pragma region Properties
 public: // Property - FullScreen
 	/* W */ inline auto& FullScreen(bool bFullScreen) reflect_to_self(WX::SetConsoleDisplayMode(self, bFullScreen ? CONSOLE_FULLSCREEN_MODE : CONSOLE_WINDOWED_MODE, O));
@@ -653,25 +648,34 @@ public: // Property - CurVis
 	/* W */ inline auto& CursorVisible(bool bVisible) reflect_to_self(CursorInfo(*CursorInfo().Visible(bVisible)));
 	/* R */ inline bool CursorVisible() const reflect_as(CursorInfo().Visible());
 #pragma endregion
-
+};
+class ConsoleHandleInput :
+	public HandleBase<ConsoleHandleInput> {
+public:
+	using super = HandleBase<ConsoleHandleInput>;
+protected:
+	INNER_USE(ConsoleHandleInput);
+	ConsoleHandleInput(HANDLE h) : super(h) {}
+public:
+	ConsoleHandleInput() : super(WX::GetStdHandle(STD_INPUT_HANDLE)) {}
+	ConsoleHandleInput(Null) {}
+public:
+	inline void FlushInputBuffer() reflect_to(WX::FlushConsoleInputBuffer(self));
 };
 class IConsole : 
 	public ConsoleHandleOutput {
 protected:
-	HANDLE hInput = O, hError = O;
+	HANDLE hError = O;
 public:
 public:
 	IConsole(Null) {}
 	IConsole() :
-		hInput(WX::GetStdHandle(STD_INPUT_HANDLE)),
 		hError(WX::GetStdHandle(STD_ERROR_HANDLE)) {}
 	IConsole(DWORD pid) reflect_to(Attach(pid));
 public:
 	inline void Attach(DWORD pid) reflect_to(WX::AttachConsole(pid));
 	inline void Alloc() reflect_to(WX::AllocConsole());
 	inline void Free() reflect_to(WX::FreeConsole());
-
-	inline void FlushInputBuffer() reflect_to(WX::FlushConsoleInputBuffer(hInput));
 
 	inline void Select() {
 		static FILE* fout = O, * ferr = O, * fin = O;

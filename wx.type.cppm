@@ -5,8 +5,8 @@ module;
 
 export module wx.type;
 
-import wx;
 import wx.proto;
+import wx;
 
 #pragma region Win32 Prototype Includes
 namespace WX {

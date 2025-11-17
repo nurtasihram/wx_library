@@ -1,14 +1,14 @@
 module;
 
-#include "wx_type"
+#define WX_CPPM_FILE
+#include "wx_file"
 
 export module wx.file;
 
-import wx;
 import wx.proto;
 import wx.resource;
 
-#pragma region Prototype Includes
+#pragma region Win32 Prototype Includes
 namespace WX {
 	
 #pragma region fileapi.h

@@ -5,7 +5,6 @@ module;
 
 export module wx.realtime;
 
-import wx;
 import wx.proto;
 
 #pragma region Win32 Prototype Includes

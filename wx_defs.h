@@ -24,8 +24,8 @@
 #define T TEXT
 
 #define if_c if constexpr
-#define elif else if 
 #define elif_c elif constexpr
+#define elif else if 
 #define _if(...) __VA_ARGS__ ? 
 #define _else :
 #define _elif(...) : __VA_ARGS__ ?
