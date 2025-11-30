@@ -7,7 +7,7 @@ export module wx.gdi;
 
 import wx.proto;
 
-#pragma region Win32 API
+#pragma region Win32 Prototype Includes
 namespace WX {
 
 #pragma region WinGDI.h
@@ -252,7 +252,7 @@ inline void GetBrushOrgEx(HDC hdc, LPPOINT lppt)
 #undef GetCharWidth
 template<bool IsUnicode = WX::IsUnicode>
 inline void GetCharWidth(HDC hdc, UINT iFirst, UINT iLast, LPINT lpBuffer) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::GetCharWidthA(hdc, iFirst, iLast, lpBuffer))
 	else assertl_reflect_as(::GetCharWidthW(hdc, iFirst, iLast, lpBuffer))
 }
@@ -260,7 +260,7 @@ inline void GetCharWidth(HDC hdc, UINT iFirst, UINT iLast, LPINT lpBuffer) {
 #undef GetCharWidth32
 template<bool IsUnicode = WX::IsUnicode>
 inline void GetCharWidth32(HDC hdc, UINT iFirst, UINT iLast, LPINT lpBuffer) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::GetCharWidth32A(hdc, iFirst, iLast, lpBuffer))
 	else assertl_reflect_as(::GetCharWidth32W(hdc, iFirst, iLast, lpBuffer))
 }
@@ -268,7 +268,7 @@ inline void GetCharWidth32(HDC hdc, UINT iFirst, UINT iLast, LPINT lpBuffer) {
 #undef GetCharWidthFloat
 template<bool IsUnicode = WX::IsUnicode>
 inline void GetCharWidthFloat(HDC hdc, UINT iFirst, UINT iLast, PFLOAT lpBuffer) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::GetCharWidthFloatA(hdc, iFirst, iLast, lpBuffer))
 	else assertl_reflect_as(::GetCharWidthFloatW(hdc, iFirst, iLast, lpBuffer))
 }
@@ -276,7 +276,7 @@ inline void GetCharWidthFloat(HDC hdc, UINT iFirst, UINT iLast, PFLOAT lpBuffer)
 #undef GetCharABCWidths
 template<bool IsUnicode = WX::IsUnicode>
 inline void GetCharABCWidths(HDC hdc, UINT wFirst, UINT wLast, LPABC lpABC) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::GetCharABCWidthsA(hdc, wFirst, wLast, lpABC))
 	else assertl_reflect_as(::GetCharABCWidthsW(hdc, wFirst, wLast, lpABC))
 }
@@ -284,7 +284,7 @@ inline void GetCharABCWidths(HDC hdc, UINT wFirst, UINT wLast, LPABC lpABC) {
 #undef GetCharABCWidthsFloat
 template<bool IsUnicode = WX::IsUnicode>
 inline void GetCharABCWidthsFloat(HDC hdc, UINT iFirst, UINT iLast, LPABCFLOAT lpABC) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::GetCharABCWidthsFloatA(hdc, iFirst, iLast, lpABC))
 	else assertl_reflect_as(::GetCharABCWidthsFloatW(hdc, iFirst, iLast, lpABC))
 }
@@ -316,7 +316,7 @@ inline DWORD GetFontData(HDC hdc, DWORD dwTable, DWORD dwOffset, PVOID pvBuffer,
 #undef GetGlyphOutline
 template<bool IsUnicode = WX::IsUnicode>
 inline DWORD GetGlyphOutline(HDC hdc, UINT uChar, UINT fuFormat, LPGLYPHMETRICS lpgm, DWORD cjBuffer, LPVOID pvBuffer, CONST MAT2 *lpmat2) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::GetGlyphOutlineA(hdc, uChar, fuFormat, lpgm, cjBuffer, pvBuffer, lpmat2))
 	else reflect_as(::GetGlyphOutlineW(hdc, uChar, fuFormat, lpgm, cjBuffer, pvBuffer, lpmat2))
 }
@@ -883,7 +883,7 @@ inline int GetArcDirection(HDC hdc)
 #undef GetObject
 template<bool IsUnicode = WX::IsUnicode>
 inline int GetObject(HANDLE h, int c, LPVOID pv) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto ret = ::GetObjectA(h, c, pv); ret > 0, ret)
 	else assertl_reflect_as(auto ret = ::GetObjectW(h, c, pv); ret > 0, ret)
 }
@@ -972,7 +972,7 @@ inline int GetTextFace(HDC hdc, int c, LPWSTR lpName)
 #undef GetKerningPairs
 template<bool IsUnicode = WX::IsUnicode>
 inline DWORD GetKerningPairs(HDC hdc, DWORD nPairs, LPKERNINGPAIR lpKernPair) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto ret = ::GetKerningPairsA(hdc, nPairs, lpKernPair), ret)
 	else assertl_reflect_as(auto ret = ::GetKerningPairsW(hdc, nPairs, lpKernPair), ret)
 }
@@ -1053,7 +1053,6 @@ inline void ColorCorrectPalette(HDC hdc, HPALETTE hPal, DWORD deFirst, DWORD num
 #pragma endregion
 
 }
-
 #pragma endregion
 
 export namespace WX {
@@ -1621,7 +1620,7 @@ public:
 public:
 	Palette(const Entry *lpEntries, UINT nCount) {
 		assertl(1 < nCount && nCount <= 256);
-		AutoPointer<Heap, LOGPALETTE> hPal;
+		HeapPointer<Heap, LOGPALETTE> hPal;
 		hPal.Alloc(sizeof(LOGPALETTE) + (nCount - 1) * sizeof(Entry));
 		auto pPal = &hPal;
 		pPal->palVersion = 0x300;

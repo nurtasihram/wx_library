@@ -39,7 +39,6 @@ int APIENTRY _tWinMain(_In_ HINSTANCE hInstance,
 #ifndef WX_NO_CONSOLE_IN_WINMAIN
 	Console.Alloc();
 	Console.Select();
-	Console.SelectStd();
 #else
 #	undef WX_NO_CONSOLE_IN_WINMAIN
 #endif

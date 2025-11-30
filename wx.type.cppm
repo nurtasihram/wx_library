@@ -5,10 +5,10 @@ module;
 
 export module wx.type;
 
-import wx;
 import wx.proto;
+import wx;
 
-#pragma region Win32 API
+#pragma region Win32 Prototype Includes
 namespace WX {
 
 #pragma region datetimeapi.h
@@ -60,10 +60,9 @@ inline void SetHandleInformation(HANDLE hObject, DWORD dwMask, DWORD dwFlags)
 }
 #pragma endregion
 
-namespace WX {
+export namespace WX {
 
 #pragma region HandleBase
-export {
 enum_flags(HandleAccess, DWORD,
 	Delete         = DELETE,
 	ReadCtl        = READ_CONTROL,
@@ -134,6 +133,8 @@ public:
 	//};
 	//inline Duplication Duplicate(HANDLE hTargetProcessHandle) reflect_as({ hObject, hTargetProcessHandle });
 
+	inline auto Wait(DWORD dwMillisecond = INFINITE) reflect_as(::WaitForSingleObject)
+
 public: // Property - Information
 	/* W */ inline auto &Information(DWORD dwMask, DWORD dwFlags) reflect_to_child(WX::SetHandleInformation(self, dwMask, dwFlags));
 	/* R */ inline DWORD Information(DWORD dwMask) const reflect_to(DWORD dwFlags = 0, WX::GetHandleInformation(self, &dwFlags), dwFlags &dwMask);
@@ -154,13 +155,9 @@ public:
 	static inline auto &Attach(HANDLE &hObj) reflect_as(ref_as<Child>(hObj));
 	static inline auto &Attach(const HANDLE &hObj) reflect_as(ref_as<const Child>(hObj));
 };
-}
 #pragma endregion
 
 #pragma region Heaps
-
-export {
-
 #pragma region Local
 enum_flags(LocalAllocFlags, UINT,
 	Fixed    = LMEM_FIXED,
@@ -280,16 +277,16 @@ CHeap ThisHeap = Heap{};
 #pragma endregion
 
 template<class HeapType, class AnyType = void>
-class AutoPointer {
+class HeapPointer {
 	HeapType &heap;
 	mutable AnyType *p = O;
 public:
 	using AllocFlags = typename HeapType::AllocFlags;
-	AutoPointer() : heap(ThisHeap) {}
-	explicit AutoPointer(size_t size) : heap(ThisHeap), p(heap.Alloc(size)) {}
-	AutoPointer(AllocFlags flags, size_t size = SizeOf<AnyType>) : heap(ThisHeap), p((AnyType *)heap.Alloc(size, flags)) {}
-	explicit AutoPointer(HeapType &heap) : heap(heap) {}
-	~AutoPointer() reflect_to(Free());
+	HeapPointer() : heap(ThisHeap) {}
+	explicit HeapPointer(size_t size) : heap(ThisHeap), p(heap.Alloc(size)) {}
+	HeapPointer(AllocFlags flags, size_t size = SizeOf<AnyType>) : heap(ThisHeap), p((AnyType *)heap.Alloc(size, flags)) {}
+	explicit HeapPointer(HeapType &heap) : heap(heap) {}
+	~HeapPointer() reflect_to(Free());
 public:
 	inline AnyType *Alloc(size_t size = SizeOf<AnyType>) {
 		if (size <= 0)
@@ -313,13 +310,9 @@ public:
 	inline AnyType *operator->() reflect_as(p);
 	inline const AnyType *operator->() const reflect_as(p);
 };
-
-}
-
 #pragma endregion
 
 #pragma region Times
-export {
 enum_class(Locales, LCID,
 	Default                = LOCALE_CUSTOM_DEFAULT,
 	Unspecified            = LOCALE_CUSTOM_UNSPECIFIED,
@@ -454,11 +447,9 @@ public:
 	inline operator SYSTEMTIME() const assertl_reflect_to(SYSTEMTIME st, FileTimeToSystemTime(this, &st), st);
 	inline operator LARGE_INTEGER() const reflect_as(reuse_as<LARGE_INTEGER>(*this));
 };
-}
 #pragma endregion
 
 #pragma region Point Size Rect
-export {
 struct LPoint : public POINT {
 public:
 	LPoint() : POINT{ 0 } {}
@@ -645,11 +636,9 @@ public:
 };
 inline LRect operator+(LPoint p, const LRect &r) reflect_as(r + p);
 inline LRect operator-(LPoint p, const LRect &r) reflect_as(-(r - p));
-}
 #pragma endregion
 
 #pragma region Message Wrapper
-export {
 class Message : public RefStruct<MSG> {
 public:
 	using super = RefStruct<MSG>;
@@ -747,11 +736,9 @@ public:
 	inline operator const WX::Msg &() const reflect_as(msg);
 };
 using MsgException = MessageException;
-}
 #pragma endregion
 
 #pragma region MsgBox
-export {
 enum_flags(MB, int,
 	Ok                  = MB_OK,
 	OkCancel            = MB_OKCANCEL,
@@ -792,10 +779,8 @@ inline int MsgBox(LPCSTR lpCaption, const Exception &err, HWND hParent = O)
 	reflect_as(MsgBox(lpCaption, err.toStringA(), MB::IconError | MB::AbortRetryIgnore, hParent));
 inline int MsgBox(LPCWSTR lpCaption, const Exception &err, HWND hParent = O)
 	reflect_as(MsgBox(lpCaption, err.toStringW(), MB::IconError | MB::AbortRetryIgnore, hParent));
-}
 #pragma endregion
 
-export {
 enum_class(WindowShowFlags, int,
 	Hide             = SW_HIDE,
 	ShowNormal       = SW_SHOWNORMAL,
@@ -813,9 +798,7 @@ enum_class(WindowShowFlags, int,
 	ForceMinimize    = SW_FORCEMINIMIZE,
 	Max              = SW_MAX);
 using SW = WindowShowFlags;
-}
 
-export
 class RGBColor {
 protected:
 	COLORREF cr;

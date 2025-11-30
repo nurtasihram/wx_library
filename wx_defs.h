@@ -23,6 +23,8 @@
 #define S(str) T(str##_S)
 #define T TEXT
 
+#define if_c if constexpr
+#define elif_c elif constexpr
 #define elif else if 
 #define _if(...) __VA_ARGS__ ? 
 #define _else :

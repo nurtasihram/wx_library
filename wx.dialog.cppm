@@ -1,14 +1,20 @@
 module;
 
+#include <Windows.h>
+#include <CommDlg.h>
+
 #define WX_CPPM_DIALOG
 #include "wx_dialog"
 
 export module wx.dialog;
 
 import wx.proto;
+import wx.gdi;
 
-#pragma region Win32 API
+#pragma region Win32 Prototype Includes
 namespace WX {
+
+//////////// ! -- TODO: Add exception system with CommDlgExtendedError -- !  ////////////
 
 #pragma region CommDlg.h
 #undef GetOpenFileName
@@ -16,8 +22,8 @@ inline bool GetOpenFileName(LPOPENFILENAMEA lpofn)
 	reflect_as(::GetOpenFileNameA(lpofn));
 inline bool GetOpenFileName(LPOPENFILENAMEW lpofn)
 	reflect_as(::GetOpenFileNameW(lpofn));
-inline bool GetSaveFileName(LPOPENFILENAMEA lpofn)
 #undef GetSaveFileName
+inline bool GetSaveFileName(LPOPENFILENAMEA lpofn)
 	reflect_as(::GetSaveFileNameA(lpofn));
 inline bool GetSaveFileName(LPOPENFILENAMEW lpofn)
 	reflect_as(::GetSaveFileNameW(lpofn));
@@ -46,15 +52,15 @@ inline bool ChooseFont(LPCHOOSEFONTA lpcf)
 	reflect_as(::ChooseFontA(lpcf));
 inline bool ChooseFont(LPCHOOSEFONTW lpcf)
 	reflect_as(::ChooseFontW(lpcf));
-#undef PrintDlg
 inline bool PrintDlg(LPPRINTDLGA lppd)
 	reflect_as(::PrintDlgA(lppd));
 inline bool PrintDlg(LPPRINTDLGW lppd)
 	reflect_as(::PrintDlgW(lppd));
-//inline bool PrintDlg(LPPRINTDLGEXA lppd)
-//	reflect_as(::PrintDlgExA(lppd));
-//inline bool PrintDlg(LPPRINTDLGEXW lppd)
-//	reflect_as(::PrintDlgExW(lppd));
+#undef PrintDlgEx
+inline bool PrintDlg(LPPRINTDLGEXA lppd)
+	reflect_as(::PrintDlgExA(lppd));
+inline bool PrintDlg(LPPRINTDLGEXW lppd)
+	reflect_as(::PrintDlgExW(lppd));
 #undef PageSetupDlg
 inline bool PageSetupDlg(LPPAGESETUPDLGA lppsd)
 	reflect_as(::PageSetupDlgA(lppsd));
@@ -604,9 +610,9 @@ private:
 		}
 	}
 public:
-	inline AutoPointer<Heap, DLGTEMPLATE> Make() {
+	inline HeapPointer<Heap, DLGTEMPLATE> Make() {
 		auto maxSize = HeapSize();
-		AutoPointer<Heap, DLGTEMPLATE> hDlg = { HAF::ZeroInit, maxSize };
+		HeapPointer<Heap, DLGTEMPLATE> hDlg = { HAF::ZeroInit, maxSize };
 		auto lpDlg = hDlg.Alloc(maxSize);
 		PushHeap((void *&)lpDlg, maxSize, dt);
 		PushToHeap((void *&)lpDlg, maxSize);
@@ -662,9 +668,9 @@ public:
 //	DialogBase() {}
 //public:
 //	inline INT_PTR Box(HWND hParent = NULL, HINSTANCE hInst = GetModuleHandle((LPCTSTR)O)) {
-//		if constexpr (member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>)
+//		if_c (member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>)
 //			return DialogBoxIndirectParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this);
-//		elif constexpr (member_Forming_of<Child>::template compatible_to<LPCTSTR()>)
+//		elif_c (member_Forming_of<Child>::template compatible_to<LPCTSTR()>)
 //			return DialogBoxParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this);
 //		else {
 //			static_assert(member_Forming_of<Child>::template compatible_to<UINT()>, "requires a valid template");
@@ -672,9 +678,9 @@ public:
 //		}
 //	}
 //	inline auto&Create(HWND hParent = NULL, HINSTANCE hInst = GetModuleHandle((LPCTSTR)O)) {
-//		if constexpr (member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>)
+//		if_c (member_Forming_of<Child>::template compatible_to<LPDLGTEMPLATE()>)
 //			assertl(CreateDialogIndirectParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this))
-//		elif constexpr (member_Forming_of<Child>::template compatible_to<LPCTSTR()>)
+//		elif_c (member_Forming_of<Child>::template compatible_to<LPCTSTR()>)
 //			assertl(CreateDialogParam(hInst, child.Forming(), hParent, DlgProc, (LPARAM)this))
 //		else {
 //			static_assert(member_Forming_of<Child>::template compatible_to<UINT()>, "requires a valid template");
@@ -700,7 +706,7 @@ public:
 //				if (!Wnd.UserData(pThis))
 //					return (INT_PTR)false;
 //				(HWND &)*reuse_as<Window *>(pThis) = hDlg;
-//				if constexpr (member_InitDialog_of<Child>::is_addressable) {
+//				if_c (member_InitDialog_of<Child>::is_addressable) {
 //					using fn_type = bool();
 //					misdef_assert((member_InitDialog_of<Child>::template compatible_to<fn_type>),
 //								  "Member InitDialog must be a method compatible to bool()");
@@ -717,7 +723,7 @@ public:
 //#define _CALL_(name) pThis->name
 //#define MSG_TRANS(msgid, ret, name, argslist, args, send, call) \
 //					case msgid: \
-//						if constexpr (super::template member_##name##_of<Child>::is_addressable) { \
+//						if_c (super::template member_##name##_of<Child>::is_addressable) { \
 //							using fn_type = ret argslist; \
 //							misdef_assert((super::template member_##name##_of<Child>::template compatible_to<fn_type>), \
 //										  "Member " #name " must be a method compatible to " #ret #argslist); \
@@ -726,7 +732,7 @@ public:
 //						} break;
 //#include "wx__msg.inl"
 //			}
-//			if constexpr (super::template member_Callback_of<Child>::is_addressable)
+//			if_c (super::template member_Callback_of<Child>::is_addressable)
 //				return ((Child *)pThis)->Callback(msgid, wParam, lParam);
 //		} catch (MSG) {}
 //		return (INT_PTR)false;

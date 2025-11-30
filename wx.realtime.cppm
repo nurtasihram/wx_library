@@ -7,8 +7,72 @@ export module wx.realtime;
 
 import wx.proto;
 
-#pragma region Win32 API
+#pragma region Win32 Prototype Includes
 namespace WX {
+
+#pragma region processenv.h
+// SetEnvironmentStrings
+inline void SetEnvironmentStrings(LPWSTR lpszEnvironmentBlock)
+	assertl_reflect_as(::SetEnvironmentStringsW(lpszEnvironmentBlock));
+// GetCommandLine
+template<bool IsUnicode = WX::IsUnicode>
+inline auto GetCommandLine() {
+	if_c (IsUnicode)
+		 assertl_reflect_as(auto p = ::GetCommandLineW(), p)
+	else assertl_reflect_as(auto p = ::GetCommandLineA(), p)
+}
+// GetEnvironmentStrings
+template<bool IsUnicode = WX::IsUnicode>
+inline auto GetEnvironmentStrings() {
+	if_c (IsUnicode)
+		 assertl_reflect_as(auto p = ::GetEnvironmentStringsW(), p)
+	else assertl_reflect_as(auto p = ::GetEnvironmentStringsA(), p)
+}
+// FreeEnvironmentStrings
+inline void FreeEnvironmentStrings(LPCH lpszEnvironmentBlock)
+	assertl_reflect_as(::FreeEnvironmentStringsA(lpszEnvironmentBlock));
+inline void FreeEnvironmentStrings(LPWCH lpszEnvironmentBlock)
+	assertl_reflect_as(::FreeEnvironmentStringsW(lpszEnvironmentBlock));
+// GetEnvironmentVariable
+inline DWORD GetEnvironmentVariable(LPCSTR lpName, LPSTR lpBuffer, DWORD nSize)
+	assertl_reflect_as(auto n = ::GetEnvironmentVariableA(lpName, lpBuffer, nSize), n);
+inline DWORD GetEnvironmentVariable(LPCWSTR lpName, LPWSTR lpBuffer, DWORD nSize)
+	assertl_reflect_as(auto n = ::GetEnvironmentVariableW(lpName, lpBuffer, nSize), n);
+// SetEnvironmentVariable
+inline void SetEnvironmentVariable(LPCSTR lpName, LPCSTR lpValue)
+	assertl_reflect_as(::SetEnvironmentVariableA(lpName, lpValue));
+inline void SetEnvironmentVariable(LPCWSTR lpName, LPCWSTR lpValue)
+	assertl_reflect_as(::SetEnvironmentVariableW(lpName, lpValue));
+// ExpandEnvironmentStrings
+inline DWORD ExpandEnvironmentStrings(LPCSTR lpSrc, LPSTR lpDst, DWORD nSize)
+	assertl_reflect_as(auto n = ::ExpandEnvironmentStringsA(lpSrc, lpDst, nSize), n);
+inline DWORD ExpandEnvironmentStrings(LPCWSTR lpSrc, LPWSTR lpDst, DWORD nSize)
+	assertl_reflect_as(auto n = ::ExpandEnvironmentStringsW(lpSrc, lpDst, nSize), n);
+// SetCurrentDirectory
+inline void SetCurrentDirectory(LPCSTR lpPathName) 
+	assertl_reflect_as(SetCurrentDirectoryA(lpPathName));
+inline void SetCurrentDirectory(LPCWSTR lpPathName) 
+	assertl_reflect_as(SetCurrentDirectoryW(lpPathName));
+// GetCurrentDirectory
+inline DWORD GetCurrentDirectory(DWORD nBufferLength, LPSTR lpBuffer)
+	assertl_reflect_as(auto n = ::GetCurrentDirectoryA(nBufferLength, lpBuffer), n);
+inline DWORD  GetCurrentDirectory(DWORD nBufferLength, LPWSTR lpBuffer)
+	assertl_reflect_as(auto n = ::GetCurrentDirectoryW(nBufferLength, lpBuffer), n);
+//// SearchPath
+//inline DWORD SearchPath(LPCSTR lpPath, LPCSTR lpFileName, LPCSTR lpExtension,
+//						DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart);
+//	assertl_reflect_as(::SearchPathA(lpPath, lpFileName, lpExtension, nBufferLength,
+//									 lpBuffer, lpFilePart));
+//inline DWORD SearchPath(LPCSTR lpPath, LPCSTR lpFileName, LPCSTR lpExtension,
+//						DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart);
+//	assertl_reflect_as(::SearchPathW(lpPath, lpFileName, lpExtension, nBufferLength,
+//									 lpBuffer, lpFilePart));
+// NeedCurrentDirectoryForExePath
+inline void NeedCurrentDirectoryForExePath(LPCSTR ExeName)
+	assertl_reflect_as(NeedCurrentDirectoryForExePathA(ExeName));
+inline void NeedCurrentDirectoryForExePath(LPCWSTR ExeName)
+	assertl_reflect_as(NeedCurrentDirectoryForExePathW(ExeName));
+#pragma endregion
 
 #pragma region processthreadsapi.h
 // QueueUserAPC
@@ -457,7 +521,7 @@ public:
 	WaitableBase() {}
 	WaitableBase(Null) {}
 public:
-	inline bool Wait(DWORD dwMilliseconds = INFINITE) const reflect_as(WX::WaitForSingleObject(self, dwMilliseconds) == WAIT_OBJECT_0);
+	inline DWORD Wait(DWORD dwMilliseconds = INFINITE) const reflect_as(WX::WaitForSingleObject(self, dwMilliseconds));
 };
 
 #pragma region Event
@@ -876,7 +940,7 @@ protected: // Thread Procedure
 		try {
 			misdef_assert(member_OnRun_of<AnyChild>::is_addressable,
 						  "Member OnRun uncallable, unexisted or undefined");
-			if constexpr (member_OnRun_of<AnyChild>::template compatible_to<DWORD()>)
+			if_c (member_OnRun_of<AnyChild>::template compatible_to<DWORD()>)
 				reflect_as(pChild->OnRun())
 			else {
 				misdef_assert(member_OnRun_of<AnyChild>::template compatible_to<void()>,
@@ -893,13 +957,13 @@ protected: // Thread Procedure
 protected: // Thread Procedure Exception System
 	use_member(OnCatch);
 	static inline wx_answer Catch(Child *pChild, const Exception &err) {
-		if constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Exception)>)
+		if_c (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer(Exception)>)
 			reflect_as(pChild->OnCatch(err))
-		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
+		elif_c (member_OnCatch_of<AnyChild>::template compatible_to<wx_answer()>)
 			reflect_as(pChild->OnCatch())
-		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void(Exception)>)
+		elif_c (member_OnCatch_of<AnyChild>::template compatible_to<void(Exception)>)
 			reflect_as((pChild->OnCatch(err), false))
-		elif constexpr (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
+		elif_c (member_OnCatch_of<AnyChild>::template compatible_to<void()>)
 			reflect_as((pChild->OnCatch(), false))
 		else {
 			misdef_assert(!member_OnCatch_of<AnyChild>::is_addressable,
@@ -917,13 +981,13 @@ protected: // Thread Procedure Exception System
 	}
 	use_member(OnFinal);
 	static inline DWORD Final(Child *pChild, const Exception &err) {
-		if constexpr (member_OnFinal_of<AnyChild>::template compatible_to<DWORD(Exception)>)
+		if_c (member_OnFinal_of<AnyChild>::template compatible_to<DWORD(Exception)>)
 			reflect_as(pChild->OnFinal(err))
-		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<DWORD()>)
+		elif_c (member_OnFinal_of<AnyChild>::template compatible_to<DWORD()>)
 			reflect_as(pChild->OnFinal())
-		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void(Exception)>)
+		elif_c (member_OnFinal_of<AnyChild>::template compatible_to<void(Exception)>)
 			reflect_as((pChild->OnFinal(err), -1))
-		elif constexpr (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
+		elif_c (member_OnFinal_of<AnyChild>::template compatible_to<void()>)
 			reflect_as((pChild->OnFinal(), -1))
 		else {
 			misdef_assert(!member_OnFinal_of<AnyChild>::is_addressable,
@@ -944,7 +1008,7 @@ protected:
 		AnyCallable f;
 		InlineStartClosure(const AnyCallable &f) : f(f) {}
 		DWORD operator()() override {
-			if constexpr (static_compatible<AnyCallable, DWORD()>)
+			if_c (static_compatible<AnyCallable, DWORD()>)
 				reflect_as(f())
 			else {
 				misdef_assert((static_compatible<AnyCallable, void()>),
@@ -966,11 +1030,11 @@ protected:
 		AnyCatch lOnCatch;
 		InlineExceptionClosure(const AnyCatch &lOnCatch) : lOnCatch(lOnCatch) {}
 		bool OnCatch(const Exception &err) override {
-			if constexpr (static_compatible<AnyCatch, wx_answer(Exception)>)
+			if_c (static_compatible<AnyCatch, wx_answer(Exception)>)
 				reflect_as(lOnCatch(err))
-			elif constexpr (static_compatible<AnyCatch, wx_answer()>)
+			elif_c (static_compatible<AnyCatch, wx_answer()>)
 				reflect_as(lOnCatch())
-			elif constexpr (static_compatible<AnyCatch, void(Exception)>)
+			elif_c (static_compatible<AnyCatch, void(Exception)>)
 				reflect_as((lOnCatch(err), false))
 			else {
 				misdef_assert((static_compatible<AnyCatch, void()>),

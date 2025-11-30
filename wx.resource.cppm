@@ -5,11 +5,10 @@ module;
 
 export module wx.resource;
 
-import wx;
 import wx.gdi;
 import wx.proto;
 
-#pragma region Win32 API
+#pragma region Win32 Prototype Includes
 namespace WX {
 
 #pragma region libloaderapi.h
@@ -589,7 +588,7 @@ public: // Property - Cursor
 public: // Property - String
 	template<bool IsUnicode = WX::IsUnicode>
 	inline StringX<IsUnicode> String(WORD wID) const {
-		if constexpr (IsUnicode)
+		if_c (IsUnicode)
 			 return StringW(wID);
 		else return StringA(wID);
 	}
@@ -655,7 +654,7 @@ inline Bitmap ClipBitmap(const Bitmap &bmp, LRect rc) {
 //	header.ColorsSize(header.SizeImage());
 //	assertl(file.Write(&header, sizeof(header) - 4) == sizeof(header) - 4);
 //	assertl(file.Write(pal.Entries().data(), palSize) == palSize);
-//	AutoPointer<Heap> hBits(header.SizeImage());
+//	HeapPointer<Heap> hBits(header.SizeImage());
 //	assertl(GetDIBits(dc, bmp, 0, log.Height(), &hBits, header, usage));
 //	assertl(file.Write(&hBits, header.SizeImage()) == header.SizeImage());
 //}

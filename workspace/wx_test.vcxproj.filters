@@ -2,24 +2,41 @@
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="wx_library">
-      <UniqueIdentifier>{52edd7d3-8d61-4d33-af13-ab33793ac22c}</UniqueIdentifier>
+      <UniqueIdentifier>{19ea5f56-cc61-46b0-bc21-e4cd41fab376}</UniqueIdentifier>
     </Filter>
     <Filter Include="wx_library\modules">
-      <UniqueIdentifier>{624b419f-4b57-46fe-b4a7-9bab819c8714}</UniqueIdentifier>
-      <Extensions>*.cppm</Extensions>
+      <UniqueIdentifier>{17125e98-7634-44ec-8f4f-56fe1694a78f}</UniqueIdentifier>
     </Filter>
     <Filter Include="wx_library\prv_inc">
-      <UniqueIdentifier>{588b91eb-9d3a-4408-a88e-8158695918b5}</UniqueIdentifier>
-      <Extensions>*.inl;*.h</Extensions>
+      <UniqueIdentifier>{20e9182a-bcd4-4bea-8a17-7a909ce306f0}</UniqueIdentifier>
     </Filter>
     <Filter Include="wx_library\pub_inc">
-      <UniqueIdentifier>{a750fb86-e289-46bd-9c4b-8259c8203959}</UniqueIdentifier>
-      <Extensions>
-      </Extensions>
+      <UniqueIdentifier>{f8365923-ada7-4701-b0a5-41b695f1176e}</UniqueIdentifier>
     </Filter>
     <Filter Include="resources">
-      <UniqueIdentifier>{1b1abb94-c852-43a5-b45e-de44fb20212b}</UniqueIdentifier>
+      <UniqueIdentifier>{f7f5107d-137e-4294-b8fb-25b48ee683ae}</UniqueIdentifier>
     </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resources\Resource.h">
+      <Filter>resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_defs.h">
+      <Filter>wx_library\prv_inc</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\small.ico">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="resources\wx_duk.ico">
+      <Filter>resources</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources\wx_duk.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\wx.console.cppm">
@@ -61,6 +78,15 @@
     <ClCompile Include="wx_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\wx__msg.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx__msg_ctl.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx__rm.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
     <None Include="..\wx_console">
       <Filter>wx_library\pub_inc</Filter>
     </None>
@@ -94,36 +120,6 @@
     <None Include="..\wx_window">
       <Filter>wx_library\pub_inc</Filter>
     </None>
-    <None Include="..\wx__msg.inl">
-      <Filter>wx_library\prv_inc</Filter>
-    </None>
-    <None Include="..\wx__msg_ctl.inl">
-      <Filter>wx_library\prv_inc</Filter>
-    </None>
-    <None Include="..\wx__rm.inl">
-      <Filter>wx_library\prv_inc</Filter>
-    </None>
     <None Include="make.bat" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\wx_defs.h">
-      <Filter>wx_library\prv_inc</Filter>
-    </ClInclude>
-    <ClInclude Include="resources\Resource.h">
-      <Filter>resources</Filter>
-    </ClInclude>
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="resources\small.ico">
-      <Filter>resources</Filter>
-    </Image>
-    <Image Include="resources\wx_duk.ico">
-      <Filter>resources</Filter>
-    </Image>
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="resources\wx_duk.rc">
-      <Filter>resources</Filter>
-    </ResourceCompile>
   </ItemGroup>
 </Project>

@@ -18,53 +18,10 @@
       <Platform>x64</Platform>
     </ProjectConfiguration>
   </ItemGroup>
-  <ItemGroup>
-    <ClCompile Include="..\wx.console.cppm" />
-    <ClCompile Include="..\wx.control.cppm" />
-    <ClCompile Include="..\wx.cppm" />
-    <ClCompile Include="..\wx.dialog.cppm" />
-    <ClCompile Include="..\wx.file.cppm" />
-    <ClCompile Include="..\wx.gdi.cppm" />
-    <ClCompile Include="..\wx.proto.cppm" />
-    <ClCompile Include="..\wx.realtime.cppm" />
-    <ClCompile Include="..\wx.resource.cppm" />
-    <ClCompile Include="..\wx.security.cppm" />
-    <ClCompile Include="..\wx.type.cppm" />
-    <ClCompile Include="..\wx.window.cppm" />
-    <ClCompile Include="wx_test.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="..\wx_console" />
-    <None Include="..\wx_control" />
-    <None Include="..\wx_dialog" />
-    <None Include="..\wx_dll" />
-    <None Include="..\wx_file" />
-    <None Include="..\wx_gdi" />
-    <None Include="..\wx_main" />
-    <None Include="..\wx_realtime" />
-    <None Include="..\wx_resource" />
-    <None Include="..\wx_type" />
-    <None Include="..\wx_window" />
-    <None Include="..\wx__msg.inl" />
-    <None Include="..\wx__msg_ctl.inl" />
-    <None Include="..\wx__rm.inl" />
-    <None Include="make.bat" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\wx_defs.h" />
-    <ClInclude Include="resources\Resource.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <Image Include="resources\small.ico" />
-    <Image Include="resources\wx_duk.ico" />
-  </ItemGroup>
-  <ItemGroup>
-    <ResourceCompile Include="resources\wx_duk.rc" />
-  </ItemGroup>
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{f1fb2231-e5fc-4b22-b977-e9f0ca77fc97}</ProjectGuid>
+    <ProjectGuid>{84dd6a35-6cac-4ee0-96de-de45012b6f06}</ProjectGuid>
     <RootNamespace>wxtest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
@@ -116,26 +73,18 @@
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(ShortProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <PublicIncludeDirectories>
-    </PublicIncludeDirectories>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ShortProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <PublicIncludeDirectories>
-    </PublicIncludeDirectories>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
-    <IntDir>$(ShortProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <PublicIncludeDirectories>
-    </PublicIncludeDirectories>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
     <IntDir>$(ShortProjectName)\$(Configuration)\$(Platform)\</IntDir>
-    <PublicIncludeDirectories>
-    </PublicIncludeDirectories>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <IntDir>$(ShortProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <IntDir>$(ShortProjectName)\$(Configuration)\$(Platform)\</IntDir>
+    <OutDir>$(SolutionDir)$(Configuration)\$(Platform)\</OutDir>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
@@ -145,8 +94,8 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -163,8 +112,8 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -179,8 +128,8 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -197,14 +146,57 @@
       <ConformanceMode>true</ConformanceMode>
       <LanguageStandard>stdcpp20</LanguageStandard>
       <LanguageStandard_C>stdc17</LanguageStandard_C>
-      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <AdditionalIncludeDirectories>$(SolutionDir);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalOptions>/Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
   </ItemDefinitionGroup>
+  <ItemGroup>
+    <ClInclude Include="..\wx_defs.h" />
+    <ClInclude Include="resources\Resource.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\small.ico" />
+    <Image Include="resources\wx_duk.ico" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources\wx_duk.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\wx.console.cppm" />
+    <ClCompile Include="..\wx.control.cppm" />
+    <ClCompile Include="..\wx.cppm" />
+    <ClCompile Include="..\wx.dialog.cppm" />
+    <ClCompile Include="..\wx.file.cppm" />
+    <ClCompile Include="..\wx.gdi.cppm" />
+    <ClCompile Include="..\wx.proto.cppm" />
+    <ClCompile Include="..\wx.realtime.cppm" />
+    <ClCompile Include="..\wx.resource.cppm" />
+    <ClCompile Include="..\wx.security.cppm" />
+    <ClCompile Include="..\wx.type.cppm" />
+    <ClCompile Include="..\wx.window.cppm" />
+    <ClCompile Include="wx_test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\wx_console" />
+    <None Include="..\wx_control" />
+    <None Include="..\wx_dialog" />
+    <None Include="..\wx_dll" />
+    <None Include="..\wx_file" />
+    <None Include="..\wx_gdi" />
+    <None Include="..\wx_main" />
+    <None Include="..\wx_realtime" />
+    <None Include="..\wx_resource" />
+    <None Include="..\wx_type" />
+    <None Include="..\wx_window" />
+    <None Include="..\wx__msg.inl" />
+    <None Include="..\wx__msg_ctl.inl" />
+    <None Include="..\wx__rm.inl" />
+    <None Include="make.bat" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

@@ -9,79 +9,6 @@ import wx;
 
 export namespace WX {
 
-#pragma region processenv.h
-// SetEnvironmentStrings
-inline void SetEnvironmentStrings(LPWSTR lpszEnvironmentBlock)
-	assertl_reflect_as(::SetEnvironmentStringsW(lpszEnvironmentBlock));
-// GetStdHandle
-inline HANDLE GetStdHandle(DWORD nStdHandle)
-	assertl_reflect_as(auto h = ::GetStdHandle(nStdHandle); h != INVALID_HANDLE_VALUE, h);
-// SetStdHandle
-inline void SetStdHandle(DWORD nStdHandle, HANDLE hHandle)
-	assertl_reflect_as(::SetStdHandle(nStdHandle, hHandle));
-// SetStdHandleEx
-inline void SetStdHandle(DWORD nStdHandle, HANDLE hHandle, PHANDLE phPrevValue)
-	assertl_reflect_as(::SetStdHandleEx(nStdHandle, hHandle, phPrevValue));
-// GetCommandLine
-template<bool IsUnicode = WX::IsUnicode>
-inline auto GetCommandLine() {
-	if constexpr (IsUnicode)
-		 assertl_reflect_as(auto p = ::GetCommandLineW(), p)
-	else assertl_reflect_as(auto p = ::GetCommandLineA(), p)
-}
-// GetEnvironmentStrings
-template<bool IsUnicode = WX::IsUnicode>
-inline auto GetEnvironmentStrings() {
-	if constexpr (IsUnicode)
-		 assertl_reflect_as(auto p = ::GetEnvironmentStringsW(), p)
-	else assertl_reflect_as(auto p = ::GetEnvironmentStringsA(), p)
-}
-// FreeEnvironmentStrings
-inline void FreeEnvironmentStrings(LPCH lpszEnvironmentBlock)
-	assertl_reflect_as(::FreeEnvironmentStringsA(lpszEnvironmentBlock));
-inline void FreeEnvironmentStrings(LPWCH lpszEnvironmentBlock)
-	assertl_reflect_as(::FreeEnvironmentStringsW(lpszEnvironmentBlock));
-// GetEnvironmentVariable
-inline DWORD GetEnvironmentVariable(LPCSTR lpName, LPSTR lpBuffer, DWORD nSize)
-	assertl_reflect_as(auto n = ::GetEnvironmentVariableA(lpName, lpBuffer, nSize), n);
-inline DWORD GetEnvironmentVariable(LPCWSTR lpName, LPWSTR lpBuffer, DWORD nSize)
-	assertl_reflect_as(auto n = ::GetEnvironmentVariableW(lpName, lpBuffer, nSize), n);
-// SetEnvironmentVariable
-inline void SetEnvironmentVariable(LPCSTR lpName, LPCSTR lpValue)
-	assertl_reflect_as(::SetEnvironmentVariableA(lpName, lpValue));
-inline void SetEnvironmentVariable(LPCWSTR lpName, LPCWSTR lpValue)
-	assertl_reflect_as(::SetEnvironmentVariableW(lpName, lpValue));
-// ExpandEnvironmentStrings
-inline DWORD ExpandEnvironmentStrings(LPCSTR lpSrc, LPSTR lpDst, DWORD nSize)
-	assertl_reflect_as(auto n = ::ExpandEnvironmentStringsA(lpSrc, lpDst, nSize), n);
-inline DWORD ExpandEnvironmentStrings(LPCWSTR lpSrc, LPWSTR lpDst, DWORD nSize)
-	assertl_reflect_as(auto n = ::ExpandEnvironmentStringsW(lpSrc, lpDst, nSize), n);
-// SetCurrentDirectory
-inline void SetCurrentDirectory(LPCSTR lpPathName) 
-	assertl_reflect_as(SetCurrentDirectoryA(lpPathName));
-inline void SetCurrentDirectory(LPCWSTR lpPathName) 
-	assertl_reflect_as(SetCurrentDirectoryW(lpPathName));
-// GetCurrentDirectory
-inline DWORD GetCurrentDirectory(DWORD nBufferLength, LPSTR lpBuffer)
-	assertl_reflect_as(auto n = ::GetCurrentDirectoryA(nBufferLength, lpBuffer), n);
-inline DWORD  GetCurrentDirectory(DWORD nBufferLength, LPWSTR lpBuffer)
-	assertl_reflect_as(auto n = ::GetCurrentDirectoryW(nBufferLength, lpBuffer), n);
-//// SearchPath
-//inline DWORD SearchPath(LPCSTR lpPath, LPCSTR lpFileName, LPCSTR lpExtension,
-//						DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart);
-//	assertl_reflect_as(::SearchPathA(lpPath, lpFileName, lpExtension, nBufferLength,
-//									 lpBuffer, lpFilePart));
-//inline DWORD SearchPath(LPCSTR lpPath, LPCSTR lpFileName, LPCSTR lpExtension,
-//						DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart);
-//	assertl_reflect_as(::SearchPathW(lpPath, lpFileName, lpExtension, nBufferLength,
-//									 lpBuffer, lpFilePart));
-// NeedCurrentDirectoryForExePath
-inline void NeedCurrentDirectoryForExePath(LPCSTR ExeName)
-	assertl_reflect_as(NeedCurrentDirectoryForExePathA(ExeName));
-inline void NeedCurrentDirectoryForExePath(LPCWSTR ExeName)
-	assertl_reflect_as(NeedCurrentDirectoryForExePathW(ExeName));
-#pragma endregion
-
 #pragma region WinBase.h
 // GlobalAlloc
 // GlobalReAlloc
@@ -441,7 +368,7 @@ inline void UpdateResource(HANDLE hUpdate, LPCWSTR lpType, LPCWSTR lpName, WORD 
 // EndUpdateResource
 template<bool IsUnicode = WX::IsUnicode>
 inline void EndUpdateResource(HANDLE hUpdate, BOOL fDiscard) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::EndUpdateResourceW(hUpdate, fDiscard))
 	else assertl_reflect_as(::EndUpdateResourceA(hUpdate, fDiscard))
 }
@@ -847,7 +774,7 @@ inline HANDLE OpenBackupEventLog(LPCWSTR lpUNCServerName, LPCWSTR lpFileName)
 template<bool IsUnicode = WX::IsUnicode>
 inline DWORD ReadEventLog(HANDLE hEventLog, DWORD dwReadFlags, DWORD dwRecordOffset, LPVOID lpBuffer,
 						  DWORD nNumberOfBytesToRead, LPDWORD pnBytesRead, LPDWORD pnMinNumberOfBytesNeeded) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto n = ::ReadEventLogW(hEventLog, dwReadFlags, dwRecordOffset, lpBuffer,
 													nNumberOfBytesToRead, pnBytesRead, pnMinNumberOfBytesNeeded), n)
 	else assertl_reflect_as(auto n = ::ReadEventLogA(hEventLog, dwReadFlags, dwRecordOffset, lpBuffer,
@@ -1343,130 +1270,6 @@ inline void CreateSymbolicLinkTransacted(LPCWSTR lpSymlinkFileName, LPCWSTR lpTa
 // SetThreadpoolCallbackRunsLong
 #pragma endregion
 
-#pragma region fileapi.h
-// FindFirstChangeNotification
-inline HANDLE FindFirstChangeNotification(LPCSTR lpPathName, BOOL bWatchSubtree, DWORD dwNotifyFilter)
-	assertl_reflect_as(auto h = ::FindFirstChangeNotificationA(lpPathName, bWatchSubtree, dwNotifyFilter); h != INVALID_HANDLE_VALUE, h);
-inline HANDLE FindFirstChangeNotification(LPCWSTR lpPathName, BOOL bWatchSubtree, DWORD dwNotifyFilter)
-	assertl_reflect_as(auto h = ::FindFirstChangeNotificationW(lpPathName, bWatchSubtree, dwNotifyFilter); h != INVALID_HANDLE_VALUE, h);
-// FindNextFile
-inline void FindNextFileA(HANDLE hFindFile, LPWIN32_FIND_DATAA lpFindFileData)
-	assertl_reflect_as(::FindNextFileA(hFindFile, lpFindFileData));
-inline void FindNextFile(HANDLE hFindFile, LPWIN32_FIND_DATAW lpFindFileData)
-	assertl_reflect_as(::FindNextFileW(hFindFile, lpFindFileData));
-// GetDiskFreeSpace
-inline void GetDiskFreeSpace(LPCSTR lpRootPathName, LPDWORD lpSectorsPerCluster, LPDWORD lpBytesPerSector,
-							  LPDWORD lpNumberOfFreeClusters, LPDWORD lpTotalNumberOfClusters)
-	assertl_reflect_as(::GetDiskFreeSpaceA(lpRootPathName, lpSectorsPerCluster, lpBytesPerSector,
-										   lpNumberOfFreeClusters, lpTotalNumberOfClusters));
-inline void GetDiskFreeSpace(LPCWSTR lpRootPathName, LPDWORD lpSectorsPerCluster, LPDWORD lpBytesPerSector,
-							 LPDWORD lpNumberOfFreeClusters, LPDWORD lpTotalNumberOfClusters)
-	assertl_reflect_as(::GetDiskFreeSpaceW(lpRootPathName, lpSectorsPerCluster, lpBytesPerSector,
-										   lpNumberOfFreeClusters, lpTotalNumberOfClusters));
-// GetDiskFreeSpaceEx
-inline void GetDiskFreeSpace(LPCSTR lpDirectoryName, PULARGE_INTEGER lpFreeBytesAvailable,
-							   PULARGE_INTEGER lpTotalNumberOfBytes, PULARGE_INTEGER lpTotalNumberOfFreeBytes)
-	assertl_reflect_as(::GetDiskFreeSpaceExA(lpDirectoryName, lpFreeBytesAvailable, lpTotalNumberOfBytes, lpTotalNumberOfFreeBytes));
-inline void GetDiskFreeSpace(LPCWSTR lpDirectoryName, PULARGE_INTEGER lpFreeBytesAvailable,
-							   PULARGE_INTEGER lpTotalNumberOfBytes, PULARGE_INTEGER lpTotalNumberOfFreeBytes)
-	assertl_reflect_as(::GetDiskFreeSpaceExW(lpDirectoryName, lpFreeBytesAvailable, lpTotalNumberOfBytes, lpTotalNumberOfFreeBytes));
-// GetDiskSpaceInformation
-inline void GetDiskSpaceInformation(LPCSTR rootPath, DISK_SPACE_INFORMATION *diskSpaceInfo)
-	assertl_reflect_as(SUCCEEDED(::GetDiskSpaceInformationA(rootPath, diskSpaceInfo)));
-inline void GetDiskSpaceInformation(LPCWSTR rootPath, DISK_SPACE_INFORMATION *diskSpaceInfo)
-	assertl_reflect_as(SUCCEEDED(::GetDiskSpaceInformationW(rootPath, diskSpaceInfo)));
-// GetDriveType
-inline UINT GetDriveType(LPCSTR lpRootPathName)
-	reflect_as(::GetDriveTypeA(lpRootPathName));
-inline UINT GetDriveType(LPCWSTR lpRootPathName)
-	reflect_as(::GetDriveTypeW(lpRootPathName));
-// GetFinalPathNameByHandle
-inline DWORD GetFinalPathNameByHandle(HANDLE hFile, LPSTR lpszFilePath, DWORD cchFilePath, DWORD dwFlags)
-	assertl_reflect_as(auto n = ::GetFinalPathNameByHandleA(hFile, lpszFilePath, cchFilePath, dwFlags), n);
-inline DWORD GetFinalPathNameByHandle(HANDLE hFile, LPWSTR lpszFilePath, DWORD cchFilePath, DWORD dwFlags)
-	assertl_reflect_as(auto n = ::GetFinalPathNameByHandleW(hFile, lpszFilePath, cchFilePath, dwFlags), n);
-// GetLongPathName
-inline DWORD GetLongPathName(LPCSTR lpszShortPath, LPSTR lpszLongPath, DWORD cchBuffer)
-	assertl_reflect_as(auto n = ::GetLongPathNameA(lpszShortPath, lpszLongPath, cchBuffer), n);
-inline DWORD GetLongPathName(LPCWSTR lpszShortPath, LPWSTR lpszLongPath, DWORD cchBuffer)
-	assertl_reflect_as(auto n = ::GetLongPathNameW(lpszShortPath, lpszLongPath, cchBuffer), n);
-// GetTempFileName
-inline UINT GetTempFileName(LPCSTR lpPathName, LPCSTR lpPrefixString, UINT uUnique, LPSTR lpTempFileName)
-	assertl_reflect_as(auto n = ::GetTempFileNameA(lpPathName, lpPrefixString, uUnique, lpTempFileName), n);
-inline UINT GetTempFileName(LPCWSTR lpPathName, LPCWSTR lpPrefixString, UINT uUnique, LPWSTR lpTempFileName)
-	assertl_reflect_as(auto n = ::GetTempFileNameW(lpPathName, lpPrefixString, uUnique, lpTempFileName), n);
-// GetVolumeInformationByHandle
-inline void GetVolumeInformationByHandle(HANDLE hFile, LPWSTR lpVolumeNameBuffer, DWORD nVolumeNameSize,
-										 LPDWORD lpVolumeSerialNumber, LPDWORD lpMaximumComponentLength,
-										 LPDWORD lpFileSystemFlags, LPWSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize)
-	assertl_reflect_as(::GetVolumeInformationByHandleW(hFile, lpVolumeNameBuffer, nVolumeNameSize,
-													   lpVolumeSerialNumber, lpMaximumComponentLength, lpFileSystemFlags,
-													   lpFileSystemNameBuffer, nFileSystemNameSize));
-// GetVolumeInformation
-inline void GetVolumeInformation(LPCSTR lpRootPathName, LPSTR lpVolumeNameBuffer, DWORD nVolumeNameSize,
-									LPDWORD lpVolumeSerialNumber, LPDWORD lpMaximumComponentLength,
-									LPDWORD lpFileSystemFlags, LPSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize)
-	assertl_reflect_as(::GetVolumeInformationA(lpRootPathName, lpVolumeNameBuffer, nVolumeNameSize,
-											   lpVolumeSerialNumber, lpMaximumComponentLength, lpFileSystemFlags,
-											   lpFileSystemNameBuffer, nFileSystemNameSize));
-inline void GetVolumeInformation(LPCWSTR lpRootPathName, LPWSTR lpVolumeNameBuffer, DWORD nVolumeNameSize,
-								 LPDWORD lpVolumeSerialNumber, LPDWORD lpMaximumComponentLength,
-								 LPDWORD lpFileSystemFlags, LPWSTR lpFileSystemNameBuffer, DWORD nFileSystemNameSize)
-	assertl_reflect_as(::GetVolumeInformationW(lpRootPathName, lpVolumeNameBuffer, nVolumeNameSize,
-											   lpVolumeSerialNumber, lpMaximumComponentLength, lpFileSystemFlags,
-											   lpFileSystemNameBuffer, nFileSystemNameSize));
-// FindFirstStream
-inline HANDLE FindFirstStream(LPCWSTR lpFileName, STREAM_INFO_LEVELS InfoLevel, LPVOID lpFindStreamData, DWORD dwFlags)
-	assertl_reflect_as(auto h = ::FindFirstStreamW(lpFileName, InfoLevel, lpFindStreamData, dwFlags), h);
-// FindNextStream
-inline void FindNextStream(HANDLE hFindStream, LPVOID lpFindStreamData)
-	assertl_reflect_as(::FindNextStreamW(hFindStream, lpFindStreamData));
-// GetTempPath
-inline DWORD GetTempPath(LPSTR lpBuffer, DWORD nSize)
-	assertl_reflect_as(auto n = ::GetTempPathA(nSize, lpBuffer), n);
-inline DWORD GetTempPath(LPWSTR lpBuffer, DWORD nSize)
-	assertl_reflect_as(auto n = ::GetTempPathW(nSize, lpBuffer), n);
-// FindFirstFileName
-inline HANDLE FindFirstFileName(LPCWSTR lpFileName, DWORD dwFlags, LPDWORD StringLength, LPWSTR LinkName)
-	assertl_reflect_as(auto h = ::FindFirstFileNameW(lpFileName, dwFlags, StringLength, LinkName); h != INVALID_HANDLE_VALUE, h);
-// FindNextFileName
-inline void FindNextFileName(HANDLE hFindStream, LPDWORD StringLength, LPWSTR LinkName)
-	assertl_reflect_as(::FindNextFileNameW(hFindStream, StringLength, LinkName));
-#if (NTDDI_VERSION >= NTDDI_WIN10_FE)
-// GetTempPath2
-inline DWORD GetTempPath2(LPSTR lpBuffer, DWORD nSize)
-	assertl_reflect_as(auto n = ::GetTempPath2A(nSize, lpBuffer), n);
-inline DWORD GetTempPath2(LPWSTR lpBuffer, DWORD nSize)
-	assertl_reflect_as(auto n = ::GetTempPath2W(nSize, lpBuffer), n);
-#endif
-// CreateDirectory
-// from fileapi.h
-inline void CreateDirectory(LPCSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
-	assertl_reflect_as(::CreateDirectoryA(lpPathName, lpSecurityAttributes));
-// from fileapi.h
-inline void CreateDirectory(LPCWSTR lpPathName, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
-	assertl_reflect_as(::CreateDirectoryW(lpPathName, lpSecurityAttributes));
-#if defined(NTDDI_WIN11_GE) && (NTDDI_VERSION >= NTDDI_WIN11_GE) && !__GNUC__
-// CreateDirectory2
-inline void CreateDirectory(LPCSTR lpPathName, DWORD dwDesiredAccess, DWORD dwShareMode,
-							DIRECTORY_FLAGS DirectoryFlags, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
-	assertl_reflect_as(::CreateDirectory2A(lpPathName, dwDesiredAccess, dwShareMode, DirectoryFlags, lpSecurityAttributes));
-inline void CreateDirectory(LPCWSTR lpPathName, DWORD dwDesiredAccess, DWORD dwShareMode,
-							DIRECTORY_FLAGS DirectoryFlags, LPSECURITY_ATTRIBUTES lpSecurityAttributes)
-	assertl_reflect_as(::CreateDirectory2W(lpPathName, dwDesiredAccess, dwShareMode, DirectoryFlags, lpSecurityAttributes));
-// RemoveDirectory2
-inline void RemoveDirectory(LPCSTR lpPathName, DIRECTORY_FLAGS DirectoryFlags)
-	assertl_reflect_as(::RemoveDirectory2A(lpPathName, DirectoryFlags));
-inline void RemoveDirectory(LPCWSTR lpPathName, DIRECTORY_FLAGS DirectoryFlags)
-	assertl_reflect_as(::RemoveDirectory2W(lpPathName, DirectoryFlags));
-// DeleteFile2
-inline void DeleteFile(LPCSTR lpFileName, DWORD Flags)
-	assertl_reflect_as(::DeleteFile2A(lpFileName, Flags));
-inline void DeleteFile(LPCWSTR lpFileName, DWORD Flags)
-	assertl_reflect_as(::DeleteFile2W(lpFileName, Flags));
-#endif
-#pragma endregion
-
 #pragma region synchapi.h
 #pragma endregion
 
@@ -1572,14 +1375,14 @@ inline void GetUserObjectSecurity(HANDLE hObj, PSECURITY_INFORMATION pSIRequeste
 // GetUserObjectInformation
 template<bool IsUnicode = WX::IsUnicode>
 inline void GetUserObjectInformation(HANDLE hObj, int nIndex, PVOID pvInfo, DWORD nLength, LPDWORD lpnLengthNeeded) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::GetUserObjectInformationA(hObj, nIndex, pvInfo, nLength, lpnLengthNeeded))
 	else assertl_reflect_as(::GetUserObjectInformationW(hObj, nIndex, pvInfo, nLength, lpnLengthNeeded))
 }
 // SetUserObjectInformation
 template<bool IsUnicode = WX::IsUnicode>
 inline void SetUserObjectInformation(HANDLE hObj, int nIndex, PVOID pvInfo, DWORD nLength) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::SetUserObjectInformationA(hObj, nIndex, pvInfo, nLength))
 	else assertl_reflect_as(::SetUserObjectInformationW(hObj, nIndex, pvInfo, nLength))
 }
@@ -1611,7 +1414,7 @@ inline void DrawAnimatedRects(HWND hwnd, int idAni, CONST RECT *lprcFrom, CONST 
 // GetMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline bool GetMessage(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto h = ::GetMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax); h >= 0, h)
 	else assertl_reflect_as(auto h = ::GetMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax); h >= 0, h)
 }
@@ -1621,7 +1424,7 @@ inline bool TranslateMessage(CONST MSG *lpMsg)
 // DispatchMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT DispatchMessage(CONST MSG *lpMsg) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::DispatchMessageA(lpMsg))
 	else reflect_as(::DispatchMessageW(lpMsg))
 }
@@ -1629,7 +1432,7 @@ inline LRESULT DispatchMessage(CONST MSG *lpMsg) {
 // PeekMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline bool PeekMessage(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::PeekMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
 	else reflect_as(::PeekMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
 }
@@ -1666,49 +1469,49 @@ inline LPARAM SetMessageExtraInfo(LPARAM lParam)
 // SendMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT SendMessage(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 nt_assertl_reflect_to(auto h = ::SendMessageA(hWnd, Msg, wParam, lParam), h)
 	else nt_assertl_reflect_to(auto h = ::SendMessageW(hWnd, Msg, wParam, lParam), h)
 }
 // SendMessageTimeout
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT SendMessageTimeout(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam, UINT fuFlags, UINT uTimeout, PDWORD_PTR lpdwResult) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 nt_assertl_reflect_to(auto h = ::SendMessageTimeoutA(hWnd, Msg, wParam, lParam, fuFlags, uTimeout, lpdwResult), h)
 	else nt_assertl_reflect_to(auto h = ::SendMessageTimeoutW(hWnd, Msg, wParam, lParam, fuFlags, uTimeout, lpdwResult), h)
 }
 // SendNotifyMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline void SendNotifyMessage(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::SendNotifyMessageA(hWnd, Msg, wParam, lParam))
 	else assertl_reflect_as(::SendNotifyMessageW(hWnd, Msg, wParam, lParam))
 }
 // SendMessageCallback
 template<bool IsUnicode = WX::IsUnicode>
 inline void SendMessageCallback(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam, SENDASYNCPROC lpResultCallBack, ULONG_PTR dwData) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::SendMessageCallbackA(hWnd, Msg, wParam, lParam, lpResultCallBack, dwData))
 	else assertl_reflect_as(::SendMessageCallbackW(hWnd, Msg, wParam, lParam, lpResultCallBack, dwData))
 }
 // BroadcastSystemMessageEx
 template<bool IsUnicode = WX::IsUnicode>
 inline long BroadcastSystemMessageEx(DWORD flags, LPDWORD lpInfo, UINT Msg, WPARAM wParam, LPARAM lParam, PBSMINFO pbsmInfo) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto h = ::BroadcastSystemMessageExA(flags, lpInfo, Msg, wParam, lParam, pbsmInfo), h)
 	else assertl_reflect_as(auto h = ::BroadcastSystemMessageExW(flags, lpInfo, Msg, wParam, lParam, pbsmInfo), h)
 }
 // BroadcastSystemMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline long BroadcastSystemMessage(DWORD flags, LPDWORD lpInfo, UINT Msg, WPARAM wParam, LPARAM lParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto h = ::BroadcastSystemMessageA(flags, lpInfo, Msg, wParam, lParam), h)
 	else assertl_reflect_as(auto h = ::BroadcastSystemMessageW(flags, lpInfo, Msg, wParam, lParam), h)
 }
 // RegisterDeviceNotification
 template<bool IsUnicode = WX::IsUnicode>
 inline HDEVNOTIFY RegisterDeviceNotification(HANDLE hRecipient, LPVOID NotificationFilter, DWORD Flags) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto h = ::RegisterDeviceNotificationA(hRecipient, NotificationFilter, Flags), h)
 	else assertl_reflect_as(auto h = ::RegisterDeviceNotificationW(hRecipient, NotificationFilter, Flags), h)
 }
@@ -1730,14 +1533,14 @@ inline void UnregisterSuspendResumeNotification(HPOWERNOTIFY Handle)
 // PostMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline void PostMessage(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::PostMessageA(hWnd, Msg, wParam, lParam))
 	else assertl_reflect_as(::PostMessageW(hWnd, Msg, wParam, lParam))
 }
 // PostThreadMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline void PostThreadMessage(DWORD idThread, UINT Msg, WPARAM wParam, LPARAM lParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::PostThreadMessageA(idThread, Msg, wParam, lParam))
 	else assertl_reflect_as(::PostThreadMessageW(idThread, Msg, wParam, lParam))
 }
@@ -1756,7 +1559,7 @@ inline DWORD WaitForInputIdle(HANDLE hProcess, DWORD dwMilliseconds)
 // DefWindowProc
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT DefWindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::DefWindowProcA(hWnd, Msg, wParam, lParam))
 	else reflect_as(::DefWindowProcW(hWnd, Msg, wParam, lParam))
 }
@@ -1766,7 +1569,7 @@ inline void PostQuitMessage(int nExitCode)
 // CallWindowProc
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT CallWindowProc(WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::CallWindowProcA(lpPrevWndFunc, hWnd, Msg, wParam, lParam))
 	else reflect_as(::CallWindowProcW(lpPrevWndFunc, hWnd, Msg, wParam, lParam))
 }
@@ -1904,7 +1707,7 @@ inline HWND CreateDialog(HINSTANCE hInstance, LPCWSTR lpTemplateName, HWND hWndP
 // CreateDialogIndirectParam
 template<bool IsUnicode = WX::IsUnicode>
 inline HWND CreateDialog(HINSTANCE hInstance, LPCDLGTEMPLATE lpTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto h = ::CreateDialogIndirectParamW(hInstance, lpTemplate, hWndParent, lpDialogFunc, dwInitParam), h)
 	else assertl_reflect_as(auto h = ::CreateDialogIndirectParamA(hInstance, lpTemplate, hWndParent, lpDialogFunc, dwInitParam), h)
 }
@@ -1916,7 +1719,7 @@ inline INT_PTR DialogBox(HINSTANCE hInstance, LPCWSTR lpTemplateName, HWND hWndP
 // DialogBoxIndirectParam
 template<bool IsUnicode = WX::IsUnicode>
 inline INT_PTR DialogBox(HINSTANCE hInstance, LPCDLGTEMPLATE hDialogTemplate, HWND hWndParent, DLGPROC lpDialogFunc, LPARAM dwInitParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 nt_assertl_reflect_to(auto h = ::DialogBoxIndirectParamW(hInstance, hDialogTemplate, hWndParent, lpDialogFunc, dwInitParam), h)
 	else nt_assertl_reflect_to(auto h = ::DialogBoxIndirectParamA(hInstance, hDialogTemplate, hWndParent, lpDialogFunc, dwInitParam), h)
 }
@@ -1954,7 +1757,7 @@ inline UINT IsDlgButtonChecked(HWND hDlg, int nIDButton)
 // SendDlgItemMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT SendDlgItemMessage(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 nt_assertl_reflect_to(auto h = ::SendDlgItemMessageA(hDlg, nIDDlgItem, Msg, wParam, lParam), h)
 	else nt_assertl_reflect_to(auto h = ::SendDlgItemMessageW(hDlg, nIDDlgItem, Msg, wParam, lParam), h)
 }
@@ -1973,7 +1776,7 @@ inline long GetDialogBaseUnits()
 // DefDlgProc
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT DefDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::DefDlgProcA(hDlg, Msg, wParam, lParam))
 	else reflect_as(::DefDlgProcW(hDlg, Msg, wParam, lParam))
 }
@@ -1992,7 +1795,7 @@ inline DIALOG_DPI_CHANGE_BEHAVIORS GetDialogDpiChangeBehavior(HWND hDlg)
 // CallMsgFilter
 template<bool IsUnicode = WX::IsUnicode>
 inline bool CallMsgFilter(LPMSG lpMsg, int nCode) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::CallMsgFilterA(lpMsg, nCode))
 	else reflect_as(::CallMsgFilterW(lpMsg, nCode))
 }
@@ -2249,14 +2052,14 @@ inline void GetLastInputInfo(PLASTINPUTINFO plii)
 // MapVirtualKey
 template<bool IsUnicode = WX::IsUnicode>
 inline UINT MapVirtualKey(UINT uCode, UINT uMapType) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::MapVirtualKeyA(uCode, uMapType))
 	else reflect_as(::MapVirtualKeyW(uCode, uMapType))
 }
 // MapVirtualKeyEx
 template<bool IsUnicode = WX::IsUnicode>
 inline UINT MapVirtualKeyEx(UINT uCode, UINT uMapType, HKL dwhkl) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::MapVirtualKeyExA(uCode, uMapType, dwhkl))
 	else reflect_as(::MapVirtualKeyExW(uCode, uMapType, dwhkl))
 }
@@ -2306,7 +2109,7 @@ inline HACCEL LoadAccelerators(HINSTANCE hInstance, LPCWSTR lpTableName)
 // CreateAcceleratorTable
 template<bool IsUnicode = WX::IsUnicode>
 inline HACCEL CreateAcceleratorTable(LPACCEL paccel, int cAccel) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto h = ::CreateAcceleratorTableA(paccel, cAccel), h)
 	else assertl_reflect_as(auto h = ::CreateAcceleratorTableW(paccel, cAccel), h)
 }
@@ -2316,14 +2119,14 @@ inline void DestroyAcceleratorTable(HACCEL hAccel)
 // CopyAcceleratorTable
 template<bool IsUnicode = WX::IsUnicode>
 inline int CopyAcceleratorTable(HACCEL hAccelSrc, LPACCEL lpAccelDst, int cAccelEntries) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::CopyAcceleratorTableA(hAccelSrc, lpAccelDst, cAccelEntries))
 	else reflect_as(::CopyAcceleratorTableW(hAccelSrc, lpAccelDst, cAccelEntries))
 }
 // TranslateAccelerator
 template<bool IsUnicode = WX::IsUnicode>
 inline int TranslateAccelerator(HWND hWnd, HACCEL hAccTable, LPMSG lpMsg) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto h = ::TranslateAcceleratorA(hWnd, hAccTable, lpMsg), h)
 	else assertl_reflect_as(auto h = ::TranslateAcceleratorW(hWnd, hAccTable, lpMsg), h)
 }
@@ -2341,7 +2144,7 @@ inline HMENU LoadMenu(HINSTANCE hInstance, LPCWSTR lpMenuName)
 // LoadMenuIndirect
 template<bool IsUnicode = WX::IsUnicode>
 inline HMENU LoadMenu(CONST MENUTEMPLATE *lpMenuTemplate) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto h = ::LoadMenuIndirectW(lpMenuTemplate), h)
 	else assertl_reflect_as(auto h = ::LoadMenuIndirectA(lpMenuTemplate), h)
 }
@@ -2485,14 +2288,14 @@ inline int DrawText(HDC hdc, LPWSTR lpchText, int cchText, LPRECT lprc, UINT for
 // GrayString
 template<bool IsUnicode = WX::IsUnicode>
 inline void GrayString(HDC hDC, HBRUSH hBrush, GRAYSTRINGPROC lpOutputFunc, LPARAM lpData, int nCount, int X, int Y, int nWidth, int nHeight) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::GrayStringA(hDC, hBrush, lpOutputFunc, lpData, nCount, X, Y, nWidth, nHeight))
 	else assertl_reflect_as(::GrayStringW(hDC, hBrush, lpOutputFunc, lpData, nCount, X, Y, nWidth, nHeight))
 }
 // DrawState
 template<bool IsUnicode = WX::IsUnicode>
 inline void DrawState(HDC hdc, HBRUSH hbrFore, DRAWSTATEPROC qfnCallBack, LPARAM lData, WPARAM wData, int x, int y, int cx, int cy, UINT uFlags) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::DrawStateA(hdc, hbrFore, qfnCallBack, lData, wData, x, y, cx, cy, uFlags))
 	else assertl_reflect_as(::DrawStateW(hdc, hbrFore, qfnCallBack, lData, wData, x, y, cx, cy, uFlags))
 }
@@ -2643,7 +2446,7 @@ inline int GetWindowText(HWND hWnd, LPWSTR lpString, int nMaxCount)
 // GetWindowTextLength
 template<bool IsUnicode = WX::IsUnicode>
 inline int GetWindowTextLength(HWND hWnd) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 nt_assertl_reflect_to(auto h = ::GetWindowTextLengthA(hWnd), h)
 	else nt_assertl_reflect_to(auto h = ::GetWindowTextLengthW(hWnd), h)
 }
@@ -2819,14 +2622,14 @@ inline WORD SetWindowWord(HWND hWnd, int nIndex, WORD wNewWord)
 // GetWindowLongPtr
 template<bool IsUnicode = WX::IsUnicode>
 inline LONG_PTR GetWindowLongPtr(HWND hWnd, int nIndex) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 nt_assertl_reflect_to(auto h = ::GetWindowLongPtrA(hWnd, nIndex), h)
 	else nt_assertl_reflect_to(auto h = ::GetWindowLongPtrW(hWnd, nIndex), h)
 }
 // SetWindowLongPtr
 template<bool IsUnicode = WX::IsUnicode>
 inline LONG_PTR SetWindowLongPtr(HWND hWnd, int nIndex, LONG_PTR dwNewLong) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 nt_assertl_reflect_to(auto h = ::SetWindowLongPtrA(hWnd, nIndex, dwNewLong), h)
 	else nt_assertl_reflect_to(auto h = ::SetWindowLongPtrW(hWnd, nIndex, dwNewLong), h)
 }
@@ -2841,14 +2644,14 @@ inline WORD SetClassWord(HWND hWnd, int nIndex, WORD wNewWord)
 // GetClassLongPtr
 template<bool IsUnicode = WX::IsUnicode>
 inline ULONG_PTR GetClassLongPtr(HWND hWnd, int nIndex) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 nt_assertl_reflect_to(auto h = ::GetClassLongPtrA(hWnd, nIndex), h)
 	else nt_assertl_reflect_to(auto h = ::GetClassLongPtrW(hWnd, nIndex), h)
 }
 // SetClassLongPtr
 template<bool IsUnicode = WX::IsUnicode>
 inline ULONG_PTR SetClassLongPtr(HWND hWnd, int nIndex, LONG_PTR dwNewLong) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 nt_assertl_reflect_to(auto h = ::SetClassLongPtrA(hWnd, nIndex, dwNewLong), h)
 	else nt_assertl_reflect_to(auto h = ::SetClassLongPtrW(hWnd, nIndex, dwNewLong), h)
 }
@@ -2914,7 +2717,7 @@ inline HWND GetWindow(HWND hWnd, UINT uCmd)
 // SetWindowsHookEx
 template<bool IsUnicode = WX::IsUnicode>
 inline HHOOK SetWindowsHookEx(int idHook, HOOKPROC lpfn, HINSTANCE hmod, DWORD dwThreadId) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto h = ::SetWindowsHookExA(idHook, lpfn, hmod, dwThreadId), h)
 	else assertl_reflect_as(auto h = ::SetWindowsHookExW(idHook, lpfn, hmod, dwThreadId), h)
 }
@@ -3012,7 +2815,7 @@ inline void GetIconInfoEx(HICON hicon, PICONINFOEXW piconinfo)
 // IsDialogMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline bool IsDialogMessage(HWND hDlg, LPMSG lpMsg) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::IsDialogMessageA(hDlg, lpMsg))
 	else reflect_as(::IsDialogMessageW(hDlg, lpMsg))
 }
@@ -3048,14 +2851,14 @@ inline void GetScrollInfo(HWND hwnd, int nBar, LPSCROLLINFO lpsi)
 // DefFrameProc
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT DefFrameProc(HWND hWnd, HWND hWndMDIClient, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::DefFrameProcA(hWnd, hWndMDIClient, uMsg, wParam, lParam))
 	else reflect_as(::DefFrameProcW(hWnd, hWndMDIClient, uMsg, wParam, lParam))
 }
 // DefMDIChildProc
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT DefMDIChildProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 reflect_as(::DefMDIChildProcA(hWnd, uMsg, wParam, lParam))
 	else reflect_as(::DefMDIChildProcW(hWnd, uMsg, wParam, lParam))
 }
@@ -3127,7 +2930,7 @@ inline LONG DisplayConfigSetDeviceInfo(DISPLAYCONFIG_DEVICE_INFO_HEADER* setPack
 // SystemParametersInfo
 template<bool IsUnicode = WX::IsUnicode>
 inline void SystemParametersInfo(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinIni) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::SystemParametersInfoA(uiAction, uiParam, pvParam, fWinIni))
 	else assertl_reflect_as(::SystemParametersInfoW(uiAction, uiParam, pvParam, fWinIni))
 }
@@ -3155,7 +2958,7 @@ inline HMONITOR MonitorFromWindow(HWND hwnd, DWORD dwFlags)
 // GetMonitorInfo
 template<bool IsUnicode = WX::IsUnicode>
 inline void GetMonitorInfo(HMONITOR hMonitor, LPMONITORINFO lpmi) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(::GetMonitorInfoA(hMonitor, lpmi))
 	else assertl_reflect_as(::GetMonitorInfoW(hMonitor, lpmi))
 }
@@ -3292,7 +3095,7 @@ inline UINT GetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData, P
 // GetRawInputDeviceInfo
 template<bool IsUnicode = WX::IsUnicode>
 inline UINT GetRawInputDeviceInfo(HANDLE hDevice, UINT uiCommand, LPVOID pData, PUINT pcbSize) {
-	if constexpr (IsUnicode)
+	if_c (IsUnicode)
 		 assertl_reflect_as(auto h = ::GetRawInputDeviceInfoA(hDevice, uiCommand, pData, pcbSize); h != -1, h)
 	else assertl_reflect_as(auto h = ::GetRawInputDeviceInfoW(hDevice, uiCommand, pData, pcbSize); h != -1, h)
 }

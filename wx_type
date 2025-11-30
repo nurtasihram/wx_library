@@ -61,9 +61,7 @@ protected: \
 	} val; \
 public: \
 	template<class AnyType> \
-	constexpr name(AnyType val) : val(ref_as<Unit>(val)) { \
-		misuse_assert(std::is_class_v<AnyType>, "type is NOT based on Enum"); \
-		static_assert(is_chain_extended_on<name, typename AnyType::EnumType>, "enumerate error"); } \
+	constexpr name(AnyType val) : val(ref_as<Unit>(val)) {} \
 	constexpr name(Unit val) : val(val.val) { static_assert(sizeof(val) == sizeof(self), "alignment error"); } \
 public: \
 	static inline const Unit __VA_ARGS__; \
@@ -79,11 +77,11 @@ public: \
 	oprt(Unit); }
 #define enum_flags_opr(name) \
 	inline name operator~ () const reflect_as(~val); \
-	template<class AnyType> inline auto operator^(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>(yield() ^  v.yield())); \
-	template<class AnyType> inline auto operator|(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>(yield() |  v.yield())); \
-	template<class AnyType> inline auto operator&(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>(yield() &  v.yield())); \
-	template<class AnyType> inline auto operator+(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>(yield() |  v.yield())); \
-	template<class AnyType> inline auto operator-(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>(yield() & ~v.yield())); \
+	template<class AnyType> inline auto operator^(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() ^  v.yield())); \
+	template<class AnyType> inline auto operator|(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() |  v.yield())); \
+	template<class AnyType> inline auto operator&(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() &  v.yield())); \
+	template<class AnyType> inline auto operator+(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() |  v.yield())); \
+	template<class AnyType> inline auto operator-(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() & ~v.yield())); \
 	inline name operator^=(name v) reflect_to_self( val ^=  v.val); \
 	inline name operator|=(name v) reflect_to_self( val |=  v.val); \
 	inline name operator&=(name v) reflect_to_self( val &=  v.val); \
@@ -94,12 +92,8 @@ public: \
 #define enum_class_opr(name) \
 	inline bool operator==(name v) const reflect_as(val == v.val); \
 	inline bool operator!=(name v) const reflect_as(val != v.val)
-#define enum_explicit inline operator const ProtoType &() const reflect_as(val)
-#define enum_ex(name, base, oprt, ...) __enum_ex(name, base, oprt, #__VA_ARGS__, __VA_ARGS__)
 #define enum_flags(name, base, ...) __enum_ex(name, base, enum_flags_opr, #__VA_ARGS__, __VA_ARGS__)
 #define enum_class(name, base, ...) __enum_ex(name, base, enum_class_opr, #__VA_ARGS__, __VA_ARGS__)
-#define enum_flags_explicit(name, base, ...) __enum_ex(name, base, enum_explicit enum_flags_opr, #__VA_ARGS__, __VA_ARGS__)
-#define enum_class_explicit(name, base, ...) __enum_ex(name, base, enum_explicit enum_class_opr, #__VA_ARGS__, __VA_ARGS__)
 #pragma endregion
 
 #define locale_symbolx(name) static constexpr auto name = AnyX<IsUnicode>(name##W, name##A)
@@ -111,7 +105,6 @@ public: \
     locale_symbolx(name)
 #define switch_structx(name) std::conditional_t<IsUnicode, name##W, name##A>
 
-#define CountOf(...) lengthof<decltype(_CountOf(__VA_ARGS__))>
 #define INNER_USE(name) friend union WX::RefAs<name>
 
 #define BaseOf_Handle(name) name : public WX::HandleBase<name>
