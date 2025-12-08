@@ -81,7 +81,14 @@ public:
 protected:
 	SFINAE_Window(AnyChild);
 	use_member(CtlClassName);
-	subtype_branch(xCreate);
+	template<bool IsUnicode, class Style, class StyleEx>
+	using CreateStructX = super::template CreateStructX<IsUnicode, Style, StyleEx>;
+	template<class Style, class StyleEx>
+	using CreateStruct = super::template CreateStructX<IsUnicode, Style, StyleEx>;
+	template<class Style, class StyleEx>
+	using CreateStructA = super::template CreateStructX<false, Style, StyleEx>;
+	template<class Style, class StyleEx>
+	using CreateStructW = super::template CreateStructX<true, Style, StyleEx>;
 public:
 	ControlCommon() { misuse_assert(!std::is_void_v<AnyChild>, "Base of class ControlCommon cannot be void"); }
 protected:
@@ -91,22 +98,24 @@ protected:
 		xClass() {
 			this->Name(AnyChild::CtlClassName);
 			this->GetInfo();
-			//this->Name(AnyChild::CClassName());
-			//DefProc = this->lpfnWndProc;
-			//this->lpfnWndProc = AnyChild::MainProc;
+			this->Name(AnyChild::CClassName());
+			DefProc = this->lpfnWndProc;
+			this->lpfnWndProc = AnyChild::MainProc;
 		}
 	};
 public:
-	inline auto Create() = delete;
-	inline auto Create(HWND hParent) reflect_as(super::Create().Styles(WS::Child).Parent(hParent));
-public:
 	static inline ATOM Register() {
+		static ATOM atom = 0;
+		if (atom) return atom;
 		auto cw = WX::CreateStruct().Class(AnyChild::CtlClassName).Create();
-		auto am = cw->Class().Atom();
+		atom = cw->Class().Atom();
 		cw->Destroy();
-		return am;
+		return atom;
 	}
-	// reflect_as(xClass().Register());
+public:
+	inline auto Create(HWND hParent = O) reflect_as(CreateStruct<typename AnyChild::Style, typename AnyChild::StyleEx>(child, hParent));
+	inline auto CreateA(HWND hParent = O) reflect_as(CreateStructA<typename AnyChild::Style, typename AnyChild::StyleEx>(child, hParent));
+	inline auto CreateW(HWND hParent = O) reflect_as(CreateStructW<typename AnyChild::Style, typename AnyChild::StyleEx>(child, hParent));
 };
 template<class AnyChild>
 WndProc ControlCommon<AnyChild>::DefProc;
@@ -198,33 +207,20 @@ public: // Property - States
 using HeaderItem = HeaderItemX<IsUnicode>;
 using HeaderItemA = HeaderItemX<false>;
 using HeaderItemW = HeaderItemX<true>;
-class HeaderArray {
+class HeaderIItem {
 	template<class>
 	friend class HeaderBase;
 	CWindow header;
-private:
-	class ItemIndex {
-		CWindow header;
-		int index;
-	public:
-		ItemIndex(HWND hHeader, int index) : header(hHeader), index(index) {}
-	public:
-		inline void Remove() assertl_reflect_as(header->Send(HDM_DELETEITEM, index));
-	public:
-		//inline operator HeaderItemA() const;
-		inline ItemIndex &operator=(const HDITEMA &hdi) assertl_reflect_as_self(header->Send(HDM_SETITEMA, index, (LPARAM)&hdi));
-		inline ItemIndex &operator=(const HDITEMW &hdi) assertl_reflect_as_self(header->Send(HDM_SETITEMW, index, (LPARAM)&hdi));
-	};
-private:
-	HeaderArray(HWND hHeader) : header(hHeader) {}
+	int index;
 public:
-	inline int Insert(int index, const HDITEMA &hdi) reflect_as(header->Send<int>(HDM_INSERTITEMA, index, (LPARAM)&hdi));
-	inline int Insert(int index, const HDITEMW &hdi) reflect_as(header->Send<int>(HDM_INSERTITEMW, index, (LPARAM)&hdi));
-public: // Property - Count
-	/* R */ inline int Count() const reflect_as(header->Send<int>(HDM_GETITEMCOUNT));
+	HeaderIItem(HWND hHeader, int index) : header(hHeader), index(index) {}
 public:
-	inline ItemIndex operator[](int index) reflect_as({ header, index });
-	inline const ItemIndex operator[](int index) const reflect_as({ header, index });
+	inline void Remove() assertl_reflect_as(header->Send(HDM_DELETEITEM, index));
+public:
+	inline operator HeaderItemA() const;
+	inline operator HeaderItemW() const;
+	inline auto &operator=(const HDITEMA &hdi) assertl_reflect_as_self(header->Send(HDM_SETITEMA, index, (LPARAM)&hdi));
+	inline auto &operator=(const HDITEMW &hdi) assertl_reflect_as_self(header->Send(HDM_SETITEMW, index, (LPARAM)&hdi));
 };
 BaseOf_CommCtl(class HeaderBase) {
 	SFINAE_CommCtl(HeaderBase);
@@ -235,8 +231,12 @@ public:
 public:
 	HeaderBase() {}
 public:
+	inline int Insert(const HDITEMA &hdi, int index) reflect_as(super::template Send<int>(HDM_INSERTITEMA, index, (LPARAM)&hdi));
+	inline int Insert(const HDITEMW &hdi, int index) reflect_as(super::template Send<int>(HDM_INSERTITEMW, index, (LPARAM)&hdi));
+	inline void Remove(int index) assertl_reflect_as(super::Send(HDM_DELETEITEM, index));
 #pragma region Properties
-public: // Property - 
+public: // Property - Count
+	/* R */ inline int Count() const reflect_as(super::template Send<int>(HDM_GETITEMCOUNT));
 #pragma endregion
 };
 using Header = HeaderBase<void>;
@@ -727,6 +727,13 @@ public:
 	using Style = AnimateStyle;
 public:
 	AnimateBase() {}
+public:
+	inline bool Open(LPCSTR lpszAVIPath, HINSTANCE hInst = O) reflect_as(super::Send(ACM_OPENA, hInst, lpszAVIPath));
+	inline bool Open(LPCWSTR lpszAVIPath, HINSTANCE hInst = O) reflect_as(super::Send(ACM_OPENW, hInst, lpszAVIPath));
+	inline bool Open(WORD resid, HINSTANCE hInst = O) reflect_as(super::Send(ACM_OPEN, hInst, MAKEINTRESOURCE(resid)));
+	inline bool Play(UINT rept = (UINT)-1, SHORT start = -1, SHORT end = -1) reflect_as(super::Send(ACM_PLAY, rept, MAKEWPARAM(start, end)));
+	inline bool Stop() reflect_as(super::Send(ACM_STOP));
+	inline bool IsPlaying() const reflect_as(super::Send(ACM_ISPLAYING));
 };
 using Animate = AnimateBase<void>;
 using CAnimate = RefAs<Animate>;

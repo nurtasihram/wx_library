@@ -70,7 +70,7 @@ inline void ConvertSecurityDescriptorToStringSecurityDescriptor(PSECURITY_DESCRI
 																			  StringSecurityDescriptorLen));
 #pragma endregion
 
-#pragma region SecurityBaseAPI
+#pragma region SecurityBaseAPI.h
 // AccessCheck
 inline void AccessCheck(PSECURITY_DESCRIPTOR pSecurityDescriptor, HANDLE ClientToken, DWORD DesiredAccess, PGENERIC_MAPPING GenericMapping, PPRIVILEGE_SET PrivilegeSet, LPDWORD PrivilegeSetLength, LPDWORD GrantedAccess, LPBOOL AccessStatus)
     assertl_reflect_as(::AccessCheck(pSecurityDescriptor, ClientToken, DesiredAccess, GenericMapping, PrivilegeSet, PrivilegeSetLength, GrantedAccess, AccessStatus));
@@ -602,18 +602,29 @@ public:
 public:
 	inline bool EqualDomain(PSID pSID) reflect_to(BOOL eq, WX::EqualDomainSid(this->pSID, pSID, &eq), eq);
 	inline bool EqualPrefix(PSID pSID) reflect_as(WX::EqualPrefixSid(this->pSID, pSID));
+	//GetWindowsAccountDomainSid
+	//IsWellKnownSid
+	template<bool IsUnicode = WX::IsUnicode>
+	inline StringX<IsUnicode> toString() const 
+		reflect_to(LocalPointer<XCHAR<IsUnicode>> szSID(LocalHeap),
+				   WX::ConvertSidToStringSid(this->pSID, &(*szSID)),
+				   +CString(&szSID, MaxLenClass));
+	inline StringA toStringA() const reflect_as(toString<false>());
+	inline StringW toStringW() const reflect_as(toString<true>());
+
+#pragma region Properties
 public: // Property - Size
 	/* R */ inline DWORD Size() const reflect_as(WX::GetLengthSid(this->pSID));
 public: // Property - AuthorityID
 	/* R */ inline SecAuthorID AuthorityID() const reflect_as(*WX::GetSidIdentifierAuthority(this->pSID));
 public: // Property - AuthorityCount
 	/* R */ inline PUCHAR SubAuthorityCount() const reflect_as(WX::GetSidSubAuthorityCount(this->pSID));
-public: // 
-	//GetWindowsAccountDomainSid
-	//IsWellKnownSid
+#pragma endregion
+
+public:
 	inline operator bool() const reflect_as(this->pSID ? IsValidSid(this->pSID) : false);
-	inline operator StringA() const reflect_to(HeapPointer<_M_(Local, CHAR)> szSID(LocalHeap), WX::ConvertSidToStringSid(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
-	inline operator StringW() const reflect_to(HeapPointer<_M_(Local, WCHAR)> szSID(LocalHeap), WX::ConvertSidToStringSid(this->pSID, &(*szSID)), +CString(&szSID, MaxLenClass));
+	inline operator StringA() const reflect_as(toString<false>());
+	inline operator StringW() const reflect_as(toString<true>());
 	inline PSID operator&() const reflect_as(this->pSID);
 	inline SecurityIdentifier operator+() const {
 		if (!*this) return O;

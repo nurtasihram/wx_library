@@ -1620,7 +1620,7 @@ public:
 public:
 	Palette(const Entry *lpEntries, UINT nCount) {
 		assertl(1 < nCount && nCount <= 256);
-		HeapPointer<Heap, LOGPALETTE> hPal;
+		HeapPointer<LOGPALETTE> hPal;
 		hPal.Alloc(sizeof(LOGPALETTE) + (nCount - 1) * sizeof(Entry));
 		auto pPal = &hPal;
 		pPal->palVersion = 0x300;
@@ -1648,7 +1648,7 @@ public: // Property - Entries
 		retself;
 	}
 	/* R */ inline std::vector<Entry> Entries() const {
-			size_t count = Count();
+		size_t count = Count();
 		std::vector<Entry> entries(count);
 		if (count > 0)
 			GetEntries(0, entries.data(), (WORD)count);

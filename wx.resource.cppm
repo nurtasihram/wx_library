@@ -654,7 +654,7 @@ inline Bitmap ClipBitmap(const Bitmap &bmp, LRect rc) {
 //	header.ColorsSize(header.SizeImage());
 //	assertl(file.Write(&header, sizeof(header) - 4) == sizeof(header) - 4);
 //	assertl(file.Write(pal.Entries().data(), palSize) == palSize);
-//	HeapPointer<Heap> hBits(header.SizeImage());
+//	HeapPointer<> hBits(header.SizeImage());
 //	assertl(GetDIBits(dc, bmp, 0, log.Height(), &hBits, header, usage));
 //	assertl(file.Write(&hBits, header.SizeImage()) == header.SizeImage());
 //}

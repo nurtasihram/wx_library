@@ -690,6 +690,9 @@ public: // Property - Module
 public: // Property - Menu
 	/* W */ inline auto &Menu(HMENU hMenu) reflect_to_self(self->hMenu = hMenu);
 	/* R */ inline CMenu Menu() const reflect_as(self->hMenu);
+public: // Property - ID
+	/* W */ inline auto &ID(UINT uID) reflect_to_self(self->hMenu = small_cast<HMENU>(uID));
+	/* R */ inline UINT ID() const reflect_as(small_cast<HMENU>(self->hMenu));
 public: // Property - Parent
 	/* W */ inline auto&Parent(HWND hwndParent) reflect_to_self(self->hwndParent = hwndParent);
 	template<class AnyChild = void>
@@ -965,7 +968,8 @@ using WindowIClassW = WindowIClassX<true>;
 #pragma endregion
 
 template<class AnyChild>
-class WindowBase : public ChainExtender<WindowBase<AnyChild>, AnyChild> {
+class WindowBase : 
+	public ChainExtender<WindowBase<AnyChild>, AnyChild> {
 	template<bool, class, class>
 	friend class CreateStructX;
 	mutable HWND hWnd = O;
@@ -1372,26 +1376,30 @@ protected:
 	public:
 		using super = WX::CreateStructX<IsUnicode, Style, StyleEx>;
 	public:
-		CreateStructX(Child &c) {
+		CreateStructX(CreateStructX &cs) : super(cs) {
+			cs.Param(O);
+		}
+		CreateStructX(Child &c, HWND hParent) {
+			super::Parent(hParent);
+			super::Class(Register());
+			super::Param(std::addressof(c));
 			super::Size(CW_USEDEFAULT);
 			super::Position(CW_USEDEFAULT);
 			super::Styles(WS::OverlappedWindow);
-			super::Class(WindowBase::Register());
-			super::Param(std::addressof(c));
 		}
 		CreateStructX(const CREATESTRUCT &lpCreate, Child &c) : super(lpCreate) {
-			super::Class(WindowBase::Register());
+			super::Class(Register());
 			super::Param(std::addressof(c));
 		}
 		~CreateStructX() reflect_to(AutoCreate());
 	public:
 		inline void AutoCreate() const {
 			if (auto pChild = super::template Param<Child>(); !*pChild)
-				super::Create();
+				pChild->hWnd = super::Create();
 		}
 		inline void AutoCreateMDI() const {
 			if (auto pChild = super::template Param<Child>(); !*pChild)
-				super::CreateMDI();
+				pChild->hWnd = super::CreateMDI();
 		}
 	private: // Remove properties
 		/* W */ using super::Param;
@@ -1406,11 +1414,13 @@ protected:
 	template<class Style = WStyle, class StyleEx = WStyleEx>
 	using CreateStructW = CreateStructX<true, Style, StyleEx>;
 public:
-	inline auto Create() reflect_as(CreateStruct(child));
-	inline void Create(const CREATESTRUCTA &cs) reflect_to(Create(CreateStructA(cs, child)));
-	inline void Create(const CREATESTRUCTW &cs) reflect_to(Create(CreateStructW(cs, child)));
-	inline void Create(CreateStructA<> cs) reflect_to(hWnd = cs.Param(pchild).Create());
-	inline void Create(CreateStructW<> cs) reflect_to(hWnd = cs.Param(pchild).Create());
+	inline auto Create(HWND hParent = O) reflect_as(CreateStruct(child, hParent));
+	inline auto CreateA(HWND hParent = O) reflect_as(CreateStructA(child, hParent));
+	inline auto CreateW(HWND hParent = O) reflect_as(CreateStructW(child, hParent));
+	inline void Create(const CREATESTRUCTA &cs) reflect_to(Create(CreateStructA(cs, child).Class(Register())));
+	inline void Create(const CREATESTRUCTW &cs) reflect_to(Create(CreateStructW(cs, child).Class(Register())));
+	inline void Create(CreateStructA<> cs) reflect_to(hWnd = cs.Param(pchild).Class(Register()).Create());
+	inline void Create(CreateStructW<> cs) reflect_to(hWnd = cs.Param(pchild).Class(Register()).Create());
 	inline void Destroy() reflect_to(WX::DestroyWindow(self));
 	inline void Close() reflect_to(WX::CloseWindow(self));
 #pragma endregion

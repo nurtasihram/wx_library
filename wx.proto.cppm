@@ -1376,15 +1376,15 @@ inline void GetUserObjectSecurity(HANDLE hObj, PSECURITY_INFORMATION pSIRequeste
 template<bool IsUnicode = WX::IsUnicode>
 inline void GetUserObjectInformation(HANDLE hObj, int nIndex, PVOID pvInfo, DWORD nLength, LPDWORD lpnLengthNeeded) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(::GetUserObjectInformationA(hObj, nIndex, pvInfo, nLength, lpnLengthNeeded))
-	else assertl_reflect_as(::GetUserObjectInformationW(hObj, nIndex, pvInfo, nLength, lpnLengthNeeded))
+		 assertl_reflect_as(::GetUserObjectInformationW(hObj, nIndex, pvInfo, nLength, lpnLengthNeeded))
+	else assertl_reflect_as(::GetUserObjectInformationA(hObj, nIndex, pvInfo, nLength, lpnLengthNeeded))
 }
 // SetUserObjectInformation
 template<bool IsUnicode = WX::IsUnicode>
 inline void SetUserObjectInformation(HANDLE hObj, int nIndex, PVOID pvInfo, DWORD nLength) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(::SetUserObjectInformationA(hObj, nIndex, pvInfo, nLength))
-	else assertl_reflect_as(::SetUserObjectInformationW(hObj, nIndex, pvInfo, nLength))
+		 assertl_reflect_as(::SetUserObjectInformationW(hObj, nIndex, pvInfo, nLength))
+	else assertl_reflect_as(::SetUserObjectInformationA(hObj, nIndex, pvInfo, nLength))
 }
 inline bool IsHungAppWindow(HWND hwnd)
 	reflect_as(::IsHungAppWindow(hwnd));
@@ -1415,8 +1415,8 @@ inline void DrawAnimatedRects(HWND hwnd, int idAni, CONST RECT *lprcFrom, CONST 
 template<bool IsUnicode = WX::IsUnicode>
 inline bool GetMessage(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(auto h = ::GetMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax); h >= 0, h)
-	else assertl_reflect_as(auto h = ::GetMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax); h >= 0, h)
+		 assertl_reflect_as(auto h = ::GetMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax); h >= 0, h)
+	else assertl_reflect_as(auto h = ::GetMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax); h >= 0, h)
 }
 // TranslateMessage
 inline bool TranslateMessage(CONST MSG *lpMsg)
@@ -1425,16 +1425,16 @@ inline bool TranslateMessage(CONST MSG *lpMsg)
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT DispatchMessage(CONST MSG *lpMsg) {
 	if_c (IsUnicode)
-		 reflect_as(::DispatchMessageA(lpMsg))
-	else reflect_as(::DispatchMessageW(lpMsg))
+		 reflect_as(::DispatchMessageW(lpMsg))
+	else reflect_as(::DispatchMessageA(lpMsg))
 }
 // SetMessageQueue
 // PeekMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline bool PeekMessage(LPMSG lpMsg, HWND hWnd, UINT wMsgFilterMin, UINT wMsgFilterMax, UINT wRemoveMsg) {
 	if_c (IsUnicode)
-		 reflect_as(::PeekMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
-	else reflect_as(::PeekMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
+		 reflect_as(::PeekMessageW(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
+	else reflect_as(::PeekMessageA(lpMsg, hWnd, wMsgFilterMin, wMsgFilterMax, wRemoveMsg))
 }
 // RegisterHotKey
 inline void RegisterHotKey(HWND hWnd, int id, UINT fsModifiers, UINT vk)
@@ -1470,50 +1470,50 @@ inline LPARAM SetMessageExtraInfo(LPARAM lParam)
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT SendMessage(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	if_c (IsUnicode)
-		 nt_assertl_reflect_to(auto h = ::SendMessageA(hWnd, Msg, wParam, lParam), h)
-	else nt_assertl_reflect_to(auto h = ::SendMessageW(hWnd, Msg, wParam, lParam), h)
+		 nt_assertl_reflect_to(auto h = ::SendMessageW(hWnd, Msg, wParam, lParam), h)
+	else nt_assertl_reflect_to(auto h = ::SendMessageA(hWnd, Msg, wParam, lParam), h)
 }
 // SendMessageTimeout
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT SendMessageTimeout(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam, UINT fuFlags, UINT uTimeout, PDWORD_PTR lpdwResult) {
 	if_c (IsUnicode)
-		 nt_assertl_reflect_to(auto h = ::SendMessageTimeoutA(hWnd, Msg, wParam, lParam, fuFlags, uTimeout, lpdwResult), h)
-	else nt_assertl_reflect_to(auto h = ::SendMessageTimeoutW(hWnd, Msg, wParam, lParam, fuFlags, uTimeout, lpdwResult), h)
+		 nt_assertl_reflect_to(auto h = ::SendMessageTimeoutW(hWnd, Msg, wParam, lParam, fuFlags, uTimeout, lpdwResult), h)
+	else nt_assertl_reflect_to(auto h = ::SendMessageTimeoutA(hWnd, Msg, wParam, lParam, fuFlags, uTimeout, lpdwResult), h)
 }
 // SendNotifyMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline void SendNotifyMessage(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(::SendNotifyMessageA(hWnd, Msg, wParam, lParam))
-	else assertl_reflect_as(::SendNotifyMessageW(hWnd, Msg, wParam, lParam))
+		 assertl_reflect_as(::SendNotifyMessageW(hWnd, Msg, wParam, lParam))
+	else assertl_reflect_as(::SendNotifyMessageA(hWnd, Msg, wParam, lParam))
 }
 // SendMessageCallback
 template<bool IsUnicode = WX::IsUnicode>
 inline void SendMessageCallback(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam, SENDASYNCPROC lpResultCallBack, ULONG_PTR dwData) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(::SendMessageCallbackA(hWnd, Msg, wParam, lParam, lpResultCallBack, dwData))
-	else assertl_reflect_as(::SendMessageCallbackW(hWnd, Msg, wParam, lParam, lpResultCallBack, dwData))
+		 assertl_reflect_as(::SendMessageCallbackW(hWnd, Msg, wParam, lParam, lpResultCallBack, dwData))
+	else assertl_reflect_as(::SendMessageCallbackA(hWnd, Msg, wParam, lParam, lpResultCallBack, dwData))
 }
 // BroadcastSystemMessageEx
 template<bool IsUnicode = WX::IsUnicode>
 inline long BroadcastSystemMessageEx(DWORD flags, LPDWORD lpInfo, UINT Msg, WPARAM wParam, LPARAM lParam, PBSMINFO pbsmInfo) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(auto h = ::BroadcastSystemMessageExA(flags, lpInfo, Msg, wParam, lParam, pbsmInfo), h)
-	else assertl_reflect_as(auto h = ::BroadcastSystemMessageExW(flags, lpInfo, Msg, wParam, lParam, pbsmInfo), h)
+		 assertl_reflect_as(auto h = ::BroadcastSystemMessageExW(flags, lpInfo, Msg, wParam, lParam, pbsmInfo), h)
+	else assertl_reflect_as(auto h = ::BroadcastSystemMessageExA(flags, lpInfo, Msg, wParam, lParam, pbsmInfo), h)
 }
 // BroadcastSystemMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline long BroadcastSystemMessage(DWORD flags, LPDWORD lpInfo, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(auto h = ::BroadcastSystemMessageA(flags, lpInfo, Msg, wParam, lParam), h)
-	else assertl_reflect_as(auto h = ::BroadcastSystemMessageW(flags, lpInfo, Msg, wParam, lParam), h)
+		 assertl_reflect_as(auto h = ::BroadcastSystemMessageW(flags, lpInfo, Msg, wParam, lParam), h)
+	else assertl_reflect_as(auto h = ::BroadcastSystemMessageA(flags, lpInfo, Msg, wParam, lParam), h)
 }
 // RegisterDeviceNotification
 template<bool IsUnicode = WX::IsUnicode>
 inline HDEVNOTIFY RegisterDeviceNotification(HANDLE hRecipient, LPVOID NotificationFilter, DWORD Flags) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(auto h = ::RegisterDeviceNotificationA(hRecipient, NotificationFilter, Flags), h)
-	else assertl_reflect_as(auto h = ::RegisterDeviceNotificationW(hRecipient, NotificationFilter, Flags), h)
+		 assertl_reflect_as(auto h = ::RegisterDeviceNotificationW(hRecipient, NotificationFilter, Flags), h)
+	else assertl_reflect_as(auto h = ::RegisterDeviceNotificationA(hRecipient, NotificationFilter, Flags), h)
 }
 // UnregisterDeviceNotification
 inline void UnregisterDeviceNotification(HDEVNOTIFY Handle)
@@ -1534,15 +1534,15 @@ inline void UnregisterSuspendResumeNotification(HPOWERNOTIFY Handle)
 template<bool IsUnicode = WX::IsUnicode>
 inline void PostMessage(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(::PostMessageA(hWnd, Msg, wParam, lParam))
-	else assertl_reflect_as(::PostMessageW(hWnd, Msg, wParam, lParam))
+		 assertl_reflect_as(::PostMessageW(hWnd, Msg, wParam, lParam))
+	else assertl_reflect_as(::PostMessageA(hWnd, Msg, wParam, lParam))
 }
 // PostThreadMessage
 template<bool IsUnicode = WX::IsUnicode>
 inline void PostThreadMessage(DWORD idThread, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(::PostThreadMessageA(idThread, Msg, wParam, lParam))
-	else assertl_reflect_as(::PostThreadMessageW(idThread, Msg, wParam, lParam))
+		 assertl_reflect_as(::PostThreadMessageW(idThread, Msg, wParam, lParam))
+	else assertl_reflect_as(::PostThreadMessageA(idThread, Msg, wParam, lParam))
 }
 // AttachThreadInput
 inline void AttachThreadInput(DWORD idAttach, DWORD idAttachTo, BOOL fAttach)
@@ -1560,8 +1560,8 @@ inline DWORD WaitForInputIdle(HANDLE hProcess, DWORD dwMilliseconds)
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT DefWindowProc(HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	if_c (IsUnicode)
-		 reflect_as(::DefWindowProcA(hWnd, Msg, wParam, lParam))
-	else reflect_as(::DefWindowProcW(hWnd, Msg, wParam, lParam))
+		 reflect_as(::DefWindowProcW(hWnd, Msg, wParam, lParam))
+	else reflect_as(::DefWindowProcA(hWnd, Msg, wParam, lParam))
 }
 // PostQuitMessage
 inline void PostQuitMessage(int nExitCode)
@@ -1570,8 +1570,8 @@ inline void PostQuitMessage(int nExitCode)
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT CallWindowProc(WNDPROC lpPrevWndFunc, HWND hWnd, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	if_c (IsUnicode)
-		 reflect_as(::CallWindowProcA(lpPrevWndFunc, hWnd, Msg, wParam, lParam))
-	else reflect_as(::CallWindowProcW(lpPrevWndFunc, hWnd, Msg, wParam, lParam))
+		 reflect_as(::CallWindowProcW(lpPrevWndFunc, hWnd, Msg, wParam, lParam))
+	else reflect_as(::CallWindowProcA(lpPrevWndFunc, hWnd, Msg, wParam, lParam))
 }
 // InSendMessage
 inline bool InSendMessage()
@@ -1758,8 +1758,8 @@ inline UINT IsDlgButtonChecked(HWND hDlg, int nIDButton)
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT SendDlgItemMessage(HWND hDlg, int nIDDlgItem, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	if_c (IsUnicode)
-		 nt_assertl_reflect_to(auto h = ::SendDlgItemMessageA(hDlg, nIDDlgItem, Msg, wParam, lParam), h)
-	else nt_assertl_reflect_to(auto h = ::SendDlgItemMessageW(hDlg, nIDDlgItem, Msg, wParam, lParam), h)
+		 nt_assertl_reflect_to(auto h = ::SendDlgItemMessageW(hDlg, nIDDlgItem, Msg, wParam, lParam), h)
+	else nt_assertl_reflect_to(auto h = ::SendDlgItemMessageA(hDlg, nIDDlgItem, Msg, wParam, lParam), h)
 }
 // GetNextDlgGroupItem
 inline HWND GetNextDlgGroupItem(HWND hDlg, HWND hCtl, BOOL bPrevious)
@@ -1777,8 +1777,8 @@ inline long GetDialogBaseUnits()
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT DefDlgProc(HWND hDlg, UINT Msg, WPARAM wParam, LPARAM lParam) {
 	if_c (IsUnicode)
-		 reflect_as(::DefDlgProcA(hDlg, Msg, wParam, lParam))
-	else reflect_as(::DefDlgProcW(hDlg, Msg, wParam, lParam))
+		 reflect_as(::DefDlgProcW(hDlg, Msg, wParam, lParam))
+	else reflect_as(::DefDlgProcA(hDlg, Msg, wParam, lParam))
 }
 // SetDialogControlDpiChangeBehavior
 inline void SetDialogControlDpiChangeBehavior(HWND hWnd, DIALOG_CONTROL_DPI_CHANGE_BEHAVIORS mask, DIALOG_CONTROL_DPI_CHANGE_BEHAVIORS values)
@@ -1796,8 +1796,8 @@ inline DIALOG_DPI_CHANGE_BEHAVIORS GetDialogDpiChangeBehavior(HWND hDlg)
 template<bool IsUnicode = WX::IsUnicode>
 inline bool CallMsgFilter(LPMSG lpMsg, int nCode) {
 	if_c (IsUnicode)
-		 reflect_as(::CallMsgFilterA(lpMsg, nCode))
-	else reflect_as(::CallMsgFilterW(lpMsg, nCode))
+		 reflect_as(::CallMsgFilterW(lpMsg, nCode))
+	else reflect_as(::CallMsgFilterA(lpMsg, nCode))
 }
 // OpenClipboard
 inline void OpenClipboard(HWND hWndNewOwner)
@@ -2053,15 +2053,15 @@ inline void GetLastInputInfo(PLASTINPUTINFO plii)
 template<bool IsUnicode = WX::IsUnicode>
 inline UINT MapVirtualKey(UINT uCode, UINT uMapType) {
 	if_c (IsUnicode)
-		 reflect_as(::MapVirtualKeyA(uCode, uMapType))
-	else reflect_as(::MapVirtualKeyW(uCode, uMapType))
+		 reflect_as(::MapVirtualKeyW(uCode, uMapType))
+	else reflect_as(::MapVirtualKeyA(uCode, uMapType))
 }
 // MapVirtualKeyEx
 template<bool IsUnicode = WX::IsUnicode>
 inline UINT MapVirtualKeyEx(UINT uCode, UINT uMapType, HKL dwhkl) {
 	if_c (IsUnicode)
-		 reflect_as(::MapVirtualKeyExA(uCode, uMapType, dwhkl))
-	else reflect_as(::MapVirtualKeyExW(uCode, uMapType, dwhkl))
+		 reflect_as(::MapVirtualKeyExW(uCode, uMapType, dwhkl))
+	else reflect_as(::MapVirtualKeyExA(uCode, uMapType, dwhkl))
 }
 // GetInputState
 inline bool GetInputState()
@@ -2110,8 +2110,8 @@ inline HACCEL LoadAccelerators(HINSTANCE hInstance, LPCWSTR lpTableName)
 template<bool IsUnicode = WX::IsUnicode>
 inline HACCEL CreateAcceleratorTable(LPACCEL paccel, int cAccel) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(auto h = ::CreateAcceleratorTableA(paccel, cAccel), h)
-	else assertl_reflect_as(auto h = ::CreateAcceleratorTableW(paccel, cAccel), h)
+		 assertl_reflect_as(auto h = ::CreateAcceleratorTableW(paccel, cAccel), h)
+	else assertl_reflect_as(auto h = ::CreateAcceleratorTableA(paccel, cAccel), h)
 }
 // DestroyAcceleratorTable
 inline void DestroyAcceleratorTable(HACCEL hAccel)
@@ -2120,15 +2120,15 @@ inline void DestroyAcceleratorTable(HACCEL hAccel)
 template<bool IsUnicode = WX::IsUnicode>
 inline int CopyAcceleratorTable(HACCEL hAccelSrc, LPACCEL lpAccelDst, int cAccelEntries) {
 	if_c (IsUnicode)
-		 reflect_as(::CopyAcceleratorTableA(hAccelSrc, lpAccelDst, cAccelEntries))
-	else reflect_as(::CopyAcceleratorTableW(hAccelSrc, lpAccelDst, cAccelEntries))
+		 reflect_as(::CopyAcceleratorTableW(hAccelSrc, lpAccelDst, cAccelEntries))
+	else reflect_as(::CopyAcceleratorTableA(hAccelSrc, lpAccelDst, cAccelEntries))
 }
 // TranslateAccelerator
 template<bool IsUnicode = WX::IsUnicode>
 inline int TranslateAccelerator(HWND hWnd, HACCEL hAccTable, LPMSG lpMsg) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(auto h = ::TranslateAcceleratorA(hWnd, hAccTable, lpMsg), h)
-	else assertl_reflect_as(auto h = ::TranslateAcceleratorW(hWnd, hAccTable, lpMsg), h)
+		 assertl_reflect_as(auto h = ::TranslateAcceleratorW(hWnd, hAccTable, lpMsg), h)
+	else assertl_reflect_as(auto h = ::TranslateAcceleratorA(hWnd, hAccTable, lpMsg), h)
 }
 // GetSystemMetrics
 inline int GetSystemMetrics(int nIndex)
@@ -2289,15 +2289,15 @@ inline int DrawText(HDC hdc, LPWSTR lpchText, int cchText, LPRECT lprc, UINT for
 template<bool IsUnicode = WX::IsUnicode>
 inline void GrayString(HDC hDC, HBRUSH hBrush, GRAYSTRINGPROC lpOutputFunc, LPARAM lpData, int nCount, int X, int Y, int nWidth, int nHeight) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(::GrayStringA(hDC, hBrush, lpOutputFunc, lpData, nCount, X, Y, nWidth, nHeight))
-	else assertl_reflect_as(::GrayStringW(hDC, hBrush, lpOutputFunc, lpData, nCount, X, Y, nWidth, nHeight))
+		 assertl_reflect_as(::GrayStringW(hDC, hBrush, lpOutputFunc, lpData, nCount, X, Y, nWidth, nHeight))
+	else assertl_reflect_as(::GrayStringA(hDC, hBrush, lpOutputFunc, lpData, nCount, X, Y, nWidth, nHeight))
 }
 // DrawState
 template<bool IsUnicode = WX::IsUnicode>
 inline void DrawState(HDC hdc, HBRUSH hbrFore, DRAWSTATEPROC qfnCallBack, LPARAM lData, WPARAM wData, int x, int y, int cx, int cy, UINT uFlags) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(::DrawStateA(hdc, hbrFore, qfnCallBack, lData, wData, x, y, cx, cy, uFlags))
-	else assertl_reflect_as(::DrawStateW(hdc, hbrFore, qfnCallBack, lData, wData, x, y, cx, cy, uFlags))
+		 assertl_reflect_as(::DrawStateW(hdc, hbrFore, qfnCallBack, lData, wData, x, y, cx, cy, uFlags))
+	else assertl_reflect_as(::DrawStateA(hdc, hbrFore, qfnCallBack, lData, wData, x, y, cx, cy, uFlags))
 }
 // TabbedTextOut
 inline LONG TabbedTextOut(HDC hdc, int x, int y, LPCSTR lpString, int chCount, int nTabPositions, CONST INT *lpnTabStopPositions, int nTabOrigin)
@@ -2447,8 +2447,8 @@ inline int GetWindowText(HWND hWnd, LPWSTR lpString, int nMaxCount)
 template<bool IsUnicode = WX::IsUnicode>
 inline int GetWindowTextLength(HWND hWnd) {
 	if_c (IsUnicode)
-		 nt_assertl_reflect_to(auto h = ::GetWindowTextLengthA(hWnd), h)
-	else nt_assertl_reflect_to(auto h = ::GetWindowTextLengthW(hWnd), h)
+		 nt_assertl_reflect_to(auto h = ::GetWindowTextLengthW(hWnd), h)
+	else nt_assertl_reflect_to(auto h = ::GetWindowTextLengthA(hWnd), h)
 }
 // GetClientRect
 inline void GetClientRect(HWND hWnd, LPRECT lpRect)
@@ -2623,15 +2623,15 @@ inline WORD SetWindowWord(HWND hWnd, int nIndex, WORD wNewWord)
 template<bool IsUnicode = WX::IsUnicode>
 inline LONG_PTR GetWindowLongPtr(HWND hWnd, int nIndex) {
 	if_c (IsUnicode)
-		 nt_assertl_reflect_to(auto h = ::GetWindowLongPtrA(hWnd, nIndex), h)
-	else nt_assertl_reflect_to(auto h = ::GetWindowLongPtrW(hWnd, nIndex), h)
+		 nt_assertl_reflect_to(auto h = ::GetWindowLongPtrW(hWnd, nIndex), h)
+	else nt_assertl_reflect_to(auto h = ::GetWindowLongPtrA(hWnd, nIndex), h)
 }
 // SetWindowLongPtr
 template<bool IsUnicode = WX::IsUnicode>
 inline LONG_PTR SetWindowLongPtr(HWND hWnd, int nIndex, LONG_PTR dwNewLong) {
 	if_c (IsUnicode)
-		 nt_assertl_reflect_to(auto h = ::SetWindowLongPtrA(hWnd, nIndex, dwNewLong), h)
-	else nt_assertl_reflect_to(auto h = ::SetWindowLongPtrW(hWnd, nIndex, dwNewLong), h)
+		 nt_assertl_reflect_to(auto h = ::SetWindowLongPtrW(hWnd, nIndex, dwNewLong), h)
+	else nt_assertl_reflect_to(auto h = ::SetWindowLongPtrA(hWnd, nIndex, dwNewLong), h)
 }
 // GetClassWord
 inline WORD GetClassWord(HWND hWnd, int nIndex)
@@ -2645,15 +2645,15 @@ inline WORD SetClassWord(HWND hWnd, int nIndex, WORD wNewWord)
 template<bool IsUnicode = WX::IsUnicode>
 inline ULONG_PTR GetClassLongPtr(HWND hWnd, int nIndex) {
 	if_c (IsUnicode)
-		 nt_assertl_reflect_to(auto h = ::GetClassLongPtrA(hWnd, nIndex), h)
-	else nt_assertl_reflect_to(auto h = ::GetClassLongPtrW(hWnd, nIndex), h)
+		 nt_assertl_reflect_to(auto h = ::GetClassLongPtrW(hWnd, nIndex), h)
+	else nt_assertl_reflect_to(auto h = ::GetClassLongPtrA(hWnd, nIndex), h)
 }
 // SetClassLongPtr
 template<bool IsUnicode = WX::IsUnicode>
 inline ULONG_PTR SetClassLongPtr(HWND hWnd, int nIndex, LONG_PTR dwNewLong) {
 	if_c (IsUnicode)
-		 nt_assertl_reflect_to(auto h = ::SetClassLongPtrA(hWnd, nIndex, dwNewLong), h)
-	else nt_assertl_reflect_to(auto h = ::SetClassLongPtrW(hWnd, nIndex, dwNewLong), h)
+		 nt_assertl_reflect_to(auto h = ::SetClassLongPtrW(hWnd, nIndex, dwNewLong), h)
+	else nt_assertl_reflect_to(auto h = ::SetClassLongPtrA(hWnd, nIndex, dwNewLong), h)
 }
 // GetProcessDefaultLayout
 inline void GetProcessDefaultLayout(DWORD *pdwDefaultLayout)
@@ -2718,8 +2718,8 @@ inline HWND GetWindow(HWND hWnd, UINT uCmd)
 template<bool IsUnicode = WX::IsUnicode>
 inline HHOOK SetWindowsHookEx(int idHook, HOOKPROC lpfn, HINSTANCE hmod, DWORD dwThreadId) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(auto h = ::SetWindowsHookExA(idHook, lpfn, hmod, dwThreadId), h)
-	else assertl_reflect_as(auto h = ::SetWindowsHookExW(idHook, lpfn, hmod, dwThreadId), h)
+		 assertl_reflect_as(auto h = ::SetWindowsHookExW(idHook, lpfn, hmod, dwThreadId), h)
+	else assertl_reflect_as(auto h = ::SetWindowsHookExA(idHook, lpfn, hmod, dwThreadId), h)
 }
 // UnhookWindowsHookEx
 inline void UnhookWindowsHookEx(HHOOK hhk)
@@ -2816,8 +2816,8 @@ inline void GetIconInfoEx(HICON hicon, PICONINFOEXW piconinfo)
 template<bool IsUnicode = WX::IsUnicode>
 inline bool IsDialogMessage(HWND hDlg, LPMSG lpMsg) {
 	if_c (IsUnicode)
-		 reflect_as(::IsDialogMessageA(hDlg, lpMsg))
-	else reflect_as(::IsDialogMessageW(hDlg, lpMsg))
+		 reflect_as(::IsDialogMessageW(hDlg, lpMsg))
+	else reflect_as(::IsDialogMessageA(hDlg, lpMsg))
 }
 // MapDialogRect
 inline void MapDialogRect(HWND hDlg, LPRECT lpRect)
@@ -2852,15 +2852,15 @@ inline void GetScrollInfo(HWND hwnd, int nBar, LPSCROLLINFO lpsi)
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT DefFrameProc(HWND hWnd, HWND hWndMDIClient, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	if_c (IsUnicode)
-		 reflect_as(::DefFrameProcA(hWnd, hWndMDIClient, uMsg, wParam, lParam))
-	else reflect_as(::DefFrameProcW(hWnd, hWndMDIClient, uMsg, wParam, lParam))
+		 reflect_as(::DefFrameProcW(hWnd, hWndMDIClient, uMsg, wParam, lParam))
+	else reflect_as(::DefFrameProcA(hWnd, hWndMDIClient, uMsg, wParam, lParam))
 }
 // DefMDIChildProc
 template<bool IsUnicode = WX::IsUnicode>
 inline LRESULT DefMDIChildProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
 	if_c (IsUnicode)
-		 reflect_as(::DefMDIChildProcA(hWnd, uMsg, wParam, lParam))
-	else reflect_as(::DefMDIChildProcW(hWnd, uMsg, wParam, lParam))
+		 reflect_as(::DefMDIChildProcW(hWnd, uMsg, wParam, lParam))
+	else reflect_as(::DefMDIChildProcA(hWnd, uMsg, wParam, lParam))
 }
 // TranslateMDISysAccel
 inline bool TranslateMDISysAccel(HWND hWndClient, LPMSG lpMsg)
@@ -2931,8 +2931,8 @@ inline LONG DisplayConfigSetDeviceInfo(DISPLAYCONFIG_DEVICE_INFO_HEADER* setPack
 template<bool IsUnicode = WX::IsUnicode>
 inline void SystemParametersInfo(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinIni) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(::SystemParametersInfoA(uiAction, uiParam, pvParam, fWinIni))
-	else assertl_reflect_as(::SystemParametersInfoW(uiAction, uiParam, pvParam, fWinIni))
+		 assertl_reflect_as(::SystemParametersInfoW(uiAction, uiParam, pvParam, fWinIni))
+	else assertl_reflect_as(::SystemParametersInfoA(uiAction, uiParam, pvParam, fWinIni))
 }
 // SystemParametersInfoForDpi
 inline void SystemParametersInfoForDpi(UINT uiAction, UINT uiParam, PVOID pvParam, UINT fWinIni, UINT dpi)
@@ -2959,8 +2959,8 @@ inline HMONITOR MonitorFromWindow(HWND hwnd, DWORD dwFlags)
 template<bool IsUnicode = WX::IsUnicode>
 inline void GetMonitorInfo(HMONITOR hMonitor, LPMONITORINFO lpmi) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(::GetMonitorInfoA(hMonitor, lpmi))
-	else assertl_reflect_as(::GetMonitorInfoW(hMonitor, lpmi))
+		 assertl_reflect_as(::GetMonitorInfoW(hMonitor, lpmi))
+	else assertl_reflect_as(::GetMonitorInfoA(hMonitor, lpmi))
 }
 // EnumDisplayMonitors
 inline void EnumDisplayMonitors(HDC hdc, LPCRECT lprcClip, MONITORENUMPROC lpfnEnum, LPARAM dwData)
@@ -3096,8 +3096,8 @@ inline UINT GetRawInputData(HRAWINPUT hRawInput, UINT uiCommand, LPVOID pData, P
 template<bool IsUnicode = WX::IsUnicode>
 inline UINT GetRawInputDeviceInfo(HANDLE hDevice, UINT uiCommand, LPVOID pData, PUINT pcbSize) {
 	if_c (IsUnicode)
-		 assertl_reflect_as(auto h = ::GetRawInputDeviceInfoA(hDevice, uiCommand, pData, pcbSize); h != -1, h)
-	else assertl_reflect_as(auto h = ::GetRawInputDeviceInfoW(hDevice, uiCommand, pData, pcbSize); h != -1, h)
+		 assertl_reflect_as(auto h = ::GetRawInputDeviceInfoW(hDevice, uiCommand, pData, pcbSize); h != -1, h)
+	else assertl_reflect_as(auto h = ::GetRawInputDeviceInfoA(hDevice, uiCommand, pData, pcbSize); h != -1, h)
 }
 // GetRawInputBuffer
 inline UINT GetRawInputBuffer(PRAWINPUT pData, PUINT pcbSize, UINT cbSizeHeader)

@@ -426,9 +426,9 @@
 	SEND(bool, WM_INITDIALOG, (WPARAM)(HWND)(hwndFocus), (lParam)), 
 	(LRESULT)(DWORD)(UINT)(bool)(CALL(InitDialog))((HWND)(wParam), lParam))
 /*273*/ MSG_TRANS(WM_COMMAND, 
-	void, Command, (int id, HWND hwndCtl, UINT codeNotify),
+	int, Command, (int id, HWND hwndCtl, UINT codeNotify),
 	ARGS(id, hwndCtl, codeNotify), 
-	SEND(void, WM_COMMAND, MAKEWPARAM((UINT)(id), (UINT)(codeNotify)), (LPARAM)(HWND)(hwndCtl)), 
+	SEND(int, WM_COMMAND, MAKEWPARAM((UINT)(id), (UINT)(codeNotify)), (LPARAM)(HWND)(hwndCtl)), 
 	((CALL(Command))((int)(LOWORD(wParam)), (HWND)(lParam), (UINT)HIWORD(wParam)), 0L))
 /*274*/ MSG_TRANS(WM_SYSCOMMAND, 
 	void, SysCommand, (UINT cmd, int x, int y),

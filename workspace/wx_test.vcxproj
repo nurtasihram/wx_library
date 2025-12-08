@@ -21,7 +21,7 @@
   <PropertyGroup Label="Globals">
     <VCProjectVersion>18.0</VCProjectVersion>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{84dd6a35-6cac-4ee0-96de-de45012b6f06}</ProjectGuid>
+    <ProjectGuid>{F1FB2231-E5FC-4B22-B977-E9F0CA77FC97}</ProjectGuid>
     <RootNamespace>wxtest</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>

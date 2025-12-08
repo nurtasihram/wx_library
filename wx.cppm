@@ -6,6 +6,7 @@ module;
 export module wx;
 
 subtype_branch(super);
+subtype_branch(ProtoEnum);
 
 // for static_compatible
 template <class AnyCallable, class Ret, class... Args>
@@ -657,14 +658,19 @@ constexpr auto EnumTableA = EnumTable<AnyEnum, CHAR>;
 template<class AnyEnum>
 constexpr auto EnumTableW = EnumTable<AnyEnum, WCHAR>;
 /* (misc) */
+template<class Class1, class Class2>
+constexpr bool is_chain_enum_on =
+std::is_void_v<Class1> || std::is_void_v<Class2> ? false :
+	std::is_same_v<Class1, Class2> ? true :
+	is_chain_enum_on<subtype_branchof_ProtoEnum<Class1, void>, Class2>;
 template<class Enum1, class Enum2, class EnumType>
 inline auto __makeResult(EnumType val) {
-	constexpr auto left = is_chain_extended_on<Enum1, Enum2>;
-	constexpr auto right = is_chain_extended_on<Enum2, Enum1>;
+	constexpr auto left = is_chain_enum_on<Enum1, Enum2>;
+	constexpr auto right = is_chain_enum_on<Enum2, Enum1>;
 	static_assert(left || right, "Convertless");
 	if_c (left)
 		return reuse_as<Enum1>((typename Enum1::ProtoType)val);
-	elif_c (right)
+	else
 		return reuse_as<Enum2>((typename Enum2::ProtoType)val);
 }
 template<class AnyType>
@@ -1035,10 +1041,10 @@ inline void StringCbLength(LPCWSTR psz, size_t cbMax, size_t *pcbLength)
 
 #pragma region MaxLens 
 export {
-constexpr UINT MaxLenPath = MAX_PATH;
-constexpr UINT MaxLenTitle = MaxLenPath * 3;
-constexpr UINT MaxLenClass = 256;
-constexpr UINT MaxLenNotice = 32767;
+constexpr size_t MaxLenPath = MAX_PATH;
+constexpr size_t MaxLenTitle = MaxLenPath * 3;
+constexpr size_t MaxLenClass = 256;
+constexpr size_t MaxLenNotice = 32767;
 }
 #pragma endregion
 

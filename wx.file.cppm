@@ -609,7 +609,7 @@ public: // Property - CurrentRxQueue
 	//WCHAR wcProvChar[1];
 };
 class CommConfig : public RefStruct<COMMCONFIG> {
-	HeapPointer<Heap, COMMCONFIG> lpCC;
+	HeapPointer<COMMCONFIG> lpCC;
 public:
 	CommConfig() {}
 public: // Property - ProviderSubType

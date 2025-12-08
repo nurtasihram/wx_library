@@ -277,16 +277,16 @@ CHeap ThisHeap = Heap{};
 #pragma endregion
 
 template<class HeapType, class AnyType = void>
-class HeapPointer {
+class AutoPointer {
 	HeapType &heap;
 	mutable AnyType *p = O;
 public:
 	using AllocFlags = typename HeapType::AllocFlags;
-	HeapPointer() : heap(ThisHeap) {}
-	explicit HeapPointer(size_t size) : heap(ThisHeap), p(heap.Alloc(size)) {}
-	HeapPointer(AllocFlags flags, size_t size = SizeOf<AnyType>) : heap(ThisHeap), p((AnyType *)heap.Alloc(size, flags)) {}
-	explicit HeapPointer(HeapType &heap) : heap(heap) {}
-	~HeapPointer() reflect_to(Free());
+	AutoPointer() : heap(ThisHeap) {}
+	explicit AutoPointer(size_t size) : heap(ThisHeap), p(heap.Alloc(size)) {}
+	AutoPointer(AllocFlags flags, size_t size = SizeOf<AnyType>) : heap(ThisHeap), p((AnyType *)heap.Alloc(size, flags)) {}
+	explicit AutoPointer(HeapType &heap) : heap(heap) {}
+	~AutoPointer() reflect_to(Free());
 public:
 	inline AnyType *Alloc(size_t size = SizeOf<AnyType>) {
 		if (size <= 0)
@@ -310,6 +310,10 @@ public:
 	inline AnyType *operator->() reflect_as(p);
 	inline const AnyType *operator->() const reflect_as(p);
 };
+template<class AnyType = void>
+using LocalPointer = AutoPointer<Local, AnyType>;
+template<class AnyType = void>
+using HeapPointer = AutoPointer<Heap, AnyType>;
 #pragma endregion
 
 #pragma region Times

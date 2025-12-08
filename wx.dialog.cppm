@@ -142,7 +142,8 @@ public: //
 //////////// ! -- TODO: Add exception system with CommDlgExtendedError -- !  ////////////
 
 template<class DIALOGSTRUCT, class AnyChild>
-class DialogCommon : public RefStruct<DIALOGSTRUCT>,
+class DialogCommon :
+	public RefStruct<DIALOGSTRUCT>,
 	public ChainExtender<DialogCommon<DIALOGSTRUCT, AnyChild>, AnyChild> {
 	using LPCTSTR = decltype(DIALOGSTRUCT::lpTemplateName);
 	using String = StringX<std::is_same_v<LPCTSTR, LPCWSTR>>;
@@ -172,10 +173,11 @@ enum_flags(DialogColorStyle, DWORD,
 	EnableTemplateHandle = CC_ENABLETEMPLATEHANDLE,
 	SolidColor           = CC_SOLIDCOLOR,
 	AnyColor             = CC_ANYCOLOR);
+using DlgColorStyle = DialogColorStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogColorX : public DialogCommon<
 	switch_structx(CHOOSECOLOR),
-	ChainExtender<DialogColorX<IsUnicode, AnyChild>, AnyChild>> {
+	Chain<DialogColorX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(CHOOSECOLOR);
 public:
 	using super = DialogCommon<CHOOSECOLOR, DialogColorX>;
@@ -238,10 +240,11 @@ enum_flags(DialogFontStyle, DWORD,
 	NoScriptSel          = CF_NOSCRIPTSEL,
 	NoVertFonts          = CF_NOVERTFONTS,
 	InActiveFonts        = CF_INACTIVEFONTS);
+using DlgFontStyle = DialogFontStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogFontX : public DialogCommon<
 	switch_structx(CHOOSEFONT),
-	ChainExtender<DialogFontX<IsUnicode, AnyChild>, AnyChild>> {
+	Chain<DialogFontX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(CHOOSEFONT);
 	using_structx(FontLogic);
 	using_structx(LOGFONT);
@@ -326,10 +329,11 @@ enum_flags(DialogFileStyle, DWORD,
 	EnableSizing         = OFN_ENABLESIZING,
 	DontAddToRecent      = OFN_DONTADDTORECENT,
 	ForcesHowHidden      = OFN_FORCESHOWHIDDEN);
+using DlgFileStyle = DialogFileStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogFileX : public DialogCommon<
 	switch_structx(OPENFILENAME),
-	ChainExtender<DialogFileX<IsUnicode, AnyChild>, AnyChild>> {
+	Chain<DialogFileX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(OPENFILENAME);
 	using LPTSTR = LPXSTR<IsUnicode>;
 	using LPCTSTR = LPCXSTR<IsUnicode>;
@@ -395,7 +399,7 @@ using DlgFileW = DialogFileW<AnyChild>;
 #pragma endregion
 
 #pragma region FindReplace
-enum_flags(FindReplaceStyle, DWORD,
+enum_flags(DialogTextStyle, DWORD,
 	Down                 = FR_DOWN,
 	WholeWord            = FR_WHOLEWORD,
 	MatchCase            = FR_MATCHCASE,
@@ -420,15 +424,16 @@ enum_flags(FindReplaceStyle, DWORD,
 	MatchDiac            = FR_MATCHDIAC,
 	MatchKashida         = FR_MATCHKASHIDA,
 	MatchAlefHamza       = FR_MATCHALEFHAMZA);
+using DlgTextStyle = DialogTextStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogTextX : public DialogCommon<
 	switch_structx(FINDREPLACE),
-	ChainExtender<DialogTextX<IsUnicode, AnyChild>, AnyChild>> {
+	Chain<DialogTextX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(FINDREPLACE);
 	using String = StringX<IsUnicode>;
 public:
 	using super = RefStruct<FINDREPLACE>;
-	using Style = FindReplaceStyle;
+	using Style = DialogTextStyle;
 public:
 	DialogTextX() reflect_to(self->lStructSize = sizeof(FINDREPLACE));
 public: // Properties
@@ -610,9 +615,9 @@ private:
 		}
 	}
 public:
-	inline HeapPointer<Heap, DLGTEMPLATE> Make() {
+	inline HeapPointer<DLGTEMPLATE> Make() {
 		auto maxSize = HeapSize();
-		HeapPointer<Heap, DLGTEMPLATE> hDlg = { HAF::ZeroInit, maxSize };
+		HeapPointer<DLGTEMPLATE> hDlg = { HAF::ZeroInit, maxSize };
 		auto lpDlg = hDlg.Alloc(maxSize);
 		PushHeap((void *&)lpDlg, maxSize, dt);
 		PushToHeap((void *&)lpDlg, maxSize);
