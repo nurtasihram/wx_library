@@ -521,7 +521,7 @@ public:
 	WaitableBase() {}
 	WaitableBase(Null) {}
 public:
-	inline DWORD Wait(DWORD dwMilliseconds = INFINITE) const reflect_as(WX::WaitForSingleObject(self, dwMilliseconds));
+	inline DWORD Wait(DWORD dwMilliseconds = INFINITE) const reflect_as(WX::WaitForSingleObject(self, dwMilliseconds) != WAIT_OBJECT_0);
 };
 
 #pragma region Event
@@ -919,14 +919,14 @@ public:
 		using super = Thread::CreateStruct<CreateStruct>;
 	protected:
 		friend class ThreadBase;
-		Child *pChild;
-		CreateStruct(Child &c) : super(_ThrProc, &c), pChild(&c) {}
+		Child &_this;
+		CreateStruct(Child &c) : super(_ThrProc, &c), _this(c) {}
 	public:
-		~CreateStruct() reflect_to(AutoCreate());
+		~CreateStruct() reflect_to(Create());
 	public:
-		inline void AutoCreate() {
-			if (!*pChild) 
-				(*(ThreadBase *)pChild).hObject = super::template Create<AnyChild>();
+		inline void Create() {
+			if (!_this) 
+				_this.hObject = super::template Create<AnyChild>();
 		}
 	public: // Remove properties
 		inline auto &Param(LPVOID) = delete;
