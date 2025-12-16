@@ -521,7 +521,7 @@ public:
 	WaitableBase() {}
 	WaitableBase(Null) {}
 public:
-	inline DWORD Wait(DWORD dwMilliseconds = INFINITE) const reflect_as(WX::WaitForSingleObject(self, dwMilliseconds) != WAIT_OBJECT_0);
+	inline DWORD Wait(DWORD dwMilliseconds = INFINITE) const reflect_as(WX::WaitForSingleObject(self, dwMilliseconds) == WAIT_OBJECT_0);
 };
 
 #pragma region Event
