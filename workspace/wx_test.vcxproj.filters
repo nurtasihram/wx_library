@@ -1,0 +1,125 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="wx_library">
+      <UniqueIdentifier>{19ea5f56-cc61-46b0-bc21-e4cd41fab376}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\modules">
+      <UniqueIdentifier>{17125e98-7634-44ec-8f4f-56fe1694a78f}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\prv_inc">
+      <UniqueIdentifier>{20e9182a-bcd4-4bea-8a17-7a909ce306f0}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="wx_library\pub_inc">
+      <UniqueIdentifier>{f8365923-ada7-4701-b0a5-41b695f1176e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="resources">
+      <UniqueIdentifier>{f7f5107d-137e-4294-b8fb-25b48ee683ae}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="resources\Resource.h">
+      <Filter>resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_defs.h">
+      <Filter>wx_library\prv_inc</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <Image Include="resources\small.ico">
+      <Filter>resources</Filter>
+    </Image>
+    <Image Include="resources\wx_duk.ico">
+      <Filter>resources</Filter>
+    </Image>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="resources\wx_duk.rc">
+      <Filter>resources</Filter>
+    </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\wx.console.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.control.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.dialog.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.file.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.gdi.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.proto.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.realtime.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.resource.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.security.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.type.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="..\wx.window.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
+    <ClCompile Include="wx_test.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\wx__msg.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx__msg_ctl.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx__rm.inl">
+      <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx_console">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_control">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_dialog">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_dll">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_file">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_gdi">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_main">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_realtime">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_resource">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_type">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_window">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="make.bat" />
+  </ItemGroup>
+</Project>
