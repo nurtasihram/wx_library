@@ -1,10 +1,7 @@
 module;
 
-#include <windows.h>
-#include <aclapi.h>
-#include <sddl.h>
-
-#include "wx_type"
+#define WX_CPPM_SECURITY
+#include "wx_security"
 
 export module wx.security;
 
@@ -385,7 +382,7 @@ inline void SetSecurityAccessMask(SECURITY_INFORMATION SecurityInformation, LPDW
     reflect_to(::SetSecurityAccessMask(SecurityInformation, DesiredAccess));
 #pragma endregion
 
-#pragma region AclAPI.h
+#pragma region AclApi.h
 #undef SetEntriesInAcl
 // SetEntriesInAclA
 inline void SetEntriesInAcl(ULONG cCountOfExplicitEntries, PEXPLICIT_ACCESS_A pListOfExplicitEntries, PACL OldAcl, PACL * NewAcl)
@@ -533,7 +530,7 @@ inline TRUSTEE_FORM GetTrusteeForm(PTRUSTEE_W pTrustee)
 }
 #pragma endregion
 
-namespace WX {
+export namespace WX {
 
 #pragma region Security Identifiers
 using RID = DWORD;
@@ -1071,28 +1068,27 @@ using SecDesc = SecurityDescriptor;
 #pragma endregion
 
 #pragma region Security Attributes
-class SecurityAttributes : protected SECURITY_ATTRIBUTES {
+struct SecurityAttributes : public RefStruct<SECURITY_ATTRIBUTES> {
+	using super = RefStruct<SECURITY_ATTRIBUTES>;
 public:
-	SecurityAttributes() : SECURITY_ATTRIBUTES{ 0 } reflect_to(this->nLength = sizeof(*this));
-	SecurityAttributes(Null) : SecurityAttributes() {}
-	SecurityAttributes(SecurityAttributes &sa) : SECURITY_ATTRIBUTES(sa) reflect_to(sa.lpSecurityDescriptor = O);
-	SecurityAttributes(SecurityAttributes &&sa) : SECURITY_ATTRIBUTES(sa) reflect_to(sa.lpSecurityDescriptor = O);
-	SecurityAttributes(const SecurityAttributes &) = delete;
-	SecurityAttributes(const SECURITY_ATTRIBUTES &sa) : SECURITY_ATTRIBUTES(sa) {}
-	constexpr SecurityAttributes(bool bInherit, PSECURITY_DESCRIPTOR pSD = O) : SECURITY_ATTRIBUTES{ sizeof(*this), pSD, bInherit } {}
+	SecurityAttributes() reflect_to(self->nLength = sizeof(self));
+	SecurityAttributes(const SECURITY_ATTRIBUTES &sa) : super(sa) {}
+	SecurityAttributes(bool bInherit, PSECURITY_DESCRIPTOR pSD = O) : 
+		super(SECURITY_ATTRIBUTES{ sizeof(self), pSD, bInherit }) {}
 #pragma region Properties
 public: // Property - Inherit
-	/* W */ inline auto &Inherit(bool bInheritHandle) reflect_to_self(this->bInheritHandle = bInheritHandle);
-	/* R */ inline bool  Inherit() const reflect_as(this->bInheritHandle);
+	/* W */ inline auto&Inherit(bool bInheritHandle) reflect_to_self(self->bInheritHandle = bInheritHandle);
+	/* R */ inline bool Inherit() const reflect_as(self->bInheritHandle);
 public: // Property - Descriptor
-	/* W */ inline auto &Descriptor(const SecDesc &sd) reflect_to_self(this->lpSecurityDescriptor = &sd);
-	/* R */ inline SecDesc &Descriptor() const reflect_as(ref_as<SecDesc>(this->lpSecurityDescriptor));
+	/* W */ inline auto &Descriptor(const void *lpDesc) reflect_to_self(self->lpSecurityDescriptor = const_cast<LPVOID>(lpDesc));
+	/* W */ inline auto &Descriptor(const SecDesc &sd) reflect_to_self(self->lpSecurityDescriptor = &sd);
+	/* R */ inline SecDesc &Descriptor() const reflect_as(ref_as<SecDesc>(self->lpSecurityDescriptor));
 #pragma endregion
 public:
-	inline PSECURITY_ATTRIBUTES operator&() const reflect_as(reuse_as<PSECURITY_ATTRIBUTES>(this));
+	inline operator LPSECURITY_ATTRIBUTES() const reflect_as(reuse_as<LPSECURITY_ATTRIBUTES>(this));
 };
 using SecAttr = SecurityAttributes;
-static inline constexpr SecurityAttributes InheritHandle = true;
+const SecurityAttributes InheritHandle = true;
 #pragma endregion
 
 }

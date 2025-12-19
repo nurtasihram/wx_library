@@ -1,4 +1,4 @@
-#include "wx_resource.h"
+#include "wx_resource"
 
 #ifndef DLL_INL_LIST
 #	error Please define DLL_INL_LIST as list registered functions / variables
@@ -40,9 +40,9 @@ size_t LoadDll(LPCTSTR lpFilenameDLL) {
 	Module = WX::Module::Library(lpFilenameDLL);
 	size_t CountMembers = 0;
 #	define REG_FUNC(ret, name, ...) \
-	if ((name = Module.Proc<ret(__VA_ARGS__)>(#name))) ++CountMembers;
+	if ((name = Module.Symbol<ret(__VA_ARGS__)>(#name))) ++CountMembers;
 #	define REG_VAR(type, name) \
-	if ((name = Module.Proc<type>(#name))) ++CountMembers;
+	if ((name = Module.Symbol<type>(#name))) ++CountMembers;
 #	include DLL_INL_LIST
 #	undef REG_FUNC
 #	undef REG_VAR
