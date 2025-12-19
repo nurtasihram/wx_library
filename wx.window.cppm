@@ -1560,22 +1560,22 @@ public: // Property - Longs
 	/* R */ inline const WindowILongsA LongsA(int nIndex) const reflect_as({ (HWND)self, nIndex });
 	/* R */ inline const WindowILongsW LongsW(int nIndex) const reflect_as({ (HWND)self, nIndex });
 public: // Property - WndProc
-	/* W */ inline auto&WndProc(WNDPROC lpfnWndProc) reflect_as(Longs(GWLP_WNDPROC) = lpfnWndProc);
+	/* W */ inline auto&WndProc(WNDPROC lpfnWndProc) reflect_to_child(Longs(GWLP_WNDPROC) = lpfnWndProc);
 	/* R */ inline WX::WndProc WndProc() const reflect_as((WX::WndProc)Longs(GWLP_WNDPROC));
 public: // Property - Module
-	/* W */ inline auto&Module(HINSTANCE hInstance) reflect_as(Longs(GWLP_HINSTANCE) = hInstance);
+	/* W */ inline auto&Module(HINSTANCE hInstance) reflect_to_child(Longs(GWLP_HINSTANCE) = hInstance);
 	/* R */ inline CModule Module() const reflect_as((HINSTANCE)Longs(GWLP_HINSTANCE));
 public: // Property - HwndParent
-	/* W */ inline auto&HwndParent(HWND hHwndParent) reflect_as(Longs(GWLP_HWNDPARENT) = hHwndParent);
+	/* W */ inline auto&HwndParent(HWND hHwndParent) reflect_to_child(Longs(GWLP_HWNDPARENT) = hHwndParent);
 	template<class AnyClass = void>
 	/* R */ inline WindowShim<AnyClass> HwndParent() reflect_as(Longs(GWLP_HWNDPARENT));
 	template<class AnyClass = void>
 	/* R */ inline CWindowShim<AnyClass> HwndParent() const reflect_as(Longs(GWLP_HWNDPARENT));
 public: // Property - Styles
-	/* W */ inline auto&Styles(Style style) reflect_as(Longs(GWL_STYLE) = style);
+	/* W */ inline auto&Styles(Style style) reflect_to_child(Longs(GWL_STYLE) = style);
 	/* R */ inline Style Styles() const reflect_as((Style)Longs(GWL_STYLE));
 public: // Property - StylesEx 
-	/* W */ inline auto&StylesEx(StyleEx styleEx) reflect_as(Longs(GWL_EXSTYLE) = styleEx);
+	/* W */ inline auto&StylesEx(StyleEx styleEx) reflect_to_child(Longs(GWL_EXSTYLE) = styleEx);
 	/* R */ inline StyleEx StylesEx() const reflect_as((StyleEx)Longs(GWL_EXSTYLE));
 public: // Property - UserData
 	template<class AnyType = LONG_PTR>
@@ -1583,7 +1583,7 @@ public: // Property - UserData
 	template<class AnyType = LONG_PTR>
 	/* R */ inline AnyType UserData() const reflect_as((AnyType)Longs(GWLP_USERDATA));
 public: // Property - ID
-	/* W */ inline auto&ID(LONG_PTR uId) reflect_as(Longs(GWLP_ID) = uId);
+	/* W */ inline auto&ID(LONG_PTR uId) reflect_to_child(Longs(GWLP_ID) = uId);
 	/* R */ inline LONG_PTR ID() const reflect_as(Longs(GWLP_ID));
 #pragma endregion
 public: // Property - Class

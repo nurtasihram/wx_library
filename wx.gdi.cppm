@@ -2060,29 +2060,32 @@ public:
 	//}
 	inline auto Release(HWND hWnd) reflect_as(WX::ReleaseDC(hWnd, self));
 
+	inline CGObject Select(HGDIOBJ ho) reflect_as(::SelectObject(self, ho));
+	inline CPalette Palette(HPALETTE hPal, bool bForceBkgd = false) reflect_to(hPal = WX::SelectPalette(self, hPal, bForceBkgd), hPal);
+	inline UINT PaletteRealize() const reflect_as(WX::RealizePalette(self));
+
 //	inline auto &BltStretch(LPoint dstStart, LSize dstSize, Rop rop = Rop::SrcCopy)
 	inline auto &BltStretch(LPoint dstStart, LSize dstSize, HDC hdcSrc, LPoint srcStart, LSize srcSize, Rop rop = Rop::SrcCopy) reflect_to_self(WX::StretchBlt(self, dstStart.x, dstStart.y, dstSize.cx, dstSize.cy, hdcSrc, srcStart.x, srcStart.y, srcSize.cx, srcSize.cy, rop.yield()));
 	inline auto &BltStretch(LRect dst, HDC hdcSrc, LRect src, Rop rop = Rop::SrcCopy) reflect_to_self(BltStretch(dst.left_top(), dst.size(), hdcSrc, src.left_top(), src.size(), rop));
 	inline auto &BltBit(LPoint dstStart, LSize dstSize, HDC hdcSrc, LPoint srcStart = 0, Rop rop = Rop::SrcCopy) reflect_to_self(WX::BitBlt(self, dstStart.x, dstStart.y, dstSize.cx, dstSize.cy, hdcSrc, srcStart.x, srcStart.y, rop.yield()));
 	inline auto &BltBit(LRect rc, HDC hdcSrc, LPoint srcStart = 0, Rop rop = Rop::SrcCopy) reflect_to_self(BltBit(rc.left_top(), rc.size(), hdcSrc, srcStart, rop));
 
-	inline CGObject Select(HGDIOBJ ho) reflect_as(::SelectObject(self, ho));
-	inline CPalette Palette(HPALETTE hPal, bool bForceBkgd = false) reflect_to(hPal = WX::SelectPalette(self, hPal, bForceBkgd), hPal);
-	inline UINT PaletteRealize() const reflect_as(WX::RealizePalette(self));
-
-	inline void DrawIcon(HICON hIcon, LPoint p = 0) reflect_to(WX::DrawIcon(self, p.x, p.y, hIcon));
-	inline int  DrawText(String text, LRect r = 0, TextDraw format = TextDraw::Left) reflect_as(WX::DrawText(self, text, (int)text.Length(), r, format.yield()));
-	inline void DrawPixel(COLORREF rgb, LPoint p) reflect_to(WX::SetPixel(self, p.x, p.y, rgb));
 	template<size_t len>
-	inline void DrawPolyline(const LPoint(&pts)[len]) reflect_to(WX::Polyline(self, (CONST POINT *)&pts, len));
-	inline void DrawPie(LRect rc, LPoint start, LPoint end) reflect_to(WX::Pie(self, rc.left, rc.top, rc.right, rc.bottom, start.x, start.y, end.x, end.y));
-	inline void DrawEllipse(LRect rc) reflect_to(Ellipse(self, rc.left, rc.top, rc.right, rc.bottom));
-	inline void DrawFrame(LRect rc) reflect_to(WX::InvertRect(self, rc));
-	inline void Invert(LRect rc) reflect_to(WX::InvertRect(self, rc));
-	inline void DrawFocus(HBRUSH hbr, LRect rc) reflect_to(WX::FrameRect(self, &rc, hbr));
-	inline void Fill(HBRUSH hbr, LRect rc) reflect_to(WX::FillRect(self, rc, hbr));
-	inline void Fill(HBRUSH hbr) reflect_as(Fill(hbr, Size()));
-
+	inline auto &DrawPolyline(const POINT(&pts)[len]) reflect_to_self(WX::Polyline(self, &pts, len));
+	template<size_t len>
+	inline auto &DrawPolyline(const LPoint(&pts)[len]) reflect_to_self(WX::Polyline(self, (CONST POINT *)&pts, len));
+	inline auto &DrawPolyline(const LPoint *pts, int len) reflect_to_self(WX::Polyline(self, (CONST POINT *)pts, len));
+	inline auto &DrawPolyline(const POINT *pts, int len) reflect_to_self(WX::Polyline(self, pts, len));
+	inline auto &DrawIcon(HICON hIcon, LPoint p = 0) reflect_to_self(WX::DrawIcon(self, p.x, p.y, hIcon));
+	inline int  DrawText(String text, LRect r = 0, TextDraw format = TextDraw::Left) reflect_as(WX::DrawText(self, text, (int)text.Length(), r, format.yield()));
+	inline auto &DrawPixel(COLORREF rgb, LPoint p) reflect_to_self(WX::SetPixel(self, p.x, p.y, rgb));
+	inline auto &DrawPie(LRect rc, LPoint start, LPoint end) reflect_to_self(WX::Pie(self, rc.left, rc.top, rc.right, rc.bottom, start.x, start.y, end.x, end.y));
+	inline auto &DrawEllipse(LRect rc) reflect_to_self(Ellipse(self, rc.left, rc.top, rc.right, rc.bottom));
+	inline auto &DrawFrame(LRect rc) reflect_to_self(WX::InvertRect(self, rc));
+	inline auto &DrawFocus(HBRUSH hbr, LRect rc) reflect_to_self(WX::FrameRect(self, &rc, hbr));
+	inline auto &Invert(LRect rc) reflect_to_self(WX::InvertRect(self, rc));
+	inline auto &Fill(HBRUSH hbr, LRect rc) reflect_to_self(WX::FillRect(self, rc, hbr));
+	inline auto &Fill(HBRUSH hbr) reflect_as(Fill(hbr, Size()));
 public:
 	class IPixel {
 		friend class DevCap;

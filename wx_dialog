@@ -1,5 +1,8 @@
 #pragma once
 
+#include <Windows.h>
+#include <CommDlg.h>
+
 #include "wx_type"
 
 import wx;

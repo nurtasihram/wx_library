@@ -1,8 +1,5 @@
 module;
 
-#include <Windows.h>
-#include <CommDlg.h>
-
 #define WX_CPPM_DIALOG
 #include "wx_dialog"
 

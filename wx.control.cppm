@@ -1,8 +1,5 @@
 module;
 
-#include <Windows.h>
-#include <CommCtrl.h>
-
 #define WX_CPPM_CONTROL
 #include "wx_control"
 
