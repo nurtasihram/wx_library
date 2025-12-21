@@ -96,16 +96,17 @@ public: // Property - ButtonCheck
 	/* R */ inline bool CheckButton() const reflect_as(WX::IsDlgButtonChecked(hDlg, nIDDlgItem) == BST_CHECKED);
 public: // Property - Text
 	template<class TCHAR>
-	/* W */ inline auto &Text(const TCHAR *lpsz) reflect_to_self(WX::SetDlgItemText(hDlg, nIDDlgItem, lpsz));
-	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenNotice>
+	/* W */ inline auto &Text(const TCHAR *lpText) reflect_to_self(WX::SetDlgItemText(hDlg, nIDDlgItem, lpText));
+	template<size_t MaxLen = MaxLenNotice, bool IsUnicode = WX::IsUnicode>
 	/* R */ inline StringX<IsUnicode> Text() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
-		auto len = WX::GetDlgItemText(hDlg, nIDDlgItem, lpsz, (int)MaxLen);
-		StringX<IsUnicode>::Resize(lpsz, len);
-		return { (size_t)len, lpsz };
+		StringX<IsUnicode> str(MaxLen);
+		auto len = WX::GetDlgItemText(hDlg, nIDDlgItem, str, (int)MaxLen);
+		return inject(str.Resize(len));
 	}
-	/* R */ inline StringA TextA() const reflect_as(Text<false>());
-	/* R */ inline StringW TextW() const reflect_as(Text<true>());
+	template<size_t MaxLen = MaxLenNotice>
+	/* R */ inline StringA TextA() const reflect_as(Text<MaxLen, false>());
+	template<size_t MaxLen = MaxLenNotice>
+	/* R */ inline StringW TextW() const reflect_as(Text<MaxLen, true>());
 public: // Property - Window
 	template<class AnyChild = void>
 	/* R */ inline WindowShim<AnyChild> Window() reflect_as(WX::GetDlgItem(hDlg, nIDDlgItem));
@@ -638,9 +639,9 @@ public: // Property - String
 	template<bool IsUnicode = WX::IsUnicode>
 	/* R */ inline StringX<IsUnicode> Text() const {
 		auto len = WX::GetDlgItemText(hDlg, nIDDlgItem, (LPXSTR<IsUnicode>)O, 0);
-		auto lpsz = StringX<IsUnicode>::Alloc(len);
-		assertl(len == GetDlgItemText(hDlg, nIDDlgItem, lpsz, len));
-		return{ len, lpsz };
+		StringX<IsUnicode> str((size_t)len);
+		WX::GetDlgItemText(hDlg, nIDDlgItem, str, len);
+		return inject(str);
 	}
 	/* R */ inline StringA TextA() const reflect_as(Text<false>());
 	/* R */ inline StringW TextW() const reflect_as(Text<true>());

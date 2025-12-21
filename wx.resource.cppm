@@ -595,10 +595,10 @@ public: // Property - String
 		else return StringA(wID);
 	}
 	inline WX::StringA StringA(WORD wID) const {
-		auto len = (int)StringW(wID).Length();
-		auto lpsz = StringA::Alloc(len);
-		WX::LoadString(self, wID, lpsz, len);
-		return{ (size_t)len, lpsz };
+		auto len = StringW(wID).Length();
+		WX::StringA str(len);
+		WX::LoadString(self, wID, str, (int)len);
+		return inject(str);
 	}
 	inline const WX::StringW StringW(WORD wID) const {
 		LPCWSTR lpString = O;
@@ -609,15 +609,16 @@ public: // Property - Symbol
 	template<class AnyType>
 	inline AnyType *Symbol(LPCSTR lpName) reflect_as((AnyType *)::GetProcAddress(self, lpName));
 public: // Property - FileName
-	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenPath>
+	template<size_t MaxLen = MaxLenPath, bool IsUnicode = WX::IsUnicode>
 	/* R */ inline StringX<IsUnicode> FileName() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
-		auto len = GetModuleFileName(self, lpsz, MaxLen);
-		StringX<IsUnicode>::Resize(lpsz, len);
-		return { (size_t)len, lpsz };
+		StringX<IsUnicode> str(MaxLen);
+		auto len = WX::GetModuleFileName(self, str, (int)MaxLen);
+		return inject(str.Resize(len));
 	}
-	/* R */ inline WX::StringA FileNameA() const reflect_as(FileName<false>());
-	/* R */ inline WX::StringW FileNameW() const reflect_as(FileName<true>());
+	template<size_t MaxLen = MaxLenPath>
+	/* R */ inline WX::StringA FileNameA() const reflect_as(FileName<MaxLen, false>());
+	template<size_t MaxLen = MaxLenPath>
+	/* R */ inline WX::StringW FileNameW() const reflect_as(FileName<MaxLen, true>());
 public:
 	inline operator bool() const reflect_as(hInst);
 	inline operator HINSTANCE() const reflect_as(hInst);

@@ -11,6 +11,7 @@ class BaseOf_Window(TestWindow) {
 	SFINAE_Window(TestWindow);
 	Button bnOpen, bnPlay, bnStop;
 	Animate ani;
+	StatusBar sbar;
 public:
 	TestWindow() {}
 protected:
@@ -20,35 +21,40 @@ protected:
 		BID_STOP
 	};
 	inline bool OnCreate(LPCREATESTRUCT lpCreateStruct) {
-		bnOpen
-			.Create(self)
+		bnOpen.Create(self)
 			.Styles(WS::Child | WS::Visible)
 			.Position({ 10, 10 })
 			.Size({ 50, 24 })
 			.ID(BID_OPEN)
 			.Caption(T("Open"));
-		bnPlay
-			.Create(self)
+		bnPlay.Create(self)
 			.Styles(WS::Child | WS::Visible)
 			.Position({ 70, 10 })
 			.Size({ 50, 24 })
 			.ID(BID_PLAY)
 			.Caption(T("Play"));
-		bnStop
-			.Create(self)
+		bnStop.Create(self)
 			.Styles(WS::Child | WS::Visible)
 			.Position({ 130, 10 })
 			.Size({ 50, 24 })
 			.ID(BID_STOP)
 			.Caption(T("Stop"));
-		ani
-			.Create(self)
+		ani.Create(self)
 			.Styles(AnimateStyle::Transparent | AnimateStyle::AutoPlay | 
 					WS::Child | WS::Visible | WS::Border)
 			.Position({ 10, 44 })
 			.Size({ 300, 200 });
-		//txt.Show();
+		sbar.Create(self)
+			.Styles(WS::Child | WS::Visible);
+		sbar.SetParts({ 80, 160, 240 });
+		sbar.AutoSize();
+		sbar[0] = T("Item 0");
+		sbar[1] = { T("Item 1"), StatusBarTextStyle::NoBorders };
+		sbar[2] = T("Item 2");
 		return true;
+	}
+	inline void OnSize() {
+		sbar.AutoSize();
 	}
 	inline int OnCommand(int id, HWND hwndCtl, UINT codeNotify) {
 		switch (id) {
@@ -110,6 +116,7 @@ protected:
 };
 
 int WxMain() {
+	Console.Log(Console.Title(), '\n');
 	Console.Title("WX - Tests");
 	Console.Log(COMPILATION_INFO);
 	TestWindow wnd;

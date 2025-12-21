@@ -2164,11 +2164,11 @@ public: // Property - ICMProfile
 	/* W */ inline auto &ICMProfile(const StringW &str) reflect_to_self(WX::SetICMProfile(self, const_cast<LPWSTR>(str.c_str())));
 	template<bool IsUnicode = WX::IsUnicode>
 	/* R */ inline StringX<IsUnicode> ICMProfile() const {
-		DWORD szBuf = 0;
-		WX::GetICMProfile(self, &szBuf, (LPXSTR<IsUnicode>)O);
-		auto lpsz = StringX<IsUnicode>::Alloc(szBuf);
-		WX::GetICMProfile(self, O, lpsz);
-		return{ lpsz, szBuf };
+		DWORD len = 0;
+		WX::GetICMProfile(self, &len, (LPXSTR<IsUnicode>)O);
+		StringX<IsUnicode> str((size_t)len);
+		WX::GetICMProfile(self, O, str);
+		return inject(str);
 	}
 #pragma endregion
 public:

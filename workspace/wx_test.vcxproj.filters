@@ -24,6 +24,9 @@
     <ClInclude Include="..\wx_defs.h">
       <Filter>wx_library\prv_inc</Filter>
     </ClInclude>
+    <ClInclude Include="resources\targetver.h">
+      <Filter>resources</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Image Include="resources\small.ico">

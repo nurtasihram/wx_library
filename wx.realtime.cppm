@@ -10,7 +10,7 @@ import wx.proto;
 #pragma region Win32 Prototype Includes
 namespace WX {
 
-#pragma region processenv.h
+#pragma region ProcessEnv.h
 // SetEnvironmentStrings
 inline void SetEnvironmentStrings(LPWSTR lpszEnvironmentBlock)
 	assertl_reflect_as(::SetEnvironmentStringsW(lpszEnvironmentBlock));
@@ -35,9 +35,9 @@ inline void FreeEnvironmentStrings(LPWCH lpszEnvironmentBlock)
 	assertl_reflect_as(::FreeEnvironmentStringsW(lpszEnvironmentBlock));
 // GetEnvironmentVariable
 inline DWORD GetEnvironmentVariable(LPCSTR lpName, LPSTR lpBuffer, DWORD nSize)
-	assertl_reflect_as(auto n = ::GetEnvironmentVariableA(lpName, lpBuffer, nSize), n);
+	assertl_reflect_as(auto n = ::GetEnvironmentVariableA(lpName, lpBuffer, nSize); n > 0, n);
 inline DWORD GetEnvironmentVariable(LPCWSTR lpName, LPWSTR lpBuffer, DWORD nSize)
-	assertl_reflect_as(auto n = ::GetEnvironmentVariableW(lpName, lpBuffer, nSize), n);
+	assertl_reflect_as(auto n = ::GetEnvironmentVariableW(lpName, lpBuffer, nSize); n > 0, n);
 // SetEnvironmentVariable
 inline void SetEnvironmentVariable(LPCSTR lpName, LPCSTR lpValue)
 	assertl_reflect_as(::SetEnvironmentVariableA(lpName, lpValue));
@@ -45,9 +45,9 @@ inline void SetEnvironmentVariable(LPCWSTR lpName, LPCWSTR lpValue)
 	assertl_reflect_as(::SetEnvironmentVariableW(lpName, lpValue));
 // ExpandEnvironmentStrings
 inline DWORD ExpandEnvironmentStrings(LPCSTR lpSrc, LPSTR lpDst, DWORD nSize)
-	assertl_reflect_as(auto n = ::ExpandEnvironmentStringsA(lpSrc, lpDst, nSize), n);
+	assertl_reflect_as(auto n = ::ExpandEnvironmentStringsA(lpSrc, lpDst, nSize); n > 0, n);
 inline DWORD ExpandEnvironmentStrings(LPCWSTR lpSrc, LPWSTR lpDst, DWORD nSize)
-	assertl_reflect_as(auto n = ::ExpandEnvironmentStringsW(lpSrc, lpDst, nSize), n);
+	assertl_reflect_as(auto n = ::ExpandEnvironmentStringsW(lpSrc, lpDst, nSize); n > 0, n);
 // SetCurrentDirectory
 inline void SetCurrentDirectory(LPCSTR lpPathName) 
 	assertl_reflect_as(SetCurrentDirectoryA(lpPathName));
@@ -55,9 +55,9 @@ inline void SetCurrentDirectory(LPCWSTR lpPathName)
 	assertl_reflect_as(SetCurrentDirectoryW(lpPathName));
 // GetCurrentDirectory
 inline DWORD GetCurrentDirectory(DWORD nBufferLength, LPSTR lpBuffer)
-	assertl_reflect_as(auto n = ::GetCurrentDirectoryA(nBufferLength, lpBuffer), n);
+	assertl_reflect_as(auto n = ::GetCurrentDirectoryA(nBufferLength, lpBuffer); n > 0, n);
 inline DWORD  GetCurrentDirectory(DWORD nBufferLength, LPWSTR lpBuffer)
-	assertl_reflect_as(auto n = ::GetCurrentDirectoryW(nBufferLength, lpBuffer), n);
+	assertl_reflect_as(auto n = ::GetCurrentDirectoryW(nBufferLength, lpBuffer); n > 0, n);
 //// SearchPath
 //inline DWORD SearchPath(LPCSTR lpPath, LPCSTR lpFileName, LPCSTR lpExtension,
 //						DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart);
@@ -74,7 +74,7 @@ inline void NeedCurrentDirectoryForExePath(LPCWSTR ExeName)
 	assertl_reflect_as(NeedCurrentDirectoryForExePathW(ExeName));
 #pragma endregion
 
-#pragma region processthreadsapi.h
+#pragma region ProcessThreadsApi.h
 // QueueUserAPC
 inline void QueueUserAPC(PAPCFUNC pfnAPC, HANDLE hThread, ULONG_PTR dwData)
 	assertl_reflect_as(::QueueUserAPC(pfnAPC, hThread, dwData));
@@ -366,7 +366,7 @@ inline void GetProcessShutdownParameters(LPDWORD lpdwLevel, LPDWORD lpdwFlags)
 #pragma region psai.h
 #pragma endregion
 
-#pragma region synchapi.h
+#pragma region SynchApi.h
 // InitializeSRWLock
 inline void InitializeSRWLock(PSRWLOCK SRWLock)
 	reflect_to(::InitializeSRWLock(SRWLock));
@@ -1097,12 +1097,11 @@ public:
 	public: // Property - ValueExpend
 		inline String ValueExpend() const {
 			if (!value) return O;
-			DWORD len;
-			assertl((len = ExpandEnvironmentStrings(value, O, 0)) > 0);
+			auto len = WX::ExpandEnvironmentStrings(value, O, 0);
 			if (len - 1 == value.Length()) return &value;
-			auto lpsz = String::Alloc(len - 1);
-			assertl(len == ExpandEnvironmentStrings(value, lpsz, len));
-			return{ len, lpsz };
+			String str((size_t)len - 1);
+			WX::ExpandEnvironmentStrings(value, str, len);
+			return inject(str);
 		}
 	public:
 		inline auto &operator=(const String &value) reflect_to_self(Value(value));
@@ -1224,19 +1223,19 @@ class CurrentEnvironment {
 		/* W */ inline auto &Value(LPCTSTR lpValue) 
 			reflect_to_self(SetEnvironmentVariable(lpName, lpValue));
 		/* R */ inline String Value() const {
-			auto len = GetEnvironmentVariable(lpName, O, 0);
-			auto lpsz = String::Alloc(len - 1);
-			assertl(len - 1 == GetEnvironmentVariable(lpName, lpsz, len));
-			return{ len, lpsz };
+			auto len = WX::GetEnvironmentVariable(lpName, O, 0);
+			String str((size_t)len - 1);
+			WX::SetEnvironmentVariable(lpName, str, len);
+			return inject(str);
 		}
 	public: // Property - Expand
 		/* R */ inline String Expand() const {
 			auto &&val = Value();
-			auto len = ExpandEnvironmentStrings(val, O, 0);
+			auto len = WX::ExpandEnvironmentStrings(val, O, 0);
 			if (val.Length() == len) return val;
-			auto lpsz = String::Alloc(len - 1);
-			assertl(len - 1 == ExpandEnvironmentStrings(val, lpsz, len));
-			return{ len, lpsz };
+			String str((size_t)len - 1);
+			WX::ExpandEnvironmentStrings(val, str, len);
+			return inject(str);
 		}
 	public:
 		inline auto &operator=(LPCTSTR lpValue) reflect_to_self(Value(lpValue));
@@ -1509,10 +1508,10 @@ template<class TCHAR>
 /* W */ inline void CurrentDirectory(const TCHAR *lpPath) reflect_to(SetCurrentDirectory(lpPath));
 template<bool IsUnicode>
 /* R */ inline StringX<IsUnicode> CurrentDirectory() {
-	auto len = GetCurrentDirectory(0, (LPXSTR<IsUnicode>)O);
-	auto lpsz = StringX<IsUnicode>::Alloc(len);
-	assertl(len == GetCurrentDirectory(len, lpsz));
-	return{ len, lpsz };
+	auto len = WX::GetCurrentDirectory(0, (LPXSTR<IsUnicode>)O);
+	StringX<IsUnicode> str((size_t)len);
+	WX::GetCurrentDirectory(len, str);
+	return inject(str);
 }
 /* R */ inline StringA CurrentDirectoryA() reflect_as(CurrentDirectory<false>());
 /* R */ inline StringW CurrentDirectoryW() reflect_as(CurrentDirectory<true>());
@@ -1520,10 +1519,10 @@ template<bool IsUnicode>
 template<bool IsUnicode>
 /* R */ inline StringX<IsUnicode> CurrentUserName() {
 	DWORD len = 0;
-	GetUserName((LPXSTR<IsUnicode>)O, &len);
-	auto lpsz = StringX<IsUnicode>::Alloc(len);
-	GetUserName(lpsz, &len);
-	return{ len, lpsz };
+	WX::GetUserName((LPXSTR<IsUnicode>)O, &len);
+	StringX<IsUnicode> str((size_t)len);
+	WX::GetUserName(str, &len);
+	return inject(str);
 }
 inline StringA CurrentUserNameA() reflect_as(CurrentUserName<false>());
 inline StringW CurrentUserNameW() reflect_as(CurrentUserName<true>());
@@ -1531,10 +1530,10 @@ inline StringW CurrentUserNameW() reflect_as(CurrentUserName<true>());
 template<bool IsUnicode>
 /* R */ inline StringX<IsUnicode> CurrentComputerName() {
 	DWORD len = 0;
-	GetComputerName((LPXSTR<IsUnicode>)O, &len);
-	auto lpsz = StringX<IsUnicode>::Alloc(len);
-	GetComputerName(lpsz, &len);
-	return{ len, lpsz };
+	WX::GetComputerName((LPXSTR<IsUnicode>)O, &len);
+	StringX<IsUnicode> str((size_t)len);
+	WX::GetComputerName(str, &len);
+	return inject(str);
 }
 /* R */ inline StringA CurrentComputerNameA() reflect_as(CurrentComputerName<false>());
 /* R */ inline StringW CurrentComputerNameW() reflect_as(CurrentComputerName<true>());

@@ -209,7 +209,7 @@ class HeaderIItem {
 	friend class HeaderBase;
 	CWindow header;
 	int index;
-public:
+protected:
 	HeaderIItem(HWND hHeader, int index) : header(hHeader), index(index) {}
 public:
 	inline void Remove() assertl_reflect_as(header->Send(HDM_DELETEITEM, index));
@@ -353,6 +353,9 @@ enum_flags(ToolTipStyle, CCStyle,
 #pragma endregion
 
 #pragma region Control StatusBar
+enum_flags(StatusBarStyle, WStyle,
+	SizeGripb    = SBARS_SIZEGRIP,
+	ToolTips     = SBARS_TOOLTIPS);
 enum_flags(StatusBarTextStyle, uint16_t,
 	Default      = 0,
 	OwnerDraw    = SBT_OWNERDRAW,
@@ -360,67 +363,103 @@ enum_flags(StatusBarTextStyle, uint16_t,
 	PopOut       = SBT_POPOUT,
 	RTLReading   = SBT_RTLREADING,
 	NoTabParsing = SBT_NOTABPARSING);
+template<bool IsUnicode = WX::IsUnicode>
+class StatusBarTextX {
+	using String = StringX<IsUnicode>;
+	String text;
+	StatusBarTextStyle styles;
+public:
+	StatusBarTextX(StatusBarTextX &&t) : text(inject(t.text)), styles(t.styles) {}
+	StatusBarTextX(String text, StatusBarTextStyle styles = StatusBarTextStyle::Default) : 
+		text(inject(text)), styles(styles) {}
+	StatusBarTextX(LPTSTR lpsz, LRESULT res) : 
+		text(LOWORD(res), lpsz), styles(reuse_as<StatusBarTextStyle>(HIWORD(res))) {}
+public: // Property - Styles
+	/* W */ inline auto&Styles(StatusBarTextStyle styles) reflect_to_self(this->styles = styles);
+	/* R */ inline auto Styles() const reflect_as(styles);
+public:
+	inline operator String &() reflect_as(text);
+	inline operator const String &() const reflect_as(text);
+	inline operator StatusBarTextStyle() reflect_as(styles);
+};
+using StatusBarText = StatusBarTextX<>;
+using StatusBarTextA = StatusBarTextX<false>;
+using StatusBarTextW = StatusBarTextX<true>;
+class StatusBarIPart {
+	template<class>
+	friend class StatusBarBase;
+	CWindow bar;
+	uint8_t nPart;
+protected:
+	StatusBarIPart(HWND hBar, uint8_t nPart) : bar(hBar), nPart(nPart) {}
+#pragma region Properties
+public: // Property - TextLength
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline uint16_t TextLength() const reflect_as(LOWORD(bar->Send(IsUnicode ? SB_GETTEXTLENGTHW : SB_GETTEXTLENGTHA, nPart)));
+	/* R */ inline uint16_t TextLengthA() const reflect_as(LOWORD(bar->Send(SB_GETTEXTLENGTHA, nPart)));
+	/* R */ inline uint16_t TextLengthW() const reflect_as(LOWORD(bar->Send(SB_GETTEXTLENGTHW, nPart)));
+public: // Property - TextStyle
+	/* R */ inline StatusBarTextStyle TextStyles() const reflect_as(reuse_as<StatusBarTextStyle>(HIWORD(bar->Send(SB_GETTEXTLENGTH, nPart))));
+public: // Property - Text
+	/* W */ inline bool Text(StatusBarTextA text) reflect_as(bar->Send(SB_SETTEXTA, MAKEWPARAM(nPart | text.Styles().yield(), 0), (LPCSTR)(const StringA &)text));
+	/* W */ inline bool Text(StatusBarTextW text) reflect_as(bar->Send(SB_SETTEXTW, MAKEWPARAM(nPart | text.Styles().yield(), 0), (LPCWSTR)(const StringW &)text));
+	//template<bool IsUnicode = WX::IsUnicode>
+	///* R */ inline StatusBarTextX<IsUnicode> Text() const {
+	//	auto len = TextLength(nPart);
+	//	if (len <= 0) return O;
+	//	StringX< str = len;
+	//	if (super::Send(SB_GETTEXT, nPart, str))
+	//		return str;
+	//	return O;
+	//}
+public: // Property - TipText
+	/* W */ inline auto &TipText(LPCSTR lpText) reflect_to_self(bar->Send(SB_SETTIPTEXTA, nPart, lpText));
+	/* W */ inline auto &TipText(LPCWSTR lpText) reflect_to_self(bar->Send(SB_SETTIPTEXTW, nPart, lpText));
+public: // Property - Icon
+	/* W */ inline auto &Icon(HICON hIcon) reflect_to_self(bar->Send(SB_SETICON, nPart, hIcon));
+	/* R */ inline CIcon Icon() const reflect_as(bar->Send<HICON>(SB_GETICON, nPart));
+public: // Property - Rect
+	/* R */ inline LRect Rect() const assertl_reflect_to(LRect rc, bar->Send(SB_GETRECT, nPart, &rc), rc);
+#pragma endregion
+public:
+	inline auto &operator=(String text) reflect_to_self(Text(static_cast<String &&>((String &)text)));
+	inline auto &operator=(StatusBarText text) reflect_to_self(Text({ static_cast<String &&>((String &)text), text.Styles()}));
+};
 BaseOf_CommCtl(class StatusBarBase) {
 	SFINAE_CommCtl(StatusBarBase);
 public:
 	static constexpr TCHAR CtlClassName[] = STATUSCLASSNAME;
 	using super = ControlCommon<Chain<StatusBarBase<AnyChild>, AnyChild>>;
-	using Style = WStyle;
+	using Style = StatusBarStyle;
 	using StyleEx = WStyleEx;
-	using TextStyle = StatusBarTextStyle;
 public:
 	StatusBarBase() {}
 public:
-	inline void FixSize() reflect_to(super::Send(WM_SIZE));
+	inline void AutoSize() reflect_to(super::Send(WM_SIZE));
 
 #pragma region Properties
 public: 
 	template<size_t Len>
-	/* W */ inline bool SetParts(const int (&Slice)[Len]) reflect_as(super::Send(SB_SETPARTS, Len, Slice));
-	/* W */ inline bool SetParts(const int *pSlices, int Len) reflect_as(super::Send(SB_SETPARTS, Len, pSlices));
+	/* W */ inline auto&SetParts(const int (&Slice)[Len]) assertl_reflect_as_self(super::Send(SB_SETPARTS, Len, Slice));
+	/* W */ inline auto&SetParts(const int *pSlices, int Len) assertl_reflect_as_self(super::Send(SB_SETPARTS, Len, pSlices));
+	/* W */ inline auto&SetParts(std::initializer_list<int> slices) assertl_reflect_as_self(super::Send(SB_SETPARTS, slices.size(), slices.begin()));
 	template<size_t Len>
 	/* R */ inline bool GetParts(int (&Slice)[Len]) const reflect_as(super::Send(SB_GETPARTS, Len, Slice));
 	/* R */ inline bool GetParts(int *pSlices, int Len) const reflect_as(super::Send(SB_GETPARTS, Len, pSlices));
-public: 
+public: // Property - Borders
 	/* R */ inline auto Borders() const assertl_reflect_to(struct { int _M_(BorderH, BorderV, GapH); } borders, super::Send(SB_GETBORDERS, 0, &borders), borders);
-public: 
+public: // Property - MinHeight
 	/* W */ inline auto&MinHeight(int MinHeight) reflect_to_self(super::Send(SB_SETMINHEIGHT, MinHeight));
-public: 
+public: // Property - Simple
 	/* W */ inline auto&Simple(bool bSimple) reflect_to_self(super::Send(SB_SIMPLE, bSimple));
 	/* R */ inline bool Simple() const reflect_as(super::Send(SB_SIMPLE));
-public: 
-	/* W */ inline LRect Rect(uint8_t nPart) assertl_reflect_to(LRect rc, super::Send(SB_GETRECT, nPart, &rc), rc);
-public: 
-	/* W */ inline auto &Icon(uint8_t nPart, HICON hIcon) reflect_to_self(super::Send(SB_SETICON, nPart, hIcon));
-	/* R */ inline CIcon Icon(uint8_t nPart) const reflect_as((HICON)super::Send(SB_GETICON, nPart));
-public: 
-	/* R */ inline uint16_t TextLength(uint8_t nPart) const reflect_as(super::template Send<uint16_t>(SB_GETTEXTLENGTH, nPart));
-public: 
-	/* R */ inline TextStyle TextStyles(uint8_t nPart) const reflect_as(super::template Send<TextStyle>(SB_GETTEXTLENGTH, nPart) >> 16);
-public: 
-	/* W */ inline bool Text(uint8_t nPart, LPCTSTR text, TextStyle style = TextStyle::Default) reflect_as(super::Send(SB_SETTEXT, nPart | style.yield(), (LPARAM)(LPCTSTR)text));
-	/* R */ inline String Text(uint8_t nPart) const {
-		auto len = TextLength(nPart);
-		if (len <= 0) return O;
-		String str = len;
-		if (super::Send(SB_GETTEXT, nPart, str))
-			return str;
-		return O;
-	}
-public: 
-	/* W */ inline auto  &TipText(WORD id, LPCTSTR tip) reflect_to_self(super::Send(SB_SETTIPTEXT, id, (LPARAM)(LPCTSTR)tip));
-	///* R */ inline String TipText(WORD id) const {
-	//	String str = MaxLenNotice;
-	//	if (super::Send(SB_GETTIPTEXT, MAKEWPARAM(id, MaxLenNotice + 1), str))
-	//		return str.Shrink();
-	//	return O;
-	//}
-public: 
-	/* W */ inline auto &UnicodeFormat(bool bUnicode) reflect_to_self(super::Send(SB_SETUNICODEFORMAT, bUnicode));
-	/* R */ inline bool  UnicodeFormat() const reflect_as(super::Send(SB_GETUNICODEFORMAT));
-public: 
-	/* R */ inline RGBColor BkColor() const reflect_as(super::template Send<RGBColor>(SB_SETBKCOLOR));
+public: // Array property - Part
+	/* W */ inline StatusBarIPart Part(uint8_t nPart) reflect_as({ self, nPart });
+	/* R */ inline const StatusBarIPart Part(uint8_t nPart) const reflect_as({ self, nPart });
 #pragma endregion
+public:
+	inline StatusBarIPart operator[](uint8_t nPart) reflect_as({ self, nPart });
+	inline const StatusBarIPart operator[](uint8_t nPart) const reflect_as({ self, nPart });
 };
 using StatusBar = StatusBarBase<void>;
 #pragma endregion
@@ -876,9 +915,9 @@ public: // Property - Note
 	/* R */ inline String Note() const {
 		auto len = NoteLength();
 		if (len <= 0) return O;
-		auto lpsz = String::Alloc(len);
-		super::Send(BCM_GETNOTE, len + 1, lpsz);
-		return{ len, lpsz };
+		String str(len);
+		super::Send(BCM_GETNOTE, len + 1, (LPCTSTR)str);
+		return inject(str);
 	}
 public: // Property - TextMargin
 	/* W */ inline auto &TextMargin(RECT margin) reflect_to_child(super::Send(BCM_SETTEXTMARGIN, 0, &margin));
@@ -1137,7 +1176,7 @@ enum_flags(ListBoxStyle, CCStyle,
 //	/* R */ inline String Text() const {
 //		auto len = listbox->Send<int>(LB_GETTEXTLEN, index);
 //		if (len == LB_ERR || len <= 0) return O;
-//		String str(len｝;
+//		String str(len);
 //		listbox->Send(LB_GETTEXT, index, str);
 //		return str;
 //	}

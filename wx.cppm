@@ -5,9 +5,6 @@ module;
 
 export module wx;
 
-subtype_branch(super);
-subtype_branch(ProtoEnum);
-
 // for static_compatible
 template <class AnyCallable, class Ret, class... Args>
 static auto __static_compatible(...) -> std::false_type;
@@ -54,6 +51,10 @@ template<class OutType, class InType>
 inline OutType &ref_as(InType &in) {
 	misuse_assert(sizeof(OutType) == sizeof(InType), "Must fit same size");
 	return *(OutType *)(&in);
+}
+template<class AnyType>
+inline AnyType &&inject(AnyType &a) {
+	return static_cast<AnyType &&>(a);
 }
 #pragma endregion
 
@@ -421,7 +422,7 @@ struct ChainExtender {
 	using Child = Chain<ParentClass, ChildClass>;
 	using Self = ParentClass;
 	constexpr ChainExtender() {
-		if_c(!std::is_void_v<ChildClass>)
+		if_c (!std::is_void_v<ChildClass>)
 			child_assert(ParentClass, ChildClass);
 	}
 	Child &child_() reflect_as(*static_cast<Child *>(this));
@@ -429,6 +430,9 @@ struct ChainExtender {
 	Self &self_() reflect_as(*static_cast<Self *>(this));
 	const Self &self_() const reflect_as(*static_cast<const Self *>(this));
 };
+#define static
+subtype_branch(super);
+#undef static
 template<class Class1, class Class2>
 constexpr bool is_chain_extended_on =
 std::is_void_v<Class1> || std::is_void_v<Class2> ? false :
@@ -503,12 +507,7 @@ template<class RefType>
 constexpr bool IsRef<RefAs<RefType>> = true;
 #pragma endregion
 
-}
-
-namespace WX {
-
 #pragma region String References
-export {
 template<class TCHAR>
 class StringBase;
 using String = StringBase<TCHAR>;
@@ -545,12 +544,11 @@ constexpr auto AnyX(AnyTypeW &&w, AnyTypeA &&a) {
 		 return w;
 	else return a;
 }
-}
 #pragma endregion
 
 #pragma region Enum
 use_member(HasProtoEnum);
-export template<class AnyType>
+template<class AnyType>
 constexpr bool IsEnum = member_HasProtoEnum_of<AnyType>::is_addressable;
 template<class TCHAR>
 class SimpleRegex {
@@ -643,13 +641,12 @@ public:
 		misuse_assert(IsEnum<AnyEnum>, "template type must be based on EnumBase");
 		if_c (IsEnum<AnyEnum>) {
 			if_c (IsCharW<TCHAR>)
-				reflect_as(GetMaps<AnyEnum::Count>(AnyEnum::__EntriesW))
+				 reflect_as(GetMaps<AnyEnum::Count>(AnyEnum::__EntriesW))
 			else reflect_as(GetMaps<AnyEnum::Count>(AnyEnum::__EntriesA))
 		}
 	}
 };
 #pragma region EnumSupports
-export {
 /* EnumTableX */
 template<class AnyEnum, class TCHAR = ::TCHAR>
 constexpr auto EnumTable = SimpleRegex<TCHAR>::template Table<AnyEnum>();
@@ -658,6 +655,9 @@ constexpr auto EnumTableA = EnumTable<AnyEnum, CHAR>;
 template<class AnyEnum>
 constexpr auto EnumTableW = EnumTable<AnyEnum, WCHAR>;
 /* (misc) */
+#define static
+subtype_branch(ProtoEnum);
+#undef static
 template<class Class1, class Class2>
 constexpr bool is_chain_enum_on =
 std::is_void_v<Class1> || std::is_void_v<Class2> ? false :
@@ -691,12 +691,10 @@ struct EnumBase {
 	using ProtoType = typename ProtoUnit::ProtoType;
 	static constexpr size_t CountAll() reflect_as(HasProtoEnum ? SubClass::Count + ProtoEnum::CountAll() : SubClass::Count); \
 };
-}
 #pragma endregion
 #pragma endregion
 
 #pragma region Exception
-export
 class Exception {
 	LPCSTR lpFile = O;
 	LPCSTR lpFunc = O;
@@ -751,18 +749,14 @@ public:
 #pragma endregion
 
 #pragma region FunctionBase
-template<class RetType, class ArgsList>
-struct FunctionBase {};
 template<class RetType, class... Args>
-struct FunctionBase<RetType, TypeList<Args...>> {
+struct FunctionBase {
 	virtual ~FunctionBase() = default;
 	virtual RetType operator()(Args ...) = 0;
 };
-template<class PackType, class RetType, class ArgsList>
-class FunctionPackage {};
 template<class PackType, class RetType, class... Args>
-class FunctionPackage<PackType, RetType, TypeList<Args...>> :
-	public FunctionBase<RetType, TypeList<Args...>> {
+class FunctionPackage :
+	public FunctionBase<RetType, Args...> {
 	mutable PackType func;
 public:
 	FunctionPackage(PackType &f) : func(f) {}
@@ -774,16 +768,12 @@ public:
 	}
 };
 #pragma region Function
-export {
 template<class...>
 class Function;
-template<class Ret, class... Args>
-class Function<Ret(Args...)> {
-public:
-	using RetType = Ret;
-	using ArgsList = TypeList<Args...>;
+template<class RetType, class... Args>
+class Function<RetType(Args...)> final {
 private:
-	mutable FunctionBase<Ret, ArgsList> *func = O;
+	mutable FunctionBase<RetType, Args...> *func = O;
 	mutable bool bAllocated = false;
 public:
 	Function() {}
@@ -791,9 +781,9 @@ public:
 	Function(const Function &f) : func(f.func) {}
 public:
 	template<class Type>
-	Function(Type &f) : func(new FunctionPackage<Type, Ret, ArgsList>(f)), bAllocated(true) {}
+	Function(Type &f) : func(new FunctionPackage<Type, RetType, Args...>(f)), bAllocated(true) {}
 	template<class Type>
-	Function(Type f) : func(new FunctionPackage<Type, Ret, ArgsList>(f)), bAllocated(true) {}
+	Function(Type f) : func(new FunctionPackage<Type, RetType, Args...>(f)), bAllocated(true) {}
 	~Function() { if (func && bAllocated) delete func, func = O; }
 public:
 	inline operator bool() const reflect_as(!func);
@@ -801,15 +791,58 @@ public:
 	inline bool operator==(Null) const reflect_as(!func);
 	inline Function operator&() reflect_to_self();
 	inline const Function operator&() const reflect_to_self();
-	inline Ret operator()(Args...args) const assertl_reflect_as(func, func(args...));
+	inline RetType operator()(Args...args) const assertl_reflect_as(func, func(args...));
 	inline auto &operator=(const Function &f) const noexcept reflect_to_self(func = f.func, bAllocated = false);
 	inline auto &operator=(const Function &f) noexcept reflect_to_self(func = f.func, bAllocated = false);
 	inline auto &operator=(Function &&f) noexcept reflect_to_self(func = f.func, f.func = O, bAllocated = true);
 };
 template<class...FuncTypes>
 using fn = Function<FuncTypes...>;
-}
 #pragma endregion
+#pragma endregion
+
+}
+
+#pragma region Win32 Prototype Includes
+namespace WX {
+
+#pragma region StringApiSet.h
+// CompareStringEx
+inline int CompareStringEx(LPCWSTR lpLocaleName, DWORD dwCmpFlags, LPCWCH lpString1, int cchCount1, LPCWCH lpString2, int cchCount2, LPNLSVERSIONINFO lpVersionInformation, LPVOID lpReserved, LPARAM lParam)
+	assertl_reflect_as(auto h = ::CompareStringEx(lpLocaleName, dwCmpFlags, lpString1, cchCount1, lpString2, cchCount2, lpVersionInformation, lpReserved, lParam); h != 0, h);
+// CompareStringOrdinal
+inline int CompareStringOrdinal(LPCWCH lpString1, int cchCount1, LPCWCH lpString2, int cchCount2, BOOL bIgnoreCase)
+	assertl_reflect_as(auto h = ::CompareStringOrdinal(lpString1, cchCount1, lpString2, cchCount2, bIgnoreCase); h != 0, h);
+#undef CompareString
+// CompareStringA - WinNls.h
+inline int CompareString(LCID Locale, DWORD dwCmpFlags, PCNZCH lpString1, int cchCount1, PCNZCH lpString2, int cchCount2)
+	assertl_reflect_as(auto h = ::CompareStringA(Locale, dwCmpFlags, lpString1, cchCount1, lpString2, cchCount2); h != 0, h);
+// CompareStringW
+inline int CompareString(LCID Locale, DWORD dwCmpFlags, PCNZWCH lpString1, int cchCount1, PCNZWCH lpString2, int cchCount2)
+	assertl_reflect_as(auto h = ::CompareStringW(Locale, dwCmpFlags, lpString1, cchCount1, lpString2, cchCount2); h != 0, h);
+#undef FoldString
+// FoldStringA - WinNls.h
+inline int FoldString(DWORD dwMapFlags, LPCCH lpSrcStr, int cchSrc, LPSTR lpDestStr, int cchDest)
+	assertl_reflect_as(auto h = ::FoldStringA(dwMapFlags, lpSrcStr, cchSrc, lpDestStr, cchDest); h > 0, h);
+// FoldStringW
+inline int FoldString(DWORD dwMapFlags, LPCWCH lpSrcStr, int cchSrc, LPWSTR lpDestStr, int cchDest)
+	assertl_reflect_as(auto h = ::FoldStringW(dwMapFlags, lpSrcStr, cchSrc, lpDestStr, cchDest); h > 0, h);
+#undef GetStringTypeEx
+// GetStringTypeExA - WinNls.h
+inline void GetStringType(LCID Locale, DWORD dwInfoType, LPCCH lpSrcStr, int cchSrc, LPWORD lpCharType)
+	assertl_reflect_as(::GetStringTypeExA(Locale, dwInfoType, lpSrcStr, cchSrc, lpCharType));
+// GetStringTypeExW
+inline void GetStringType(LCID Locale, DWORD dwInfoType, LPCWCH lpSrcStr, int cchSrc, LPWORD lpCharType)
+	assertl_reflect_as(::GetStringTypeExW(Locale, dwInfoType, lpSrcStr, cchSrc, lpCharType));
+// GetStringTypeW
+inline void GetStringType(DWORD dwInfoType, LPCWCH lpSrcStr, int cchSrc, LPWORD lpCharType)
+	assertl_reflect_as(::GetStringTypeW(dwInfoType, lpSrcStr, cchSrc, lpCharType));
+// MultiByteToWideChar
+inline int MultiByteToWideChar(UINT CodePage, DWORD dwFlags, LPCCH lpMultiByteStr, int cbMultiByte, LPWSTR lpWideCharStr, int cchWideChar)
+	assertl_reflect_as(auto h = ::MultiByteToWideChar(CodePage, dwFlags, lpMultiByteStr, cbMultiByte, lpWideCharStr, cchWideChar); h > 0, h);
+// WideCharToMultiByte
+inline int WideCharToMultiByte(UINT CodePage, DWORD dwFlags, LPCWCH lpWideCharStr, int cchWideChar, LPSTR lpMultiByteStr, int cbMultiByte, LPCCH lpDefaultChar, LPBOOL lpUsedDefaultChar)
+	assertl_reflect_as(auto h = ::WideCharToMultiByte(CodePage, dwFlags, lpWideCharStr, cchWideChar, lpMultiByteStr, cbMultiByte, lpDefaultChar, lpUsedDefaultChar); h > 0, h);
 #pragma endregion
 
 #pragma region StrSafe.h
@@ -954,33 +987,33 @@ inline void StringCbVPrintf(LPSTR pszDest, size_t cbDest, LPCSTR pszFormat, va_l
 inline void StringCbVPrintf(LPWSTR pszDest, size_t cbDest, LPCWSTR pszFormat, va_list argList)
 	assertl_reflect_as(SUCCEEDED(::StringCbVPrintfW(pszDest, cbDest, pszFormat, argList)));
 #undef StringCchPrintf
-// StringCchPrintf
-inline void StringCchPrintf(LPSTR pszDest, size_t cchDest, LPCSTR pszFormat, ...)
-	assertl_reflect_as(SUCCEEDED(::StringCchPrintfA(pszDest, cchDest, pszFormat)));
-inline void StringCchPrintf(LPWSTR pszDest, size_t cchDest, LPCWSTR pszFormat, ...)
-	assertl_reflect_as(SUCCEEDED(::StringCchPrintfW(pszDest, cchDest, pszFormat)));
+//// StringCchPrintf
+//inline void StringCchPrintf(LPSTR pszDest, size_t cchDest, LPCSTR pszFormat, ...)
+//	assertl_reflect_as(SUCCEEDED(::StringCchPrintfA(pszDest, cchDest, pszFormat)));
+//inline void StringCchPrintf(LPWSTR pszDest, size_t cchDest, LPCWSTR pszFormat, ...)
+//	assertl_reflect_as(SUCCEEDED(::StringCchPrintfW(pszDest, cchDest, pszFormat)));
 #undef StringCbPrintf
-// StringCbPrintf
-inline void StringCbPrintf(LPSTR pszDest, size_t cbDest, LPCSTR pszFormat, ...)
-	assertl_reflect_as(SUCCEEDED(::StringCbPrintfA(pszDest, cbDest, pszFormat)));
-inline void StringCbPrintf(LPWSTR pszDest, size_t cbDest, LPCWSTR pszFormat, ...)
-	assertl_reflect_as(SUCCEEDED(::StringCbPrintfW(pszDest, cbDest, pszFormat)));
+//// StringCbPrintf
+//inline void StringCbPrintf(LPSTR pszDest, size_t cbDest, LPCSTR pszFormat, ...)
+//	assertl_reflect_as(SUCCEEDED(::StringCbPrintfA(pszDest, cbDest, pszFormat)));
+//inline void StringCbPrintf(LPWSTR pszDest, size_t cbDest, LPCWSTR pszFormat, ...)
+//	assertl_reflect_as(SUCCEEDED(::StringCbPrintfW(pszDest, cbDest, pszFormat)));
 #undef StringCchPrintfEx
-// StringCchPrintfEx
-inline void StringCchPrintf(LPSTR pszDest, size_t cchDest, LPSTR *ppszDestEnd,
-							size_t *pcchRemaining, DWORD dwFlags, LPCSTR pszFormat, ...)
-	assertl_reflect_as(SUCCEEDED(::StringCchPrintfExA(pszDest, cchDest, ppszDestEnd, pcchRemaining, dwFlags, pszFormat)));
-inline void StringCchPrintf(LPWSTR pszDest, size_t cchDest, LPWSTR *ppszDestEnd,
-							size_t *pcchRemaining, DWORD dwFlags, LPCWSTR pszFormat, ...)
-	assertl_reflect_as(SUCCEEDED(::StringCchPrintfExW(pszDest, cchDest, ppszDestEnd, pcchRemaining, dwFlags, pszFormat)));
+//// StringCchPrintfEx
+//inline void StringCchPrintf(LPSTR pszDest, size_t cchDest, LPSTR *ppszDestEnd,
+//							size_t *pcchRemaining, DWORD dwFlags, LPCSTR pszFormat, ...)
+//	assertl_reflect_as(SUCCEEDED(::StringCchPrintfExA(pszDest, cchDest, ppszDestEnd, pcchRemaining, dwFlags, pszFormat)));
+//inline void StringCchPrintf(LPWSTR pszDest, size_t cchDest, LPWSTR *ppszDestEnd,
+//							size_t *pcchRemaining, DWORD dwFlags, LPCWSTR pszFormat, ...)
+//	assertl_reflect_as(SUCCEEDED(::StringCchPrintfExW(pszDest, cchDest, ppszDestEnd, pcchRemaining, dwFlags, pszFormat)));
 #undef StringCbPrintfEx
-// StringCbPrintfEx
-inline void StringCbPrintf(LPSTR pszDest, size_t cbDest, LPSTR *ppszDestEnd,
-						   size_t *pcbRemaining, DWORD dwFlags, LPCSTR pszFormat, ...)
-	assertl_reflect_as(SUCCEEDED(::StringCbPrintfExA(pszDest, cbDest, ppszDestEnd, pcbRemaining, dwFlags, pszFormat)));
-inline void StringCbPrintf(LPWSTR pszDest, size_t cbDest, LPWSTR *ppszDestEnd,
-						   size_t *pcbRemaining, DWORD dwFlags, LPCWSTR pszFormat, ...)
-	assertl_reflect_as(SUCCEEDED(::StringCbPrintfExW(pszDest, cbDest, ppszDestEnd, pcbRemaining, dwFlags, pszFormat)));
+//// StringCbPrintfEx
+//inline void StringCbPrintf(LPSTR pszDest, size_t cbDest, LPSTR *ppszDestEnd,
+//						   size_t *pcbRemaining, DWORD dwFlags, LPCSTR pszFormat, ...)
+//	assertl_reflect_as(SUCCEEDED(::StringCbPrintfExA(pszDest, cbDest, ppszDestEnd, pcbRemaining, dwFlags, pszFormat)));
+//inline void StringCbPrintf(LPWSTR pszDest, size_t cbDest, LPWSTR *ppszDestEnd,
+//						   size_t *pcbRemaining, DWORD dwFlags, LPCWSTR pszFormat, ...)
+//	assertl_reflect_as(SUCCEEDED(::StringCbPrintfExW(pszDest, cbDest, ppszDestEnd, pcbRemaining, dwFlags, pszFormat)));
 #undef StringCchVPrintfEx
 // StringCchVPrintfEx
 inline void StringCchVPrintf(LPSTR pszDest, size_t cchDest, LPSTR *ppszDestEnd,
@@ -1039,17 +1072,19 @@ inline void StringCbLength(LPCWSTR psz, size_t cbMax, size_t *pcbLength)
 	assertl_reflect_as(SUCCEEDED(::StringCbLengthW(psz, cbMax, pcbLength)));
 #pragma endregion
 
+}
+#pragma endregion
+
+export namespace WX {
+
 #pragma region MaxLens 
-export {
 constexpr size_t MaxLenPath = MAX_PATH;
 constexpr size_t MaxLenTitle = MaxLenPath * 3;
 constexpr size_t MaxLenClass = 256;
 constexpr size_t MaxLenNotice = 32767;
-}
 #pragma endregion
 
 #pragma region Strings
-export {
 enum_class(CodePages, UINT,
 	Active       = CP_ACP,
 	OEM          = CP_OEMCP,
@@ -1178,9 +1213,8 @@ public:
 	inline LPCTSTR c_str_safe() const {
 		if (!Len || !lpsz) {
 			if_c (IsUnicode)
-				return L"";
-			else
-				return "";
+				 return L"";
+			else return "";
 		}
 		return lpsz;
 	}
@@ -1193,9 +1227,10 @@ public:
 	inline LPCTSTR begin() const reflect_as(Len ? lpsz : O);
 	inline LPCTSTR end() const reflect_as(Len &&lpsz ? lpsz + Len : O);
 public:
-	inline operator LPTSTR () reflect_as(str());
-	inline operator bool() const reflect_as(lpsz && Len);
-	inline operator LPCTSTR () const reflect_as(Len ? lpsz : O);
+	inline operator bool() const reflect_as(lpsz &&Len);
+	inline operator LPTSTR() reflect_as(str());
+	inline operator LPCTSTR() const reflect_as(Len ? lpsz : O);
+	inline operator LPARAM() const reflect_as(Len ? (LPARAM)lpsz : 0);
 	inline StringBase operator&() reflect_as({ Len, 0, lpsz });
 	inline const StringBase operator&() const reflect_as({ Len, lpsz });
 	inline LPTSTR operator*() const {
@@ -1281,62 +1316,78 @@ inline const StringBase<CharType> CString(const CharType *lpString, size_t MaxLe
 	if (!lpString) return O;
 	return { WX::Length(lpString, MaxLen), lpString };
 }
+#pragma endregion
+
 /* Fits */
 inline StringA FitsA(const StringW &str, CodePages cp = CodePages::Active) {
 	if (!str) return O;
-	int tLen, uLen = (int)str.Length();
 	LPCWSTR lpString = str;
-	assertl((tLen = WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, O, 0, O, O)) > 0);
+	int uLen = (int)str.Length(),
+		tLen = WX::WideCharToMultiByte(cp.yield(), 0, lpString, uLen, O, 0, O, O);
 	// if (tLen != uLen) warnning glyphs missing 
-	auto lpsz = StringA::Alloc(tLen);
-	assertl(tLen == WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen, O, O));
-	lpsz[tLen] = 0;
-	return{ (size_t)tLen, lpsz };
+	StringA nstr((size_t)tLen);
+	WX::WideCharToMultiByte(cp.yield(), 0, lpString, uLen, nstr, tLen, O, O);
+	return inject(nstr);
 }
 inline StringW FitsW(const StringA &str, CodePages cp = CodePages::Active) {
 	if (!str) return O;
-	int tLen, uLen = (int)str.Length();
 	LPCSTR lpString = str;
-	assertl((tLen = MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, O, 0)) > 0);
+	int uLen = (int)str.Length(),
+		tLen = WX::MultiByteToWideChar(cp.yield(), 0, lpString, uLen, O, 0);
 	// if (tLen != uLen) warnning glyphs missing 
-	auto lpsz = StringW::Alloc(tLen);
-	assertl(tLen == MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen));
-	lpsz[tLen] = 0;
-	return{ (size_t)tLen, lpsz };
+	StringW nstr((size_t)tLen);
+	WX::MultiByteToWideChar(cp.yield(), 0, lpString, uLen, nstr, tLen);
+	return inject(nstr);
 }
 template<bool IsUnicode = WX::IsUnicode, class TCHAR = ::TCHAR>
-inline auto Fits(StringBase<TCHAR> str) {
+inline auto Fits(StringBase<TCHAR> str, CodePages cp = CodePages::Active) {
 	if_c (std::is_same_v<XCHAR<IsUnicode>, TCHAR>)
 		 reflect_as(str)
 	elif_c (IsUnicode)
-		 reflect_as(FitsW(str))
-	else reflect_as(FitsA(str))
+		 reflect_as(FitsW(str, cp))
+	else reflect_as(FitsA(str, cp))
 }
-template<class CharType>
-inline String Fits(const CharType *lpString, size_t MaxLen, CodePages cp = CodePages::Active) {
-	if (!lpString || !MaxLen) return O;
-	auto uLen = WX::Length(lpString, MaxLen);
-	if (!uLen) return O;
-	if_c (std::is_same_v<CharType, TCHAR>) {
-		auto lpsz = String::Alloc(uLen);
-		CopyMemory(lpsz, lpString, (uLen + 1) * sizeof(TCHAR));
-		return{ uLen, lpsz };
-	}
-	else {
-		int tLen;
-		if_c (IsUnicode)
-			assertl((tLen = MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, O, 0)) > 0)
-		else assertl((tLen = WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, O, 0, O, O)) > 0)
-			// if (tLen != uLen) warnning glyphs missing 
-			auto lpsz = String::Alloc(tLen);
-		if_c (IsUnicode)
-			assertl(tLen == MultiByteToWideChar(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen))
-		else assertl(tLen == WideCharToMultiByte(cp.yield(), 0, lpString, (int)uLen, lpsz, tLen, O, O))
-			lpsz[tLen] = 0;
-		return{ (size_t)tLen, lpsz };
-	}
-}
+
 /* Misc */
+
+template<class TCHAR>
+inline size_t LengthOf(const StringBase<TCHAR> &str) reflect_as(str.Length());
+template<class TCHAR, class... Args>
+inline size_t LengthOf(const StringBase<TCHAR> &str, const Args&... args) reflect_as(str.Length() + (LengthOf((const StringBase<TCHAR> &)args) + ...));
+
+template<class TCHAR>
+inline TCHAR *Copies(TCHAR *lpBuffer) reflect_as(lpBuffer);
+template<class TCHAR, class... Args>
+inline TCHAR *Copies(TCHAR *lpBuffer, const StringBase<TCHAR> &str, const Args &... args) {
+	auto uLen = str.Length();
+	if (uLen > 0) CopyMemory(lpBuffer, str, uLen * sizeof(TCHAR));
+	return Copies(lpBuffer + uLen, args...);
+}
+
+template<class TCHAR>
+inline void Copy(StringBase<TCHAR> &str, const TCHAR *lpSrc)
+	reflect_to(WX::StringCchCopy(str, str.Length(), lpSrc));
+template<class TCHAR, size_t len>
+inline void Copy(TCHAR(&str)[len], const StringBase<TCHAR> &src)
+	reflect_to(WX::StringCchCopy(str, len, src));
+
+template<class TCHAR>
+inline StringBase<TCHAR> Concat() reflect_as(O);
+template<class TCHAR, class... Args>
+inline StringBase<TCHAR> Concat(const StringBase<TCHAR> &str, const Args &... args) {
+	if (auto len = LengthOf(str, args...)) {
+		auto lpsz = StringBase<TCHAR>::Alloc(len);
+		*Copies(lpsz, str, args...) = 0;
+		return{ len, lpsz };
+	}
+	return O;
+}
+template<class AnyType>
+inline void Fill(AnyType *lpArray, const AnyType &Sample, size_t Len) {
+	while (Len--)
+		CopyMemory(lpArray++, &Sample, sizeof(AnyType));
+}
+
 template<class TCHAR>
 inline size_t CountAll(const StringBase<TCHAR> &src, const StringBase<TCHAR> &strTarget) {
 	using LPCTSTR = const TCHAR *;
@@ -1353,6 +1404,7 @@ inline size_t CountAll(const StringBase<TCHAR> &src, const StringBase<TCHAR> &st
 	}
 	return count;
 }
+
 template<class TCHAR>
 inline StringBase<TCHAR> ReplaceAll(const StringBase<TCHAR> &src,
 									const StringBase<TCHAR> &strTarget,
@@ -1375,36 +1427,14 @@ inline StringBase<TCHAR> ReplaceAll(const StringBase<TCHAR> &src,
 	}
 	return{ nLen, lpDst };
 }
-template<class TCHAR>
-inline size_t LengthOf(const StringBase<TCHAR> &str) reflect_as(str.Length());
-template<class TCHAR, class... Args>
-inline size_t LengthOf(const StringBase<TCHAR> &str, const Args&... args) reflect_as(str.Length() + (LengthOf((const StringBase<TCHAR> &)args) + ...));
-template<class TCHAR>
-inline TCHAR *Copies(TCHAR *lpBuffer) reflect_as(lpBuffer);
-template<class TCHAR, class... Args>
-inline TCHAR *Copies(TCHAR *lpBuffer, const StringBase<TCHAR> &str, const Args &... args) {
-	auto uLen = str.Length();
-	if (uLen > 0) CopyMemory(lpBuffer, str, uLen * sizeof(TCHAR));
-	return Copies(lpBuffer + uLen, args...);
-}
-template<class TCHAR>
-inline void Copy(StringBase<TCHAR> &str, const TCHAR *lpSrc)
-	reflect_to(StringCchCopy(str, str.Length(), lpSrc));
-template<class TCHAR, size_t len>
-inline void Copy(TCHAR(&str)[len], const StringBase<TCHAR> &src)
-	reflect_to(StringCchCopy(str, len, src));
-template<class AnyType>
-inline void Fill(AnyType *lpArray, const AnyType &Sample, size_t Len) {
-	while (Len--)
-		CopyMemory(lpArray++, &Sample, sizeof(AnyType));
-}
+
 /* format */
 constexpr size_t Len_sprintf_buff = 1024;
 template<class TCHAR = ::TCHAR>
 inline StringBase<TCHAR> format(const TCHAR *lpFormat, va_list argList) {
 	TCHAR buff[Len_sprintf_buff];
 	size_t remain = 0;
-	StringCchVPrintf(buff, Len_sprintf_buff, O, &remain, STRSAFE_NULL_ON_FAILURE, lpFormat, argList);
+	WX::StringCchVPrintf(buff, Len_sprintf_buff, O, &remain, STRSAFE_NULL_ON_FAILURE, lpFormat, argList);
 	return +CString(buff, Len_sprintf_buff - remain + 1);
 }
 template<class TCHAR = ::TCHAR>
@@ -1415,11 +1445,8 @@ inline StringBase<TCHAR> format(const TCHAR *lpFormat, ...) {
 	va_end(argList);
 	return str;
 }
-}
-#pragma endregion
 
 #pragma region FormatNumeral
-export {
 enum class Symbol : uint8_t { Def = 0, Neg, Pos, Space };
 enum class Cap : uint8_t { Small = 0, Big };
 enum class Align : uint8_t { Space = 0, Zero };
@@ -1448,7 +1475,7 @@ const CharType *fmt_push(fmt_word &fmt, const CharType *format) {
 		fmt.symbol = Symbol::Space;
 		ch = *++format;
 	}
-	elif(ch == '*') {
+	elif (ch == '*') {
 		fmt.symbol = Symbol::Space;
 		ch = *++format;
 	}
@@ -1487,7 +1514,7 @@ const CharType *fmt_push(fmt_word &fmt, const CharType *format) {
 		fmt.float_force = true;
 		ch = *++format;
 	}
-	elif(ch == '0') {
+	elif (ch == '0') {
 		fmt.float_blank = Align::Zero;
 		fmt.float_align = true;
 		ch = *++format;
@@ -1592,9 +1619,9 @@ private:
 		}
 		if (neg)
 			*--lpBuffer = '-';
-		elif((uint8_t)symbol == (uint8_t)Symbol::Pos)
+		elif ((uint8_t)symbol == (uint8_t)Symbol::Pos)
 			*--lpBuffer = '+';
-		elif((uint8_t)symbol == (uint8_t)Symbol::Space)
+		elif ((uint8_t)symbol == (uint8_t)Symbol::Space)
 			*--lpBuffer = ' ';
 		if (right_dir)
 			while (int_len++ < int_calign)
@@ -1614,9 +1641,9 @@ private:
 		}
 		if (float_len > 0)
 			*lpBuffer = '.';
-		elif(float_force)
+		elif (float_force)
 			*lpBuffer = '.';
-		elif(float_align)
+		elif (float_align)
 			*lpBuffer = ' ';
 		else --hpBuffer;
 		return hpBuffer;
@@ -1673,15 +1700,15 @@ public:
 };
 inline format_numeral operator ""_nx(const char *format, size_t n) reflect_as(format);
 inline format_numeral operator ""_nx(const wchar_t *format, size_t n) reflect_as(format);
+template<class TCHAR, class AnyNumberal>
+inline StringBase<TCHAR> X(const TCHAR *form, AnyNumberal i) {
+	if_c (IsCharW<TCHAR>)
+		 reflect_as(format_numeral(form).toStringW(i))
+	else reflect_as(format_numeral(form).toStringA(i))
 }
 #pragma endregion
 
-/* SimpleRegex::Token */
-template<class TCHAR>
-inline SimpleRegex<TCHAR>::Token::operator const StringBase<TCHAR>() const reflect_as(CString(len, lpsz));
-
 #pragma region EnumParses
-export {
 template<class TCHAR, class AnyEnum>
 StringBase<TCHAR> EnumClassParseX(AnyEnum e) {
 	using EnumType = typename AnyEnum::EnumType;
@@ -1692,7 +1719,7 @@ StringBase<TCHAR> EnumClassParseX(AnyEnum e) {
 		if (val == EnumType::__Vals[i])
 			return table[i].key;
 	if_c (EnumType::HasProtoEnum)
-		return EnumClassParseX<TCHAR>(reuse_as<typename EnumType::ProtoEnum>(e));
+		 return EnumClassParseX<TCHAR>(reuse_as<typename EnumType::ProtoEnum>(e));
 	else return format_numeral("d").toString<TCHAR>(val);
 }
 template<class AnyEnum>
@@ -1701,96 +1728,9 @@ template<class AnyEnum>
 inline auto EnumClassParseA(AnyEnum e) reflect_as(EnumClassParseX<CHAR>(e));
 template<class AnyEnum>
 inline auto EnumClassParseW(AnyEnum e) reflect_as(EnumClassParseX<WCHAR>(e));
-}
-#pragma endregion
-
-#pragma region Exception::
-template<bool IsUnicode>
-inline StringX<IsUnicode> Exception::File() const reflect_as(Fits(FileA()));
-inline const StringA Exception::FileA() const reflect_as(CString(lpFile, 1024));
-inline StringW Exception::FileW() const reflect_as(FitsW(FileA()));
-
-template<bool IsUnicode>
-inline StringX<IsUnicode> Exception::Function() const reflect_as(Fits(FunctionA()));
-inline const StringA Exception::FunctionA() const reflect_as(CString(lpFunc, 1024));
-inline StringW Exception::FunctionW() const reflect_as(FitsW(FunctionA()));
-
-template<bool IsUnicode>
-inline StringX<IsUnicode> Exception::Sentence() const reflect_as(Fits(SentenceA()));
-inline const StringA Exception::SentenceA() const reflect_as(CString(lpSent, 1024));
-inline StringW Exception::SentenceW() const reflect_as(FitsW(SentenceA()));
-
-template<bool IsUnicode>
-inline StringX<IsUnicode> Exception::ErrorMessage() const {
-	if_c (IsUnicode)
-		 reflect_as(ErrorMessageW())
-	else reflect_as(ErrorMessageA());
-}
-inline StringA Exception::ErrorMessageA() const {
-	if (!ErrorCode()) return O;
-	LPSTR lpsz;
-	auto len = ::FormatMessageA(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		O, ErrorCode(), 0, (LPSTR)&lpsz, 0, O);
-	auto &&msg = CString(lpsz, len);
-	LocalFree(lpsz);
-	return +msg;
-}
-inline StringW Exception::ErrorMessageW() const {
-	if (!ErrorCode()) return O;
-	LPWSTR lpsz;
-	auto len = ::FormatMessageW(
-		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
-		O, ErrorCode(), 0, (LPWSTR)&lpsz, 0, O);
-	auto &&msg = CString(lpsz, len);
-	LocalFree(lpsz);
-	return +msg;
-}
-
-template<bool IsUnicode>
-inline StringX<IsUnicode> Exception::toString() const reflect_as(Fits(toStringA()));
-inline StringA Exception::toStringA() const {
-	auto &&str = format(
-		"File:          %s\n"
-		"Function:      %s\n"
-		"Sentence:      %s\n"
-		"Line:          %d\n",
-		lpFile,
-		lpFunc,
-		lpSent,
-		Line());
-	if (!ErrorCode()) return str;
-	str += format(
-		"Error Code:    %d\n"
-		"Error Message: %s\n",
-		ErrorCode(),
-		(LPCSTR)ErrorMessageA());
-	return str;
-}
-inline StringW Exception::toStringW() const reflect_as(FitsW(StringA()));
-inline Exception::operator StringA() const reflect_as(toStringA());
-inline Exception::operator StringW() const reflect_as(toStringW());
 #pragma endregion
 
 #pragma region Cats
-export {
-template<class TCHAR>
-inline StringBase<TCHAR> Concat() reflect_as(O);
-template<class TCHAR, class... Args>
-inline StringBase<TCHAR> Concat(const StringBase<TCHAR> &str, const Args &... args) {
-	if (auto len = LengthOf(str, args...)) {
-		auto lpsz = StringBase<TCHAR>::Alloc(len);
-		*Copies(lpsz, str, args...) = 0;
-		return{ len, lpsz };
-	}
-	return O;
-}
-template<class TCHAR, class AnyNumberal>
-inline StringBase<TCHAR> X(const TCHAR *form, AnyNumberal i) {
-	if_c (IsCharW<TCHAR>)
-		 reflect_as(format_numeral(form).toStringW(i))
-	else reflect_as(format_numeral(form).toStringA(i))
-}
 #pragma region CatsA
 StringA StrTrueA = "true";
 StringA StrFalseA = "false";
@@ -1864,7 +1804,82 @@ inline String Cats(const TCHAR(&Chars)[len]) reflect_as(Chars);
 template<class... Args>
 inline String Cats(const Args& ...args) reflect_as(Concat(Cats(args)...));
 #pragma endregion
+#pragma endregion
+
 }
+
+namespace WX {
+
+/* SimpleRegex::Token */
+template<class TCHAR>
+inline SimpleRegex<TCHAR>::Token::operator const StringBase<TCHAR>() const reflect_as(CString(len, lpsz));
+
+#pragma region Exception::
+template<bool IsUnicode>
+inline StringX<IsUnicode> Exception::File() const reflect_as(Fits(FileA()));
+inline const StringA Exception::FileA() const reflect_as(CString(lpFile, 1024));
+inline StringW Exception::FileW() const reflect_as(FitsW(FileA()));
+
+template<bool IsUnicode>
+inline StringX<IsUnicode> Exception::Function() const reflect_as(Fits(FunctionA()));
+inline const StringA Exception::FunctionA() const reflect_as(CString(lpFunc, 1024));
+inline StringW Exception::FunctionW() const reflect_as(FitsW(FunctionA()));
+
+template<bool IsUnicode>
+inline StringX<IsUnicode> Exception::Sentence() const reflect_as(Fits(SentenceA()));
+inline const StringA Exception::SentenceA() const reflect_as(CString(lpSent, 1024));
+inline StringW Exception::SentenceW() const reflect_as(FitsW(SentenceA()));
+
+template<bool IsUnicode>
+inline StringX<IsUnicode> Exception::ErrorMessage() const {
+	if_c (IsUnicode)
+		 reflect_as(ErrorMessageW())
+	else reflect_as(ErrorMessageA())
+}
+inline StringA Exception::ErrorMessageA() const {
+	if (!ErrorCode()) return O;
+	LPSTR lpsz;
+	auto len = ::FormatMessageA(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		O, ErrorCode(), 0, (LPSTR)&lpsz, 0, O);
+	auto &&msg = CString(lpsz, len);
+	LocalFree(lpsz);
+	return +msg;
+}
+inline StringW Exception::ErrorMessageW() const {
+	if (!ErrorCode()) return O;
+	LPWSTR lpsz;
+	auto len = ::FormatMessageW(
+		FORMAT_MESSAGE_ALLOCATE_BUFFER | FORMAT_MESSAGE_FROM_SYSTEM,
+		O, ErrorCode(), 0, (LPWSTR)&lpsz, 0, O);
+	auto &&msg = CString(lpsz, len);
+	LocalFree(lpsz);
+	return +msg;
+}
+
+template<bool IsUnicode>
+inline StringX<IsUnicode> Exception::toString() const reflect_as(Fits(toStringA()));
+inline StringA Exception::toStringA() const {
+	auto &&str = format(
+		"File:          %s\n"
+		"Function:      %s\n"
+		"Sentence:      %s\n"
+		"Line:          %d\n",
+		lpFile,
+		lpFunc,
+		lpSent,
+		Line());
+	if (!ErrorCode()) return str;
+	str += format(
+		"Error Code:    %d\n"
+		"Error Message: %s\n",
+		ErrorCode(),
+		(LPCSTR)ErrorMessageA());
+	return str;
+}
+inline StringW Exception::toStringW() const reflect_as(FitsW(toStringA()));
+inline Exception::operator StringA() const reflect_as(toStringA());
+inline Exception::operator StringW() const reflect_as(toStringW());
 #pragma endregion
 
 }
