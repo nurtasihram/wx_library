@@ -174,7 +174,7 @@ enum_flags(DialogColorStyle, DWORD,
 using DlgColorStyle = DialogColorStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogColorX : public DialogCommon<
-	switch_structx(CHOOSECOLOR),
+	structx(CHOOSECOLOR),
 	Chain<DialogColorX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(CHOOSECOLOR);
 public:
@@ -241,7 +241,7 @@ enum_flags(DialogFontStyle, DWORD,
 using DlgFontStyle = DialogFontStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogFontX : public DialogCommon<
-	switch_structx(CHOOSEFONT),
+	structx(CHOOSEFONT),
 	Chain<DialogFontX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(CHOOSEFONT);
 	using_structx(FontLogic);
@@ -330,7 +330,7 @@ enum_flags(DialogFileStyle, DWORD,
 using DlgFileStyle = DialogFileStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogFileX : public DialogCommon<
-	switch_structx(OPENFILENAME),
+	structx(OPENFILENAME),
 	Chain<DialogFileX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(OPENFILENAME);
 	using LPTSTR = LPXSTR<IsUnicode>;
@@ -425,7 +425,7 @@ enum_flags(DialogTextStyle, DWORD,
 using DlgTextStyle = DialogTextStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogTextX : public DialogCommon<
-	switch_structx(FINDREPLACE),
+	structx(FINDREPLACE),
 	Chain<DialogTextX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(FINDREPLACE);
 	using String = StringX<IsUnicode>;

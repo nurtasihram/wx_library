@@ -103,7 +103,10 @@ public: \
 #define auto_stringx(name, str) \
     const_stringx(name, str);   \
     locale_symbolx(name)
-#define switch_structx(name) std::conditional_t<IsUnicode, name##W, name##A>
+#define structx(name) std::conditional_t<IsUnicode, name##W, name##A>
+#define using_structx(name) using name = std::conditional_t<IsUnicode, name##W, name##A>
+
+#define locale_charmode(unicode) static constexpr bool IsUnicode = unicode
 
 #define INNER_USE(name) friend union WX::RefAs<name>
 

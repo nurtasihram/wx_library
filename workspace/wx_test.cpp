@@ -11,6 +11,7 @@ class BaseOf_Window(TestWindow) {
 	SFINAE_Window(TestWindow);
 	Button bnOpen, bnPlay, bnStop;
 	Animate ani;
+	ProgBar pbar;
 	StatusBar sbar;
 public:
 	TestWindow() {}
@@ -44,6 +45,10 @@ protected:
 					WS::Child | WS::Visible | WS::Border)
 			.Position({ 10, 44 })
 			.Size({ 300, 200 });
+		pbar.Create(self)
+			.Styles(WS::Child | WS::Visible)
+			.Size({ 90, 25 })
+			.Position({ 320, 44 });
 		sbar.Create(self)
 			.Styles(WS::Child | WS::Visible);
 		sbar.SetParts({ 80, 160, 240 });
@@ -98,7 +103,6 @@ protected:
 	inline void OnRun() {
 		try {
 			wnd.Create()
-				.Size({ 350, 300 })
 				.Caption(T("Common Controls"));
 			wnd.Show();
 			wnd.Update();
@@ -115,7 +119,13 @@ protected:
 	}
 };
 
+template<class Ret, class...Args>
+using STFn = Ret(Args...);
+typedef void(*tpfn_def)(int, char = 'a');
+
 int WxMain() {
+	tpfn_def fn;
+	fn(0);
 	Console.Log(Console.Title(), '\n');
 	Console.Title("WX - Tests");
 	Console.Log(COMPILATION_INFO);

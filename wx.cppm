@@ -514,7 +514,7 @@ using String = StringBase<TCHAR>;
 using StringA = StringBase<CHAR>;
 using StringW = StringBase<WCHAR>;
 template<bool IsUnicode>
-using StringX = switch_structx(String);
+using StringX = structx(String);
 
 template<bool IsUnicode>
 using XCHAR = std::conditional_t<IsUnicode, WCHAR, CHAR>;

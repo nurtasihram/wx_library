@@ -1270,7 +1270,7 @@ enum_flags(StartupFlag, DWORD,
 	PreventPinning      = STARTF_PREVENTPINNING,
 	UntrustedSource     = STARTF_UNTRUSTEDSOURCE);
 template<bool IsUnicode = WX::IsUnicode>
-class StartupInfoX : public RefStruct<switch_structx(STARTUPINFO)> {
+class StartupInfoX : public RefStruct<structx(STARTUPINFO)> {
 	using_structx(WNDCLASSEX);
 	using LPTSTR = LPXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;

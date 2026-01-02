@@ -573,7 +573,7 @@ inline int ExtSelectClipRgn(HDC hdc, HRGN hrgn, int mode)
 inline int SetMetaRgn(HDC hdc)
 	assertl_reflect_as(auto ret = ::SetMetaRgn(hdc); ret != ERROR, ret);
 // SelectObject
-inline HGDIOBJ SelectObject(HDC hdc, HGDIOBJ h)
+static inline HGDIOBJ SelectObject(HDC hdc, HGDIOBJ h)
 	assertl_reflect_as(auto ret = ::SelectObject(hdc, h); ret != HGDI_ERROR, ret);
 // SelectPalette
 inline HPALETTE SelectPalette(HDC hdc, HPALETTE hPal, BOOL bForceBkgd)
@@ -1340,7 +1340,7 @@ enum_class(FontFamilies, BYTE,
 	Script     = FF_SCRIPT,
 	Decorative = FF_DECORATIVE);
 template<bool IsUnicode>
-class FontLogicX : public RefStruct<switch_structx(LOGFONT)> {
+class FontLogicX : public RefStruct<structx(LOGFONT)> {
 	using_structx(LOGFONT);
 	using TCHAR = XCHAR<IsUnicode>;
 	using String = StringBase<TCHAR>;

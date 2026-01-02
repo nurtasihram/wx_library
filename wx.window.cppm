@@ -99,7 +99,7 @@ public: // Property - Primary
 };
 using MonitorInfo = MonitorInformations;
 template<bool IsUnicode = WX::IsUnicode>
-class MonitorInformationsExX : public RefStruct<switch_structx(MONITORINFOEX)> {
+class MonitorInformationsExX : public RefStruct<structx(MONITORINFOEX)> {
 	using MONITORINFOEX = std::conditional_t<IsUnicode, MONITORINFOEXW, MONITORINFOEXA>;
 	using String = StringX<IsUnicode>;
 public:
@@ -631,8 +631,8 @@ public:
 	inline void Unregister() const reflect_as(WX::UnregisterClass(self->lpszClassName, self->hInstance));
 };
 template<bool IsUnicode>
-class WindowClassX : public WindowClassBase<switch_structx(WNDCLASS), WindowClassX<IsUnicode>> {
-	using WNDCLASS = switch_structx(WNDCLASS);
+class WindowClassX : public WindowClassBase<structx(WNDCLASS), WindowClassX<IsUnicode>> {
+	using WNDCLASS = structx(WNDCLASS);
 public:
 	using super = WindowClassBase<WNDCLASS, WindowClassX>;
 public:
@@ -644,7 +644,7 @@ using WindowClass = WindowClassX<IsUnicode>;
 using WindowClassA = WindowClassX<false>;
 using WindowClassW = WindowClassX<true>;
 template<bool IsUnicode>
-class WindowClassExX : public WindowClassBase<switch_structx(WNDCLASSEX), WindowClassExX<IsUnicode>> {
+class WindowClassExX : public WindowClassBase<structx(WNDCLASSEX), WindowClassExX<IsUnicode>> {
 	using_structx(WNDCLASSEX);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
@@ -667,7 +667,7 @@ using WindowClassExW = WindowClassExX<true>;
 
 #pragma region CreateStruct
 template<bool IsUnicode, class Style = WStyle, class StyleEx = WStyleEx>
-class CreateStructX : public RefStruct<switch_structx(CREATESTRUCT)> {
+class CreateStructX : public RefStruct<structx(CREATESTRUCT)> {
 	using_structx(CREATESTRUCT);
 	using_structx(WNDCLASS);
 	using_structx(WNDCLASSEX);
