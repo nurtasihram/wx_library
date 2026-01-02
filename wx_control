@@ -1,5 +1,8 @@
 #pragma once
 
+#include <Windows.h>
+#include <CommCtrl.h>
+
 #include "wx_window"
 #include "wx_gdi"
 #include "wx_resource"

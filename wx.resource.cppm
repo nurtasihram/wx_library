@@ -196,13 +196,6 @@ using IconInfoEx = IconInfoExX<>;
 using IconInfoExA = IconInfoExX<false>;
 using IconInfoExW = IconInfoExX<true>;
 class Icon {
-public:
-	using Info = IconInfo;
-	template<bool IsUnicode>
-	using InfoExX = IconInfoExX<IsUnicode>;
-	using InfoEx = IconInfoExX<IsUnicode>;
-	using InfoExA = IconInfoExX<false>;
-	using InfoExW = IconInfoExX<true>;
 protected:
 	mutable HICON hIcon = O;
 	INNER_USE(Icon);
@@ -223,32 +216,18 @@ public:
 	public:
 		CreateStruct(LPCBYTE lpANDbits, LPCBYTE lpXORbits) :
 			lpANDbits(lpANDbits), lpXORbits(lpXORbits) {}
-	public: // Property - Module
-		/* W */ inline auto &Module(HINSTANCE hInstance) reflect_to_self(this->hInstance = hInstance);
-//		/* R */ inline WX::Module Module() reflect_as(this->hInstance);
-	public: // Property - Width
-		/* W */ inline auto &Width(LONG nWidth) reflect_to_self(this->nWidth = nWidth);
-		/* R */ inline LONG  Width() const reflect_as(this->nWidth);
-	public: // Property - Height
-		/* W */ inline auto &Height(LONG nHeight) reflect_to_self(this->nHeight = nHeight);
-		/* R */ inline LONG  Height() const reflect_as(this->nHeight);
-	public: // Property - Size
-		/* W */ inline auto &Size(LSize sz) reflect_to_self(this->nWidth = sz.cx, this->nHeight = sz.cy);
-		/* R */ inline LSize Size() const reflect_as({ this->nWidth, this->nHeight });
-	public: // Property - Planes
-		/* W */ inline auto &Planes(UINT nPlanes) reflect_to_self(this->nPlanes = nPlanes);
-		/* R */ inline UINT  Planes() const reflect_as(this->nPlanes);
-	public: // Property - BitsPerPixel
-		/* W */ inline auto &BitsPerPixel(UINT nBitsPerPixel) reflect_to_self(this->nBitsPerPixel = nBitsPerPixel);
-		/* R */ inline UINT  BitsPerPixel() const reflect_as(this->nBitsPerPixel);
-	public: // Property - Masks
-		/* W */ inline auto   &Mask(LPCVOID lpBits) reflect_to_self(this->lpANDbits = (LPCBYTE)lpBits);
-		/* R */ inline LPCBYTE Mask() const reflect_as(this->lpANDbits);
-	public: // Property - Colors
-		/* W */ inline auto   &Colors(LPCVOID lpBits) reflect_to_self(this->lpXORbits = (LPCBYTE)lpBits);
-		/* R */ inline LPCBYTE Colors() const reflect_as(this->lpXORbits);
+	public:
+		inline auto &Module(HINSTANCE hInstance) reflect_to_self(this->hInstance = hInstance);
+		inline auto &Width(LONG nWidth) reflect_to_self(this->nWidth = nWidth);
+		inline auto &Height(LONG nHeight) reflect_to_self(this->nHeight = nHeight);
+		inline auto &Size(LSize sz) reflect_to_self(this->nWidth = sz.cx, this->nHeight = sz.cy);
+		inline auto &Planes(UINT nPlanes) reflect_to_self(this->nPlanes = nPlanes);
+		inline auto &BitsPerPixel(UINT nBitsPerPixel) reflect_to_self(this->nBitsPerPixel = nBitsPerPixel);
+		inline auto &Mask(LPCVOID lpBits) reflect_to_self(this->lpANDbits = (LPCBYTE)lpBits);
+		inline auto &Colors(LPCVOID lpBits) reflect_to_self(this->lpXORbits = (LPCBYTE)lpBits);
 	public:
 		inline Icon Create() const reflect_as(WX::CreateIcon(hInstance, nWidth, nHeight, nPlanes, nBitsPerPixel, lpANDbits, lpXORbits));
+		inline operator Icon() const reflect_as(Create());
 	};
 	static inline CreateStruct Create(LPCBYTE lpANDbits, LPCBYTE lpXORbits = O) reflect_as({ lpANDbits, lpXORbits });
 	static inline Icon Create(HBITMAP hbmColor, HBITMAP hbmMask = O) reflect_as(WX::CreateIcon(&CIconInfo(IconInfo())->Colors(hbmColor).Mask(hbmMask)));
@@ -259,14 +238,18 @@ public:
 	}
 #pragma region Properties
 public: // Property - Info
-	/* R */ inline Info Informations() const reflect_to(ICONINFO i, WX::GetIconInfo(hIcon, &i), i);
+	/* R */ inline IconInfo Info() const reflect_to(ICONINFO i, WX::GetIconInfo(hIcon, &i), i);
+public: // Property - Masks
+	/* R */ inline Bitmap Mask() const reflect_as(Info().Mask());
+public: // Property - Colors
+	/* R */ inline Bitmap Colors() const reflect_as(Info().Colors());
+public: // Property - Hotspot
+	/* R */ inline LPoint Hotspot() const reflect_as(Info().Hotspot());
 public: // Property - InfoEx
 	template<bool IsUnicode = WX::IsUnicode>
-	/* R */ inline InfoExX<IsUnicode> InformationsEx() const reflect_to(InfoExX<IsUnicode> i, WX::GetIconInfoEx(hIcon, &i), i);
-public: // Property - Masks
-	/* R */ inline Bitmap Mask() const reflect_as(Informations().Mask());
-public: // Property - Colors
-	/* R */ inline Bitmap Colors() const reflect_as(Informations().Colors());
+	/* R */ inline IconInfoExX<IsUnicode> InfoEx() const reflect_to(IconInfoExX<IsUnicode> i, WX::GetIconInfoEx(hIcon, &i), i);
+	/* R */ inline IconInfoExA InfoExA() const reflect_as(InfoEx<false>());
+	/* R */ inline IconInfoExW InfoExW() const reflect_as(InfoEx<true>());
 #pragma endregion
 public:
 	inline operator HICON() const reflect_as(hIcon);
@@ -321,25 +304,6 @@ public:
 		super::hIcon = O;
 	}
 public:
-	static inline void Show() reflect_to(WX::ShowCursor(TRUE));
-	static inline void Hide() reflect_to(WX::ShowCursor(FALSE));
-	inline RefAs<Cursor> Set() const reflect_as(WX::SetCursor((HCURSOR)super::hIcon));
-	static inline RefAs<Cursor> Get() reflect_as(WX::GetCursor());
-
-#pragma region Properties
-public: // Property - Hotspot
-	/* R */ inline LPoint Hotspot() const reflect_as(Informations().Hotspot());
-public: // Property - Visible
-	/* W */ static inline void Visible(bool bVisible) reflect_to(WX::ShowCursor(bVisible));
-public: // Property - Position
-	/* R */ static inline LPoint Position() reflect_to(LPoint p; WX::GetCursorPos(&p), p);
-public: // Property - PhysicalPosition
-	/* W */ static inline void PhysicalPosition(LPoint p) reflect_to(WX::SetPhysicalCursorPos(p.x, p.y));
-	/* R */ static inline LPoint PhysicalPosition() reflect_to(LPoint p; WX::GetPhysicalCursorPos(&p), p);
-public: // Property - ClipRect
-	/* W */ static inline void ClipRect(LRect r) reflect_to(WX::ClipCursor(&r));
-	/* R */ static inline LRect ClipRect() reflect_to(LRect r; WX::GetClipCursor(&r), r);
-#pragma endregion
 	inline operator HCURSOR() const reflect_as((HCURSOR)super::hIcon);
 	inline Cursor operator+() const reflect_as(WX::CopyIcon(super::hIcon));
 	inline auto &operator=(Cursor &i) reflect_to_self(std::swap(hIcon, i.hIcon));
@@ -350,6 +314,44 @@ public:
 	static inline const Cursor &Attach(const HCURSOR &hCursor) reflect_as(ref_as<const Cursor>(hCursor));
 };
 using CCursor = RefAs<Cursor>;
+struct CursorInfo : public RefStruct<CURSORINFO> {
+	using super = RefStruct<CURSORINFO>;
+public:
+	CursorInfo() reflect_to(self->cbSize = sizeof(self));
+	CursorInfo(const CURSORINFO &c) : super(c) {}
+public: // Property - Visible
+	/* W */ inline auto &Visible(bool bVisible) reflect_to_self(bVisible ? self->flags |= CURSOR_SHOWING : self->flags &= ~CURSOR_SHOWING);
+	/* R */ inline bool Visible() const reflect_as(self->flags &CURSOR_SHOWING);
+public: // Property - Cursor
+	/* W */ inline auto &Cursor(HCURSOR hCursor) reflect_to_self(self->hCursor = hCursor);
+	/* R */ inline CCursor Cursor() const reflect_as(self->hCursor);
+public: // Property - Position
+	/* W */ inline auto &Position(LPoint p) reflect_to_self(self->ptScreenPos = p);
+	/* R */ inline LPoint Position() const reflect_as(self->ptScreenPos);
+};
+class CursorItf {
+public:
+	static inline void Show() reflect_to(WX::ShowCursor(TRUE));
+	static inline void Hide() reflect_to(WX::ShowCursor(FALSE));
+#pragma region Properties
+public: // Property - Info
+	/* R */ static inline CursorInfo Info() reflect_to(CursorInfo ci; WX::GetCursorInfo(&ci), ci);
+public: // Property - Visible
+	/* W */ inline auto &Visible(bool bVisible) reflect_to_self(WX::ShowCursor(bVisible));
+public: // Property - Position
+	/* W */ inline auto &Position(LPoint p) reflect_to_self(WX::SetCursorPos(p.x, p.y));
+	/* R */ static inline LPoint Position() reflect_to(LPoint p; WX::GetCursorPos(&p), p);
+public: // Property - PhysicalPosition
+	/* W */ inline auto &PhysicalPosition(LPoint p) reflect_to_self(WX::SetPhysicalCursorPos(p.x, p.y));
+	/* R */ static inline LPoint PhysicalPosition() reflect_to(LPoint p; WX::GetPhysicalCursorPos(&p), p);
+public: // Property - ClipRect
+	/* W */ inline auto &ClipRect(LRect r) reflect_to_self(WX::ClipCursor(&r));
+	/* R */ static inline LRect ClipRect() reflect_to(LRect r; WX::GetClipCursor(&r), r);
+#pragma endregion
+public:
+	inline operator CCursor() const reflect_as(WX::GetCursor());
+	inline auto &operator=(HCURSOR hCursor) reflect_to_self(WX::SetCursor(hCursor));
+} ICursor;
 #pragma endregion
 
 #pragma region Accelerators
@@ -603,9 +605,9 @@ public: // Property - String
 		int len = WX::LoadString(self, wID, (LPWSTR)&lpString, 0);
 		return CString(len, lpString);
 	}
-public: // Property - Member
+public: // Property - Symbol
 	template<class AnyType>
-	inline AnyType *Member(LPCSTR lpName) reflect_as((AnyType *)::GetProcAddress(self, lpName));
+	inline AnyType *Symbol(LPCSTR lpName) reflect_as((AnyType *)::GetProcAddress(self, lpName));
 public: // Property - FileName
 	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenPath>
 	/* R */ inline StringX<IsUnicode> FileName() const {
