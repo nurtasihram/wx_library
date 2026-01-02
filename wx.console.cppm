@@ -720,27 +720,27 @@ public:
 public: // Property - Title
 	template<class TCHAR>
 	/* W */ inline auto&Title(const TCHAR *lpTitle) reflect_to_self(WX::SetConsoleTitle(lpTitle));
-	template<size_t MaxLen = MaxLenTitle, bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenTitle>
 	/* R */ inline StringX<IsUnicode> Title() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetConsoleTitle(str, (int)MaxLen);
 		return inject(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenTitle>
-	/* R */ inline StringA TitleA() const reflect_as(Title<MaxLen, false>());
+	/* R */ inline StringA TitleA() const reflect_as(Title<false.MaxLen>());
 	template<size_t MaxLen = MaxLenTitle>
-	/* R */ inline StringW TitleW() const reflect_as(Title<MaxLen, true>());
+	/* R */ inline StringW TitleW() const reflect_as(Title<true, MaxLen>());
 public: // Property - OriginalTitle
-	template<size_t MaxLen = MaxLenTitle, bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenTitle>
 	/* R */ inline StringX<IsUnicode> OriginalTitle() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetConsoleOriginalTitle(str, (int)MaxLen);
 		return inject(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenTitle>
-	/* R */ inline StringA OriginalTitleA() const reflect_as(OriginalTitle<MaxLen, false>());
+	/* R */ inline StringA OriginalTitleA() const reflect_as(OriginalTitle<false, MaxLen>());
 	template<size_t MaxLen = MaxLenTitle>
-	/* R */ inline StringW OriginalTitleW() const reflect_as(OriginalTitle<MaxLen, true>());
+	/* R */ inline StringW OriginalTitleW() const reflect_as(OriginalTitle<true, MaxLen>());
 //public: // Property - Window
 //	inline CWindow Window() const reflect_as(WX::GetConsoleWindow());
 public: // Property - CodePage

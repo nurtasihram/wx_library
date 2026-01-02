@@ -609,16 +609,16 @@ public: // Property - Symbol
 	template<class AnyType>
 	inline AnyType *Symbol(LPCSTR lpName) reflect_as((AnyType *)::GetProcAddress(self, lpName));
 public: // Property - FileName
-	template<size_t MaxLen = MaxLenPath, bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenPath>
 	/* R */ inline StringX<IsUnicode> FileName() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetModuleFileName(self, str, (int)MaxLen);
 		return inject(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenPath>
-	/* R */ inline WX::StringA FileNameA() const reflect_as(FileName<MaxLen, false>());
+	/* R */ inline WX::StringA FileNameA() const reflect_as(FileName<false, MaxLen>());
 	template<size_t MaxLen = MaxLenPath>
-	/* R */ inline WX::StringW FileNameW() const reflect_as(FileName<MaxLen, true>());
+	/* R */ inline WX::StringW FileNameW() const reflect_as(FileName<true, MaxLen>());
 public:
 	inline operator bool() const reflect_as(hInst);
 	inline operator HINSTANCE() const reflect_as(hInst);

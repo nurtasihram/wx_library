@@ -93,9 +93,9 @@ template<class...>
 struct TypeList;
 template<>
 struct TypeList<> {
-	static constexpr size_t Length() reflect_as(0);
+	static constexpr size_t Length = 0;
 	template<class AnyType>
-	inline auto invoke(AnyType &f) reflect_as(f());
+	inline auto invoke(AnyType f) reflect_as(f());
 };
 template<>
 struct TypeList<void> {
@@ -104,7 +104,7 @@ struct TypeList<void> {
 	template<size_t ind>
 	inline void indexof() { misuse_assert(ind >= 0, "index overflowed"); }
 	template<class AnyType>
-	inline auto invoke(AnyType &f) reflect_as(f());
+	inline auto invoke(AnyType f) reflect_as(f());
 };
 template<class Type0>
 struct TypeList<Type0> {
@@ -113,6 +113,7 @@ struct TypeList<Type0> {
 	TypeList(AnyType &type) : type(type) {}
 	template<class AnyType>
 	TypeList(AnyType &&type) : type(type) {}
+	static constexpr size_t Length = 1;
 	template<int ind, class = void>
 	struct index { misuse_assert(ind >= 0, "Index overflowed"); };
 	template<class ___>
@@ -125,7 +126,7 @@ public:
 	template<class ClassType, class MethodType>
 	inline auto invoke(ClassType &cls, MethodType method) reflect_as((cls.*method)(std::forward<Type0>(type)));
 	template<class AnyType>
-	inline auto invoke(AnyType &f) reflect_as(f(std::forward<Type0>(type)));
+	inline auto invoke(AnyType f) reflect_as(f(std::forward<Type0>(type)));
 };
 template<class Type0, class...Types>
 struct TypeList<Type0, Types...> : TypeList<Types...> {
@@ -134,7 +135,7 @@ struct TypeList<Type0, Types...> : TypeList<Types...> {
 	TypeList(AnyType &type, Args...args) : TypeList<Types...>(args...), type(type) {}
 	template<class AnyType, class...Args>
 	TypeList(AnyType &&type, Args...args) : TypeList<Types...>(args...), type(type) {}
-	static constexpr size_t Length() reflect_as(1 + sizeof...(Types));
+	static constexpr size_t Length = 1 + sizeof...(Types);
 	template<size_t ind, class = void>
 	struct index : TypeList<Types...>::template index<ind - 1> {};
 	template<class ___>
@@ -143,7 +144,7 @@ struct TypeList<Type0, Types...> : TypeList<Types...> {
 	using IndexOf = typename index<ind>::type;
 	template<size_t ind>
 	inline auto &indexof() {
-		if_c (ind == 0)
+		if_c (ind)
 			 return TypeList<Types...>::template indexof<ind - 1>();
 		else return type;
 	}
@@ -152,12 +153,12 @@ private:
 	template<class ClassType, class MethodType, size_t... ind>
 	inline auto invoke(ClassType &cls, MethodType method, std::index_sequence<ind...>) reflect_as((cls.*method)(indexof<ind>()...));
 	template<class AnyType, size_t... ind>
-	inline auto invoke(AnyType &f, std::index_sequence<ind...>) reflect_as(f(indexof<ind>()...));
+	inline auto invoke(AnyType f, std::index_sequence<ind...>) reflect_as(f(indexof<ind>()...));
 public:
 	template<class ClassType, class MethodType>
-	inline auto invoke(ClassType &cls, MethodType method) reflect_as(call(cls, method, ind_seq{}));
+	inline auto invoke(ClassType &cls, MethodType method) reflect_as(invoke(cls, method, ind_seq{}));
 	template<class AnyType>
-	inline auto invoke(AnyType &f) reflect_as(call(f, ind_seq{}));
+	inline auto invoke(AnyType f) reflect_as(invoke(f, ind_seq{}));
 };
 #pragma endregion
 
@@ -189,6 +190,7 @@ struct __functionof<Ret(AnyClass:: *)(Args..., ...)> {
 };
 template<class Ret, class... Args>
 struct __functionof<Ret(Args...)> {
+	using Belong = void;
 	using Return = Ret;
 	using ArgsList = TypeList<Args...>;
 	using Pointer = Ret(*)(Args...);
@@ -198,6 +200,7 @@ struct __functionof<Ret(Args...)> {
 };
 template<class Ret, class... Args>
 struct __functionof<Ret(Args..., ...)> {
+	using Belong = void;
 	using Return = Ret;
 	using ArgsList = TypeList<Args...>;
 	using Pointer = Ret(*)(Args...);
@@ -1227,7 +1230,7 @@ public:
 	inline LPCTSTR begin() const reflect_as(Len ? lpsz : O);
 	inline LPCTSTR end() const reflect_as(Len &&lpsz ? lpsz + Len : O);
 public:
-	inline operator bool() const reflect_as(lpsz &&Len);
+	inline operator bool() const reflect_as(lpsz && Len);
 	inline operator LPTSTR() reflect_as(str());
 	inline operator LPCTSTR() const reflect_as(Len ? lpsz : O);
 	inline operator LPARAM() const reflect_as(Len ? (LPARAM)lpsz : 0);
