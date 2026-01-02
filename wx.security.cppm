@@ -627,7 +627,7 @@ public:
 		if (!*this) return O;
 		auto size = Size();
 		auto npSID = Local::Alloc(size);
-		CopySid(size, npSID, pSID);
+		WX::CopySid(size, npSID, pSID);
 		return npSID;
 	}
 	inline RID &operator[](BYTE uSubAuthorityIndex) reflect_as(*WX::GetSidSubAuthority(this->pSID, uSubAuthorityIndex));
@@ -933,7 +933,7 @@ class SecurityDescriptor {
 		bool bDefault = false, bModified = false;
 		xSID(const SecurityDescriptor &sd) : sd(const_cast<SecurityDescriptor &>(sd)) {
 			BOOL bDefault = false;
-			if_c(_GSID_1_OSID_0_)
+			if_c (_GSID_1_OSID_0_)
 				 GetSecurityDescriptorGroup(&sd, &pSID, &bDefault);
 			else GetSecurityDescriptorOwner(&sd, &pSID, &bDefault);
 			this->bDefault = bDefault;

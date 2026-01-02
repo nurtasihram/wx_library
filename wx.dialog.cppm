@@ -96,16 +96,17 @@ public: // Property - ButtonCheck
 	/* R */ inline bool CheckButton() const reflect_as(WX::IsDlgButtonChecked(hDlg, nIDDlgItem) == BST_CHECKED);
 public: // Property - Text
 	template<class TCHAR>
-	/* W */ inline auto &Text(const TCHAR *lpsz) reflect_to_self(WX::SetDlgItemText(hDlg, nIDDlgItem, lpsz));
+	/* W */ inline auto &Text(const TCHAR *lpText) reflect_to_self(WX::SetDlgItemText(hDlg, nIDDlgItem, lpText));
 	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenNotice>
 	/* R */ inline StringX<IsUnicode> Text() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
-		auto len = WX::GetDlgItemText(hDlg, nIDDlgItem, lpsz, (int)MaxLen);
-		StringX<IsUnicode>::Resize(lpsz, len);
-		return { (size_t)len, lpsz };
+		StringX<IsUnicode> str(MaxLen);
+		auto len = WX::GetDlgItemText(hDlg, nIDDlgItem, str, (int)MaxLen);
+		return inject(str.Resize(len));
 	}
-	/* R */ inline StringA TextA() const reflect_as(Text<false>());
-	/* R */ inline StringW TextW() const reflect_as(Text<true>());
+	template<size_t MaxLen = MaxLenNotice>
+	/* R */ inline StringA TextA() const reflect_as(Text<false, MaxLen>());
+	template<size_t MaxLen = MaxLenNotice>
+	/* R */ inline StringW TextW() const reflect_as(Text<true, MaxLen>());
 public: // Property - Window
 	template<class AnyChild = void>
 	/* R */ inline WindowShim<AnyChild> Window() reflect_as(WX::GetDlgItem(hDlg, nIDDlgItem));
@@ -173,7 +174,7 @@ enum_flags(DialogColorStyle, DWORD,
 using DlgColorStyle = DialogColorStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogColorX : public DialogCommon<
-	switch_structx(CHOOSECOLOR),
+	structx(CHOOSECOLOR),
 	Chain<DialogColorX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(CHOOSECOLOR);
 public:
@@ -240,7 +241,7 @@ enum_flags(DialogFontStyle, DWORD,
 using DlgFontStyle = DialogFontStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogFontX : public DialogCommon<
-	switch_structx(CHOOSEFONT),
+	structx(CHOOSEFONT),
 	Chain<DialogFontX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(CHOOSEFONT);
 	using_structx(FontLogic);
@@ -329,7 +330,7 @@ enum_flags(DialogFileStyle, DWORD,
 using DlgFileStyle = DialogFileStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogFileX : public DialogCommon<
-	switch_structx(OPENFILENAME),
+	structx(OPENFILENAME),
 	Chain<DialogFileX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(OPENFILENAME);
 	using LPTSTR = LPXSTR<IsUnicode>;
@@ -424,7 +425,7 @@ enum_flags(DialogTextStyle, DWORD,
 using DlgTextStyle = DialogTextStyle;
 template<bool IsUnicode, class AnyChild = void>
 class DialogTextX : public DialogCommon<
-	switch_structx(FINDREPLACE),
+	structx(FINDREPLACE),
 	Chain<DialogTextX<IsUnicode, AnyChild>, AnyChild>> {
 	using_structx(FINDREPLACE);
 	using String = StringX<IsUnicode>;
@@ -638,9 +639,9 @@ public: // Property - String
 	template<bool IsUnicode = WX::IsUnicode>
 	/* R */ inline StringX<IsUnicode> Text() const {
 		auto len = WX::GetDlgItemText(hDlg, nIDDlgItem, (LPXSTR<IsUnicode>)O, 0);
-		auto lpsz = StringX<IsUnicode>::Alloc(len);
-		assertl(len == GetDlgItemText(hDlg, nIDDlgItem, lpsz, len));
-		return{ len, lpsz };
+		StringX<IsUnicode> str((size_t)len);
+		WX::GetDlgItemText(hDlg, nIDDlgItem, str, len);
+		return inject(str);
 	}
 	/* R */ inline StringA TextA() const reflect_as(Text<false>());
 	/* R */ inline StringW TextW() const reflect_as(Text<true>());

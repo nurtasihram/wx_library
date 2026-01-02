@@ -28,10 +28,9 @@ public:
 public: // Property - Name
 	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
-		auto len = WX::GetAtomName(self, lpsz, MaxLen);
-		StringX<IsUnicode>::Resize(lpsz, len);
-		return { (size_t)len, lpsz };
+		StringX<IsUnicode> str(MaxLen);
+		auto len = WX::GetAtomName(self, str, (int)MaxLen);
+		return inject(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenClass>
 	/* R */ inline StringA NameA() const reflect_as(Name<false, MaxLen>());
@@ -64,10 +63,9 @@ public:
 public: // Property - Name
 	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
-		auto len = WX::GetAtomName(self, lpsz, MaxLen);
-		StringX<IsUnicode>::Resize(lpsz, len);
-		return { (size_t)len, lpsz };
+		StringX<IsUnicode> str(MaxLen);
+		auto len = WX::GetAtomName(self, str, (int)MaxLen);
+		return inject(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenClass>
 	/* R */ inline StringA NameA() const reflect_as(Name<false, MaxLen>());
@@ -101,7 +99,7 @@ public: // Property - Primary
 };
 using MonitorInfo = MonitorInformations;
 template<bool IsUnicode = WX::IsUnicode>
-class MonitorInformationsExX : public RefStruct<switch_structx(MONITORINFOEX)> {
+class MonitorInformationsExX : public RefStruct<structx(MONITORINFOEX)> {
 	using MONITORINFOEX = std::conditional_t<IsUnicode, MONITORINFOEXW, MONITORINFOEXA>;
 	using String = StringX<IsUnicode>;
 public:
@@ -633,8 +631,8 @@ public:
 	inline void Unregister() const reflect_as(WX::UnregisterClass(self->lpszClassName, self->hInstance));
 };
 template<bool IsUnicode>
-class WindowClassX : public WindowClassBase<switch_structx(WNDCLASS), WindowClassX<IsUnicode>> {
-	using WNDCLASS = switch_structx(WNDCLASS);
+class WindowClassX : public WindowClassBase<structx(WNDCLASS), WindowClassX<IsUnicode>> {
+	using WNDCLASS = structx(WNDCLASS);
 public:
 	using super = WindowClassBase<WNDCLASS, WindowClassX>;
 public:
@@ -646,7 +644,7 @@ using WindowClass = WindowClassX<IsUnicode>;
 using WindowClassA = WindowClassX<false>;
 using WindowClassW = WindowClassX<true>;
 template<bool IsUnicode>
-class WindowClassExX : public WindowClassBase<switch_structx(WNDCLASSEX), WindowClassExX<IsUnicode>> {
+class WindowClassExX : public WindowClassBase<structx(WNDCLASSEX), WindowClassExX<IsUnicode>> {
 	using_structx(WNDCLASSEX);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
@@ -669,7 +667,7 @@ using WindowClassExW = WindowClassExX<true>;
 
 #pragma region CreateStruct
 template<bool IsUnicode, class Style = WStyle, class StyleEx = WStyleEx>
-class CreateStructX : public RefStruct<switch_structx(CREATESTRUCT)> {
+class CreateStructX : public RefStruct<structx(CREATESTRUCT)> {
 	using_structx(CREATESTRUCT);
 	using_structx(WNDCLASS);
 	using_structx(WNDCLASSEX);
@@ -950,10 +948,9 @@ public: // Property - Menu
 public: // Property - Name
 	template<size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
-		auto lpszName = StringX<IsUnicode>::Alloc(MaxLen);
-		auto len = WX::GetClassName(hWnd, lpszName, MaxLen);
-		lpszName = StringX<IsUnicode>::Realloc(len, lpszName);
-		return { (size_t)len, lpszName };
+		StringX<IsUnicode> str(MaxLen);
+		auto len = WX::GetClassName(hWnd, str, (int)MaxLen);
+		return inject(str.Resize(len));
 	}
 public: // Property - Atom
 	/* W */ inline auto &Atom(ATOM classAtom) reflect_to_self(Words(GCW_ATOM) = classAtom);
@@ -1473,22 +1470,23 @@ public: // Property - String
 	/* R */ inline StringX<IsUnicode> Text() const {
 		auto len = TextLength<IsUnicode>();
 		if (len <= 0) return O;
-		auto lpszName = StringX<IsUnicode>::Alloc(len);
-		assertl(len == WX::GetWindowText(self, lpszName, len));
-		return{ (size_t)len, lpszName };
+		StringX<IsUnicode> str((size_t)len);
+		WX::GetWindowText(self, str, len);
+		return inject(str);
 	}
 	/* R */ inline StringA TextA() const reflect_as(Text<false>());
 	/* R */ inline StringW TextW() const reflect_as(Text<true>());
 public: // Property - ModuleFileName
 	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenPath>
 	/* R */ inline StringX<IsUnicode> ModuleFileName() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
-		int len = WX::GetWindowModuleFileName(self, lpsz, MaxLen);
-		StringX<IsUnicode>::Resize(lpsz, len);
-		return { (size_t)len, lpsz };
+		StringX<IsUnicode> str(MaxLen);
+		int len = WX::GetWindowModuleFileName(self, str, (int)MaxLen);
+		return inject(str.Resize(len));
 	}
-	/* R */ inline StringA ModuleFileNameA() const reflect_as(ModuleFileName<false>());
-	/* R */ inline StringW ModuleFileNameW() const reflect_as(ModuleFileName<true>());
+	template<size_t MaxLen = MaxLenPath>
+	/* R */ inline StringA ModuleFileNameA() const reflect_as(ModuleFileName<false, MaxLen>());
+	template<size_t MaxLen = MaxLenPath>
+	/* R */ inline StringW ModuleFileNameW() const reflect_as(ModuleFileName<true, MaxLen>());
 public: // Property - Parent
 	/* W */ inline auto&Parent(HWND hParent) reflect_to_child(WX::SetParent(self, hParent));
 	template<class AnyClass = void>
@@ -1670,13 +1668,14 @@ public: // Property - Count
 public: // Property - Name
 	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLenClass);
-		auto len = WX::GetClipboardFormatName(uFormat, lpsz, MaxLenClass);
-		StringX<IsUnicode>::Resize(lpsz, len);
-		return { (size_t)len, lpsz };
+		StringX<IsUnicode> str(MaxLen);
+		auto len = WX::GetClipboardFormatName(uFormat, str, (int)MaxLen);
+		return inject(str.Resize(len));
 	}
-	/* R */ inline StringA NameA() const reflect_as(Name<false>());
-	/* R */ inline StringW NameW() const reflect_as(Name<true>());
+	template<size_t MaxLen = MaxLenClass>
+	/* R */ inline StringA NameA() const reflect_as(Name<false, MaxLen>());
+	template<size_t MaxLen = MaxLenClass>
+	/* R */ inline StringW NameW() const reflect_as(Name<true, MaxLen>());
 public:
 	inline operator bool() const reflect_as(WX::IsClipboardFormatAvailable(uFormat));
 	inline operator HANDLE() const reflect_as(WX::GetClipboardData(uFormat));

@@ -374,9 +374,9 @@ public: // FormatDate
 	template<bool IsUnicode = WX::IsUnicode>
 	inline StringX<IsUnicode> FormatDate(Locales locale = Locales::Default, DateFormat df = DateFormat::Default, LPCXSTR<IsUnicode> lpFormat = O) const {
 		int len = WX::GetDateFormat(locale.yield(), df.yield(), this, lpFormat, O, 0);
-		auto lpsz = StringX<IsUnicode>::Alloc(len - 1);
-		WX::GetDateFormat(locale.yield(), df.yield(), this, lpFormat, lpsz, len);
-		return{ (size_t)len, lpsz };
+		StringX<IsUnicode> str((size_t)len - 1);
+		WX::GetDateFormat(locale.yield(), df.yield(), this, lpFormat, str, len);
+		return inject(str);
 	}
 	inline StringA FormatDate(Locales locale, DateFormat df, LPCSTR lpFormat) const reflect_as(FormatDate<false>(locale, df, lpFormat));
 	inline StringW FormatDate(Locales locale, DateFormat df, LPCWSTR lpFormat) const reflect_as(FormatDate<true>(locale, df, lpFormat));
@@ -384,17 +384,17 @@ public: // FormatDate
 	inline StringW FormatDateW(Locales locale = Locales::Default, DateFormat df = DateFormat::Default, LPCWSTR lpFormat = O) const reflect_as(FormatDate<true>(locale, df, lpFormat));
 	inline StringW FormatDate(LPCWSTR lpLocaleName, DateFormat df = DateFormat::Default, LPCWSTR lpFormat = O) const {
 		int len = WX::GetDateFormat(lpLocaleName, df.yield(), this, lpFormat, O, 0, O);
-		auto lpsz = StringW::Alloc(len - 1);
-		WX::GetDateFormat(lpLocaleName, df.yield(), this, lpFormat, lpsz, len, O);
-		return{ (size_t)len, lpsz };
+		StringW str((size_t)len - 1);
+		WX::GetDateFormat(lpLocaleName, df.yield(), this, lpFormat, str, len, O);
+		return inject(str);
 	}
 public: // FormatTime
 	template<bool IsUnicode = WX::IsUnicode>
 	inline StringX<IsUnicode> FormatTime(Locales locale = Locales::Default, TimeFormat tf = TimeFormat::Default, LPCXSTR<IsUnicode> lpFormat = O) const {
 		int len = WX::GetTimeFormat(locale.yield(), tf.yield(), this, lpFormat, O, 0);
-		auto lpsz = StringX<IsUnicode>::Alloc(len - 1);
-		GetTimeFormat(locale.yield(), tf.yield(), this, lpFormat, lpsz, len);
-		return{ (size_t)len, lpsz };
+		StringX<IsUnicode> str((size_t)len - 1);
+		GetTimeFormat(locale.yield(), tf.yield(), this, lpFormat, str, len);
+		return inject(str);
 	}
 	inline StringA FormatTime(Locales locale, TimeFormat tf, LPCSTR lpFormat) const reflect_as(FormatTime<false>(locale, tf, lpFormat));
 	inline StringW FormatTime(Locales locale, TimeFormat tf, LPCWSTR lpFormat) const reflect_as(FormatTime<true>(locale, tf, lpFormat));
@@ -402,24 +402,23 @@ public: // FormatTime
 	inline StringW FormatTimeW(Locales locale = Locales::Default, TimeFormat tf = TimeFormat::Default, LPCWSTR lpFormat = O) const reflect_as(FormatTime<true>(locale, tf, lpFormat));
 	inline StringW FormatTime(LPCWSTR lpLocaleName, TimeFormat tf = TimeFormat::Default, LPCWSTR lpFormat = O) const {
 		int len = WX::GetTimeFormat(lpLocaleName, tf.yield(), this, lpFormat, O, 0);
-		auto lpsz = StringW::Alloc(len - 1);
-		WX::GetTimeFormat(lpLocaleName, tf.yield(), this, lpFormat, lpsz, len);
-		return{ (size_t)len, lpsz };
+		StringW str((size_t)len - 1);
+		WX::GetTimeFormat(lpLocaleName, tf.yield(), this, lpFormat, str, len);
+		return inject(str);
 	}
 public:
 	template<bool IsUnicode = WX::IsUnicode>
 	inline StringX<IsUnicode> toString() const {
-		int lenDate = WX::GetDateFormat(LOCALE_CUSTOM_DEFAULT, 0, this, (LPCXSTR<IsUnicode>)O, O, 0);
-		int lenTime = WX::GetTimeFormat(LOCALE_CUSTOM_DEFAULT, 0, this, (LPCXSTR<IsUnicode>)O, O, 0);
-		auto lpsz = StringX<IsUnicode>::Alloc(lenDate + lenTime - 1);
-		WX::GetDateFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, lpsz, lenDate);
-		WX::GetTimeFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, lpsz + lenDate, lenTime);
-		lpsz[lenDate - 1] = ' ';
-		return{ (size_t)(lenDate + lenTime - 1), lpsz };
+		int lenDate = WX::GetDateFormat(LOCALE_CUSTOM_DEFAULT, 0, this, (LPCXSTR<IsUnicode>)O, O, 0),
+			lenTime = WX::GetTimeFormat(LOCALE_CUSTOM_DEFAULT, 0, this, (LPCXSTR<IsUnicode>)O, O, 0);
+		StringX<IsUnicode> str((size_t)lenDate + lenTime - 1);
+		WX::GetDateFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, str, lenDate);
+		WX::GetTimeFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, ((LPXSTR<IsUnicode>)str) + lenDate, lenTime);
+		str[lenDate - 1] = ' ';
+		return inject(str);
 	}
 	inline StringA toStringA() const reflect_as(toString<false>());
 	inline StringW toStringW() const reflect_as(toString<true>());
-
 public:
 	inline operator StringA() const reflect_as(toStringA());
 	inline operator StringW() const reflect_as(toStringW());
@@ -563,7 +562,7 @@ public:
 	LRect &align(LAlign a, const LRect &r2) {
 		if (a == LAlign::HCenter)
 			xmove((r2.left + r2.right - left - right) / 2);
-		elif(a <= LAlign::Right) {
+		elif (a <= LAlign::Right) {
 			left += r2.right - right;
 			right = r2.right;
 		}
@@ -573,7 +572,7 @@ public:
 		}
 		if (a == LAlign::VCenter)
 			ymove((r2.top + r2.bottom - top - bottom) / 2);
-		elif(a <= LAlign::Bottom) {
+		elif (a <= LAlign::Bottom) {
 			top += r2.bottom - bottom;
 			bottom = r2.bottom;
 		}

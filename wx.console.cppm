@@ -10,7 +10,7 @@ import wx.proto;
 #pragma region Win32 Prototype Includes
 namespace WX {
 
-#pragma region procssenv.h (part)
+#pragma region ProcssEnv.h (part)
 // GetStdHandle
 inline HANDLE GetStdHandle(DWORD nStdHandle)
 	assertl_reflect_as(auto h = ::GetStdHandle(nStdHandle); h != INVALID_HANDLE_VALUE, h);
@@ -722,23 +722,25 @@ public: // Property - Title
 	/* W */ inline auto&Title(const TCHAR *lpTitle) reflect_to_self(WX::SetConsoleTitle(lpTitle));
 	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenTitle>
 	/* R */ inline StringX<IsUnicode> Title() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
-		auto len = WX::GetConsoleTitle(lpsz, MaxLen);
-		StringX<IsUnicode>::Resize(lpsz, len);
-		return{ (size_t)len, lpsz };
+		StringX<IsUnicode> str(MaxLen);
+		auto len = WX::GetConsoleTitle(str, (int)MaxLen);
+		return inject(str.Resize(len));
 	}
-	/* R */ inline StringA TitleA() const reflect_as(Title<false>());
-	/* R */ inline StringW TitleW() const reflect_as(Title<true>());
+	template<size_t MaxLen = MaxLenTitle>
+	/* R */ inline StringA TitleA() const reflect_as(Title<false.MaxLen>());
+	template<size_t MaxLen = MaxLenTitle>
+	/* R */ inline StringW TitleW() const reflect_as(Title<true, MaxLen>());
 public: // Property - OriginalTitle
 	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenTitle>
 	/* R */ inline StringX<IsUnicode> OriginalTitle() const {
-		auto lpsz = StringX<IsUnicode>::Alloc(MaxLen);
-		auto len = WX::GetConsoleOriginalTitle(lpsz, MaxLen);
-		StringX<IsUnicode>::Resize(lpsz, len);
-		return{ (size_t)len, lpsz };
+		StringX<IsUnicode> str(MaxLen);
+		auto len = WX::GetConsoleOriginalTitle(str, (int)MaxLen);
+		return inject(str.Resize(len));
 	}
-	/* R */ inline StringA OriginalTitleA() const reflect_as(OriginalTitle<false>());
-	/* R */ inline StringW OriginalTitleW() const reflect_as(OriginalTitle<true>());
+	template<size_t MaxLen = MaxLenTitle>
+	/* R */ inline StringA OriginalTitleA() const reflect_as(OriginalTitle<false, MaxLen>());
+	template<size_t MaxLen = MaxLenTitle>
+	/* R */ inline StringW OriginalTitleW() const reflect_as(OriginalTitle<true, MaxLen>());
 //public: // Property - Window
 //	inline CWindow Window() const reflect_as(WX::GetConsoleWindow());
 public: // Property - CodePage

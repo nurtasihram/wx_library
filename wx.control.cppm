@@ -9,6 +9,32 @@ import wx.proto;
 
 export namespace WX {
 
+template<class AnyType>
+struct RangeOf {
+	AnyType min, max;
+public:
+	RangeOf(const AnyType &a) : min(a), max(a) {}
+	RangeOf(const AnyType &low, const AnyType &high) : min(low), max(high) {}
+public: // Property - Low
+	/* W */ inline auto&Low(const AnyType &low) reflect_to_self(this->min = low);
+	/* R */ inline auto Low() const reflect_as(this->min);
+public: // Property - High
+	/* W */ inline auto&High(const AnyType &high) reflect_to_self(this->min = high);
+	/* R */ inline auto High() const reflect_as(this->min);
+public: // Property - Min
+	/* W */ inline auto&Min(const AnyType &min) reflect_to_self(this->min = min);
+	/* R */ inline auto Min() const reflect_as(this->min);
+public: // Property - Max
+	/* W */ inline auto&Max(const AnyType &max) reflect_to_self(this->max = max);
+	/* R */ inline auto Max() const reflect_as(this->max);
+public:	// Property - Start
+	/* W */ inline auto&Start(const AnyType &start) reflect_to_self(this->min = start);
+	/* R */ inline auto Start() const reflect_as(this->min);
+public:	// Property - End
+	/* W */ inline auto&End(const AnyType &end) reflect_to_self(this->max = end);
+	/* R */ inline auto End() const reflect_as(this->max);
+};
+
 enum_flags(SystemState, DWORD,
 	Unavailable       = STATE_SYSTEM_UNAVAILABLE,
 	Selected          = STATE_SYSTEM_SELECTED,
@@ -158,11 +184,12 @@ enum_class(HeaderFilterType, UINT,
 enum_flags(HeaderItemState, UINT,
 	Focussed = HDIS_FOCUSED);
 template<bool IsUnicode>
-class HeaderItemX : public RefStruct<switch_structx(HDITEM)> {
+class HeaderItemX : public RefStruct<structx(HDITEM)> {
 	using_structx(HDITEM);
 	using_structx(HD_TEXTFILTER);
+	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<switch_structx(HDITEM)>;
+	using super = RefStruct<structx(HDITEM)>;
 public:
 	HeaderItemX() reflect_to(self->mask = HDI_WIDTH | HDI_HEIGHT |
 		HDI_TEXT | HDI_FORMAT | HDI_LPARAM |
@@ -171,35 +198,35 @@ public:
 	HeaderItemX(Null) {}
 	HeaderItemX(const HDITEM &hdi) : super(hdi) {}
 public: // Property - Width
-	/* W */ inline auto &Width(int cx) reflect_to_self(self->cxy = cx, self->mask |= HDI_WIDTH);
-	/* R */ inline auto  Width() const reflect_as(self->cxy);
+	/* W */ inline auto&Width(int cx) reflect_to_self(self->cxy = cx, self->mask |= HDI_WIDTH);
+	/* R */ inline auto Width() const reflect_as(self->cxy);
 public: // Property - Height
-	/* W */ inline auto &Height(int cy) reflect_to_self(self->cxy = cy, self->mask |= HDI_HEIGHT);
-	/* R */ inline auto  Height() const reflect_as(self->cxy);
+	/* W */ inline auto&Height(int cy) reflect_to_self(self->cxy = cy, self->mask |= HDI_HEIGHT);
+	/* R */ inline auto Height() const reflect_as(self->cxy);
 public: // Property - Text
 	/* R */ inline const String Text() const reflect_as(CString(self->pszText, self->cchTextMax));
 public: // Property - Bitmap
 	/* W */ inline auto &Bitmap(HBITMAP hBitmap) reflect_to_self(self->hbm = hBitmap, self->mask |= HDI_BITMAP);
 	/* R */ inline CBitmap Bitmap() const reflect_as(self->hbm);
 public: // Property - Format
-	/* W */ inline auto &Format(HeaderFormat fmt) reflect_to_self(self->fmt = fmt.yield(), self->mask |= HDI_FORMAT);
-	/* R */ inline auto  Format() const reflect_as(ref_as<HeaderFormat>(self->fmt));
+	/* W */ inline auto&Format(HeaderFormat fmt) reflect_to_self(self->fmt = fmt.yield(), self->mask |= HDI_FORMAT);
+	/* R */ inline auto Format() const reflect_as(ref_as<HeaderFormat>(self->fmt));
 public: // Property - Param
 	/* W */ inline auto &Param(LPARAM lParam) reflect_to_self(self->lParam = lParam, self->mask |= HDI_LPARAM);
 	/* R */ inline LPARAM Param() const reflect_as(self->lParam);
 public: // Property - Image
-	/* W */ inline auto &Image(int iImage) reflect_to_self(self->iImage = iImage, self->mask |= HDI_IMAGE);
-	/* R */ inline auto  Image() const reflect_as(self->iImage);
+	/* W */ inline auto&Image(int iImage) reflect_to_self(self->iImage = iImage, self->mask |= HDI_IMAGE);
+	/* R */ inline auto Image() const reflect_as(self->iImage);
 public: // Property - Order
-	/* W */ inline auto &Order(int iOrder) reflect_to_self(self->iOrder = iOrder, self->mask |= HDI_ORDER);
-	/* R */ inline auto  Order() const reflect_as(self->iOrder);
+	/* W */ inline auto&Order(int iOrder) reflect_to_self(self->iOrder = iOrder, self->mask |= HDI_ORDER);
+	/* R */ inline auto Order() const reflect_as(self->iOrder);
 public: // Property - FilterType
 	/* R */ inline auto FilterType() const reflect_as(ref_as<HeaderFilterType>(self->type));
 public: // Property - Filter
-	//void *pvFilter;       // [in] filter data see above
+	//void *pvFilter; // [in] filter data see above
 public: // Property - States
-	/* W */ inline auto &States(HeaderItemState state) reflect_to_self(self->state = state.yield(), self->mask |= HDI_STATE);
-	/* R */ inline auto  States() const reflect_as(ref_as<HeaderItemState>(self->state));
+	/* W */ inline auto&States(HeaderItemState state) reflect_to_self(self->state = state.yield(), self->mask |= HDI_STATE);
+	/* R */ inline auto States() const reflect_as(ref_as<HeaderItemState>(self->state));
 };
 using HeaderItem = HeaderItemX<IsUnicode>;
 using HeaderItemA = HeaderItemX<false>;
@@ -209,13 +236,11 @@ class HeaderIItem {
 	friend class HeaderBase;
 	CWindow header;
 	int index;
-public:
+protected:
 	HeaderIItem(HWND hHeader, int index) : header(hHeader), index(index) {}
 public:
 	inline void Remove() assertl_reflect_as(header->Send(HDM_DELETEITEM, index));
 public:
-	inline operator HeaderItemA() const;
-	inline operator HeaderItemW() const;
 	inline auto &operator=(const HDITEMA &hdi) assertl_reflect_as_self(header->Send(HDM_SETITEMA, index, (LPARAM)&hdi));
 	inline auto &operator=(const HDITEMW &hdi) assertl_reflect_as_self(header->Send(HDM_SETITEMW, index, (LPARAM)&hdi));
 };
@@ -237,6 +262,7 @@ public: // Property - Count
 #pragma endregion
 };
 using Header = HeaderBase<void>;
+using CHeader = RefAs<Header>;
 #pragma endregion
 
 #pragma region Control ToolBar
@@ -284,32 +310,31 @@ enum_flags(ToolBarButtonStyle, BYTE,
 	NoPrefix        = BTNS_NOPREFIX,
 	ShowText        = BTNS_SHOWTEXT,
 	WholeDropDown   = BTNS_WHOLEDROPDOWN);
-class ToolBarButton : public RefStruct<TBBUTTON> {
-public:
+struct ToolBarButton : public RefStruct<TBBUTTON> {
 	using super = RefStruct<TBBUTTON>;
 public:
 	ToolBarButton() {}
 	ToolBarButton(const TBBUTTON &t) : super(t) {}
-public: 
-	/* W */ inline auto &BitmapIndex(int iBitmap) reflect_to_self(self->iBitmap = iBitmap);
-	/* R */ inline int BitmapIndex() const reflect_as(self->iBitmap);
-public: 
-	/* W */ inline auto &ID(int idCommand) reflect_to_self(self->idCommand = idCommand);
-	/* R */ inline int ID() const reflect_as(self->idCommand);
-public: 
-	/* W */ inline auto &States(ToolBarState tbs) reflect_to_self(self->fsState = tbs.yield());
-	/* R */ inline ToolBarState States() const reflect_as(reuse_as<ToolBarState>(self->fsState));
-public: 
+public: // Property - BitmapIndex
+	/* W */ inline auto&BitmapIndex(int iBitmap) reflect_to_self(self->iBitmap = iBitmap);
+	/* R */ inline auto BitmapIndex() const reflect_as(self->iBitmap);
+public: // Property - ID
+	/* W */ inline auto&ID(int idCommand) reflect_to_self(self->idCommand = idCommand);
+	/* R */ inline auto ID() const reflect_as(self->idCommand);
+public: // Property - States
+	/* W */ inline auto&States(ToolBarState tbs) reflect_to_self(self->fsState = tbs.yield());
+	/* R */ inline auto States() const reflect_as(reuse_as<ToolBarState>(self->fsState));
+public: // Property - Styles
 	/* W */ inline auto &Styles(ToolBarButtonStyle tbbs) reflect_to_self(self->fsStyle = tbbs.yield());
-	/* R */ inline ToolBarButtonStyle Styles() const reflect_as(reuse_as<ToolBarButtonStyle>(self->fsStyle));
-public: 
+	/* R */ inline auto Styles() const reflect_as(reuse_as<ToolBarButtonStyle>(self->fsStyle));
+public: // Property - Data
 	template<class AnyType>
 	/* W */ inline auto &Data(AnyType *ptr) reflect_to_self(self->dwData = (DWORD_PTR)ptr);
 	template<class AnyType>
 	/* R */ inline AnyType *Data() reflect_as(reuse_as<AnyType *>(self->dwData));
 	template<class AnyType>
 	/* R */ inline const AnyType *Data() const reflect_as(reuse_as<const AnyType *>(self->dwData));
-public: 
+public: // Property - String
 	/* W */ inline auto &String(INT_PTR iString) reflect_to_self(self->iString = iString);
 	/* W */ inline auto &String(LPCTSTR lpString) reflect_to_self(self->iString = (INT_PTR)lpString);
 	/* R */ inline INT_PTR StringIndex() const reflect_as(self->iString);
@@ -327,6 +352,7 @@ public:
 	ToolBarBase() {}
 };
 using ToolBar = ToolBarBase<void>;
+using CToolBar = RefAs<ToolBar>;
 #pragma endregion
 
 #pragma region Control ReBar
@@ -353,6 +379,9 @@ enum_flags(ToolTipStyle, CCStyle,
 #pragma endregion
 
 #pragma region Control StatusBar
+enum_flags(StatusBarStyle, WStyle,
+	SizeGripb    = SBARS_SIZEGRIP,
+	ToolTips     = SBARS_TOOLTIPS);
 enum_flags(StatusBarTextStyle, uint16_t,
 	Default      = 0,
 	OwnerDraw    = SBT_OWNERDRAW,
@@ -360,69 +389,104 @@ enum_flags(StatusBarTextStyle, uint16_t,
 	PopOut       = SBT_POPOUT,
 	RTLReading   = SBT_RTLREADING,
 	NoTabParsing = SBT_NOTABPARSING);
+template<bool IsUnicode = WX::IsUnicode>
+class StatusBarTextX {
+	using String = StringX<IsUnicode>;
+	String text;
+	StatusBarTextStyle styles;
+public:
+	StatusBarTextX() {}
+	StatusBarTextX(StatusBarTextX &&t) : text(inject(t.text)), styles(t.styles) {}
+	StatusBarTextX(String text, StatusBarTextStyle styles = StatusBarTextStyle::Default) : 
+		text(inject(text)), styles(styles) {}
+public: // Property - Styles
+	/* W */ inline auto&Styles(StatusBarTextStyle styles) reflect_to_self(this->styles = styles);
+	/* R */ inline auto Styles() const reflect_as(styles);
+public:
+	inline operator String &() reflect_as(text);
+	inline operator const String &() const reflect_as(text);
+	inline operator StatusBarTextStyle() reflect_as(styles);
+};
+using StatusBarText = StatusBarTextX<>;
+using StatusBarTextA = StatusBarTextX<false>;
+using StatusBarTextW = StatusBarTextX<true>;
+class StatusBarIPart {
+	template<class>
+	friend class StatusBarBase;
+	CWindow bar;
+	uint8_t nPart;
+protected:
+	StatusBarIPart(HWND hBar, uint8_t nPart) : bar(hBar), nPart(nPart) {}
+#pragma region Properties
+public: // Property - TextLength
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline uint16_t TextLength() const reflect_as(LOWORD(bar->Send(IsUnicode ? SB_GETTEXTLENGTHW : SB_GETTEXTLENGTHA, nPart)));
+	/* R */ inline uint16_t TextLengthA() const reflect_as(LOWORD(bar->Send(SB_GETTEXTLENGTHA, nPart)));
+	/* R */ inline uint16_t TextLengthW() const reflect_as(LOWORD(bar->Send(SB_GETTEXTLENGTHW, nPart)));
+public: // Property - TextStyle
+	/* R */ inline StatusBarTextStyle TextStyles() const reflect_as(reuse_as<StatusBarTextStyle>(HIWORD(bar->Send(SB_GETTEXTLENGTH, nPart))));
+public: // Property - Text
+	/* W */ inline bool Text(StatusBarTextA text) reflect_as(bar->Send(SB_SETTEXTA, MAKEWPARAM(nPart | text.Styles().yield(), 0), (LPCSTR)(const StringA &)text));
+	/* W */ inline bool Text(StatusBarTextW text) reflect_as(bar->Send(SB_SETTEXTW, MAKEWPARAM(nPart | text.Styles().yield(), 0), (LPCWSTR)(const StringW &)text));
+	template<bool IsUnicode = WX::IsUnicode>
+	/* R */ inline StatusBarTextX<IsUnicode> Text() const {
+		auto len = TextLength<IsUnicode>();
+		if (len <= 0) return{};
+		StringX<IsUnicode> str((size_t)len);
+		auto styles = reuse_as<StatusBarTextStyle>(HIWORD(bar->Send(SB_GETTEXT, nPart, str)));
+		return{ inject(str), styles };
+	}
+public: // Property - TipText
+	/* W */ inline auto &TipText(LPCSTR lpText) reflect_to_self(bar->Send(SB_SETTIPTEXTA, nPart, lpText));
+	/* W */ inline auto &TipText(LPCWSTR lpText) reflect_to_self(bar->Send(SB_SETTIPTEXTW, nPart, lpText));
+public: // Property - Icon
+	/* W */ inline auto &Icon(HICON hIcon) reflect_to_self(bar->Send(SB_SETICON, nPart, hIcon));
+	/* R */ inline CIcon Icon() const reflect_as(bar->Send<HICON>(SB_GETICON, nPart));
+public: // Property - Rect
+	/* R */ inline LRect Rect() const assertl_reflect_to(LRect rc, bar->Send(SB_GETRECT, nPart, &rc), rc);
+#pragma endregion
+public:
+	inline auto &operator=(String text) reflect_to_self(Text(static_cast<String &&>((String &)text)));
+	inline auto &operator=(StatusBarText text) reflect_to_self(Text({ static_cast<String &&>((String &)text), text.Styles()}));
+};
 BaseOf_CommCtl(class StatusBarBase) {
 	SFINAE_CommCtl(StatusBarBase);
 public:
 	static constexpr TCHAR CtlClassName[] = STATUSCLASSNAME;
 	using super = ControlCommon<Chain<StatusBarBase<AnyChild>, AnyChild>>;
-	using Style = WStyle;
+	using Style = StatusBarStyle;
 	using StyleEx = WStyleEx;
-	using TextStyle = StatusBarTextStyle;
 public:
 	StatusBarBase() {}
 public:
-	inline void FixSize() reflect_to(super::Send(WM_SIZE));
+	inline void AutoSize() reflect_to(super::Send(WM_SIZE));
 
 #pragma region Properties
 public: 
 	template<size_t Len>
-	/* W */ inline bool SetParts(const int (&Slice)[Len]) reflect_as(super::Send(SB_SETPARTS, Len, Slice));
-	/* W */ inline bool SetParts(const int *pSlices, int Len) reflect_as(super::Send(SB_SETPARTS, Len, pSlices));
+	/* W */ inline auto&SetParts(const int (&Slice)[Len]) assertl_reflect_as_self(super::Send(SB_SETPARTS, Len, Slice));
+	/* W */ inline auto&SetParts(const int *pSlices, int Len) assertl_reflect_as_self(super::Send(SB_SETPARTS, Len, pSlices));
+	/* W */ inline auto&SetParts(std::initializer_list<int> slices) assertl_reflect_as_self(super::Send(SB_SETPARTS, slices.size(), slices.begin()));
 	template<size_t Len>
 	/* R */ inline bool GetParts(int (&Slice)[Len]) const reflect_as(super::Send(SB_GETPARTS, Len, Slice));
 	/* R */ inline bool GetParts(int *pSlices, int Len) const reflect_as(super::Send(SB_GETPARTS, Len, pSlices));
-public: 
+public: // Property - Borders
 	/* R */ inline auto Borders() const assertl_reflect_to(struct { int _M_(BorderH, BorderV, GapH); } borders, super::Send(SB_GETBORDERS, 0, &borders), borders);
-public: 
+public: // Property - MinHeight
 	/* W */ inline auto&MinHeight(int MinHeight) reflect_to_self(super::Send(SB_SETMINHEIGHT, MinHeight));
-public: 
+public: // Property - Simple
 	/* W */ inline auto&Simple(bool bSimple) reflect_to_self(super::Send(SB_SIMPLE, bSimple));
 	/* R */ inline bool Simple() const reflect_as(super::Send(SB_SIMPLE));
-public: 
-	/* W */ inline LRect Rect(uint8_t nPart) assertl_reflect_to(LRect rc, super::Send(SB_GETRECT, nPart, &rc), rc);
-public: 
-	/* W */ inline auto &Icon(uint8_t nPart, HICON hIcon) reflect_to_self(super::Send(SB_SETICON, nPart, hIcon));
-	/* R */ inline CIcon Icon(uint8_t nPart) const reflect_as((HICON)super::Send(SB_GETICON, nPart));
-public: 
-	/* R */ inline uint16_t TextLength(uint8_t nPart) const reflect_as(super::template Send<uint16_t>(SB_GETTEXTLENGTH, nPart));
-public: 
-	/* R */ inline TextStyle TextStyles(uint8_t nPart) const reflect_as(super::template Send<TextStyle>(SB_GETTEXTLENGTH, nPart) >> 16);
-public: 
-	/* W */ inline bool Text(uint8_t nPart, LPCTSTR text, TextStyle style = TextStyle::Default) reflect_as(super::Send(SB_SETTEXT, nPart | style.yield(), (LPARAM)(LPCTSTR)text));
-	/* R */ inline String Text(uint8_t nPart) const {
-		auto len = TextLength(nPart);
-		if (len <= 0) return O;
-		String str = len;
-		if (super::Send(SB_GETTEXT, nPart, str))
-			return str;
-		return O;
-	}
-public: 
-	/* W */ inline auto  &TipText(WORD id, LPCTSTR tip) reflect_to_self(super::Send(SB_SETTIPTEXT, id, (LPARAM)(LPCTSTR)tip));
-	///* R */ inline String TipText(WORD id) const {
-	//	String str = MaxLenNotice;
-	//	if (super::Send(SB_GETTIPTEXT, MAKEWPARAM(id, MaxLenNotice + 1), str))
-	//		return str.Shrink();
-	//	return O;
-	//}
-public: 
-	/* W */ inline auto &UnicodeFormat(bool bUnicode) reflect_to_self(super::Send(SB_SETUNICODEFORMAT, bUnicode));
-	/* R */ inline bool  UnicodeFormat() const reflect_as(super::Send(SB_GETUNICODEFORMAT));
-public: 
-	/* R */ inline RGBColor BkColor() const reflect_as(super::template Send<RGBColor>(SB_SETBKCOLOR));
+public: // Array property - Part
+	/* W */ inline StatusBarIPart Part(uint8_t nPart) reflect_as({ self, nPart });
+	/* R */ inline const StatusBarIPart Part(uint8_t nPart) const reflect_as({ self, nPart });
 #pragma endregion
+public:
+	inline StatusBarIPart operator[](uint8_t nPart) reflect_as({ self, nPart });
+	inline const StatusBarIPart operator[](uint8_t nPart) const reflect_as({ self, nPart });
 };
 using StatusBar = StatusBarBase<void>;
+using CStatusBar = RefAs<StatusBar>;
 #pragma endregion
 
 #pragma region Control TrackBar
@@ -473,12 +537,55 @@ using UpDown = UpDownBase<void>;
 using CUpDown = RefAs<UpDown>;
 #pragma endregion
 
-#pragma region Control Progress
-enum_flags(ProgressStyle, CCStyle, 
+#pragma region Control Progress Bar
+enum_flags(ProgBarStyle, CCStyle, 
 	Smooth              = PBS_SMOOTH,
 	Vertical            = PBS_VERTICAL,
 	Marquee             = PBS_MARQUEE,
 	SmoothReverse       = PBS_SMOOTHREVERSE);
+enum_class(ProgBarState, DWORD,
+	Normal              = PBST_NORMAL,
+	Error               = PBST_ERROR,
+	Paused              = PBST_PAUSED);
+BaseOf_CommCtl(class ProgBarBase) {
+	SFINAE_CommCtl(ProgBarBase);
+public:
+	static constexpr TCHAR CtlClassName[] = PROGRESS_CLASS;
+	using super = ControlCommon<Chain<ProgBarBase<AnyChild>, AnyChild>>;
+	using Style = ProgBarStyle;
+public:
+	ProgBarBase() {}
+public:
+	inline void StepIt() reflect_to(super::Send(PBM_STEPIT));
+	inline auto DeltaPos(int delta) reflect_as(super::template Send<int>(PBM_DELTAPOS, delta));
+	inline void Marquee(bool bStart, UINT dwMilliSec) assertl_reflect_as(super::Send(PBM_SETMARQUEE, bStart, dwMilliSec));
+#pragma region Properties
+public: // Property - Step
+	/* W */ inline auto&Step(int step) reflect_to_child(super::Send(PBM_SETSTEP, step));
+	/* R */ inline auto Step() const reflect_as(super::template Send<int>(PBM_GETSTEP));
+public: // Property - Position
+	/* W */ inline auto&Position(int pos) reflect_to_child(super::Send(PBM_SETPOS, pos));
+	/* R */ inline auto Position() const reflect_as(super::template Send<int>(PBM_GETPOS));
+public: // Property - Range
+	/* W */ inline auto &Range(RangeOf<int> r) reflect_to_child(PBRANGE rb(r.min, r.max);  super::Send(PBM_SETRANGE, 0, (LPARAM)&rb));
+	/* R */ inline auto Range() const reflect_to(PBRANGE r, super::Send(PBM_GETRANGE, 0, (LPARAM)&r), RangeOf<int>(r.iLow, r.iHigh));
+public: // Property - State
+	/* W */ inline auto&State(ProgBarState state) reflect_to_child(super::Send(PBM_SETSTATE, state.yield()));
+	/* R */ inline auto State() const reflect_as(super::template Send<ProgBarState>(PBM_GETSTATE));
+public: // Property - BarColor
+	/* W */ inline auto&BarColor(COLORREF clr) reflect_to_child(super::Send(PBM_SETBARCOLOR, 0, clr));
+	/* R */ inline auto BarColor() const reflect_as(super::template Send<RGBColor>(PBM_GETBARCOLOR));
+public: // Property - BkColor
+	/* R */ inline auto BkColor() const reflect_as(super::template Send<RGBColor>(PBM_GETBKCOLOR));
+#pragma endregion
+public:
+	inline auto &operator+=(int n) reflect_to_child(DeltaPos(n));
+	inline auto &operator-=(int n) reflect_to_child(DeltaPos(-n));
+	inline auto &operator++() reflect_to_child(DeltaPos(1));
+	inline auto &operator--() reflect_to_child(DeltaPos(-1));
+};
+using ProgBar = ProgBarBase<void>;
+using CProgBar = RefAs<ProgBar>;
 #pragma endregion
 
 #pragma region Control HotKey
@@ -507,7 +614,7 @@ public: // Property - Modifiers
 //	/* W */ inline auto &Modifiers(HotKeyFlag mod) reflect_to_self(this->mod = mod.yield());
 	/* R */ inline HotKeyFlag Modifiers() const reflect_as(this->mod);
 public: // Property - VirtualKey
-	/* W */ inline auto &VirtualKey(BYTE vk) reflect_to_self(this->vk = vk);
+	/* W */ inline auto&VirtualKey(BYTE vk) reflect_to_self(this->vk = vk);
 	/* R */ inline BYTE VirtualKey() const reflect_as(this->vk);
 public:
 	inline operator WPARAM() const reflect_as(MAKEWPARAM(MAKEWORD(mod.yield(), vk), 0));
@@ -524,8 +631,8 @@ public:
 public:
 #pragma region Properties
 public: // Property - HotKey
-	/* W */ inline auto &HotKey(Info inf) reflect_to_self(super::Send(HKM_SETHOTKEY, inf));
-	/* R */ inline Info  HotKey() const reflect_as(super::Send(HKM_GETHOTKEY));
+	/* W */ inline auto&HotKey(Info inf) reflect_to_self(super::Send(HKM_SETHOTKEY, inf));
+	/* R */ inline Info HotKey() const reflect_as(super::Send(HKM_GETHOTKEY));
 public: // Property - Rules
 	/* W */ inline auto &Rules(Rule rules) reflect_to_self(super::Send(HKM_SETRULES, rules.yield()));
 #pragma endregion
@@ -542,17 +649,17 @@ enum_flags(SysLinkStyle, CCStyle,
 	UseVisualStyle      = LWS_USEVISUALSTYLE,
 	UseCustomText       = LWS_USECUSTOMTEXT,
 	Right               = LWS_RIGHT);
-BaseOf_CommCtl(class SysLinkBase) {
-	SFINAE_CommCtl(SysLinkBase);
-public:
-	static constexpr TCHAR CtlClassName[] = WC_LINK;
-	using super = ControlCommon<Chain<SysLinkBase<AnyChild>, AnyChild>>;
-	using Style = SysLinkStyle;
-public:
-	SysLinkBase() {}
-public:
-
-};
+//BaseOf_CommCtl(class SysLinkBase) {
+//	SFINAE_CommCtl(SysLinkBase);
+//public:
+//	static constexpr TCHAR CtlClassName[] = WC_LINK;
+//	using super = ControlCommon<Chain<SysLinkBase<AnyChild>, AnyChild>>;
+//	using Style = SysLinkStyle;
+//public:
+//	SysLinkBase() {}
+//public:
+//
+//};
 #pragma endregion
 
 #pragma region Control ListView
@@ -578,27 +685,40 @@ enum_flags(ListViewStyle, CCStyle,
 	OwnerDrawFixed      = LVS_OWNERDRAWFIXED,
 	NoColumnHeader      = LVS_NOCOLUMNHEADER,
 	NoSortHeader        = LVS_NOSORTHEADER);
-struct ListViewIndex : LVFINDINFO {
-	UINT flags;
-	LPCSTR psz;
-	LPARAM lParam;
-	POINT pt;
-	UINT vkDirection;
+template<bool IsUnicode>
+class ListViewIndex : public RefStruct<LVFINDINFO> {
+	using_structx(LVFINDINFO);
+	using String = StringX<IsUnicode>;
+public:
+	using super = RefStruct<LVFINDINFO>;
+public:
 };
-class ListViewItem : public RefStruct<LVITEM> {
+template<bool IsUnicode>
+class ListViewItemX : public RefStruct<structx(LVITEM)> {
+	using_structx(LVITEM);
+	using String = StringX<IsUnicode>;
 public:
 	using super = RefStruct<LVITEM>;
 public:
-	ListViewItem() {}
-	ListViewItem(const LVITEM &lvi) : super(lvi) {}
+	ListViewItemX() {}
+	ListViewItemX(const LVITEM &l) : super(l) {}
 };
-class ListViewColumn : public RefStruct<LVCOLUMNW> {
+using ListViewItem = ListViewItemX<IsUnicode>;
+using ListViewItemA = ListViewItemX<false>;
+using ListViewItemW = ListViewItemX<true>;
+template<bool IsUnicode>
+class ListViewColumnX : public RefStruct<structx(LVCOLUMN)> {
+	using_structx(LVCOLUMN);
+	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<LVCOLUMNW>;
+	using super = RefStruct<LVCOLUMN>;
 public:
-	ListViewColumn() {}
-	ListViewColumn(const LVCOLUMNW &lvc) : super(lvc) {}
+	ListViewColumnX() {}
+	ListViewColumnX(const LVCOLUMN &l) : super(l) {}
 };
+using ListViewColumn = ListViewColumnX<IsUnicode>;
+using ListViewColumnA = ListViewColumnX<false>;
+using ListViewColumnW = ListViewColumnX<true>;
 BaseOf_CommCtl(class ListViewBase) {
 	SFINAE_CommCtl(ListViewBase);
 public:
@@ -675,7 +795,7 @@ using TreeView = TreeViewBase<void>;
 using CTreeView = RefAs<TreeView>;
 #pragma endregion
 
-#pragma region Control TabControl
+#pragma region Control Tab Control
 enum_flags(TabControlStyle, CCStyle,
 	ScrollOpposite      = TCS_SCROLLOPPOSITE,
 	Bottom              = TCS_BOTTOM,
@@ -736,8 +856,8 @@ using Animate = AnimateBase<void>;
 using CAnimate = RefAs<Animate>;
 #pragma endregion
 
-#pragma region Control MonthCal
-enum_flags(MonthCalStyle, CCStyle,
+#pragma region Control Calendar
+enum_flags(CalendarStyle, CCStyle,
 	DayState          = MCS_DAYSTATE,
 	MultiSelect       = MCS_MULTISELECT,
 	WeekNumbers       = MCS_WEEKNUMBERS,
@@ -746,17 +866,176 @@ enum_flags(MonthCalStyle, CCStyle,
 	NoTrailingDates   = MCS_NOTRAILINGDATES,
 	ShortDaysOfWeek   = MCS_SHORTDAYSOFWEEK,
 	NoSelChangeOnNav  = MCS_NOSELCHANGEONNAV);
-BaseOf_CommCtl(class MonthCalBase) {
-	SFINAE_CommCtl(MonthCalBase);
+enum_class(CalendarView, UINT,
+	Month             = MCMV_MONTH,
+	Year              = MCMV_YEAR,
+	Decade            = MCMV_DECADE,
+	Century           = MCMV_CENTURY);
+enum_class(CalendarID, UINT,
+	Gregorian                  = CAL_GREGORIAN,
+	Gregorian_US               = CAL_GREGORIAN_US,
+	Japan                      = CAL_JAPAN,
+	Taiwan                     = CAL_TAIWAN,
+	Korea                      = CAL_KOREA,
+	Hijri                      = CAL_HIJRI,
+	Thai                       = CAL_THAI,
+	Hebrew                     = CAL_HEBREW,
+	Gregorian_ME_French        = CAL_GREGORIAN_ME_FRENCH,
+	Gregorian_Arabic           = CAL_GREGORIAN_ARABIC,
+	Gregorian_XLit_English     = CAL_GREGORIAN_XLIT_ENGLISH,
+	Gregorian_XLit_French      = CAL_GREGORIAN_XLIT_FRENCH,
+//	Persian                    = CAL_PERSIAN,
+	UmAlQura                   = CAL_UMALQURA);
+struct CalendarGridInfo : public RefStruct<MCGRIDINFO> {
+	using super = RefStruct<MCGRIDINFO>;
+public:
+	CalendarGridInfo() reflect_to(self->cbSize = sizeof(MCGRIDINFO));
+	CalendarGridInfo(Null) {}
+	CalendarGridInfo(const MCGRIDINFO &mg) : super(mg) {}
+
+	//DWORD dwPart;
+	//DWORD dwFlags;
+	//int iCalendar;
+	//int iRow;
+	//int iCol;
+public: // Property - Selected
+	/* W */ inline auto&Selected(BOOL bSelected) reflect_to_self(self->bSelected = bSelected);
+	/* R */ inline bool Selected() const reflect_as(self->bSelected);
+public: // Property - Start
+	/* W */ inline auto&Start(const SYSTEMTIME &stStart) reflect_to_self(self->stStart = stStart);
+	/* R */ inline SysTime Start() const reflect_as(self->stStart);
+public: // Property - End
+	/* W */ inline auto&End(const SYSTEMTIME &stEnd) reflect_to_self(self->stEnd = stEnd);
+	/* R */ inline SysTime End() const reflect_as(self->stEnd);
+public: // Property - Range
+	/* W */ inline auto&Range(RangeOf<SYSTEMTIME> r) reflect_to_self(self->stStart = r.min, self->stEnd = r.max);
+	/* R */ inline RangeOf<SysTime> Range() const reflect_as(RangeOf<SysTime>(self->stStart, self->stEnd));
+public: // Property - Rect
+	/* W */ inline auto&Rect(const RECT &rc) reflect_to_self(self->rc = rc);
+	/* R */ inline LRect Rect() const reflect_as(self->rc);
+	//PWSTR pszName;
+	//size_t cchName;
+};
+BaseOf_CommCtl(class CalendarBase) {
+	SFINAE_CommCtl(CalendarBase);
 public:
 	static constexpr TCHAR CtlClassName[] = MONTHCAL_CLASS;
-	using super = ControlCommon<Chain<MonthCalBase<AnyChild>, AnyChild>>;
-	using Style = MonthCalStyle;
+	using super = ControlCommon<Chain<CalendarBase<AnyChild>, AnyChild>>;
+	using Style = CalendarStyle;
 public:
-	MonthCalBase() {}
+	CalendarBase() {}
+public:
+#pragma region Properties
+public: // Property - CurSel
+	/* W */	inline auto&CurSel(const SYSTEMTIME &s) assertl_reflect_as_child(super::Send(MCM_SETCURSEL, 0, &s));
+	/* R */ inline auto CurSel() const assertl_reflect_to(SysTime s = O, super::Send(MCM_GETCURSEL, 0, &s), s);
+public: // Property - MaxSelCount
+	/* W */ inline auto&MaxSelCount(int count) assertl_reflect_as_child(super::Send(MCM_SETMAXSELCOUNT, count));
+	/* R */	inline auto MaxSelCount() const reflect_as(super::template Send<int>(MCM_GETMAXSELCOUNT));
+public: // Property - SelRange
+//	/* W */ inline auto&SelRange(RangeOf<SYSTEMTIME> r) assertl_reflect_to_child(SYSTEMTIME s[2]{ _M_(r.min, r.max) }, super::Send(MCM_SETSELRANGE, 0, s));
+	/* R */ inline auto SelRange() const assertl_reflect_to(SYSTEMTIME s[2], super::Send(MCM_GETSELRANGE, 0, s), RangeOf<SysTime>(s[0], s[1]));
+public: // Property - Today
+	/* W */ inline auto&Today(const SYSTEMTIME &s) reflect_to_child(super::Send(MCM_SETTODAY, 0, &s));
+	/* W */ inline auto Today() const assertl_reflect_to(SysTime s = O, super::Send(MCM_GETTODAY, 0, &s), s);
+public: // Property - FirstDayOfWeek
+	/* W */ inline auto&FirstDayOfWeek(int day) assertl_reflect_as_child(super::Send(MCM_SETFIRSTDAYOFWEEK, 0, day));
+	/* R */ inline auto FirstDayOfWeek() const reflect_as(super::template Send<int>(MCM_GETFIRSTDAYOFWEEK));
+public: // Property - CalendarID
+	/* W */ inline auto &CalendarID(WX::CalendarID id) assertl_reflect_as_child(super::Send(MCM_SETCALID, 0, id.yield()));
+	/* R */ inline auto CalendarID() const reflect_as(super::template Send<WX::CalendarID>(MCM_GETCALID));
+public: // Property - MonthDelta
+	/* W */ inline auto&MonthDelta(int delta) assertl_reflect_as_child(super::Send(MCM_SETMONTHDELTA, delta));
+	/* R */ inline auto MonthDelta() const reflect_as(super::template Send<int>(MCM_GETMONTHDELTA));
+public: // Property - CurrentView
+	/* W */ inline auto&CurrentView(CalendarView view) assertl_reflect_as_child(super::Send(8, 0, view.yield()));
+	/* R */ inline auto CurrentView() const reflect_as(super::template Send<CalendarView>(MCM_GETCURRENTVIEW));
+public: // Property - Count
+	/* R */ inline auto Count() const reflect_as(super::template Send<int>(MCM_GETCALENDARCOUNT));
+public: // Property - Border
+	/* W */ inline auto&Border(int border) assertl_reflect_as_child(super::Send(MCM_SETCALENDARBORDER, border >= 0, border));
+	/* R */ inline auto Border() const reflect_as(super::template Send<int>(MCM_GETCALENDARBORDER));
+public: // Property - MaxTodayWidth
+	/* R */ inline auto MaxTodayWidth() const reflect_as(super::template Send<int>(MCM_GETMAXTODAYWIDTH));
+public: // Property - MinReqRect
+	/* R */ inline auto MinReqRect() const assertl_reflect_to(LRect rc, super::Send(MCM_GETMINREQRECT, 0, &rc), rc);
+#pragma endregion
 };
-using MonthCal = MonthCalBase<void>;
-using CMonthCal = RefAs<MonthCal>;
+using Calendar = CalendarBase<void>;
+using CCalendar = RefAs<Calendar>;
+#pragma endregion
+
+#pragma region Control DateTimePick
+enum_flags(DateTimePickStyle, CCStyle,
+	UpDown                 = DTS_UPDOWN,
+	ShowNone               = DTS_SHOWNONE,
+	ShortDateFormat        = DTS_SHORTDATEFORMAT,
+	LongDateFormat         = DTS_LONGDATEFORMAT,
+	ShortDateCenturyFormat = DTS_SHORTDATECENTURYFORMAT,
+	TimeFormat             = DTS_TIMEFORMAT,
+	AppCanParse            = DTS_APPCANPARSE,
+	RightAlign             = DTS_RIGHTALIGN);
+enum_class(DateTimePickFlags, DWORD,
+	Error = GDT_ERROR,
+	Valid = GDT_VALID,
+	None  = GDT_NONE);
+struct DateTimePickInfo : public RefStruct<DATETIMEPICKERINFO> {
+	using super = RefStruct<DATETIMEPICKERINFO>;
+public:
+	DateTimePickInfo() reflect_to(self->cbSize = sizeof(DATETIMEPICKERINFO));
+	DateTimePickInfo(const DATETIMEPICKERINFO &dtpi) : super(dtpi) {}
+public: // Property - CheckRect
+	/* W */ inline auto &CheckRect(LRect rc) reflect_to_self(self->rcCheck = rc);
+	/* R */ inline LRect CheckRect() const reflect_as(self->rcCheck);
+public: // Property - CheckState
+	/* W */ inline auto &CheckState(SystemState state) reflect_to_self(self->stateCheck = state.yield());
+	/* R */ inline auto  CheckState() const reflect_as(reuse_as<SystemState>(self->stateCheck));
+public: // Property - ButtonRect
+	/* W */ inline auto &ButtonRect(LRect rc) reflect_to_self(self->rcButton = rc);
+	/* R */ inline LRect ButtonRect() const reflect_as(self->rcButton);
+public: // Property - ButtonState
+	/* W */ inline auto &ButtonState(SystemState state) reflect_to_self(self->stateButton = state.yield());
+	/* R */ inline auto  ButtonState() const reflect_as(reuse_as<SystemState>(self->stateButton));
+//public: // Property - Edit
+//	/* W */ inline auto &Edit(HWND hEdit) reflect_to_self(self->hwndEdit = hEdit);
+//	/* R */ inline CEdit Edit() const reflect_as(self->hwndEdit);
+//public: // Property - UpDown
+//	/* W */ inline auto &UpDown(HWND hUpDown) reflect_to_self(self->hwndUD = hUpDown);
+//	/* R */ inline CUpDown UpDown() const reflect_as(self->hwndUD);
+//public: // Property - DropDown
+//	/* W */ inline auto &DropDown(HWND hDropDown) reflect_to_self(self->hwndDropDown = hDropDown);
+//	/* R */ inline CComboBox DropDown() const reflect_as(self->hwndDropDown);
+};
+BaseOf_CommCtl(class DateTimePickBase) {
+	SFINAE_CommCtl(DateTimePickBase);
+public:
+	static constexpr TCHAR CtlClassName[] = DATETIMEPICK_CLASS;
+	using super = ControlCommon<Chain<DateTimePickBase<AnyChild>, AnyChild>>;
+	using Style = DateTimePickStyle;
+	using Flags = DateTimePickFlags;
+	using Info = DateTimePickInfo;
+public:
+	DateTimePickBase() {}
+public:
+#pragma region Properties
+public: // Property - SystemTime
+	/* W */ inline auto&SystemTime(const SYSTEMTIME &st) assertl_reflect_as_self(super::Send(DTM_GETSYSTEMTIME, &st));
+	/* R */ inline auto SystemTime() const assertl_reflect_to(SysTime st = O, super::Send(self, DTM_SETSYSTEMTIME, &st), st);
+//public: // Property - Range
+//	/* W */ inline auto &Range(const SYSTEMTIME &st) assertl_reflect_as_self(DateTime_SetRange(self, GD_DEFAULT, &st));
+//	/* R */ inline auto  Range() const assertl_reflect_to(SysTime st, DateTime_GetRange(self, &st), st);
+//public: // Property - Format
+//public: // Property - CalendarColor
+//	/* W */ inline auto &CalendarColor(int iColor, COLORREF clr) assertl_reflect_as_self(DateTime_SetCalendarColor(self, iColor, clr));
+//	/* R */ inline auto  CalendarColor(int iColor) const assertl_reflect_as(DateTime_GetCalendarColor(self, iColor));
+//public: // Property - Calendar
+//	/* R */ 
+//public: // 
+#pragma endregion
+
+};
+using DateTimePick = DateTimePickBase<void>;
+using CDateTimePick = RefAs<DateTimePick>;
 #pragma endregion
 
 #pragma region Control Pager
@@ -817,29 +1096,27 @@ enum_flags(ButtonSplitStyle, UINT,
 	Stretch   = BCSS_STRETCH,
 	AlignLeft = BCSS_ALIGNLEFT,
 	Image     = BCSS_IMAGE);
-class ButtonSplitInfo : public RefStruct<BUTTON_SPLITINFO> {
-public:
+struct ButtonSplitInfo : public RefStruct<BUTTON_SPLITINFO> {
 	using super = RefStruct<BUTTON_SPLITINFO>;
-	using Style = ButtonSplitStyle;
 public:
 	ButtonSplitInfo() reflect_to(self->mask = BCSIF_GLYPH | BCSIF_IMAGE | BCSIF_STYLE | BCSIF_SIZE);
 	ButtonSplitInfo(Null) {}
 	ButtonSplitInfo(const BUTTON_SPLITINFO &bs) : super(bs) {}
 public: // Property - Styles
-	/* W */ inline auto &Styles(Style style) reflect_to_self(self->uSplitStyle = style.yield());
-	/* R */ inline Style Styles() const reflect_as(ref_as<Style>(self->uSplitStyle));
+	/* W */ inline auto&Styles(ButtonSplitStyle style) reflect_to_self(self->uSplitStyle = style.yield());
+	/* R */ inline auto Styles() const reflect_as(reuse_as<ButtonSplitStyle>(self->uSplitStyle));
 public: // Property - Size
-	/* W */ inline auto &Size(LSize size) reflect_to_self(self->size = size);
-	/* R */ inline LSize Size() const reflect_as(ref_as<LSize>(self->size));
+	/* W */ inline auto&Size(LSize size) reflect_to_self(self->size = size);
+	/* R */ inline auto Size() const reflect_as(reuse_as<LSize>(self->size));
 public: // Property - Glyph
 	/* W */ inline auto &Glyph(HIMAGELIST glyph) reflect_to_self(self->himlGlyph = glyph);
 	/* R */ inline CImageList Glyph() const reflect_as(self->himlGlyph);
 };
-class ButtonImageList : public RefStruct<BUTTON_IMAGELIST> {
-public:
+struct ButtonImageList : public RefStruct<BUTTON_IMAGELIST> {
 	using super = RefStruct<BUTTON_IMAGELIST>;
 public:
 	ButtonImageList() {}
+	ButtonImageList(const BUTTON_IMAGELIST &b) : super(b) {}
 public: 
 	/* W */ inline auto &Margin(LRect margin) reflect_to_self(self->margin = margin);
 	/* R */ inline LRect Margin() const reflect_as(self->margin);
@@ -876,9 +1153,9 @@ public: // Property - Note
 	/* R */ inline String Note() const {
 		auto len = NoteLength();
 		if (len <= 0) return O;
-		auto lpsz = String::Alloc(len);
-		super::Send(BCM_GETNOTE, len + 1, lpsz);
-		return{ len, lpsz };
+		String str(len);
+		super::Send(BCM_GETNOTE, len + 1, (LPCTSTR)str);
+		return inject(str);
 	}
 public: // Property - TextMargin
 	/* W */ inline auto &TextMargin(RECT margin) reflect_to_child(super::Send(BCM_SETTEXTMARGIN, 0, &margin));
@@ -912,6 +1189,7 @@ public: // Property - DontClick
 #pragma endregion
 };
 using Button = ButtonBase<void>;
+using CButton = RefAs<Button>;
 #pragma endregion
 
 #pragma region Control Static
@@ -976,6 +1254,7 @@ public: // Property - ImageEnhMeta
 #pragma endregion
 };
 using Static = StaticBase<void>;
+using CStatic = RefAs<Static>;
 #pragma endregion
 
 #pragma region Control Edit
@@ -998,8 +1277,7 @@ enum_flags(EditMargin, UINT,
 	Left     = EC_LEFTMARGIN,
 	Right    = EC_RIGHTMARGIN,
 	FontInfo = EC_USEFONTINFO);
-class EditBalloonTip : public RefStruct<EDITBALLOONTIP> {
-public:
+struct EditBalloonTip : public RefStruct<EDITBALLOONTIP> {
 	using super = RefStruct<EDITBALLOONTIP>;
 };
 BaseOf_CommCtl(class EditBase) {
@@ -1013,11 +1291,11 @@ public:
 	EditBase() {}
 public:
 #pragma region Methods
-	inline auto &ScrollCaret() reflect_to_child(super::Send(EM_SCROLLCARET));
-	inline bool  LineScroll(int nLines) reflect_as(super::Send(EM_LINESCROLL, 0, nLines));
-	inline auto &ReplaceSel(LPCTSTR lpString, bool bUndo = false) reflect_to_child(super::Send(EM_REPLACESEL, bUndo, lpString));
-	inline bool  Undo() reflect_as(super::Send(EM_UNDO));
-	inline auto &EmptyUndoBuffer() reflect_to_child(super::Send(EM_EMPTYUNDOBUFFER));
+	inline auto&ScrollCaret() reflect_to_child(super::Send(EM_SCROLLCARET));
+	inline bool LineScroll(int nLines) reflect_as(super::Send(EM_LINESCROLL, 0, nLines));
+	inline auto&ReplaceSel(LPCTSTR lpString, bool bUndo = false) reflect_to_child(super::Send(EM_REPLACESEL, bUndo, lpString));
+	inline bool Undo() reflect_as(super::Send(EM_UNDO));
+	inline auto&EmptyUndoBuffer() reflect_to_child(super::Send(EM_EMPTYUNDOBUFFER));
 
 //	inline auto&BalloonTip(const Balloon &tip) const assertl_reflect_as_self(Edit_ShowBalloonTip(self, &tip));
 //	inline auto&BalloonTip() const assertl_reflect_as_self(Edit_HideBalloonTip(self));
@@ -1137,7 +1415,7 @@ enum_flags(ListBoxStyle, CCStyle,
 //	/* R */ inline String Text() const {
 //		auto len = listbox->Send<int>(LB_GETTEXTLEN, index);
 //		if (len == LB_ERR || len <= 0) return O;
-//		String str(len｝;
+//		String str(len);
 //		listbox->Send(LB_GETTEXT, index, str);
 //		return str;
 //	}
@@ -1168,6 +1446,8 @@ public: // Property - Count
 	/* R */ inline auto Count() const reflect_as(super::template Send<int>(LB_GETCOUNT)); // LB_ERRxxx
 public: // 
 };
+using ListBox = ListBoxBase<void>;
+using CListBox = RefAs<ListBox>;
 #pragma endregion
 
 #pragma region Control ComboBox
@@ -1198,79 +1478,6 @@ using ComboBox = ComboBoxBase<void>;
 using CComboBox = RefAs<ComboBox>;
 #pragma endregion
 
-#pragma region Control DateTimePick
-enum_flags(DateTimePickStyle, CCStyle,
-	UpDown                 = DTS_UPDOWN,
-	ShowNone               = DTS_SHOWNONE,
-	ShortDateFormat        = DTS_SHORTDATEFORMAT,
-	LongDateFormat         = DTS_LONGDATEFORMAT,
-	ShortDateCenturyFormat = DTS_SHORTDATECENTURYFORMAT,
-	TimeFormat             = DTS_TIMEFORMAT,
-	AppCanParse            = DTS_APPCANPARSE,
-	RightAlign             = DTS_RIGHTALIGN);
-enum_class(DateTimePickFlags, DWORD,
-	Error = GDT_ERROR,
-	Valid = GDT_VALID,
-	None  = GDT_NONE);
-struct DateTimePickInfo : public RefStruct<DATETIMEPICKERINFO> {
-	using super = RefStruct<DATETIMEPICKERINFO>;
-public:
-	DateTimePickInfo() reflect_to(self->cbSize = sizeof(DATETIMEPICKERINFO));
-	DateTimePickInfo(const DATETIMEPICKERINFO &dtpi) : super(dtpi) {}
-public: // Property - CheckRect
-	/* W */ inline auto &CheckRect(LRect rc) reflect_to_self(self->rcCheck = rc);
-	/* R */ inline LRect CheckRect() const reflect_as(self->rcCheck);
-public: // Property - CheckState
-	/* W */ inline auto &CheckState(SystemState state) reflect_to_self(self->stateCheck = state.yield());
-	/* R */ inline auto  CheckState() const reflect_as(reuse_as<SystemState>(self->stateCheck));
-public: // Property - ButtonRect
-	/* W */ inline auto &ButtonRect(LRect rc) reflect_to_self(self->rcButton = rc);
-	/* R */ inline LRect ButtonRect() const reflect_as(self->rcButton);
-public: // Property - ButtonState
-	/* W */ inline auto &ButtonState(SystemState state) reflect_to_self(self->stateButton = state.yield());
-	/* R */ inline auto  ButtonState() const reflect_as(reuse_as<SystemState>(self->stateButton));
-//public: // Property - Edit
-//	/* W */ inline auto &Edit(HWND hEdit) reflect_to_self(self->hwndEdit = hEdit);
-//	/* R */ inline CEdit Edit() const reflect_as(self->hwndEdit);
-//public: // Property - UpDown
-//	/* W */ inline auto &UpDown(HWND hUpDown) reflect_to_self(self->hwndUD = hUpDown);
-//	/* R */ inline CUpDown UpDown() const reflect_as(self->hwndUD);
-//public: // Property - DropDown
-//	/* W */ inline auto &DropDown(HWND hDropDown) reflect_to_self(self->hwndDropDown = hDropDown);
-//	/* R */ inline CComboBox DropDown() const reflect_as(self->hwndDropDown);
-};
-BaseOf_CommCtl(class DateTimePickBase) {
-	SFINAE_CommCtl(DateTimePickBase);
-public:
-	static constexpr TCHAR CtlClassName[] = DATETIMEPICK_CLASS;
-	using super = ControlCommon<Chain<DateTimePickBase<AnyChild>, AnyChild>>;
-	using Style = DateTimePickStyle;
-	using Flags = DateTimePickFlags;
-	using Info = DateTimePickInfo;
-public:
-	DateTimePickBase() {}
-public:
-#pragma region Properties
-//public: // Property - SystemTime
-//	/* W */ inline auto &SystemTime(const SYSTEMTIME &st) assertl_reflect_as_self(Send(DTM_GETSYSTEMTIME, &st));
-//	/* R */ inline auto  SystemTime() const assertl_reflect_to(SysTime st, Send(self, DTM_SETSYSTEMTIME, &st), st);
-//public: // Property - Range
-//	/* W */ inline auto &Range(const SYSTEMTIME &st) assertl_reflect_as_self(DateTime_SetRange(self, GD_DEFAULT, &st));
-//	/* R */ inline auto  Range() const assertl_reflect_to(SysTime st, DateTime_GetRange(self, &st), st);
-//public: // Property - Format
-//public: // Property - MonthCalColor
-//	/* W */ inline auto &MonthCalColor(int iColor, COLORREF clr) assertl_reflect_as_self(DateTime_SetMonthCalColor(self, iColor, clr));
-//	/* R */ inline auto  MonthCalColor(int iColor) const assertl_reflect_as(DateTime_GetMonthCalColor(self, iColor));
-//public: // Property - MonthCal
-//	/* R */ 
-//public: // 
-#pragma endregion
-
-};
-using DateTimePick = DateTimePickBase<void>;
-using CDateTimePick = RefAs<DateTimePick>;
-#pragma endregion
-
 #pragma region Control ScrollBar
 enum_flags(ScrollBarStyle, CCStyle,
 	Horz                    = SBS_HORZ,
@@ -1283,24 +1490,24 @@ enum_flags(ScrollBarStyle, CCStyle,
 	SizeBoxBottomRightAlign = SBS_SIZEBOXBOTTOMRIGHTALIGN,
 	SizeBox                 = SBS_SIZEBOX,
 	SizeGrip                = SBS_SIZEGRIP);
-class ScrollBarInfo : public RefStruct<SCROLLBARINFO> {
-public:
+struct ScrollBarInfo : public RefStruct<SCROLLBARINFO> {
 	using super = RefStruct<SCROLLBARINFO>;
 public:
 	ScrollBarInfo() reflect_to(self->cbSize = sizeof(SCROLLBARINFO));
-public: 
+	ScrollBarInfo(const SCROLLBARINFO &s) : super(s) {}
+public: // Property - Rect
 	/* W */ inline auto &Rect(LRect rc) reflect_to_self(self->rcScrollBar = rc);
 	/* R */ inline LRect Rect() const reflect_as(self->rcScrollBar);
-public: 
-	/* W */ inline auto &LineButton(int dxyLineButton) reflect_to_self(self->dxyLineButton = dxyLineButton);
-	/* R */ inline int   LineButton() const reflect_as(self->dxyLineButton);
-public: 
-	/* W */ inline auto &ThumbTop(int xyThumbTop) reflect_to_self(self->xyThumbTop = xyThumbTop);
-	/* R */ inline int   ThumbTop() const reflect_as(self->xyThumbTop);
-public: 
-	/* W */ inline auto &ThumbBottom(int xyThumbBottom) reflect_to_self(self->xyThumbBottom = xyThumbBottom);
-	/* R */ inline int   ThumbBottom() const reflect_as(self->xyThumbBottom);
-public: 
+public: // Property - LineButton
+	/* W */ inline auto&LineButton(int dxyLineButton) reflect_to_self(self->dxyLineButton = dxyLineButton);
+	/* R */ inline auto LineButton() const reflect_as(self->dxyLineButton);
+public: // Property - ThumbTop
+	/* W */ inline auto&ThumbTop(int xyThumbTop) reflect_to_self(self->xyThumbTop = xyThumbTop);
+	/* R */ inline auto ThumbTop() const reflect_as(self->xyThumbTop);
+public: // Property - Thumb
+	/* W */ inline auto&ThumbBottom(int xyThumbBottom) reflect_to_self(self->xyThumbBottom = xyThumbBottom);
+	/* R */ inline auto ThumbBottom() const reflect_as(self->xyThumbBottom);
+public: // Property - 
 	
 };
 BaseOf_CommCtl(class ScrollBarBase) {
@@ -1309,28 +1516,25 @@ public:
 	static constexpr TCHAR CtlClassName[] = WC_SCROLLBAR;
 	using super = ControlCommon<Chain<ScrollBarBase<AnyChild>, AnyChild>>;
 	using Style = ScrollBarStyle;
-	using SInfo = ScrollInfo;
-	using SBarInfo = ScrollBarInfo;
 public:
 	ScrollBarBase() {}
 
 #pragma region Properties
-public:
-
-public: 
-	/* W */ inline auto &Position(int Pos, bool bRedraw = true) reflect_to_child(super::Send(SBM_SETPOS, Pos, bRedraw));
-	/* R */ inline int   Position() const reflect_as(super::Send(SBM_GETPOS));
-public: 
-	/* W */ inline auto &Range(int MinPos, int MaxPos, bool bRedraw = true) reflect_to_child(super::Send(bRedraw ? SBM_SETRANGEREDRAW : SBM_SETRANGE, MinPos, MaxPos));
-	/* R */ inline auto  Range() const assertl_reflect_to(struct{ _M_(int Min, Max); } rgn, super::Send(SBM_GETRANGE, &rgn.Min, &rgn.Max), rgn);
-public: 
-	/* W */ inline auto  &Info(const SInfo &i, bool bRedraw = true) reflect_to_self(super::Send(SBM_SETSCROLLINFO, bRedraw, &i));
-	/* R */ inline SInfo  Info() const assertl_reflect_to(SInfo i, super::Send(SBM_GETSCROLLINFO, 0, &i), i);
-public:
-	/* R */ inline SBarInfo BarInfo() const assertl_reflect_to(SBarInfo i, super::Send(SBM_GETSCROLLBARINFO, 0, &i), i);
+public: // Property - Position
+	/* W */ inline auto&Position(int Pos, bool bRedraw = true) reflect_to_child(super::Send(SBM_SETPOS, Pos, bRedraw));
+	/* R */ inline auto Position() const reflect_as(super::template Send<int>(SBM_GETPOS));
+public: // Property - Range
+	/* W */ inline auto&Range(RangeOf<int> r) reflect_to_child(super::Send(SBM_SETRANGE, r.min, r.max));
+	/* R */ inline auto Range() const assertl_reflect_to(RangeOf<int> r(0, 0), super::Send(SBM_GETRANGE, &r.min, &r.max), r);
+public: // Property - ScrollInfo
+	/* W */ inline auto&ScrollInfo(const SCROLLINFO &i, bool bRedraw = true) reflect_to_self(super::Send(SBM_SETSCROLLINFO, bRedraw, &i));
+	/* R */ inline auto ScrollInfo() const assertl_reflect_to(WX::ScrollInfo i, super::Send(SBM_GETSCROLLINFO, 0, &i), i);
+public: // Property - Info
+	/* R */ inline auto Info() const assertl_reflect_to(ScrollBarInfo i, super::Send(SBM_GETSCROLLBARINFO, 0, &i), i);
 #pragma endregion
 };
 using ScrollBar = ScrollBarBase<void>;
+using CScrollBar = RefAs<ScrollBar>;
 #pragma endregion
 
 }

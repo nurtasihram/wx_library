@@ -42,9 +42,6 @@
 #define child_assert(base, sub) \
 		misuse_assert((std::is_base_of_v<base, sub>), #sub " must base on " #base)
 
-#define using_structx(name) using name = std::conditional_t<IsUnicode, name##W, name##A>
-#define locale_charmode(unicode) static constexpr bool IsUnicode = unicode
-
 #pragma region SFINAE Type Helper
 #define use_member(name) \
 template <class AnyClass> class member_##name##_of { \
