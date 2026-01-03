@@ -24,16 +24,16 @@ public:
 	static inline Atom Find(LPCWSTR lpString) reflect_as(WX::FindAtom(lpString));
 	inline void Delete() reflect_to(if (atom) (WX::DeleteAtom(atom), atom = 0));
 public: // Property - Name
-	template<size_t MaxLen = MaxLenClass, bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetAtomName(self, str, (int)MaxLen);
 		return inject(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenClass>
-	/* R */ inline StringA NameA() const reflect_as(Name<MaxLen, false>());
+	/* R */ inline StringA NameA() const reflect_as(Name<false, MaxLen>());
 	template<size_t MaxLen = MaxLenClass>
-	/* R */ inline StringW NameW() const reflect_as(Name<MaxLen, true>());
+	/* R */ inline StringW NameW() const reflect_as(Name<true, MaxLen>());
 public:
 	inline operator bool() const reflect_as(atom);
 	inline operator ATOM() const reflect_as(atom);
@@ -59,16 +59,16 @@ public:
 		atom = 0;
 	}
 public: // Property - Name
-	template<size_t MaxLen = MaxLenClass, bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetAtomName(self, str, (int)MaxLen);
 		return inject(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenClass>
-	/* R */ inline StringA NameA() const reflect_as(Name<MaxLen, false>());
+	/* R */ inline StringA NameA() const reflect_as(Name<false, MaxLen>());
 	template<size_t MaxLen = MaxLenClass>
-	/* R */ inline StringW NameW() const reflect_as(Name<MaxLen, true>());
+	/* R */ inline StringW NameW() const reflect_as(Name<true, MaxLen>());
 public:
 	inline operator bool() const reflect_as(atom);
 	inline operator ATOM() const reflect_as(atom);
@@ -1476,16 +1476,16 @@ public: // Property - String
 	/* R */ inline StringA TextA() const reflect_as(Text<false>());
 	/* R */ inline StringW TextW() const reflect_as(Text<true>());
 public: // Property - ModuleFileName
-	template<size_t MaxLen = MaxLenPath, bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenPath>
 	/* R */ inline StringX<IsUnicode> ModuleFileName() const {
 		StringX<IsUnicode> str(MaxLen);
 		int len = WX::GetWindowModuleFileName(self, str, (int)MaxLen);
 		return inject(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenPath>
-	/* R */ inline StringA ModuleFileNameA() const reflect_as(ModuleFileName<MaxLen, false>());
+	/* R */ inline StringA ModuleFileNameA() const reflect_as(ModuleFileName<false, MaxLen>());
 	template<size_t MaxLen = MaxLenPath>
-	/* R */ inline StringW ModuleFileNameW() const reflect_as(ModuleFileName<MaxLen, true>());
+	/* R */ inline StringW ModuleFileNameW() const reflect_as(ModuleFileName<true, MaxLen>());
 public: // Property - Parent
 	/* W */ inline auto&Parent(HWND hParent) reflect_to_child(WX::SetParent(self, hParent));
 	template<class AnyClass = void>
@@ -1665,16 +1665,16 @@ public:
 public: // Property - Count
 	/* R */ inline int Count() const reflect_as(WX::CountClipboardFormats());
 public: // Property - Name
-	template<size_t MaxLen = MaxLenClass, bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenClass>
 	/* R */ inline StringX<IsUnicode> Name() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetClipboardFormatName(uFormat, str, (int)MaxLen);
 		return inject(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenClass>
-	/* R */ inline StringA NameA() const reflect_as(Name<MaxLen, false>());
+	/* R */ inline StringA NameA() const reflect_as(Name<false, MaxLen>());
 	template<size_t MaxLen = MaxLenClass>
-	/* R */ inline StringW NameW() const reflect_as(Name<MaxLen, true>());
+	/* R */ inline StringW NameW() const reflect_as(Name<true, MaxLen>());
 public:
 	inline operator bool() const reflect_as(WX::IsClipboardFormatAvailable(uFormat));
 	inline operator HANDLE() const reflect_as(WX::GetClipboardData(uFormat));
