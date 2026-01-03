@@ -97,16 +97,16 @@ public: // Property - ButtonCheck
 public: // Property - Text
 	template<class TCHAR>
 	/* W */ inline auto &Text(const TCHAR *lpText) reflect_to_self(WX::SetDlgItemText(hDlg, nIDDlgItem, lpText));
-	template<size_t MaxLen = MaxLenNotice, bool IsUnicode = WX::IsUnicode>
+	template<bool IsUnicode = WX::IsUnicode, size_t MaxLen = MaxLenNotice>
 	/* R */ inline StringX<IsUnicode> Text() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetDlgItemText(hDlg, nIDDlgItem, str, (int)MaxLen);
 		return inject(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenNotice>
-	/* R */ inline StringA TextA() const reflect_as(Text<MaxLen, false>());
+	/* R */ inline StringA TextA() const reflect_as(Text<false, MaxLen>());
 	template<size_t MaxLen = MaxLenNotice>
-	/* R */ inline StringW TextW() const reflect_as(Text<MaxLen, true>());
+	/* R */ inline StringW TextW() const reflect_as(Text<true, MaxLen>());
 public: // Property - Window
 	template<class AnyChild = void>
 	/* R */ inline WindowShim<AnyChild> Window() reflect_as(WX::GetDlgItem(hDlg, nIDDlgItem));

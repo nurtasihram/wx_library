@@ -21,11 +21,14 @@
     <ClInclude Include="resources\Resource.h">
       <Filter>resources</Filter>
     </ClInclude>
-    <ClInclude Include="..\wx_defs.h">
-      <Filter>wx_library\prv_inc</Filter>
-    </ClInclude>
     <ClInclude Include="resources\targetver.h">
       <Filter>resources</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx__nt.h">
+      <Filter>wx_library\prv_inc</Filter>
+    </ClInclude>
+    <ClInclude Include="..\wx_defs.h">
+      <Filter>wx_library\prv_inc</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
@@ -42,6 +45,7 @@
     </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="wx_test.cpp" />
     <ClCompile Include="..\wx.console.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
@@ -72,15 +76,18 @@
     <ClCompile Include="..\wx.security.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
+    <ClCompile Include="..\wx.string.cppm">
+      <Filter>wx_library\modules</Filter>
+    </ClCompile>
     <ClCompile Include="..\wx.type.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
     <ClCompile Include="..\wx.window.cppm">
       <Filter>wx_library\modules</Filter>
     </ClCompile>
-    <ClCompile Include="wx_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="make.bat" />
     <None Include="..\wx__msg.inl">
       <Filter>wx_library\prv_inc</Filter>
     </None>
@@ -89,6 +96,9 @@
     </None>
     <None Include="..\wx__rm.inl">
       <Filter>wx_library\prv_inc</Filter>
+    </None>
+    <None Include="..\wx">
+      <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_console">
       <Filter>wx_library\pub_inc</Filter>
@@ -117,12 +127,17 @@
     <None Include="..\wx_resource">
       <Filter>wx_library\pub_inc</Filter>
     </None>
+    <None Include="..\wx_security">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
+    <None Include="..\wx_string">
+      <Filter>wx_library\pub_inc</Filter>
+    </None>
     <None Include="..\wx_type">
       <Filter>wx_library\pub_inc</Filter>
     </None>
     <None Include="..\wx_window">
       <Filter>wx_library\pub_inc</Filter>
     </None>
-    <None Include="make.bat" />
   </ItemGroup>
 </Project>

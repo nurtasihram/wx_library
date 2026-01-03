@@ -180,6 +180,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="..\wx_defs.h" />
+    <ClInclude Include="..\wx__nt.h" />
     <ClInclude Include="resources\Resource.h" />
     <ClInclude Include="resources\targetver.h" />
   </ItemGroup>
@@ -201,11 +202,13 @@
     <ClCompile Include="..\wx.realtime.cppm" />
     <ClCompile Include="..\wx.resource.cppm" />
     <ClCompile Include="..\wx.security.cppm" />
+    <ClCompile Include="..\wx.string.cppm" />
     <ClCompile Include="..\wx.type.cppm" />
     <ClCompile Include="..\wx.window.cppm" />
     <ClCompile Include="wx_test.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\wx" />
     <None Include="..\wx_console" />
     <None Include="..\wx_control" />
     <None Include="..\wx_dialog" />
@@ -215,6 +218,8 @@
     <None Include="..\wx_main" />
     <None Include="..\wx_realtime" />
     <None Include="..\wx_resource" />
+    <None Include="..\wx_security" />
+    <None Include="..\wx_string" />
     <None Include="..\wx_type" />
     <None Include="..\wx_window" />
     <None Include="..\wx__msg.inl" />
