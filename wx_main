@@ -1,6 +1,6 @@
 #pragma once
 
-#pragma comment(lib,"gdi32.lib")
+#pragma comment(lib,"Gdi32.lib")
 #pragma comment(lib,"OneCore.lib")
 #pragma comment(linker, "\"" \
 	"/manifestdependency:" \
@@ -22,7 +22,8 @@ int _WxMain() {
 	try {
 		return WxMain();
 	} catch (WX::Exception err) {
-		Console.Log(T("WxMain Exception:\n"), err);
+		Console.Write(T("WxMain Exception:\n"));
+		Console.Write(toString(err));
 		system("pause");
 	}
 	return -1;

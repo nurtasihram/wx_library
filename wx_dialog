@@ -3,15 +3,12 @@
 #include <Windows.h>
 #include <CommDlg.h>
 
-#include "wx_type"
+#include "wx_window"
 
-import wx;
-import wx.window;
-import wx.gdi;
-import wx.window;
 #ifndef WX_CPPM_DIALOG
 import wx.dialog;
 #else
+#	include "wx__nt.h"
 #	undef WX_CPPM_DIALOG
 #endif
 

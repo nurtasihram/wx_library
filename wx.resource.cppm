@@ -5,17 +5,27 @@ module;
 
 export module wx.resource;
 
-import wx.gdi;
 import wx.proto;
 
 #pragma region Win32 Prototype Includes
 namespace WX {
 
-#pragma region libloaderapi.h
+#pragma region LibLoaderApi.h
 // DisableThreadLibraryCalls
 inline void DisableThreadLibraryCalls(HMODULE hLibModule)
 	assertl_reflect_as(::DisableThreadLibraryCalls(hLibModule));
-// #N/A
+#undef FindResource
+// from WinBase.h
+inline HRSRC FindResource(HINSTANCE hInstance, LPCSTR lpName, LPCSTR lpType)
+	assertl_reflect_as(auto h = ::FindResourceA(hInstance, lpName, lpType), h);
+inline HRSRC FindResource(HINSTANCE hInstance, LPCWSTR lpName, LPCWSTR lpType)
+	assertl_reflect_as(auto h = ::FindResourceW(hInstance, lpName, lpType), h);
+#undef FindResourceEx
+// from WinBase.h
+inline HRSRC FindResource(HINSTANCE hInstance, LPCSTR lpType, LPCSTR lpName, WORD wLanguage)
+	assertl_reflect_as(auto h = ::FindResourceExA(hInstance, lpType, lpName, wLanguage), h);
+inline HRSRC FindResource(HINSTANCE hInstance, LPCWSTR lpType, LPCWSTR lpName, WORD wLanguage)
+	assertl_reflect_as(auto h = ::FindResourceExW(hInstance, lpType, lpName, wLanguage), h);
 // FindStringOrdinal
 inline int FindStringOrdinal(DWORD dwFindStringOrdinalFlags, LPCWSTR lpStringSource, int cchSource, LPCWSTR lpStringValue, int cchValue, BOOL bIgnoreCase)
 	assertl_reflect_as(auto ret = ::FindStringOrdinal(dwFindStringOrdinalFlags, lpStringSource, cchSource, lpStringValue, cchValue, bIgnoreCase); ret >= 0, ret);
@@ -28,38 +38,39 @@ inline void FreeLibraryAndExitThread(HMODULE hLibModule, DWORD dwExitCode)
 // FreeResource
 inline void FreeResource(HGLOBAL hResData)
 	assertl_reflect_as(auto ret = ::FreeResource(hResData); ret == 0);
-// GetModuleFileName
 #undef GetModuleFileName
 inline DWORD GetModuleFileName(HMODULE hModule, LPSTR lpFilename, DWORD nSize)
 	assertl_reflect_as(auto ret = ::GetModuleFileNameA(hModule, lpFilename, nSize), ret);
 inline DWORD GetModuleFileName(HMODULE hModule, LPWSTR lpFilename, DWORD nSize)
 	assertl_reflect_as(auto ret = ::GetModuleFileNameW(hModule, lpFilename, nSize), ret);
-// GetModuleHandle
 #undef GetModuleHandle
 inline HMODULE GetModuleHandle(LPCSTR lpModuleName)
 	assertl_reflect_as(auto ret = ::GetModuleHandleA(lpModuleName), ret);
 inline HMODULE GetModuleHandle(LPCWSTR lpModuleName)
 	assertl_reflect_as(auto ret = ::GetModuleHandleW(lpModuleName), ret);
-// GetModuleHandleEx
 #undef GetModuleHandleEx
-inline void GetModuleHandleEx(DWORD dwFlags, LPCSTR lpModuleName, HMODULE* phModule)
+inline void GetModuleHandle(DWORD dwFlags, LPCSTR lpModuleName, HMODULE* phModule)
 	assertl_reflect_as(::GetModuleHandleExA(dwFlags, lpModuleName, phModule));
-inline void GetModuleHandleEx(DWORD dwFlags, LPCWSTR lpModuleName, HMODULE* phModule)
+inline void GetModuleHandle(DWORD dwFlags, LPCWSTR lpModuleName, HMODULE* phModule)
 	assertl_reflect_as(::GetModuleHandleExW(dwFlags, lpModuleName, phModule));
 // GetProcAddress
 inline FARPROC GetProcAddress(HMODULE hModule, LPCSTR lpProcName)
 	assertl_reflect_as(auto ret = ::GetProcAddress(hModule, lpProcName), ret);
-// LoadLibraryEx
+#undef LoadLibrary
+inline HMODULE LoadLibrary(LPCSTR lpLibFileName)
+	assertl_reflect_as(auto ret = ::LoadLibraryA(lpLibFileName), ret);
+inline HMODULE LoadLibrary(LPCWSTR lpLibFileName)
+	assertl_reflect_as(auto ret = ::LoadLibraryW(lpLibFileName), ret);
 #undef LoadLibraryEx
-inline HMODULE LoadLibraryEx(LPCSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
+inline HMODULE LoadLibrary(LPCSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
 	assertl_reflect_as(auto ret = ::LoadLibraryExA(lpLibFileName, hFile, dwFlags), ret);
-inline HMODULE LoadLibraryEx(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
+inline HMODULE LoadLibrary(LPCWSTR lpLibFileName, HANDLE hFile, DWORD dwFlags)
 	assertl_reflect_as(auto ret = ::LoadLibraryExW(lpLibFileName, hFile, dwFlags), ret);
 // LoadResource
 inline HGLOBAL LoadResource(HMODULE hModule, HRSRC hResInfo)
 	assertl_reflect_as(auto ret = ::LoadResource(hModule, hResInfo), ret);
-// LoadString
 #undef LoadString
+// from WinUser.h
 inline int LoadString(HINSTANCE hInstance, UINT uID, LPSTR lpBuffer, int cchBufferMax)
 	assertl_reflect_as(auto ret = ::LoadStringA(hInstance, uID, lpBuffer, cchBufferMax); ret >= 0, ret);
 inline int LoadString(HINSTANCE hInstance, UINT uID, PWSTR lpBuffer, int cchBufferMax)
@@ -79,37 +90,26 @@ inline void RemoveDllDirectory(DLL_DIRECTORY_COOKIE Cookie)
 // SetDefaultDllDirectories
 inline void SetDefaultDllDirectories(DWORD DirectoryFlags)
 	assertl_reflect_as(::SetDefaultDllDirectories(DirectoryFlags));
-// EnumResourceLanguagesEx
 #undef EnumResourceLanguagesEx
-inline void EnumResourceLanguagesEx(HMODULE hModule, LPCSTR lpType, LPCSTR lpName, ENUMRESLANGPROCA lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
+inline void EnumResourceLanguages(HMODULE hModule, LPCSTR lpType, LPCSTR lpName, ENUMRESLANGPROCA lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
 	assertl_reflect_as(::EnumResourceLanguagesExA(hModule, lpType, lpName, lpEnumFunc, lParam, dwFlags, LangId));
-inline void EnumResourceLanguagesEx(HMODULE hModule, LPCWSTR lpType, LPCWSTR lpName, ENUMRESLANGPROCW lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
+inline void EnumResourceLanguages(HMODULE hModule, LPCWSTR lpType, LPCWSTR lpName, ENUMRESLANGPROCW lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
 	assertl_reflect_as(::EnumResourceLanguagesExW(hModule, lpType, lpName, lpEnumFunc, lParam, dwFlags, LangId));
-// EnumResourceNamesEx
-#undef EnumResourceNamesEx
-inline void EnumResourceNamesEx(HMODULE hModule, LPCSTR lpType, ENUMRESNAMEPROCA lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
-	assertl_reflect_as(::EnumResourceNamesExA(hModule, lpType, lpEnumFunc, lParam, dwFlags, LangId));
-inline void EnumResourceNamesEx(HMODULE hModule, LPCWSTR lpType, ENUMRESNAMEPROCW lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
-	assertl_reflect_as(::EnumResourceNamesExW(hModule, lpType, lpEnumFunc, lParam, dwFlags, LangId));
-// EnumResourceTypesEx
 #undef EnumResourceTypesEx
-inline void EnumResourceTypesEx(HMODULE hModule, ENUMRESTYPEPROCA lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
+inline void EnumResourceTypes(HMODULE hModule, ENUMRESTYPEPROCA lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
 	assertl_reflect_as(::EnumResourceTypesExA(hModule, lpEnumFunc, lParam, dwFlags, LangId));
-inline void EnumResourceTypesEx(HMODULE hModule, ENUMRESTYPEPROCW lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
+inline void EnumResourceTypes(HMODULE hModule, ENUMRESTYPEPROCW lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
 	assertl_reflect_as(::EnumResourceTypesExW(hModule, lpEnumFunc, lParam, dwFlags, LangId));
-// #N/A
-// LoadLibrary
-#undef LoadLibrary
-inline HMODULE LoadLibrary(LPCSTR lpLibFileName)
-	assertl_reflect_as(auto ret = ::LoadLibraryA(lpLibFileName), ret);
-inline HMODULE LoadLibrary(LPCWSTR lpLibFileName)
-	assertl_reflect_as(auto ret = ::LoadLibraryW(lpLibFileName), ret);
-inline void EnumResourceNames(HMODULE hModule, LPCWSTR lpType, ENUMRESNAMEPROCW lpEnumFunc, LONG_PTR lParam)
-	assertl_reflect_as(::EnumResourceNamesW(hModule, lpType, lpEnumFunc, lParam));
-// EnumResourceNames
 #undef EnumResourceNames
 inline void EnumResourceNames(HMODULE hModule, LPCSTR lpType, ENUMRESNAMEPROCA lpEnumFunc, LONG_PTR lParam)
 	assertl_reflect_as(::EnumResourceNamesA(hModule, lpType, lpEnumFunc, lParam));
+inline void EnumResourceNames(HMODULE hModule, LPCWSTR lpType, ENUMRESNAMEPROCW lpEnumFunc, LONG_PTR lParam)
+	assertl_reflect_as(::EnumResourceNamesW(hModule, lpType, lpEnumFunc, lParam));
+#undef EnumResourceNamesEx
+inline void EnumResourceNames(HMODULE hModule, LPCSTR lpType, ENUMRESNAMEPROCA lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
+	assertl_reflect_as(::EnumResourceNamesExA(hModule, lpType, lpEnumFunc, lParam, dwFlags, LangId));
+inline void EnumResourceNames(HMODULE hModule, LPCWSTR lpType, ENUMRESNAMEPROCW lpEnumFunc, LONG_PTR lParam, DWORD dwFlags, LANGID LangId)
+	assertl_reflect_as(::EnumResourceNamesExW(hModule, lpType, lpEnumFunc, lParam, dwFlags, LangId));
 #pragma endregion
 
 }

@@ -6,12 +6,11 @@ module;
 export module wx.type;
 
 import wx.proto;
-import wx;
 
 #pragma region Win32 Prototype Includes
 namespace WX {
 
-#pragma region datetimeapi.h
+#pragma region DateTimeApi.h
 #undef GetDateFormat
 // GetDateFormat
 inline int GetDateFormat(LCID Locale, DWORD dwFlags, const SYSTEMTIME *lpDate, LPCSTR lpFormat, LPSTR lpDateStr, int cchDate)
@@ -35,7 +34,7 @@ inline int GetDateFormat(LPCWSTR lpLocaleName, DWORD dwFlags, const SYSTEMTIME *
 // GetDurationFormatEx - Deprecated
 #pragma endregion
 
-#pragma region handleapi.h
+#pragma region HandleApi.h
 // CloseHandle
 inline void CloseHandle(HANDLE hObject)
 	assertl_reflect_as(::CloseHandle(hObject));
@@ -61,6 +60,200 @@ inline void SetHandleInformation(HANDLE hObject, DWORD dwMask, DWORD dwFlags)
 #pragma endregion
 
 export namespace WX {
+
+#pragma region Compilation Informations
+/* _CPLUSPLUS_STANDARD */
+#define _CPLUSPLUS_STANDARDA STROFA(__cplusplus)
+#define _CPLUSPLUS_STANDARDW STROFW(__cplusplus)
+#define _CPLUSPLUS_STANDARD T(_CPLUSPLUS_STANDARDA)
+inline  CHAR CPLUSPLUS_STANDARDA[]{ _CPLUSPLUS_STANDARDA };
+inline WCHAR CPLUSPLUS_STANDARDW[]{ _CPLUSPLUS_STANDARDW };
+inline TCHAR CPLUSPLUS_STANDARD []{ _CPLUSPLUS_STANDARD  };
+/* _CHAR_MODE */
+#ifdef UNICODE
+#	define _CHAR_MODEA "Unicode"
+#else
+#	define _CHAR_MODEA "Multibyte"
+#endif
+#define _CHAR_MODEW LSTR(_CHAR_MODEA)
+#define _CHAR_MODE  TEXT(_CHAR_MODEA)
+inline  CHAR CHAR_MODEA[]{ _CHAR_MODEA };
+inline WCHAR CHAR_MODEW[]{ _CHAR_MODEW };
+inline TCHAR CHAR_MODE []{ _CHAR_MODE  };
+/* _BUILD_DATE */
+#define _BUILD_DATEA __DATE__ " " __TIME__
+#define _BUILD_DATEW LSTR(_BUILD_DATEA)
+#define _BUILD_DATE  TEXT(_BUILD_DATEA)
+inline  CHAR BUILD_DATEA[]{ _BUILD_DATEA };
+inline WCHAR BUILD_DATEW[]{ _BUILD_DATEW };
+inline TCHAR BUILD_DATE []{ _BUILD_DATE  };
+/* _COMPILATION_MODE */
+#ifdef _DEBUG
+#	define _COMPILATION_MODEA  "Debug"
+#else
+#	define _COMPILATION_MODEA  "Release"
+#endif
+#	define _COMPILATION_MODEW LSTR(_COMPILATION_MODEA)
+#	define _COMPILATION_MODE  TEXT(_COMPILATION_MODEA)
+inline  CHAR COMPILATION_MODEA[]{ _COMPILATION_MODEA };
+inline WCHAR COMPILATION_MODEW[]{ _COMPILATION_MODEW };
+inline TCHAR COMPILATION_MODE []{ _COMPILATION_MODE  };
+/* _COMPILATION_PLATFORM */
+#ifdef _WIN64
+#	define _COMPILATION_PLATFORMA  "64-bits"
+#elif defined(_WIN32)
+#	define _COMPILATION_PLATFORMA "32-bits"
+#else
+#	define _COMPILATION_PLATFORMA "Unknown"
+#endif
+#define _COMPILATION_PLATFORMW LSTR(_COMPILATION_PLATFORMA)
+#define _COMPILATION_PLATFORM  TEXT(_COMPILATION_PLATFORMA)
+inline  CHAR COMPILATION_PLATFORMA[]{ _COMPILATION_PLATFORMA };
+inline WCHAR COMPILATION_PLATFORMW[]{ _COMPILATION_PLATFORMW };
+inline TCHAR COMPILATION_PLATFORM []{ _COMPILATION_PLATFORM  };
+/* _COMPILATION_ARCHITECTURE */
+#ifdef _M_X64
+#	define _COMPILATION_ARCHITECTUREA "x64"
+#elif defined(_M_IX86)
+#	define _COMPILATION_ARCHITECTUREA "x86"
+#elif defined(_M_AMD64)
+#	define _COMPILATION_ARCHITECTUREA "AMD64"
+#elif defined(_M_ARM64)
+#	define _COMPILATION_ARCHITECTUREA "ARM64"
+#elif defined(_M_ARM)
+#	define _COMPILATION_ARCHITECTUREA "ARM"
+#elif defined(_M_ARM64EC)
+#	define _COMPILATION_ARCHITECTUREA "ARM64EC"
+#else
+#	define _COMPILATION_ARCHITECTUREA "Unknown"
+#endif
+#define _COMPILATION_ARCHITECTUREW LSTR(_COMPILATION_ARCHITECTUREA)
+#define _COMPILATION_ARCHITECTURE  TEXT(_COMPILATION_ARCHITECTUREA)
+inline  CHAR COMPILATION_ARCHITECTUREA[]{ _COMPILATION_ARCHITECTUREA };
+inline WCHAR COMPILATION_ARCHITECTUREW[]{ _COMPILATION_ARCHITECTUREW };
+inline TCHAR COMPILATION_ARCHITECTURE []{ _COMPILATION_ARCHITECTURE  };
+/* _COMPILATION_COMPILER */
+#if defined(__clang__)
+#	define _COMPILATION_COMPILERA "Clang " STROFA(__clang_version__)
+#elif defined(__GNUC__)
+#	define _COMPILATION_COMPILERA "GCC " STROFA(__VERSION__)
+#elif _MSC_VER
+#	define _COMPILATION_COMPILERA "Microsoft C++ (_MSC_FULL_VER=" STROFA(_MSC_FULL_VER) ")"
+#else
+#	define _COMPILATION_COMPILERA "Unknown"
+#endif
+#define _COMPILATION_COMPILERW LSTR(_COMPILATION_COMPILERA)
+#define _COMPILATION_COMPILER  TEXT(_COMPILATION_COMPILERA)
+inline  CHAR COMPILATION_COMPILERA[]{ _COMPILATION_COMPILERA };
+inline WCHAR COMPILATION_COMPILERW[]{ _COMPILATION_COMPILERW };
+inline TCHAR COMPILATION_COMPILER []{ _COMPILATION_COMPILER  };
+/* _NTDDI_ */
+#if NTDDI_VERSION >= NTDDI_WIN11_GE
+#	define _NTDDI_NAMEA "Windows 11 'Germanium'"
+#elif NTDDI_VERSION >= NTDDI_WIN11_GA
+#	define _NTDDI_NAMEA "Windows 11 'Gallium'"
+#elif NTDDI_VERSION >= NTDDI_WIN11_ZN
+#	define _NTDDI_NAMEA "Windows 11 'Zinc'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_CU
+#	define _NTDDI_NAMEA "Windows 10 'Copper'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_NI
+#	define _NTDDI_NAMEA "Windows 10 'Nickel'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_CO
+#	define _NTDDI_NAMEA "Windows 10 'Cobalt'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_FE
+#	define _NTDDI_NAMEA "Windows 10 'Iron'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_MN
+#	define _NTDDI_NAMEA "Windows 10 'Manganese'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_VB
+#	define _NTDDI_NAMEA "Windows 10 'Vibranium'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_19H1
+#	define _NTDDI_NAMEA "Windows 10 1903 '19H1''"
+#elif NTDDI_VERSION >= NTDDI_WIN10_RS5
+#	define _NTDDI_NAMEA "Windows 10 1809 'Redstone 5'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_RS4
+#	define _NTDDI_NAMEA "Windows 10 1803 'Redstone 4'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_RS3
+#	define _NTDDI_NAMEA "Windows 10 1709 'Redstone 3'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_RS2
+#	define _NTDDI_NAMEA "Windows 10 1703 'Redstone 2'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_RS1
+#	define _NTDDI_NAMEA "Windows 10 1607 'Redstone 1'"
+#elif NTDDI_VERSION >= NTDDI_WIN10_TH2
+#	define _NTDDI_NAMEA "Windows 10 1511 'Threshold 2'"
+#elif NTDDI_VERSION >= NTDDI_WIN10
+#	define _NTDDI_NAMEA "Windows 10 1507 'Threshold'"
+#elif NTDDI_VERSION >= NTDDI_WINBLUE
+#	define _NTDDI_NAMEA "Windows 8.1"
+#elif NTDDI_VERSION >= NTDDI_WIN8
+#	define _NTDDI_NAMEA "Windows 8"
+#elif NTDDI_VERSION >= NTDDI_WIN7
+#	define _NTDDI_NAMEA "Windows 7"
+#elif NTDDI_VERSION >= NTDDI_WIN6SP4
+#	define _NTDDI_NAMEA "Windows Vista SP4"
+#elif NTDDI_VERSION >= NTDDI_WIN6SP3
+#	define _NTDDI_NAMEA "Windows Vista SP3"
+#elif NTDDI_VERSION >= NTDDI_WIN6SP2
+#	define _NTDDI_NAMEA "Windows Vista SP2"
+#elif NTDDI_VERSION >= NTDDI_WIN6SP1
+#	define _NTDDI_NAMEA "Windows Vista SP1"
+#elif NTDDI_VERSION >= NTDDI_WIN6
+#	define _NTDDI_NAMEA "Windows Vista"
+#elif NTDDI_VERSION >= NTDDI_WS03SP4
+#	define _NTDDI_NAMEA "Windows Server 2003 SP4"
+#elif NTDDI_VERSION >= NTDDI_WS03SP3
+#	define _NTDDI_NAMEA "Windows Server 2003 SP3"
+#elif NTDDI_VERSION >= NTDDI_WS03SP2
+#	define _NTDDI_NAMEA "Windows Server 2003 SP2"
+#elif NTDDI_VERSION >= NTDDI_WS03SP1
+#	define _NTDDI_NAMEA "Windows Server 2003 SP1"
+#elif NTDDI_VERSION >= NTDDI_WS03
+#	define _NTDDI_NAMEA "Windows Server 2003"
+#elif NTDDI_VERSION >= NTDDI_WINXPSP4
+#	define _NTDDI_NAMEA "Windows XP SP4"
+#elif NTDDI_VERSION >= NTDDI_WINXPSP3
+#	define _NTDDI_NAMEA "Windows XP SP3"
+#elif NTDDI_VERSION >= NTDDI_WINXPSP2
+#	define _NTDDI_NAMEA "Windows XP SP2"
+#elif NTDDI_VERSION >= NTDDI_WINXPSP1
+#	define _NTDDI_NAMEA "Windows XP SP1"
+#elif NTDDI_VERSION >= NTDDI_WINXP
+#	define _NTDDI_NAMEA "Windows XP"
+#else
+#	define _NTDDI_NAMEA "Older Windows Version"
+#endif
+#define _NTDDI_NAMEW LSTR(_NTDDI_NAMEA)
+#define _NTDDI_NAME  TEXT(_NTDDI_NAMEA)
+#define _NTDDI_VERA STROFA(NTDDI_VERSION)
+#define _NTDDI_VERW STROFW(NTDDI_VERSION)
+#define _NTDDI_VER  STROF (NTDDI_VERSION)
+#define _NTDDIA _NTDDI_NAMEA  " (NTDDI_VERSION="  _NTDDI_VERA  ")"
+#define _NTDDIW _NTDDI_NAMEW L" (NTDDI_VERSION="  _NTDDI_VERW L")"
+#define _NTDDI  _NTDDI_NAME T(" (NTDDI_VERSION=") _NTDDI_VER T(")")
+inline  CHAR TARGET_NTDDI_NAMEA[]{ _NTDDI_NAMEA };
+inline WCHAR TARGET_NTDDI_NAMEW[]{ _NTDDI_NAMEW };
+inline TCHAR TARGET_NTDDI_NAME[]{ _NTDDI_NAME };
+inline  CHAR TARGET_NTDDI_VERA[]{ _NTDDI_VERA };
+inline WCHAR TARGET_NTDDI_VERW[]{ _NTDDI_VERW };
+inline TCHAR TARGET_NTDDI_VER []{ _NTDDI_VER  };
+inline  CHAR TARGET_NTDDIA[]{ _NTDDIA };
+inline WCHAR TARGET_NTDDIW[]{ _NTDDIW };
+inline TCHAR TARGET_NTDDI []{ _NTDDI  };
+/* _COMPILATION_INFO */
+#define _COMPILATION_INFOA \
+	"C++ Standard:     " _CPLUSPLUS_STANDARDA "\n" \
+	"Compilation Mode: " _COMPILATION_MODEA "\n" \
+	"Char Mode:        " _CHAR_MODEA "\n" \
+	"Build Date:       " _BUILD_DATEA "\n" \
+	"Platform Bits:    " _COMPILATION_PLATFORMA "\n" \
+	"Architecture:     " _COMPILATION_ARCHITECTUREA "\n" \
+	"Compiler:         " _COMPILATION_COMPILERA "\n" \
+	"NTDDI Version:    " _NTDDIA "\n"
+#define _COMPILATION_INFOW LSTR(_COMPILATION_INFOA)
+#define _COMPILATION_INFO  TEXT(_COMPILATION_INFOA)
+inline  CHAR COMPILATION_INFOA[]{ _COMPILATION_INFOA };
+inline WCHAR COMPILATION_INFOW[]{ _COMPILATION_INFOW };
+inline TCHAR COMPILATION_INFO []{ _COMPILATION_INFO  };
+#pragma endregion
 
 #pragma region HandleBase
 enum_flags(HandleAccess, DWORD,
@@ -779,9 +972,9 @@ inline auto MsgBox(LPCSTR lpCaption, LPCSTR lpText = O, MB type = MB::Ok, HWND h
 inline auto MsgBox(LPCWSTR lpCaption = O, LPCWSTR lpText = O, MB type = MB::Ok, HWND hParent = O)
 	reflect_as(WX::MessageBox(hParent, lpText, lpCaption, type.yield()));
 inline int MsgBox(LPCSTR lpCaption, const Exception &err, HWND hParent = O)
-	reflect_as(MsgBox(lpCaption, err.toStringA(), MB::IconError | MB::AbortRetryIgnore, hParent));
+	reflect_as(MsgBox(lpCaption, toStringA(err), MB::IconError | MB::AbortRetryIgnore, hParent));
 inline int MsgBox(LPCWSTR lpCaption, const Exception &err, HWND hParent = O)
-	reflect_as(MsgBox(lpCaption, err.toStringW(), MB::IconError | MB::AbortRetryIgnore, hParent));
+	reflect_as(MsgBox(lpCaption, toStringW(err), MB::IconError | MB::AbortRetryIgnore, hParent));
 #pragma endregion
 
 enum_class(WindowShowFlags, int,
@@ -818,6 +1011,32 @@ public:
 	static inline arrayof<RGBColor, len> &Attach(arrayof<COLORREF, len> &ary) reflect_as(ref_as<arrayof<RGBColor, len>>(ary));
 	inline operator COLORREF() const { return cr; }
 	static inline RGBColor &Attach(COLORREF &clr) reflect_as(*(RGBColor *)&clr);
+};
+
+template<class AnyType>
+struct RangeOf {
+	AnyType min, max;
+public:
+	RangeOf(const AnyType &a) : min(a), max(a) {}
+	RangeOf(const AnyType &low, const AnyType &high) : min(low), max(high) {}
+public: // Property - Low
+	/* W */ inline auto&Low(const AnyType &low) reflect_to_self(this->min = low);
+	/* R */ inline auto Low() const reflect_as(this->min);
+public: // Property - High
+	/* W */ inline auto&High(const AnyType &high) reflect_to_self(this->min = high);
+	/* R */ inline auto High() const reflect_as(this->min);
+public: // Property - Min
+	/* W */ inline auto&Min(const AnyType &min) reflect_to_self(this->min = min);
+	/* R */ inline auto Min() const reflect_as(this->min);
+public: // Property - Max
+	/* W */ inline auto&Max(const AnyType &max) reflect_to_self(this->max = max);
+	/* R */ inline auto Max() const reflect_as(this->max);
+public:	// Property - Start
+	/* W */ inline auto&Start(const AnyType &start) reflect_to_self(this->min = start);
+	/* R */ inline auto Start() const reflect_as(this->min);
+public:	// Property - End
+	/* W */ inline auto&End(const AnyType &end) reflect_to_self(this->max = end);
+	/* R */ inline auto End() const reflect_as(this->max);
 };
 
 }

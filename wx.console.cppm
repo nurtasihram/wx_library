@@ -10,7 +10,7 @@ import wx.proto;
 #pragma region Win32 Prototype Includes
 namespace WX {
 
-#pragma region ProcssEnv.h (part)
+#pragma region ProcessEnv.h (part)
 // GetStdHandle
 inline HANDLE GetStdHandle(DWORD nStdHandle)
 	assertl_reflect_as(auto h = ::GetStdHandle(nStdHandle); h != INVALID_HANDLE_VALUE, h);
@@ -559,6 +559,10 @@ public:
 	template<size_t len>
 	inline DWORD Write(const WCHAR(&lpszString)[len])
 		reflect_as(Write(lpszString, (DWORD)(len - 1)));
+	inline DWORD Write(WCHAR ch)
+		reflect_as(Write(&ch, 1));
+	inline DWORD Write(CHAR ch)
+		reflect_as(Write(&ch, 1));
 
 	inline DWORD Write(LPCSTR lpszString, DWORD nLength, LPoint dwWriteCoord)
 		reflect_as(WX::WriteConsoleOutputCharacter(self, lpszString, nLength, dwWriteCoord, &nLength), nLength);
@@ -687,20 +691,6 @@ public:
 	inline void Clear() reflect_to(Fill(T(' '), ScreenBufferInfo().Size().Square()); CursorPosition(0));
 	inline void Color(WORD wAttributes) reflect_to(FillAttributes(wAttributes, ScreenBufferInfo().Size().Square()); Attributes(wAttributes));
 	inline void Color(Attribute wAttributes) reflect_to(Color(wAttributes.yield()));
-public:
-	template<class... Args>
-	inline DWORD Log(const Args& ...args) reflect_as(Write(Cats(args...)));
-	template<class... Args>
-	inline DWORD LogA(const Args& ...args) reflect_as(Write(CatsA(args...)));
-	template<class... Args>
-	inline DWORD LogW(const Args& ...args) reflect_as(Write(CatsW(args...)));
-public:
-	template<class... Args>
-	inline DWORD Err(const Args& ...args) reflect_as(Write(Cats(args...)));
-	template<class... Args>
-	inline DWORD ErrA(const Args& ...args) reflect_as(Write(CatsA(args...)));
-	template<class... Args>
-	inline DWORD ErrW(const Args& ...args) reflect_as(Write(CatsW(args...)));
 public:
 	inline DWORD Format(LPCSTR lpFormat, ...) {
 		va_list argList;

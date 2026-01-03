@@ -5,5 +5,6 @@
 #ifndef WX_CPPM_CONSOLE
 import wx.console;
 #else
+#	include "wx__nt.h"
 #	undef WX_CPPM_CONSOLE
 #endif

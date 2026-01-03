@@ -9,5 +9,6 @@
 #ifndef WX_CPPM_SECURITY
 import wx.security;
 #else
+#	include "wx__nt.h"
 #	undef WX_CPPM_SECURITY
 #endif

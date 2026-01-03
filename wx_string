@@ -1,0 +1,15 @@
+#pragma once
+
+#include <Windows.h>
+#include <StrSafe.h>
+
+#include "wx"
+
+#ifndef WX_CPPM_STRING
+import wx.string;
+#else
+#	include "wx__nt.h"
+#	undef WX_CPPM_STRING
+#endif
+
+#define S(str) T(str##_S)

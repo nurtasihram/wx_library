@@ -1,10 +1,12 @@
 #pragma once
 
+#include <Windows.h>
+
 #include "wx_type"
 
-import wx;
 #ifndef WX_CPPM_FILE
 import wx.file;
 #else
+#	include "wx__nt.h"
 #	undef WX_CPPM_FILE
 #endif
