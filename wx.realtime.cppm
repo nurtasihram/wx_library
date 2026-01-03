@@ -11,54 +11,57 @@ import wx.proto;
 namespace WX {
 
 #pragma region ProcessEnv.h
-// SetEnvironmentStrings
+#undef SetEnvironmentStrings
+// from WinBase.h
+inline void SetEnvironmentStrings(LPSTR lpszEnvironmentBlock)
+	assertl_reflect_as(::SetEnvironmentStringsA(lpszEnvironmentBlock));
 inline void SetEnvironmentStrings(LPWSTR lpszEnvironmentBlock)
 	assertl_reflect_as(::SetEnvironmentStringsW(lpszEnvironmentBlock));
-// GetCommandLine
+#undef GetCommandLine
 template<bool IsUnicode = WX::IsUnicode>
 inline auto GetCommandLine() {
 	if_c (IsUnicode)
 		 assertl_reflect_as(auto p = ::GetCommandLineW(), p)
 	else assertl_reflect_as(auto p = ::GetCommandLineA(), p)
 }
-// GetEnvironmentStrings
+#undef GetEnvironmentStrings
 template<bool IsUnicode = WX::IsUnicode>
 inline auto GetEnvironmentStrings() {
 	if_c (IsUnicode)
 		 assertl_reflect_as(auto p = ::GetEnvironmentStringsW(), p)
 	else assertl_reflect_as(auto p = ::GetEnvironmentStringsA(), p)
 }
-// FreeEnvironmentStrings
+#undef FreeEnvironmentStrings
 inline void FreeEnvironmentStrings(LPCH lpszEnvironmentBlock)
 	assertl_reflect_as(::FreeEnvironmentStringsA(lpszEnvironmentBlock));
 inline void FreeEnvironmentStrings(LPWCH lpszEnvironmentBlock)
 	assertl_reflect_as(::FreeEnvironmentStringsW(lpszEnvironmentBlock));
-// GetEnvironmentVariable
+#undef GetEnvironmentVariable
 inline DWORD GetEnvironmentVariable(LPCSTR lpName, LPSTR lpBuffer, DWORD nSize)
 	assertl_reflect_as(auto n = ::GetEnvironmentVariableA(lpName, lpBuffer, nSize); n > 0, n);
 inline DWORD GetEnvironmentVariable(LPCWSTR lpName, LPWSTR lpBuffer, DWORD nSize)
-	assertl_reflect_as(auto n = ::GetEnvironmentVariableW(lpName, lpBuffer, nSize); n > 0, n);
-// SetEnvironmentVariable
+	assertl_reflect_as(auto n = ::GetEnvironmentVariableW(lpName, lpBuffer, nSize), n);
+#undef SetEnvironmentVariable
 inline void SetEnvironmentVariable(LPCSTR lpName, LPCSTR lpValue)
 	assertl_reflect_as(::SetEnvironmentVariableA(lpName, lpValue));
 inline void SetEnvironmentVariable(LPCWSTR lpName, LPCWSTR lpValue)
 	assertl_reflect_as(::SetEnvironmentVariableW(lpName, lpValue));
-// ExpandEnvironmentStrings
+#undef ExpandEnvironmentStrings
 inline DWORD ExpandEnvironmentStrings(LPCSTR lpSrc, LPSTR lpDst, DWORD nSize)
 	assertl_reflect_as(auto n = ::ExpandEnvironmentStringsA(lpSrc, lpDst, nSize); n > 0, n);
 inline DWORD ExpandEnvironmentStrings(LPCWSTR lpSrc, LPWSTR lpDst, DWORD nSize)
-	assertl_reflect_as(auto n = ::ExpandEnvironmentStringsW(lpSrc, lpDst, nSize); n > 0, n);
+	assertl_reflect_as(auto n = ::ExpandEnvironmentStringsW(lpSrc, lpDst, nSize), n);
 // SetCurrentDirectory
 inline void SetCurrentDirectory(LPCSTR lpPathName) 
-	assertl_reflect_as(SetCurrentDirectoryA(lpPathName));
+	assertl_reflect_as(::SetCurrentDirectoryA(lpPathName));
 inline void SetCurrentDirectory(LPCWSTR lpPathName) 
-	assertl_reflect_as(SetCurrentDirectoryW(lpPathName));
-// GetCurrentDirectory
+	assertl_reflect_as(::SetCurrentDirectoryW(lpPathName));
+#undef GetCurrentDirectory
 inline DWORD GetCurrentDirectory(DWORD nBufferLength, LPSTR lpBuffer)
 	assertl_reflect_as(auto n = ::GetCurrentDirectoryA(nBufferLength, lpBuffer); n > 0, n);
 inline DWORD  GetCurrentDirectory(DWORD nBufferLength, LPWSTR lpBuffer)
-	assertl_reflect_as(auto n = ::GetCurrentDirectoryW(nBufferLength, lpBuffer); n > 0, n);
-//// SearchPath
+	assertl_reflect_as(auto n = ::GetCurrentDirectoryW(nBufferLength, lpBuffer), n);
+//#undef SearchPath
 //inline DWORD SearchPath(LPCSTR lpPath, LPCSTR lpFileName, LPCSTR lpExtension,
 //						DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart);
 //	assertl_reflect_as(::SearchPathA(lpPath, lpFileName, lpExtension, nBufferLength,
@@ -67,7 +70,7 @@ inline DWORD  GetCurrentDirectory(DWORD nBufferLength, LPWSTR lpBuffer)
 //						DWORD nBufferLength, LPSTR lpBuffer, LPSTR *lpFilePart);
 //	assertl_reflect_as(::SearchPathW(lpPath, lpFileName, lpExtension, nBufferLength,
 //									 lpBuffer, lpFilePart));
-// NeedCurrentDirectoryForExePath
+#undef NeedCurrentDirectoryForExePath
 inline void NeedCurrentDirectoryForExePath(LPCSTR ExeName)
 	assertl_reflect_as(NeedCurrentDirectoryForExePathA(ExeName));
 inline void NeedCurrentDirectoryForExePath(LPCWSTR ExeName)
@@ -163,7 +166,7 @@ inline void TlsSetValue(DWORD dwTlsIndex, LPVOID lpTlsValue)
 // TlsFree
 inline void TlsFree(DWORD dwTlsIndex)
 	assertl_reflect_as(::TlsFree(dwTlsIndex));
-// CreateProcess // GetExitCodeProcess
+#undef CreateProcess
 inline void CreateProcess(LPCSTR lpApplicationName, LPSTR lpCommandLine, LPSECURITY_ATTRIBUTES lpProcessAttributes,
 						  LPSECURITY_ATTRIBUTES lpThreadAttributes, BOOL bInheritHandles, DWORD dwCreationFlags,
 						  LPVOID lpEnvironment, LPCSTR lpCurrentDirectory, LPSTARTUPINFOA lpStartupInfo,
@@ -178,13 +181,19 @@ inline void CreateProcess(LPCWSTR lpApplicationName, LPWSTR lpCommandLine, LPSEC
 	assertl_reflect_as(::CreateProcessW(lpApplicationName, lpCommandLine, lpProcessAttributes, lpThreadAttributes,
 										bInheritHandles, dwCreationFlags, lpEnvironment, lpCurrentDirectory,
 										lpStartupInfo, lpProcessInformation));
+#undef GetStartupInfo
+// from WinBase.h
+inline void GetStartupInfo(LPSTARTUPINFOA lpStartupInfo)
+	 reflect_as(::GetStartupInfoA(lpStartupInfo));
+inline void GetStartupInfo(LPSTARTUPINFOW lpStartupInfo)
+	 reflect_as(::GetStartupInfoW(lpStartupInfo));
 // SetProcessShutdownParameters
 inline void SetProcessShutdownParameters(DWORD dwLevel, DWORD dwFlags)
 	assertl_reflect_as(::SetProcessShutdownParameters(dwLevel, dwFlags));
 // GetProcessVersion
 inline DWORD GetProcessVersion(DWORD ProcessId)
 	assertl_reflect_as(auto n = ::GetProcessVersion(ProcessId), n);
-// CreateProcessAsUser // GetExitCodeProcess
+#undef CreateProcessAsUser
 inline void CreateProcessAsUser(HANDLE hToken, LPCSTR lpApplicationName, LPSTR lpCommandLine,
 								LPSECURITY_ATTRIBUTES lpProcessAttributes, LPSECURITY_ATTRIBUTES lpThreadAttributes,
 								BOOL bInheritHandles, DWORD dwCreationFlags, LPVOID lpEnvironment,
@@ -363,7 +372,7 @@ inline void GetProcessShutdownParameters(LPDWORD lpdwLevel, LPDWORD lpdwFlags)
 // TlsGetValue2 - Deprecated
 #pragma endregion
 
-#pragma region psai.h
+#pragma region psapi.h
 #pragma endregion
 
 #pragma region SynchApi.h
@@ -463,33 +472,51 @@ inline DWORD WaitForSingleObject(HANDLE hHandle, DWORD dwMilliseconds, BOOL bAle
 // WaitForMultipleObjectsEx
 inline DWORD WaitForMultipleObjects(DWORD nCount, const HANDLE *lpHandles, BOOL bWaitAll, DWORD dwMilliseconds, BOOL bAlertable)
 	assertl_reflect_as(auto res = ::WaitForMultipleObjectsEx(nCount, lpHandles, bWaitAll, dwMilliseconds, bAlertable); res != WAIT_FAILED, res);
-// CreateMutex
+#undef CreateMutex
 inline HANDLE CreateMutex(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCSTR lpName)
 	assertl_reflect_as(auto h = ::CreateMutexA(lpMutexAttributes, bInitialOwner, lpName), h);
 inline HANDLE CreateMutex(LPSECURITY_ATTRIBUTES lpMutexAttributes, BOOL bInitialOwner, LPCWSTR lpName)
 	assertl_reflect_as(auto h = ::CreateMutexW(lpMutexAttributes, bInitialOwner, lpName), h);
-// CreateEvent
+#undef OpenMutex
+// from WinBase.h
+inline HANDLE OpenMutex(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCSTR lpName)
+	assertl_reflect_as(auto h = ::OpenMutexA(dwDesiredAccess, bInheritHandle, lpName), h);
+inline HANDLE OpenMutex(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
+	assertl_reflect_as(auto h = ::OpenMutexW(dwDesiredAccess, bInheritHandle, lpName), h);
+#undef CreateEvent
 inline HANDLE CreateEvent(LPSECURITY_ATTRIBUTES lpEventAttributes, BOOL bManualReset, BOOL bInitialState, LPCSTR lpName)
 	assertl_reflect_as(auto h = ::CreateEventA(lpEventAttributes, bManualReset, bInitialState, lpName), h);
 inline HANDLE CreateEvent(LPSECURITY_ATTRIBUTES lpEventAttributes, BOOL bManualReset, BOOL bInitialState, LPCWSTR lpName)
 	assertl_reflect_as(auto h = ::CreateEventW(lpEventAttributes, bManualReset, bInitialState, lpName), h);
-// OpenEvent
+#undef OpenEvent
 inline HANDLE OpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCSTR lpName)
 	assertl_reflect_as(auto h = ::OpenEventA(dwDesiredAccess, bInheritHandle, lpName), h);
 inline HANDLE OpenEvent(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
 	assertl_reflect_as(auto h = ::OpenEventW(dwDesiredAccess, bInheritHandle, lpName), h);
+#undef OpenSemaphore
+// from WinBase.h
+inline HANDLE OpenSemaphore(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCSTR lpName)
+	assertl_reflect_as(auto h = ::OpenSemaphoreA(dwDesiredAccess, bInheritHandle, lpName), h);
+inline HANDLE OpenSemaphore(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
+	assertl_reflect_as(auto h = ::OpenSemaphoreW(dwDesiredAccess, bInheritHandle, lpName), h);
+#undef OpenWaitableTimer
+// from WinBase.h
+inline HANDLE OpenWaitableTimer(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCSTR lpTimerName)
+	assertl_reflect_as(auto h = ::OpenWaitableTimerA(dwDesiredAccess, bInheritHandle, lpTimerName), h);
+inline HANDLE OpenWaitableTimer(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpTimerName)
+	assertl_reflect_as(auto h = ::OpenWaitableTimerW(dwDesiredAccess, bInheritHandle, lpTimerName), h);
 // SetWaitableTimer
 inline void SetWaitableTimer(HANDLE hTimer, const LARGE_INTEGER *lpDueTime, LONG lPeriod, PTIMERAPCROUTINE pfnCompletionRoutine, LPVOID lpArgToCompletionRoutine, BOOL fResume)
 	assertl_reflect_as(::SetWaitableTimer(hTimer, lpDueTime, lPeriod, pfnCompletionRoutine, lpArgToCompletionRoutine, fResume));
 // CancelWaitableTimer
 inline void CancelWaitableTimer(HANDLE hTimer)
 	assertl_reflect_as(::CancelWaitableTimer(hTimer));
-// CreateMutexEx
+#undef CreateMutexEx
 inline HANDLE CreateMutex(LPSECURITY_ATTRIBUTES lpMutexAttributes, LPCSTR lpName, DWORD dwFlags, DWORD dwDesiredAccess)
 	assertl_reflect_as(auto h = ::CreateMutexExA(lpMutexAttributes, lpName, dwFlags, dwDesiredAccess), h);
 inline HANDLE CreateMutex(LPSECURITY_ATTRIBUTES lpMutexAttributes, LPCWSTR lpName, DWORD dwFlags, DWORD dwDesiredAccess)
 	assertl_reflect_as(auto h = ::CreateMutexExW(lpMutexAttributes, lpName, dwFlags, dwDesiredAccess), h);
-// CreateEventEx
+#undef CreateEventEx
 inline HANDLE CreateEvent(LPSECURITY_ATTRIBUTES lpEventAttributes, LPCSTR lpName, DWORD dwFlags, DWORD dwDesiredAccess)
 	assertl_reflect_as(auto h = ::CreateEventExA(lpEventAttributes, lpName, dwFlags, dwDesiredAccess), h);
 inline HANDLE CreateEvent(LPSECURITY_ATTRIBUTES lpEventAttributes, LPCWSTR lpName, DWORD dwFlags, DWORD dwDesiredAccess)
@@ -503,6 +530,34 @@ inline DWORD SignalObjectAndWait(HANDLE hObjectToSignal, HANDLE hObjectToWaitOn,
 // WaitForMultipleObjects
 inline DWORD WaitForMultipleObjects(DWORD nCount, const HANDLE *lpHandles, BOOL bWaitAll, DWORD dwMilliseconds)
 	assertl_reflect_as(auto res = ::WaitForMultipleObjects(nCount, lpHandles, bWaitAll, dwMilliseconds); res != WAIT_FAILED, res);
+#undef CreateSemaphore
+// from WinBase.h
+inline HANDLE CreateSemaphore(LPSECURITY_ATTRIBUTES lpSemaphoreAttributes, LONG lInitialCount, LONG lMaximumCount, LPCSTR lpName)
+	assertl_reflect_as(auto h = ::CreateSemaphoreA(lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName), h);
+inline HANDLE CreateSemaphore(LPSECURITY_ATTRIBUTES lpSemaphoreAttributes, LONG lInitialCount, LONG lMaximumCount, LPCWSTR lpName)
+	assertl_reflect_as(auto h = ::CreateSemaphoreW(lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName), h);	
+#undef CreateSemaphoreEx
+// from WinBase.h
+inline HANDLE CreateSemaphore(LPSECURITY_ATTRIBUTES lpSemaphoreAttributes, LONG lInitialCount, LONG lMaximumCount,
+							  LPCSTR lpName, DWORD dwFlags, DWORD dwDesiredAccess)
+	assertl_reflect_as(auto h = ::CreateSemaphoreExA(lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName, dwFlags, dwDesiredAccess), h);
+inline HANDLE CreateSemaphore(LPSECURITY_ATTRIBUTES lpSemaphoreAttributes, LONG lInitialCount, LONG lMaximumCount,
+							  LPCWSTR lpName, DWORD dwFlags, DWORD dwDesiredAccess)
+	assertl_reflect_as(auto h = ::CreateSemaphoreExW(lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName, dwFlags, dwDesiredAccess), h);
+#undef CreateWaitableTimer
+// from WinBase.h
+inline HANDLE CreateWaitableTimer(LPSECURITY_ATTRIBUTES lpTimerAttributes, BOOL bManualReset, LPCSTR lpTimerName)
+	assertl_reflect_as(auto h = ::CreateWaitableTimerA(lpTimerAttributes, bManualReset, lpTimerName), h);
+inline HANDLE CreateWaitableTimer(LPSECURITY_ATTRIBUTES lpTimerAttributes, BOOL bManualReset, LPCWSTR lpTimerName)
+	assertl_reflect_as(auto h = ::CreateWaitableTimerW(lpTimerAttributes, bManualReset, lpTimerName), h);
+#undef CreateWaitableTimerEx
+// from WinBase.h
+inline HANDLE CreateWaitableTimer(LPSECURITY_ATTRIBUTES lpTimerAttributes, BOOL bManualReset, LPCSTR lpTimerName,
+								  DWORD dwFlags, DWORD dwDesiredAccess)
+	assertl_reflect_as(auto h = ::CreateWaitableTimerExA(lpTimerAttributes, lpTimerName, dwFlags, dwDesiredAccess), h);
+inline HANDLE CreateWaitableTimer(LPSECURITY_ATTRIBUTES lpTimerAttributes, BOOL bManualReset, LPCWSTR lpTimerName,
+								  DWORD dwFlags, DWORD dwDesiredAccess)
+	assertl_reflect_as(auto h = ::CreateWaitableTimerExW(lpTimerAttributes, lpTimerName, dwFlags, dwDesiredAccess), h);
 #pragma endregion
 
 }
@@ -968,7 +1023,7 @@ protected: // Thread Procedure Exception System
 		else {
 			misdef_assert(!member_OnCatch_of<AnyChild>::is_addressable,
 						  "Member OnCatch must be compatible to wx_answer(Exception), wx_answer(), void(Exception) or void()");
-			switch (MsgBox(Cats(T("Thread[PID:"), (*(ThreadBase *)pChild).ID(), T("] error")), err.toString())) {
+			switch (MsgBox(Q(T("Thread[PID:"), (*(ThreadBase *)pChild).ID(), T("] error")), toString(err))) {
 				case IDIGNORE:
 					wx_answer_ignore;
 				case IDRETRY:
@@ -1212,16 +1267,15 @@ using EnvironmentsW = EnvironmentsX<true>;
 class CurrentEnvironment {
 	template<class TCHAR>
 	class Variable {
-		locale_charmode(IsCharW<TCHAR>);
 		using LPCTSTR = const TCHAR *;
-		using String = StringX<IsUnicode>;
+		using String = StringBase<TCHAR>;
 	private:
 		LPCTSTR lpName;
 	public:
 		Variable(LPCTSTR lpName) : lpName(lpName) {}
 	public: // Property - Value
 		/* W */ inline auto &Value(LPCTSTR lpValue) 
-			reflect_to_self(SetEnvironmentVariable(lpName, lpValue));
+			reflect_to_self(WX::SetEnvironmentVariable(lpName, lpValue));
 		/* R */ inline String Value() const {
 			auto len = WX::GetEnvironmentVariable(lpName, O, 0);
 			String str((size_t)len - 1);
@@ -1465,8 +1519,8 @@ public:
 		inline operator Process() reflect_as(OpenProcess(dwDesiredAccess.yield(), bInheritHandle, dwProcessId));
 	};
 	static inline OpenStruct Open(DWORD dwProcessId) reflect_as(dwProcessId);
-	static inline Process Current() reflect_as(GetCurrentProcess());
-	static inline void Exit(UINT uExitCode = 0) reflect_to(ExitProcess(uExitCode));
+	static inline Process Current() reflect_as(WX::GetCurrentProcess());
+	static inline void Exit(UINT uExitCode = 0) reflect_to(WX::ExitProcess(uExitCode));
 public:
 	inline void Terminate(UINT uExitCode = 0) {
 		if (super::hObject)
@@ -1475,9 +1529,9 @@ public:
 	}
 #pragma region Properties
 public: // Property - ExitCode
-	/* R */ inline auto ExitCode() const reflect_to(DWORD dwCode; GetExitCodeProcess(self, &dwCode), dwCode);
+	/* R */ inline auto ExitCode() const reflect_to(DWORD dwCode; WX::GetExitCodeProcess(self, &dwCode), dwCode);
 public: // Property - ID
-	/* R */ inline auto ID() const reflect_as(GetProcessId(self));
+	/* R */ inline auto ID() const reflect_as(WX::GetProcessId(self));
 public: // Property - SysDPI
 	/* R */ inline UINT SysDPI() const reflect_as(WX::GetSystemDpiForProcess(self));
 public: // Property - Memory

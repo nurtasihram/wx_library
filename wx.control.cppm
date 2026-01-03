@@ -9,32 +9,6 @@ import wx.proto;
 
 export namespace WX {
 
-template<class AnyType>
-struct RangeOf {
-	AnyType min, max;
-public:
-	RangeOf(const AnyType &a) : min(a), max(a) {}
-	RangeOf(const AnyType &low, const AnyType &high) : min(low), max(high) {}
-public: // Property - Low
-	/* W */ inline auto&Low(const AnyType &low) reflect_to_self(this->min = low);
-	/* R */ inline auto Low() const reflect_as(this->min);
-public: // Property - High
-	/* W */ inline auto&High(const AnyType &high) reflect_to_self(this->min = high);
-	/* R */ inline auto High() const reflect_as(this->min);
-public: // Property - Min
-	/* W */ inline auto&Min(const AnyType &min) reflect_to_self(this->min = min);
-	/* R */ inline auto Min() const reflect_as(this->min);
-public: // Property - Max
-	/* W */ inline auto&Max(const AnyType &max) reflect_to_self(this->max = max);
-	/* R */ inline auto Max() const reflect_as(this->max);
-public:	// Property - Start
-	/* W */ inline auto&Start(const AnyType &start) reflect_to_self(this->min = start);
-	/* R */ inline auto Start() const reflect_as(this->min);
-public:	// Property - End
-	/* W */ inline auto&End(const AnyType &end) reflect_to_self(this->max = end);
-	/* R */ inline auto End() const reflect_as(this->max);
-};
-
 enum_flags(SystemState, DWORD,
 	Unavailable       = STATE_SYSTEM_UNAVAILABLE,
 	Selected          = STATE_SYSTEM_SELECTED,

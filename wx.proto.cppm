@@ -1,11 +1,12 @@
 module;
 
-#define WX_CPPM_TYPE
-#include "wx_type"
+#include <Windows.h>
+
+#include "wx__nt.h"
+
+#include "wx"
 
 export module wx.proto;
-
-import wx;
 
 export namespace WX {
 
@@ -32,12 +33,6 @@ inline void GetBinaryType(LPCSTR lpApplicationName, LPDWORD lpBinaryType)
 	assertl_reflect_as(::GetBinaryTypeA(lpApplicationName, lpBinaryType));
 inline void GetBinaryType(LPCWSTR lpApplicationName, LPDWORD lpBinaryType)
 	assertl_reflect_as(::GetBinaryTypeW(lpApplicationName, lpBinaryType));
-// GetShortPathName
-inline DWORD GetShortPathName(LPCSTR lpszLongPath, LPSTR lpszShortPath, DWORD cchBuffer)
-	assertl_reflect_as(auto res = ::GetShortPathNameA(lpszLongPath, lpszShortPath, cchBuffer), res);
-// from fileapi.h
-inline DWORD GetShortPathName(LPCWSTR lpszLongPath, LPWSTR lpszShortPath, DWORD cchBuffer)
-	assertl_reflect_as(auto res = ::GetShortPathNameW(lpszLongPath, lpszShortPath, cchBuffer), res);
 // GetLongPathNameTransacted
 inline DWORD GetLongPathNameTransacted(LPCSTR lpszShortPath, LPSTR lpszLongPath, DWORD cchBuffer, HANDLE hTransaction)
 	assertl_reflect_as(auto res = ::GetLongPathNameTransactedA(lpszShortPath, lpszLongPath, cchBuffer, hTransaction), res);
@@ -47,9 +42,6 @@ inline DWORD GetLongPathNameTransacted(LPCWSTR lpszShortPath, LPWSTR lpszLongPat
 // SetProcessAffinityMask
 // GetProcessIoCounters
 // FatalExit
-// SetEnvironmentStrings
-inline void SetEnvironmentStrings(LPSTR lpszEnvironmentBlock)
-assertl_reflect_as(::SetEnvironmentStringsA(lpszEnvironmentBlock));
 // SwitchToFiber
 // DeleteFiber
 // ConvertFiberToThread
@@ -223,57 +215,11 @@ inline void OpenEncryptedFileRaw(LPCWSTR lpFileName, ULONG ulFlags, PVOID *pvCon
 // BackupRead
 // BackupSeek
 // BackupWrite
-// OpenMutex
-inline HANDLE OpenMutex(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCSTR lpName)
-	assertl_reflect_as(auto h = ::OpenMutexA(dwDesiredAccess, bInheritHandle, lpName), h);
-// from synchapi.h
-inline HANDLE OpenMutex(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
-	assertl_reflect_as(auto h = ::OpenMutexW(dwDesiredAccess, bInheritHandle, lpName), h);
-// CreateSemaphore
-inline HANDLE CreateSemaphore(LPSECURITY_ATTRIBUTES lpSemaphoreAttributes, LONG lInitialCount, LONG lMaximumCount, LPCSTR lpName)
-	assertl_reflect_as(auto h = ::CreateSemaphoreA(lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName), h);
-// from synchapi.h
-inline HANDLE CreateSemaphore(LPSECURITY_ATTRIBUTES lpSemaphoreAttributes, LONG lInitialCount, LONG lMaximumCount, LPCWSTR lpName)
-	assertl_reflect_as(auto h = ::CreateSemaphoreW(lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName), h);
-// OpenSemaphore
-inline HANDLE OpenSemaphore(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCSTR lpName)
-	assertl_reflect_as(auto h = ::OpenSemaphoreA(dwDesiredAccess, bInheritHandle, lpName), h);
-// from synchapi.h
-inline HANDLE OpenSemaphore(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
-	assertl_reflect_as(auto h = ::OpenSemaphoreW(dwDesiredAccess, bInheritHandle, lpName), h);
-// CreateWaitableTimer
-inline HANDLE CreateWaitableTimer(LPSECURITY_ATTRIBUTES lpTimerAttributes, BOOL bManualReset, LPCSTR lpTimerName)
-	assertl_reflect_as(auto h = ::CreateWaitableTimerA(lpTimerAttributes, bManualReset, lpTimerName), h);
-// from synchapi.h
-inline HANDLE CreateWaitableTimer(LPSECURITY_ATTRIBUTES lpTimerAttributes, BOOL bManualReset, LPCWSTR lpTimerName)
-	assertl_reflect_as(auto h = ::CreateWaitableTimerW(lpTimerAttributes, bManualReset, lpTimerName), h);
-// OpenWaitableTimer
-inline HANDLE OpenWaitableTimer(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCSTR lpTimerName)
-	assertl_reflect_as(auto h = ::OpenWaitableTimerA(dwDesiredAccess, bInheritHandle, lpTimerName), h);
-// from synchapi.h
-inline HANDLE OpenWaitableTimer(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpTimerName)
-	assertl_reflect_as(auto h = ::OpenWaitableTimerW(dwDesiredAccess, bInheritHandle, lpTimerName), h);
-// CreateSemaphoreEx
-inline HANDLE CreateSemaphore(LPSECURITY_ATTRIBUTES lpSemaphoreAttributes, LONG lInitialCount, LONG lMaximumCount,
-							  LPCSTR lpName, DWORD dwFlags, DWORD dwDesiredAccess)
-	assertl_reflect_as(auto h = ::CreateSemaphoreExA(lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName, dwFlags, dwDesiredAccess), h);
-// from synchapi.h
-inline HANDLE CreateSemaphore(LPSECURITY_ATTRIBUTES lpSemaphoreAttributes, LONG lInitialCount, LONG lMaximumCount,
-							  LPCWSTR lpName, DWORD dwFlags, DWORD dwDesiredAccess)
-	assertl_reflect_as(auto h = ::CreateSemaphoreExW(lpSemaphoreAttributes, lInitialCount, lMaximumCount, lpName, dwFlags, dwDesiredAccess), h);
-// CreateWaitableTimerEx
-inline HANDLE CreateWaitableTimer(LPSECURITY_ATTRIBUTES lpTimerAttributes, BOOL bManualReset, LPCSTR lpTimerName,
-								  DWORD dwFlags, DWORD dwDesiredAccess)
-	assertl_reflect_as(auto h = ::CreateWaitableTimerExA(lpTimerAttributes, lpTimerName, dwFlags, dwDesiredAccess), h);
-// from synchapi.h
-inline HANDLE CreateWaitableTimer(LPSECURITY_ATTRIBUTES lpTimerAttributes, BOOL bManualReset, LPCWSTR lpTimerName,
-								  DWORD dwFlags, DWORD dwDesiredAccess)
-	assertl_reflect_as(auto h = ::CreateWaitableTimerExW(lpTimerAttributes, lpTimerName, dwFlags, dwDesiredAccess), h);
 // CreateFileMapping
 inline HANDLE CreateFileMapping(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappingAttributes, DWORD flProtect,
 								DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCSTR lpName)
 	assertl_reflect_as(auto h = ::CreateFileMappingA(hFile, lpFileMappingAttributes, flProtect, dwMaximumSizeHigh, dwMaximumSizeLow, lpName), h);
-// from synchapi.h
+// from fileapi.h
 inline HANDLE CreateFileMapping(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappingAttributes, DWORD flProtect,
 								DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCWSTR lpName)
 	assertl_reflect_as(auto h = ::CreateFileMappingW(hFile, lpFileMappingAttributes, flProtect, dwMaximumSizeHigh, dwMaximumSizeLow, lpName), h);
@@ -282,7 +228,7 @@ inline HANDLE CreateFileMapping(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappin
 								DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCSTR lpName, DWORD nndPreferred)
 	assertl_reflect_as(auto h = ::CreateFileMappingNumaA(hFile, lpFileMappingAttributes, flProtect,
 														 dwMaximumSizeHigh, dwMaximumSizeLow, lpName, nndPreferred), h);
-// from synchapi.h
+// from fileapi.h
 inline HANDLE CreateFileMapping(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappingAttributes, DWORD flProtect,
 								DWORD dwMaximumSizeHigh, DWORD dwMaximumSizeLow, LPCWSTR lpName, DWORD nndPreferred)
 	assertl_reflect_as(auto h = ::CreateFileMappingNumaW(hFile, lpFileMappingAttributes, flProtect,
@@ -290,7 +236,7 @@ inline HANDLE CreateFileMapping(HANDLE hFile, LPSECURITY_ATTRIBUTES lpFileMappin
 // OpenFileMapping
 inline HANDLE OpenFileMapping(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCSTR lpName)
 	assertl_reflect_as(auto h = ::OpenFileMappingA(dwDesiredAccess, bInheritHandle, lpName), h);
-// from synchapi.h
+// from fileapi.h
 inline HANDLE OpenFileMapping(DWORD dwDesiredAccess, BOOL bInheritHandle, LPCWSTR lpName)
 	assertl_reflect_as(auto h = ::OpenFileMappingW(dwDesiredAccess, bInheritHandle, lpName), h);
 // GetLogicalDriveStrings
@@ -305,12 +251,6 @@ inline void QueryFullProcessImageName(HANDLE hProcess, DWORD dwFlags, LPSTR lpEx
 	assertl_reflect_as(::QueryFullProcessImageNameA(hProcess, dwFlags, lpExeName, lpdwSize));
 inline void QueryFullProcessImageName(HANDLE hProcess, DWORD dwFlags, LPWSTR lpExeName, PDWORD lpdwSize)
 	assertl_reflect_as(::QueryFullProcessImageNameW(hProcess, dwFlags, lpExeName, lpdwSize));
-// GetStartupInfo
-inline void GetStartupInfo(LPSTARTUPINFOA lpStartupInfo)
-	 reflect_as(::GetStartupInfoA(lpStartupInfo));
-// from processthreadsapi.h
-inline void GetStartupInfo(LPSTARTUPINFOW lpStartupInfo)
-	 reflect_as(::GetStartupInfoW(lpStartupInfo));
 // GetFirmwareEnvironmentVariable
 inline DWORD GetFirmwareEnvironmentVariable(LPCSTR lpName, LPCSTR lpGuid, PVOID pBuffer, DWORD nSize)
 	assertl_reflect_as(auto n = ::GetFirmwareEnvironmentVariableA(lpName, lpGuid, pBuffer, nSize), n);
@@ -333,18 +273,6 @@ inline void SetFirmwareEnvironmentVariable(LPCWSTR lpName, LPCWSTR lpGuid, PVOID
 	assertl_reflect_as(::SetFirmwareEnvironmentVariableExW(lpName, lpGuid, pBuffer, nSize, ulFlags));
 // GetFirmwareType
 // IsNativeVhdBoot
-// FindResource
-inline HRSRC FindResource(HINSTANCE hInstance, LPCSTR lpName, LPCSTR lpType)
-	assertl_reflect_as(auto h = ::FindResourceA(hInstance, lpName, lpType), h);
-// from libloaderapi.h
-inline HRSRC FindResource(HINSTANCE hInstance, LPCWSTR lpName, LPCWSTR lpType)
-	assertl_reflect_as(auto h = ::FindResourceW(hInstance, lpName, lpType), h);
-// FindResourceEx
-inline HRSRC FindResource(HINSTANCE hInstance, LPCSTR lpType, LPCSTR lpName, WORD wLanguage)
-	assertl_reflect_as(auto h = ::FindResourceExA(hInstance, lpType, lpName, wLanguage), h);
-// libloaderapi.h
-inline HRSRC FindResource(HINSTANCE hInstance, LPCWSTR lpType, LPCWSTR lpName, WORD wLanguage)
-	assertl_reflect_as(auto h = ::FindResourceExW(hInstance, lpType, lpName, wLanguage), h);
 // EnumResourceTypes
 inline void EnumResourceTypes(HINSTANCE hModule, ENUMRESTYPEPROCA lpEnumFunc, LONG_PTR lParam)
 	assertl_reflect_as(::EnumResourceTypesA(hModule, lpEnumFunc, lParam));
@@ -533,17 +461,6 @@ inline DWORD QueryDosDevice(LPCSTR lpDeviceName, LPSTR lpTargetPath, DWORD ucchM
 // from fileapi.h
 inline DWORD QueryDosDevice(LPCWSTR lpDeviceName, LPWSTR lpTargetPath, DWORD ucchMax)
 	assertl_reflect_as(auto n = ::QueryDosDeviceW(lpDeviceName, lpTargetPath, ucchMax), n);
-// CreateFile
-// from fileapi.h
-inline HANDLE CreateFile(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-						 DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
-	assertl_reflect_as(auto h = ::CreateFileA(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
-											  dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile); h != INVALID_HANDLE_VALUE, h);
-// from fileapi.h
-inline HANDLE CreateFile(LPCWSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes,
-						 DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile)
-	assertl_reflect_as(auto h = ::CreateFileW(lpFileName, dwDesiredAccess, dwShareMode, lpSecurityAttributes,
-											  dwCreationDisposition, dwFlagsAndAttributes, hTemplateFile); h != INVALID_HANDLE_VALUE, h);
 // CreateFileTransacted
 inline HANDLE CreateFile(LPCSTR lpFileName, DWORD dwDesiredAccess, DWORD dwShareMode, LPSECURITY_ATTRIBUTES lpSecurityAttributes,
 						 DWORD dwCreationDisposition, DWORD dwFlagsAndAttributes, HANDLE hTemplateFile,
@@ -599,13 +516,6 @@ inline DWORD GetCompressedFileSize(LPCSTR lpFileName, LPDWORD lpFileSizeHigh, HA
 	assertl_reflect_as(auto n = ::GetCompressedFileSizeTransactedA(lpFileName, lpFileSizeHigh, hTransaction); n != INVALID_FILE_SIZE, n);
 inline DWORD GetCompressedFileSize(LPCWSTR lpFileName, LPDWORD lpFileSizeHigh, HANDLE hTransaction)
 	assertl_reflect_as(auto n = ::GetCompressedFileSizeTransactedW(lpFileName, lpFileSizeHigh, hTransaction); n != INVALID_FILE_SIZE, n);
-// DeleteFile
-// from fileapi.h
-inline void DeleteFile(LPCSTR lpFileName)
-	assertl_reflect_as(::DeleteFileA(lpFileName));
-// from fileapi.h
-inline void DeleteFile(LPCWSTR lpFileName)
-	assertl_reflect_as(::DeleteFileW(lpFileName));
 // DeleteFileTransacted
 inline void DeleteFile(LPCSTR lpFileName, HANDLE hTransaction)
 	assertl_reflect_as(::DeleteFileTransactedA(lpFileName, hTransaction));
@@ -1268,9 +1178,6 @@ inline void CreateSymbolicLinkTransacted(LPCWSTR lpSymlinkFileName, LPCWSTR lpTa
 // SetThreadpoolCallbackPool
 // SetThreadpoolCallbackPriority
 // SetThreadpoolCallbackRunsLong
-#pragma endregion
-
-#pragma region synchapi.h
 #pragma endregion
 
 #pragma region WinUser.h

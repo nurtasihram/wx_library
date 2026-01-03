@@ -1,45 +1,11 @@
 #pragma once
 
-#include <Windows.h>
-#include <StrSafe.h>
-
-#undef min
-#undef max
-
-#pragma region processenv.h
-#undef SetEnvironmentStrings
-#undef GetCommandLine
-#undef GetEnvironmentStrings
-#undef FreeEnvironmentStrings
-#undef GetEnvironmentVariable
-#undef SetEnvironmentVariable
-#undef ExpandEnvironmentStrings
-#undef SetCurrentDirectory
-#undef GetCurrentDirectory
-#undef SearchPath
-#undef NeedCurrentDirectoryForExePath
-#pragma endregion
-
-#pragma region processthreadsapi.h
-#undef CreateProcess
-#undef GetStartupInfo
-#undef CreateProcessAsUser
-#pragma endregion
-
-#pragma region synchapi.h
-#undef CreateMutex
-#undef OpenMutex
-#undef CreateEvent
-#undef OpenEvent
-#undef OpenSemaphore
-#undef OpenWaitableTimer
-#undef CreateMutexEx
-#undef CreateEventEx
-#undef CreateSemaphoreEx
-#undef CreateWaitableTimerEx
-#undef CreateSemaphore
-#undef CreateWaitableTimer
-#pragma endregion
+#ifdef min
+#	undef min
+#endif max
+#ifdef max
+#	undef max
+#endif max
 
 #pragma region WinBase.h
 #undef GetBinaryType
@@ -59,19 +25,11 @@
 #undef lstrcpy
 #undef lstrcat
 #undef lstrlen
-#undef OpenMutex
-#undef CreateSemaphore
-#undef OpenSemaphore
-#undef CreateWaitableTimer
-#undef OpenWaitableTimer
-#undef CreateSemaphoreEx
-#undef CreateWaitableTimerEx
 #undef CreateFileMapping
 #undef CreateFileMappingNuma
 #undef OpenFileMapping
 #undef GetLogicalDriveStrings
 #undef QueryFullProcessImageName
-#undef GetStartupInfo
 #undef GetFirmwareEnvironmentVariable
 #undef GetFirmwareEnvironmentVariableEx
 #undef SetFirmwareEnvironmentVariable
@@ -192,58 +150,28 @@
 #undef CreateSymbolicLinkTransacted
 #pragma endregion
 
-#pragma region fileapi.h
-#undef CreateDirectory
+#pragma region FileApi.h
 #undef CreateFile
 #undef DefineDosDevice
-#undef DeleteFile
 #undef DeleteVolumeMountPoint
-#undef FindFirstChangeNotification
 #undef FindFirstFile
 #undef FindFirstFileEx
 #undef FindFirstVolume
-#undef FindNextFile
 #undef FindNextVolume
-#undef GetDiskFreeSpace
-#undef GetDiskFreeSpaceEx
 #undef GetDiskSpaceInformation
-#undef GetDriveType
 #undef GetFileAttributes
 #undef GetFileAttributesEx
-#undef GetFinalPathNameByHandle
 #undef GetFullPathName
 #undef GetLogicalDriveStrings
 #undef GetLongPathName
 #undef GetShortPathName
-#undef GetTempFileName
-#undef GetVolumeInformation
 #undef GetVolumePathName
 #undef QueryDosDevice
-#undef RemoveDirectory
 #undef SetFileAttributes
-#undef GetTempPath
 #undef GetVolumeNameForVolumeMountPoint
 #undef GetVolumePathNamesForVolumeName
 #undef GetCompressedFileSize
-#undef GetTempPath2
-#undef CreateDirectory2
 #undef RemoveDirectory2
-#undef DeleteFile2
-#pragma endregion
-
-#pragma region libloaderapi.h
-#undef FindResourceEx
-#undef GetModuleFileName
-#undef GetModuleHandle
-#undef GetModuleHandleEx
-#undef LoadLibraryEx
-#undef LoadString
-#undef EnumResourceLanguagesEx
-#undef EnumResourceNamesEx
-#undef EnumResourceTypesEx
-#undef FindResource
-#undef LoadLibrary
-#undef EnumResourceNames
 #pragma endregion
 
 #pragma region WinUser.h
@@ -368,7 +296,6 @@
 #undef PrivateExtractIcons
 #undef LoadImage
 #undef GetIconInfoEx
-#undef LoadString
 #undef IsDialogMessage
 #undef DlgDirList
 #undef DlgDirSelectEx

@@ -1,113 +1,12 @@
 #pragma once
 
-#include "wx_defs.h"
+#include "wx_string"
 
 #ifndef WX_CPPM_TYPE
-import wx;
 import wx.type;
 #else
-#    undef WX_CPPM_TYPE
+#	include "wx__nt.h"
+#	undef WX_CPPM_TYPE
 #endif
-
-#pragma region WX Macros
-#define child (this->child_())
-#define pchild (&this->child_())
-#define retchild return child
-#define reflect_to_child(...) { __VA_ARGS__; retchild; }
-
-#define wx_throw_line(sent) throw WX::Exception(__FILE__, __FUNCTION__, #sent, __LINE__)
-#define assertl(sent) { using namespace WX; if (!(sent)) wx_throw_line(sent); }
-
-#define assertl_reflect_as(sent, ...) \
-{ if (sent) return __VA_ARGS__; wx_throw_line(sent); }
-#define assertl_reflect_as_self(sent)  assertl_reflect_as(sent, self)
-#define assertl_reflect_as_child(sent) assertl_reflect_as(sent, child)
-
-#define assertl_reflect_to(defs, sent, ...) \
-{ defs; if (sent) return __VA_ARGS__; wx_throw_line(sent); }
-#define assertl_reflect_to_self(defs, sent)  assertl_reflect_to(defs, sent, self)
-#define assertl_reflect_to_child(defs, sent) assertl_reflect_to(defs, sent, child)
-
-#define nt_assertl_reflect_to(sent, ...) \
-{ SetLastError(ERROR_SUCCESS); sent; if (GetLastError()) wx_throw_line(sent); return __VA_ARGS__; }
-#define nt_assertl_reflect_to_self(sent)  nt_assertl_reflect_to(sent, self)
-#define nt_assertl_reflect_to_child(sent) nt_assertl_reflect_to(sent, child)
-#pragma endregion
-
-#define wx_answer int
-#define wx_answer_ignore 0
-#define wx_answer_retry 1
-#define wx_answer_abort throw
-
-#pragma region Enumerate
-#define __enum_ex(name, base, oprt, estr, ...) \
-class name : public EnumBase<name, base> { \
-public: \
-	using super = EnumBase<name, base>; \
-	using EnumType = name; \
-	using ProtoEnum = typename super::ProtoEnum; \
-	using ProtoUnit = typename super::ProtoUnit; \
-	using ProtoType = typename super::ProtoType; \
-protected: \
-	friend struct EnumBase<name, base>; \
-	class Unit : protected ProtoUnit { \
-	protected: friend class name; \
-		Unit(const ProtoUnit &val) : ProtoUnit(val.val) {} \
-		constexpr Unit(const ProtoType &val) : ProtoUnit(val) { static_assert(sizeof(val) == sizeof(self), "alignment error"); } \
-		constexpr ProtoType operator=(const ProtoType &v) const reflect_as(v); \
-	public: using EnumType = name; \
-		oprt(Unit); \
-		inline ProtoType yield() const reflect_as(val); \
-	} val; \
-public: \
-	template<class AnyType> \
-	constexpr name(AnyType val) : val(ref_as<Unit>(val)) {} \
-	constexpr name(Unit val) : val(val.val) { static_assert(sizeof(val) == sizeof(self), "alignment error"); } \
-public: \
-	static inline const Unit __VA_ARGS__; \
- 	static constexpr CHAR __NameA[]{ #name }; \
-	static constexpr WCHAR __NameW[]{ L ## #name }; \
-	static constexpr CHAR __EntriesA[]{ estr }; \
-	static constexpr WCHAR __EntriesW[]{ L ## estr }; \
-	static inline const ProtoType __Vals[]{ __VA_ARGS__ }; \
-	static constexpr size_t Count = CountOf(__Vals); \
-public: \
-	inline ProtoType yield() const reflect_as(val.yield()); \
-	inline operator Unit() const reflect_as(val); \
-	oprt(Unit); }
-#define enum_flags_opr(name) \
-	inline name operator~ () const reflect_as(~val); \
-	template<class AnyType> inline auto operator^(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() ^  v.yield())); \
-	template<class AnyType> inline auto operator|(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() |  v.yield())); \
-	template<class AnyType> inline auto operator&(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() &  v.yield())); \
-	template<class AnyType> inline auto operator+(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() |  v.yield())); \
-	template<class AnyType> inline auto operator-(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() & ~v.yield())); \
-	inline name operator^=(name v) reflect_to_self( val ^=  v.val); \
-	inline name operator|=(name v) reflect_to_self( val |=  v.val); \
-	inline name operator&=(name v) reflect_to_self( val &=  v.val); \
-	inline bool operator==(name v) const reflect_as( yield() == v.yield()); \
-	inline bool operator!=(name v) const reflect_as( yield() != v.yield()); \
-	inline bool operator<=(name v) const reflect_as((yield() &  v.yield()) ==   yield()); \
-	inline bool operator>=(name v) const reflect_as((yield() &  v.yield()) == v.yield())
-#define enum_class_opr(name) \
-	inline bool operator==(name v) const reflect_as(val == v.val); \
-	inline bool operator!=(name v) const reflect_as(val != v.val)
-#define enum_flags(name, base, ...) __enum_ex(name, base, enum_flags_opr, #__VA_ARGS__, __VA_ARGS__)
-#define enum_class(name, base, ...) __enum_ex(name, base, enum_class_opr, #__VA_ARGS__, __VA_ARGS__)
-#pragma endregion
-
-#define locale_symbolx(name) static constexpr auto name = AnyX<IsUnicode>(name##W, name##A)
-#define const_stringx(name, str)         \
-    static constexpr auto name##A = str; \
-    static constexpr auto name##W = L##str
-#define auto_stringx(name, str) \
-    const_stringx(name, str);   \
-    locale_symbolx(name)
-#define structx(name) std::conditional_t<IsUnicode, name##W, name##A>
-#define using_structx(name) using name = std::conditional_t<IsUnicode, name##W, name##A>
-
-#define locale_charmode(unicode) static constexpr bool IsUnicode = unicode
-
-#define INNER_USE(name) friend union WX::RefAs<name>
 
 #define BaseOf_Handle(name) name : public WX::HandleBase<name>

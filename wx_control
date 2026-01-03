@@ -4,11 +4,10 @@
 #include <CommCtrl.h>
 
 #include "wx_window"
-#include "wx_gdi"
-#include "wx_resource"
 
 #ifndef WX_CPPM_CONTROL
 import wx.control;
 #else
+#	include "wx__nt.h"
 #	undef WX_CPPM_CONTROL
 #endif

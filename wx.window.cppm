@@ -6,8 +6,6 @@ module;
 export module wx.window;
 
 import wx.proto;
-import wx.gdi;
-import wx.resource;
 
 export namespace WX {
 
@@ -566,11 +564,12 @@ enum_flags(ClassStyle, UINT,
 	DropShadow         = CS_DROPSHADOW);
 using CStyle = ClassStyle;
 template<class WNDCLASS, class AnyChild>
+	requires std::is_same_v<WNDCLASS, WNDCLASSA> || std::is_same_v<WNDCLASS, WNDCLASSW> ||
+			 std::is_same_v<WNDCLASS, WNDCLASSEXA> || std::is_same_v<WNDCLASS, WNDCLASSEXW> 
 class WindowClassBase : public RefStruct<WNDCLASS>,
 	public ChainExtender<WindowClassBase<WNDCLASS, AnyChild>, AnyChild> {
-	locale_charmode(std::is_same_v<_M_(WNDCLASS, WNDCLASSW)> || std::is_same_v<_M_(WNDCLASS, WNDCLASSEXW)>);
-	using LPCTSTR = LPCXSTR<IsUnicode>;
-	using String = StringX<IsUnicode>;
+	using LPCTSTR = decltype(WNDCLASS::lpszClassName);
+	using String = StringX<IsCharW<LPCTSTR>>;
 public:
 	using super = RefStruct<WNDCLASS>;
 	using Child = AnyChild;

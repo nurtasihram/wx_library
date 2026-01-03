@@ -1,0 +1,94 @@
+#pragma once
+
+#include "wx_defs.h"
+
+#ifndef WX_CPPM_CORE
+import wx;
+#else
+#	undef WX_CPPM_CORE
+#endif
+
+/* assert & reflector */
+#define child (this->child_())
+#define pchild (&this->child_())
+#define retchild return child
+#define reflect_to_child(...) { __VA_ARGS__; retchild; }
+
+/* assert & reflector */
+#define wx_throw_line(sent) throw WX::Exception(__FILE__, __FUNCTION__, #sent, __LINE__)
+
+/* error & exception answer */
+#define wx_answer int
+#define wx_answer_ignore 0
+#define wx_answer_retry 1
+#define wx_answer_abort throw
+
+/* enumerator system */
+#define __enum_ex(name, base, oprt, estr, ...) \
+class name : public EnumBase<name, base> { \
+public: \
+	using super = EnumBase<name, base>; \
+	using EnumType = name; \
+	using ProtoEnum = typename super::ProtoEnum; \
+	using ProtoUnit = typename super::ProtoUnit; \
+	using ProtoType = typename super::ProtoType; \
+protected: \
+	friend struct EnumBase<name, base>; \
+	class Unit : protected ProtoUnit { \
+	protected: friend class name; \
+		Unit(const ProtoUnit &val) : ProtoUnit(val.val) {} \
+		constexpr Unit(const ProtoType &val) : ProtoUnit(val) { static_assert(sizeof(val) == sizeof(self), "alignment error"); } \
+		constexpr ProtoType operator=(const ProtoType &v) const reflect_as(v); \
+	public: using EnumType = name; \
+		oprt(Unit); \
+		inline ProtoType yield() const reflect_as(val); \
+	} val; \
+public: \
+	template<class AnyType> \
+	constexpr name(AnyType val) : val(ref_as<Unit>(val)) {} \
+	constexpr name(Unit val) : val(val.val) { static_assert(sizeof(val) == sizeof(self), "alignment error"); } \
+public: \
+	static inline const Unit __VA_ARGS__; \
+ 	static constexpr CHAR __NameA[]{ #name }; \
+	static constexpr WCHAR __NameW[]{ L ## #name }; \
+	static constexpr CHAR __EntriesA[]{ estr }; \
+	static constexpr WCHAR __EntriesW[]{ L ## estr }; \
+	static inline const ProtoType __Vals[]{ __VA_ARGS__ }; \
+	static constexpr size_t Count = CountOf(__Vals); \
+public: \
+	inline ProtoType yield() const reflect_as(val.yield()); \
+	inline operator Unit() const reflect_as(val); \
+	oprt(Unit); }
+#define enum_flags_opr(name) \
+	inline name operator~ () const reflect_as(~val); \
+	template<class AnyType> inline auto operator^(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() ^  v.yield())); \
+	template<class AnyType> inline auto operator|(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() |  v.yield())); \
+	template<class AnyType> inline auto operator&(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() &  v.yield())); \
+	template<class AnyType> inline auto operator+(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() |  v.yield())); \
+	template<class AnyType> inline auto operator-(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() & ~v.yield())); \
+	inline name operator^=(name v) reflect_to_self( val ^=  v.val); \
+	inline name operator|=(name v) reflect_to_self( val |=  v.val); \
+	inline name operator&=(name v) reflect_to_self( val &=  v.val); \
+	inline bool operator==(name v) const reflect_as( yield() == v.yield()); \
+	inline bool operator!=(name v) const reflect_as( yield() != v.yield()); \
+	inline bool operator<=(name v) const reflect_as((yield() &  v.yield()) ==   yield()); \
+	inline bool operator>=(name v) const reflect_as((yield() &  v.yield()) == v.yield())
+#define enum_class_opr(name) \
+	inline bool operator==(name v) const reflect_as(val == v.val); \
+	inline bool operator!=(name v) const reflect_as(val != v.val)
+#define enum_flags(name, base, ...) __enum_ex(name, base, enum_flags_opr, #__VA_ARGS__, __VA_ARGS__)
+#define enum_class(name, base, ...) __enum_ex(name, base, enum_class_opr, #__VA_ARGS__, __VA_ARGS__)
+#pragma endregion
+
+/* string selector */
+#define locale_symbolx(name) static constexpr auto name = AnyX<IsUnicode>(name##W, name##A)
+#define const_stringx(name, str)         \
+    static constexpr auto name##A = str; \
+    static constexpr auto name##W = L##str
+#define auto_stringx(name, str) \
+    const_stringx(name, str);   \
+    locale_symbolx(name)
+#define structx(name) std::conditional_t<IsUnicode, name##W, name##A>
+#define using_structx(name) using name = std::conditional_t<IsUnicode, name##W, name##A>
+
+#define INNER_USE(name) friend union WX::RefAs<name>

@@ -1,10 +1,13 @@
 #pragma once
 
+#include <Windows.h>
+
 #include "wx_type"
 
 #ifndef WX_CPPM_GDI
 import wx.gdi;
 #else
+#	include "wx__nt.h"
 #	undef WX_CPPM_GDI
 #endif
 
