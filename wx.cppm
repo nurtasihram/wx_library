@@ -97,78 +97,117 @@ template<class AnyType>
 using to_proto = typename to_proto_t<AnyType>::type;
 #pragma endregion
 
-#pragma region TypeList
+#pragma region ArgsList
 template<class...>
-struct TypeList;
+class ArgsList;
 template<>
-struct TypeList<> {
-	static constexpr size_t Length = 0;
-	template<class AnyType>
-	inline auto invoke(AnyType f) reflect_as(f());
-};
-template<>
-struct TypeList<void> {
-	template<int ind>
-	struct index;
-	template<size_t ind>
-	inline void indexof() { misuse_assert(ind >= 0, "index overflowed"); }
-	template<class AnyType>
-	inline auto invoke(AnyType f) reflect_as(f());
+class ArgsList<void> {
+public:
+	static constexpr size_t Count = 0;
+public:
+	template<class AnyCallable>
+	inline auto invoke(AnyCallable f) reflect_as(f());
+	template<class AnyClass, class AnyMethod>
+	inline auto invoke(AnyClass &cls, AnyMethod method) reflect_as((cls.*method)());
+public:
+	template<class AnyClass>
+	inline auto constructor_new() reflect_as(new AnyClass());
+	template<class AnyClass>
+	inline auto constructor_placement(void *ptr) reflect_as(new(ptr) AnyClass());
+	template<class AnyClass>
+	inline auto constructor_static() reflect_as(AnyClass());
 };
 template<class Type0>
-struct TypeList<Type0> {
-	Type0 type;
-	template<class AnyType>
-	TypeList(AnyType &type) : type(type) {}
-	template<class AnyType>
-	TypeList(AnyType &&type) : type(type) {}
-	static constexpr size_t Length = 1;
-	template<int ind, class = void>
-	struct index { misuse_assert(ind >= 0, "Index overflowed"); };
-	template<class ___>
-	struct index<0, ___> { using type = Type0; };
-	template<size_t ind>
-	using IndexOf = typename index<ind>::type;
-	template<size_t ind>
-	inline auto &indexof() reflect_to(misuse_assert(ind >= 0, "index overflowed"), type);
+class ArgsList<Type0> {
+	Type0 arg0;
 public:
-	template<class ClassType, class MethodType>
-	inline auto invoke(ClassType &cls, MethodType method) reflect_as((cls.*method)(std::forward<Type0>(type)));
-	template<class AnyType>
-	inline auto invoke(AnyType f) reflect_as(f(std::forward<Type0>(type)));
+	ArgsList(Type0 arg0) : arg0(std::forward<Type0>(arg0)) {}
+public:
+	static constexpr size_t Count = 1;
+public:
+	template<size_t ind> requires(ind == 0)
+	using type = Type0;
+public:
+	template<size_t ind> requires(ind == 0)
+	inline auto &value() reflect_as(arg0);
+	template<size_t ind> requires(ind == 0)
+	inline auto &value() const reflect_as(arg0);
+public:
+	template<class AnyCallable>
+	inline auto invoke(AnyCallable f) reflect_as(f(arg0));
+	template<class AnyClass, class AnyMethod>
+	inline auto invoke(AnyClass &cls, AnyMethod method) reflect_as((cls.*method)(arg0));
+public:
+	template<class AnyClass>
+	inline auto constructor_new() reflect_as(new AnyClass(arg0));
+	template<class AnyClass>
+	inline auto constructor_placement(void *ptr) reflect_as(new(ptr) AnyClass(arg0));
+	template<class AnyClass>
+	inline auto constructor_static() reflect_as(AnyClass(arg0));
 };
 template<class Type0, class...Types>
-struct TypeList<Type0, Types...> : TypeList<Types...> {
-	Type0 type;
-	template<class AnyType, class...Args>
-	TypeList(AnyType &type, Args...args) : TypeList<Types...>(args...), type(type) {}
-	template<class AnyType, class...Args>
-	TypeList(AnyType &&type, Args...args) : TypeList<Types...>(args...), type(type) {}
-	static constexpr size_t Length = 1 + sizeof...(Types);
-	template<size_t ind, class = void>
-	struct index : TypeList<Types...>::template index<ind - 1> {};
-	template<class ___>
-	struct index<0, ___> { using type = Type0; };
-	template<size_t ind>
-	using IndexOf = typename index<ind>::type;
-	template<size_t ind>
-	inline auto &indexof() {
-		if_c (ind)
-			 return TypeList<Types...>::template indexof<ind - 1>();
-		else return type;
-	}
+	requires(!std::is_void_v<Type0> && ... && !std::is_void_v<Types>)
+class ArgsList<Type0, Types...> {
+	using TypeN = ArgsList<Types...>;
 	using ind_seq = std::index_sequence_for<Type0, Types...>;
 private:
-	template<class ClassType, class MethodType, size_t... ind>
-	inline auto invoke(ClassType &cls, MethodType method, std::index_sequence<ind...>) reflect_as((cls.*method)(indexof<ind>()...));
-	template<class AnyType, size_t... ind>
-	inline auto invoke(AnyType f, std::index_sequence<ind...>) reflect_as(f(indexof<ind>()...));
+	template<size_t ind, class = void>
+	struct index : TypeN::template index<ind - 1> {};
+	template<class ___>
+	struct index<0, ___> { using type = Type0; };
+private:
+	template<class AnyCallable, size_t... ind>
+	inline auto invoke(AnyCallable f, std::index_sequence<ind...>) reflect_as(f(value<ind>()...));
+	template<class AnyClass, class AnyMethod, size_t... ind>
+	inline auto invoke(AnyClass &cls, AnyMethod method, std::index_sequence<ind...>) reflect_as((cls.*method)(value<ind>()...));
+private:
+	template<class AnyClass, size_t... ind>
+	inline auto constructor_new(std::index_sequence<ind...>) reflect_as(new AnyClass(value<ind>()...));
+	template<class AnyClass, size_t... ind>
+	inline auto constructor_placement(void *ptr, std::index_sequence<ind...>) reflect_as(new(ptr) AnyClass(value<ind>()...));
+	template<class AnyClass, size_t... ind>
+	inline auto constructor_static(std::index_sequence<ind...>) reflect_as(AnyClass(value<ind>()...));
+private:
+	Type0 arg0;
+	TypeN args;
 public:
-	template<class ClassType, class MethodType>
-	inline auto invoke(ClassType &cls, MethodType method) reflect_as(invoke(cls, method, ind_seq{}));
-	template<class AnyType>
-	inline auto invoke(AnyType f) reflect_as(invoke(f, ind_seq{}));
+	ArgsList(Type0 arg0, Types... args) :
+		arg0(std::forward<Type0>(arg0)),
+		args(std::forward<Types>(args)...) {}
+public:
+	static constexpr size_t Count = 1 + sizeof...(Types);
+public:
+	template<size_t ind> requires(ind < Count)
+	using type = typename index<ind>::type;
+public:
+	template<size_t ind> requires(ind < Count)
+	inline auto &value() {
+		if_c (ind)
+			 reflect_as(args.value<ind - 1>())
+		else reflect_as(arg0)
+	}			
+	template<size_t ind> requires(ind < Count)
+	inline auto &value() const {
+		if_c (ind)
+			 reflect_as(args.value<ind - 1>())
+		else reflect_as(arg0)
+	}
+public:
+	template<class AnyCallable>
+	inline auto invoke(AnyCallable f) reflect_as(invoke(f, ind_seq{}));
+	template<class AnyClass, class AnyMethod>
+	inline auto invoke(AnyClass &cls, AnyMethod method) reflect_as(invoke(cls, method, ind_seq{}));
+public:
+	template<class AnyClass>
+	inline auto constructor_new() reflect_as(constructor_new<AnyClass>(ind_seq{}));
+	template<class AnyClass>
+	inline auto constructor_placement(void *ptr) reflect_as(constructor_placement<AnyClass>(ptr, ind_seq{}));
+	template<class AnyClass>
+	inline auto constructor_static() reflect_as(constructor_static<AnyClass>(ind_seq{}));
 };
+// Must have this alias specialization for some C/C++ exchange support
+template<>
+class ArgsList<> : ArgsList<void> {};
 #pragma endregion
 
 #pragma region FunctionOf
@@ -181,41 +220,45 @@ template<class Ret, class AnyClass, class...Args>
 struct __functionof<Ret(AnyClass:: *)(Args...)> {
 	using Parent = AnyClass;
 	using Return = Ret;
-	using ArgsList = TypeList<Args...>;
+	using ArgsList = WX::ArgsList<Args...>;
 	using Pointer = Ret(AnyClass:: *)(Args...);
 	static constexpr bool is_method = true;
 	static constexpr bool is_static = false;
 	static constexpr bool is_ellipsis = false;
+	static constexpr auto nargs = sizeof...(Args);
 };
 template<class Ret, class AnyClass, class...Args>
 struct __functionof<Ret(AnyClass:: *)(Args..., ...)> {
 	using Parent = AnyClass;
 	using Return = Ret;
-	using ArgsList = TypeList<Args...>;
+	using ArgsList = WX::ArgsList<Args...>;
 	using Pointer = Ret(AnyClass:: *)(Args...);
 	static constexpr bool is_method = true;
 	static constexpr bool is_static = false;
 	static constexpr bool is_ellipsis = true;
+	static constexpr auto nargs = sizeof...(Args);
 };
 template<class Ret, class... Args>
 struct __functionof<Ret(Args...)> {
 	using Parent = void;
 	using Return = Ret;
-	using ArgsList = TypeList<Args...>;
+	using ArgsList = WX::ArgsList<Args...>;
 	using Pointer = Ret(*)(Args...);
 	static constexpr bool is_method = false;
 	static constexpr bool is_static = true;
 	static constexpr bool is_ellipsis = false;
+	static constexpr auto nargs = sizeof...(Args);
 };
 template<class Ret, class... Args>
 struct __functionof<Ret(Args..., ...)> {
 	using Parent = void;
 	using Return = Ret;
-	using ArgsList = TypeList<Args...>;
+	using ArgsList = WX::ArgsList<Args...>;
 	using Pointer = Ret(*)(Args...);
 	static constexpr bool is_method = false;
 	static constexpr bool is_static = true;
 	static constexpr bool is_ellipsis = true;
+	static constexpr auto nargs = sizeof...(Args);
 };
 template<class OtherType>
 using functionof = __functionof<to_proto<OtherType>>;
@@ -260,7 +303,7 @@ struct ConstructorsOf<AnyType, OtherType> : ConstructorOf<AnyType, OtherType> {}
 template<class AnyType, template<class...> class AnyList, class... Args>
 struct ConstructorsOf<AnyType, AnyList<Args...>> {};
 template<class AnyType, class OtherType, class... Others>
-struct ConstructorsOf<AnyType, OtherType, Others...> : ConstructorsOf<AnyType, TypeList<OtherType>, Others...> {};
+struct ConstructorsOf<AnyType, OtherType, Others...> : ConstructorsOf<AnyType, ArgsList<OtherType>, Others...> {};
 template<class AnyType, template<class...> class AnyList, class... Args, class... Others>
 struct ConstructorsOf<AnyType, AnyList<Args...>, Others...> {
 	static constexpr bool as_new = ConstructorOf<AnyType, Args...>::as_new && ConstructorsOf<AnyType, Others...>::as_new;
