@@ -370,9 +370,9 @@ class StatusBarTextX {
 	StatusBarTextStyle styles;
 public:
 	StatusBarTextX() {}
-	StatusBarTextX(StatusBarTextX &&t) : text(inject(t.text)), styles(t.styles) {}
+	StatusBarTextX(StatusBarTextX &&t) : text(to_right_hand(t.text)), styles(t.styles) {}
 	StatusBarTextX(String text, StatusBarTextStyle styles = StatusBarTextStyle::Default) : 
-		text(inject(text)), styles(styles) {}
+		text(to_right_hand(text)), styles(styles) {}
 public: // Property - Styles
 	/* W */ inline auto&Styles(StatusBarTextStyle styles) reflect_to_self(this->styles = styles);
 	/* R */ inline auto Styles() const reflect_as(styles);
@@ -408,7 +408,7 @@ public: // Property - Text
 		if (len <= 0) return{};
 		StringX<IsUnicode> str((size_t)len);
 		auto styles = reuse_as<StatusBarTextStyle>(HIWORD(bar->Send(SB_GETTEXT, nPart, str)));
-		return{ inject(str), styles };
+		return{ to_right_hand(str), styles };
 	}
 public: // Property - TipText
 	/* W */ inline auto &TipText(LPCSTR lpText) reflect_to_self(bar->Send(SB_SETTIPTEXTA, nPart, lpText));
@@ -1129,7 +1129,7 @@ public: // Property - Note
 		if (len <= 0) return O;
 		String str(len);
 		super::Send(BCM_GETNOTE, len + 1, (LPCTSTR)str);
-		return inject(str);
+		return to_right_hand(str);
 	}
 public: // Property - TextMargin
 	/* W */ inline auto &TextMargin(RECT margin) reflect_to_child(super::Send(BCM_SETTEXTMARGIN, 0, &margin));

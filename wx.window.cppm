@@ -28,7 +28,7 @@ public: // Property - Name
 	/* R */ inline StringX<IsUnicode> Name() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetAtomName(self, str, (int)MaxLen);
-		return inject(str.Resize(len));
+		return to_right_hand(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenClass>
 	/* R */ inline StringA NameA() const reflect_as(Name<false, MaxLen>());
@@ -63,7 +63,7 @@ public: // Property - Name
 	/* R */ inline StringX<IsUnicode> Name() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetAtomName(self, str, (int)MaxLen);
-		return inject(str.Resize(len));
+		return to_right_hand(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenClass>
 	/* R */ inline StringA NameA() const reflect_as(Name<false, MaxLen>());
@@ -116,7 +116,7 @@ public: // Property - Primary
 	/* R */ inline bool  Primary() const reflect_as((self->dwFlags &MONITORINFOF_PRIMARY) != 0);
 public: // Property - DeviceName
 	/* W */ inline auto &DeviceName(const String &name) reflect_to_self(WX::Copy(self->szDevice, name));
-	/* R */ inline String DeviceName() const reflect_as(+CString(self->szDevice, CountOf(self->szDevice)));
+	/* R */ inline String DeviceName() const reflect_as(+CString(self->szDevice, ArrCountOf(self->szDevice)));
 public:
 	inline operator MONITORINFO &() reflect_as(*(MONITORINFO *)this);
 	inline operator MonitorInfo &() reflect_as(*(MonitorInfo *)this);
@@ -792,9 +792,9 @@ public:
 public:
 	inline void Remove() reflect_to(WX::RemoveProp(hWnd, lpString));
 private:
-	using FnEnumProp = Function<bool(HWND, LPTSTR, HANDLE)>;
-	using FnEnumPropA = Function<bool(HWND, LPSTR, HANDLE)>;
-	using FnEnumPropW = Function<bool(HWND, LPWSTR, HANDLE)>;
+	using FnEnumProp = Lambda<bool(HWND, LPTSTR, HANDLE)>;
+	using FnEnumPropA = Lambda<bool(HWND, LPSTR, HANDLE)>;
+	using FnEnumPropW = Lambda<bool(HWND, LPWSTR, HANDLE)>;
 private:
 	static BOOL _EnumPropA(HWND hWnd, LPSTR lpString, HANDLE hData, ULONG_PTR lParam) reflect_as((*(FnEnumPropA *)lParam)(hWnd, lpString, hData));
 	static BOOL _EnumPropW(HWND hWnd, LPWSTR lpString, HANDLE hData, ULONG_PTR lParam) reflect_as((*(FnEnumPropW *)lParam)(hWnd, lpString, hData));
@@ -949,7 +949,7 @@ public: // Property - Name
 	/* R */ inline StringX<IsUnicode> Name() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetClassName(hWnd, str, (int)MaxLen);
-		return inject(str.Resize(len));
+		return to_right_hand(str.Resize(len));
 	}
 public: // Property - Atom
 	/* W */ inline auto &Atom(ATOM classAtom) reflect_to_self(Words(GCW_ATOM) = classAtom);
@@ -1075,7 +1075,7 @@ public: // Message Senders
 
 #pragma region Enum
 public:
-	using FnEnumWindow = Function<bool(HWND)>;
+	using FnEnumWindow = Lambda<bool(HWND)>;
 private:
 	static BOOL EnumWindowProc(HWND hWnd, LPARAM lParam) reflect_as((*(FnEnumWindow *)lParam)(hWnd));
 public:
@@ -1354,7 +1354,7 @@ private:
 	}
 public:
 	static inline void Unregister() {
-		if_c (!IsEqual(AnyChild::Unregister, Unregister)) 
+		if_c (!IsTypeEqual(AnyChild::Unregister, Unregister))
 			 reflect_as(AnyChild::Unregister())
 		elif_c (AnyChild::Unregister != Unregister)
 			 reflect_as(AnyChild::Unregister())
@@ -1471,7 +1471,7 @@ public: // Property - String
 		if (len <= 0) return O;
 		StringX<IsUnicode> str((size_t)len);
 		WX::GetWindowText(self, str, len);
-		return inject(str);
+		return to_right_hand(str);
 	}
 	/* R */ inline StringA TextA() const reflect_as(Text<false>());
 	/* R */ inline StringW TextW() const reflect_as(Text<true>());
@@ -1480,7 +1480,7 @@ public: // Property - ModuleFileName
 	/* R */ inline StringX<IsUnicode> ModuleFileName() const {
 		StringX<IsUnicode> str(MaxLen);
 		int len = WX::GetWindowModuleFileName(self, str, (int)MaxLen);
-		return inject(str.Resize(len));
+		return to_right_hand(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenPath>
 	/* R */ inline StringA ModuleFileNameA() const reflect_as(ModuleFileName<false, MaxLen>());
@@ -1669,7 +1669,7 @@ public: // Property - Name
 	/* R */ inline StringX<IsUnicode> Name() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetClipboardFormatName(uFormat, str, (int)MaxLen);
-		return inject(str.Resize(len));
+		return to_right_hand(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenClass>
 	/* R */ inline StringA NameA() const reflect_as(Name<false, MaxLen>());

@@ -540,7 +540,7 @@ class SecurityIdentifiersAuthority {
 	[[maybe_unused]] WORD _ = 0;
 public:
 	SecurityIdentifiersAuthority() { static_assert(sizeof(self) == 8, "alignment error"); }
-	SecurityIdentifiersAuthority(const arrayof<BYTE, 6> &sia) : sia(ref_as<const SID_IDENTIFIER_AUTHORITY>(sia)) {}
+	SecurityIdentifiersAuthority(const ArrayWith<BYTE, 6> &sia) : sia(ref_as<const SID_IDENTIFIER_AUTHORITY>(sia)) {}
 	constexpr SecurityIdentifiersAuthority(BYTE s0, BYTE s1, BYTE s2, BYTE s3, BYTE s4, BYTE s5) : sia({ s0, s1, s2, s3, s4, s5 }) {}
 	SecurityIdentifiersAuthority(const SID_IDENTIFIER_AUTHORITY &sia) : sia(sia) {}
 	inline bool operator==(const SecurityIdentifiersAuthority &s) const reflect_as(reuse_as<uint64_t>(self) == reuse_as<uint64_t>(s));

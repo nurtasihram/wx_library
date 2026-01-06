@@ -569,7 +569,7 @@ public: // FormatDate
 		int len = WX::GetDateFormat(locale.yield(), df.yield(), this, lpFormat, O, 0);
 		StringX<IsUnicode> str((size_t)len - 1);
 		WX::GetDateFormat(locale.yield(), df.yield(), this, lpFormat, str, len);
-		return inject(str);
+		return to_right_hand(str);
 	}
 	inline StringA FormatDate(Locales locale, DateFormat df, LPCSTR lpFormat) const reflect_as(FormatDate<false>(locale, df, lpFormat));
 	inline StringW FormatDate(Locales locale, DateFormat df, LPCWSTR lpFormat) const reflect_as(FormatDate<true>(locale, df, lpFormat));
@@ -579,7 +579,7 @@ public: // FormatDate
 		int len = WX::GetDateFormat(lpLocaleName, df.yield(), this, lpFormat, O, 0, O);
 		StringW str((size_t)len - 1);
 		WX::GetDateFormat(lpLocaleName, df.yield(), this, lpFormat, str, len, O);
-		return inject(str);
+		return to_right_hand(str);
 	}
 public: // FormatTime
 	template<bool IsUnicode = WX::IsUnicode>
@@ -587,7 +587,7 @@ public: // FormatTime
 		int len = WX::GetTimeFormat(locale.yield(), tf.yield(), this, lpFormat, O, 0);
 		StringX<IsUnicode> str((size_t)len - 1);
 		GetTimeFormat(locale.yield(), tf.yield(), this, lpFormat, str, len);
-		return inject(str);
+		return to_right_hand(str);
 	}
 	inline StringA FormatTime(Locales locale, TimeFormat tf, LPCSTR lpFormat) const reflect_as(FormatTime<false>(locale, tf, lpFormat));
 	inline StringW FormatTime(Locales locale, TimeFormat tf, LPCWSTR lpFormat) const reflect_as(FormatTime<true>(locale, tf, lpFormat));
@@ -597,7 +597,7 @@ public: // FormatTime
 		int len = WX::GetTimeFormat(lpLocaleName, tf.yield(), this, lpFormat, O, 0);
 		StringW str((size_t)len - 1);
 		WX::GetTimeFormat(lpLocaleName, tf.yield(), this, lpFormat, str, len);
-		return inject(str);
+		return to_right_hand(str);
 	}
 public:
 	template<bool IsUnicode = WX::IsUnicode>
@@ -608,7 +608,7 @@ public:
 		WX::GetDateFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, str, lenDate);
 		WX::GetTimeFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, ((LPXSTR<IsUnicode>)str) + lenDate, lenTime);
 		str[lenDate - 1] = ' ';
-		return inject(str);
+		return to_right_hand(str);
 	}
 	inline StringA toStringA() const reflect_as(toString<false>());
 	inline StringW toStringW() const reflect_as(toString<true>());
@@ -1008,7 +1008,7 @@ public:
 	inline BYTE Blue() const reflect_as(GetBValue(self));
 public:
 	template<size_t len>
-	static inline arrayof<RGBColor, len> &Attach(arrayof<COLORREF, len> &ary) reflect_as(ref_as<arrayof<RGBColor, len>>(ary));
+	static inline ArrayWith<RGBColor, len> &Attach(ArrayWith<COLORREF, len> &ary) reflect_as(ref_as<ArrayWith<RGBColor, len>>(ary));
 	inline operator COLORREF() const { return cr; }
 	static inline RGBColor &Attach(COLORREF &clr) reflect_as(*(RGBColor *)&clr);
 };

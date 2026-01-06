@@ -626,15 +626,15 @@ inline StringBase<TCHAR> format(const TCHAR *lpFormat, ...) {
 
 /* toString - format_numeral */
 template<bool IsUnicode = WX::IsUnicode>
-inline StringX<IsUnicode> toString(const format_numeral &fn, IsNumber auto i) {
+inline StringX<IsUnicode> toString(const format_numeral &fn, NumberType auto i) {
 	XCHAR<IsUnicode> pBuffer[format_numeral::MaxLen];
 	auto len = fn.push(i, pBuffer);
 	return +CString(len, pBuffer);
 }
 template<bool IsUnicode = WX::IsUnicode>
-inline auto toString(IsIntager auto i) reflect_as(toString<IsUnicode>(DEC, i));
+inline auto toString(IntagerType auto i) reflect_as(toString<IsUnicode>(DEC, i));
 template<bool IsUnicode = WX::IsUnicode>
-inline auto toString(IsFloat auto f) reflect_as(toString<IsUnicode>(FPT, f));
+inline auto toString(FloatType auto f) reflect_as(toString<IsUnicode>(FPT, f));
 
 /* toString - Exception */
 template<bool IsUnicode>

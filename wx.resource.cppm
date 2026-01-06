@@ -188,9 +188,9 @@ public: // Property - ResourceID
 	/* W */ inline auto &ResourceID(WORD wResID) reflect_to_self(self->wResID = wResID);
 	/* R */ inline WORD  ResourceID() const reflect_as(self->wResID);
 public: // Property - ModuleName
-	/* R */ inline const String ModuleName() const reflect_as(CString(self->szModName, CountOf(self->szModName)));
+	/* R */ inline const String ModuleName() const reflect_as(CString(self->szModName, ArrCountOf(self->szModName)));
 public: // Property - ResourceName
-	/* R */ inline const String ResourceName() const reflect_as(CString(self->szResName, CountOf(self->szResName)));
+	/* R */ inline const String ResourceName() const reflect_as(CString(self->szResName, ArrCountOf(self->szResName)));
 };
 using IconInfoEx = IconInfoExX<>;
 using IconInfoExA = IconInfoExX<false>;
@@ -598,7 +598,7 @@ public: // Property - String
 		auto len = StringW(wID).Length();
 		WX::StringA str(len);
 		WX::LoadString(self, wID, str, (int)len);
-		return inject(str);
+		return to_right_hand(str);
 	}
 	inline const WX::StringW StringW(WORD wID) const {
 		LPCWSTR lpString = O;
@@ -613,7 +613,7 @@ public: // Property - FileName
 	/* R */ inline StringX<IsUnicode> FileName() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetModuleFileName(self, str, (int)MaxLen);
-		return inject(str.Resize(len));
+		return to_right_hand(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenPath>
 	/* R */ inline WX::StringA FileNameA() const reflect_as(FileName<false, MaxLen>());

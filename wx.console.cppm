@@ -714,7 +714,7 @@ public: // Property - Title
 	/* R */ inline StringX<IsUnicode> Title() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetConsoleTitle(str, (int)MaxLen);
-		return inject(str.Resize(len));
+		return to_right_hand(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenTitle>
 	/* R */ inline StringA TitleA() const reflect_as(Title<false.MaxLen>());
@@ -725,7 +725,7 @@ public: // Property - OriginalTitle
 	/* R */ inline StringX<IsUnicode> OriginalTitle() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetConsoleOriginalTitle(str, (int)MaxLen);
-		return inject(str.Resize(len));
+		return to_right_hand(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenTitle>
 	/* R */ inline StringA OriginalTitleA() const reflect_as(OriginalTitle<false, MaxLen>());

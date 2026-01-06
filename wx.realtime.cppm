@@ -372,7 +372,7 @@ inline void GetProcessShutdownParameters(LPDWORD lpdwLevel, LPDWORD lpdwFlags)
 // TlsGetValue2 - Deprecated
 #pragma endregion
 
-#pragma region psapi.h
+#pragma region PsApi.h
 #pragma endregion
 
 #pragma region SynchApi.h
@@ -958,7 +958,7 @@ class ThreadBase : public Thread,
 public:
 	using super = Thread;
 	using Child = Chain<ThreadBase, AnyChild>;
-	using ChainExtender<ThreadBase<AnyChild>, AnyChild>::child_;
+	using ChainExtender<ThreadBase<AnyChild>, AnyChild>::__child__;
 protected:
 	INNER_USE(ThreadBase);
 	ThreadBase(HANDLE h) : super(h) {}
@@ -1156,7 +1156,7 @@ public:
 			if (len - 1 == value.Length()) return &value;
 			String str((size_t)len - 1);
 			WX::ExpandEnvironmentStrings(value, str, len);
-			return inject(str);
+			return to_right_hand(str);
 		}
 	public:
 		inline auto &operator=(const String &value) reflect_to_self(Value(value));
@@ -1280,7 +1280,7 @@ class CurrentEnvironment {
 			auto len = WX::GetEnvironmentVariable(lpName, O, 0);
 			String str((size_t)len - 1);
 			WX::SetEnvironmentVariable(lpName, str, len);
-			return inject(str);
+			return to_right_hand(str);
 		}
 	public: // Property - Expand
 		/* R */ inline String Expand() const {
@@ -1289,7 +1289,7 @@ class CurrentEnvironment {
 			if (val.Length() == len) return val;
 			String str((size_t)len - 1);
 			WX::ExpandEnvironmentStrings(val, str, len);
-			return inject(str);
+			return to_right_hand(str);
 		}
 	public:
 		inline auto &operator=(LPCTSTR lpValue) reflect_to_self(Value(lpValue));
@@ -1565,7 +1565,7 @@ template<bool IsUnicode>
 	auto len = WX::GetCurrentDirectory(0, (LPXSTR<IsUnicode>)O);
 	StringX<IsUnicode> str((size_t)len);
 	WX::GetCurrentDirectory(len, str);
-	return inject(str);
+	return to_right_hand(str);
 }
 /* R */ inline StringA CurrentDirectoryA() reflect_as(CurrentDirectory<false>());
 /* R */ inline StringW CurrentDirectoryW() reflect_as(CurrentDirectory<true>());
@@ -1576,7 +1576,7 @@ template<bool IsUnicode>
 	WX::GetUserName((LPXSTR<IsUnicode>)O, &len);
 	StringX<IsUnicode> str((size_t)len);
 	WX::GetUserName(str, &len);
-	return inject(str);
+	return to_right_hand(str);
 }
 inline StringA CurrentUserNameA() reflect_as(CurrentUserName<false>());
 inline StringW CurrentUserNameW() reflect_as(CurrentUserName<true>());
@@ -1587,7 +1587,7 @@ template<bool IsUnicode>
 	WX::GetComputerName((LPXSTR<IsUnicode>)O, &len);
 	StringX<IsUnicode> str((size_t)len);
 	WX::GetComputerName(str, &len);
-	return inject(str);
+	return to_right_hand(str);
 }
 /* R */ inline StringA CurrentComputerNameA() reflect_as(CurrentComputerName<false>());
 /* R */ inline StringW CurrentComputerNameW() reflect_as(CurrentComputerName<true>());

@@ -101,7 +101,7 @@ public: // Property - Text
 	/* R */ inline StringX<IsUnicode> Text() const {
 		StringX<IsUnicode> str(MaxLen);
 		auto len = WX::GetDlgItemText(hDlg, nIDDlgItem, str, (int)MaxLen);
-		return inject(str.Resize(len));
+		return to_right_hand(str.Resize(len));
 	}
 	template<size_t MaxLen = MaxLenNotice>
 	/* R */ inline StringA TextA() const reflect_as(Text<false, MaxLen>());
@@ -181,8 +181,8 @@ public:
 	using super = DialogCommon<CHOOSECOLOR, DialogColorX>;
 public:
 	using Style = DialogColorStyle;
-	using ColorSet = arrayof<RGBColor, 16>;
-	using CColorSet = const arrayof<RGBColor, 16>;
+	using ColorSet = ArrayWith<RGBColor, 16>;
+	using CColorSet = const ArrayWith<RGBColor, 16>;
 public:
 	DialogColorX() reflect_to(self->lStructSize = sizeof(CHOOSECOLOR));
 public: // Property - Styles
@@ -641,7 +641,7 @@ public: // Property - String
 		auto len = WX::GetDlgItemText(hDlg, nIDDlgItem, (LPXSTR<IsUnicode>)O, 0);
 		StringX<IsUnicode> str((size_t)len);
 		WX::GetDlgItemText(hDlg, nIDDlgItem, str, len);
-		return inject(str);
+		return to_right_hand(str);
 	}
 	/* R */ inline StringA TextA() const reflect_as(Text<false>());
 	/* R */ inline StringW TextW() const reflect_as(Text<true>());

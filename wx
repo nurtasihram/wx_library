@@ -9,8 +9,8 @@ import wx;
 #endif
 
 /* assert & reflector */
-#define child (this->child_())
-#define pchild (&this->child_())
+#define child (this->__child__())
+#define pchild (&this->__child__())
 #define retchild return child
 #define reflect_to_child(...) { __VA_ARGS__; retchild; }
 
@@ -54,7 +54,7 @@ public: \
 	static constexpr CHAR __EntriesA[]{ estr }; \
 	static constexpr WCHAR __EntriesW[]{ L ## estr }; \
 	static inline const ProtoType __Vals[]{ __VA_ARGS__ }; \
-	static constexpr size_t Count = CountOf(__Vals); \
+	static constexpr size_t Count = ArrCountOf(__Vals); \
 public: \
 	inline ProtoType yield() const reflect_as(val.yield()); \
 	inline operator Unit() const reflect_as(val); \
