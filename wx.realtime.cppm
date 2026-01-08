@@ -642,7 +642,7 @@ public:
 	using super::operator=;
 	inline auto &operator=(bool bState) reflect_to_self(if (bState) Set(); else Reset(););
 };
-using CEvent = RefAs<Event>;
+using CEvent = ProxyShim<Event>;
 #pragma endregion
 
 #pragma region Mutex
@@ -704,7 +704,7 @@ public:
 public:
 	using super::operator=;
 };
-using CMutex = RefAs<Mutex>;
+using CMutex = ProxyShim<Mutex>;
 #pragma endregion
 
 #pragma region Semaphore
@@ -868,7 +868,7 @@ enum_flags(ThreadAccess, Handle::Access,
 template<class AnyChild = void>
 class ThreadBase;
 using Thread = ThreadBase<>;
-using CThread = RefAs<Thread>;
+using CThread = ProxyShim<Thread>;
 template<>
 class BaseOf_Waitable(ThreadBase<>) {
 	friend class Process;
@@ -876,7 +876,7 @@ public:
 	using super = WaitableBase<ThreadBase<>>;
 	using Access = ThreadAccess;
 protected:
-	INNER_USE(Thread);
+	PROXY_SHIM(Thread);
 	ThreadBase(HANDLE h) : super(h) {}
 	ThreadBase(const ThreadBase &t) : super(t.hObject) reflect_to(t.hObject = O);
 public:
@@ -886,7 +886,7 @@ public:
 	ThreadBase(ThreadBase &&t) : super(t.hObject) {}
 public:
 	template<class AnyChild = void>
-	class CreateStruct : public ChainExtender<CreateStruct<AnyChild>, AnyChild> {
+	class CreateStruct : public ExtendShim<CreateStruct<AnyChild>, AnyChild> {
 		friend class ThreadBase;
 		LPSECURITY_ATTRIBUTES lpThreadAttributes = O;
 		SIZE_T dwStackSize = 0;
@@ -903,7 +903,7 @@ public:
 		inline auto &Suspend(bool bSuspend = true) reflect_to_child(this->dwCreationFlags = bSuspend ? (this->dwCreationFlags | CREATE_SUSPENDED) : (this->dwCreationFlags & ~CREATE_SUSPENDED));
 	public:
 		template<class Child>
-		inline RefAs<ThreadBase<Child>> Create() reflect_as(WX::CreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, O));
+		inline ProxyShim<ThreadBase<Child>> Create() reflect_as(WX::CreateThread(lpThreadAttributes, dwStackSize, lpStartAddress, lpParameter, dwCreationFlags, O));
 	};
 	static inline CreateStruct<> Create(LPTHREAD_START_ROUTINE lpStartAddress, LPVOID lpParameter = O) reflect_as({ lpStartAddress, lpParameter });
 	class OpenStruct {
@@ -953,14 +953,14 @@ public:
 };
 template<class AnyChild>
 class ThreadBase : public Thread,
-	public ChainExtender<ThreadBase<AnyChild>, AnyChild> {
+	public ExtendShim<ThreadBase<AnyChild>, AnyChild> {
 	friend class ThreadBase<>;
 public:
 	using super = Thread;
 	using Child = Chain<ThreadBase, AnyChild>;
-	using ChainExtender<ThreadBase<AnyChild>, AnyChild>::__child__;
+	using ExtendShim<ThreadBase<AnyChild>, AnyChild>::__child__;
 protected:
-	INNER_USE(ThreadBase);
+	PROXY_SHIM(ThreadBase);
 	ThreadBase(HANDLE h) : super(h) {}
 	ThreadBase(const ThreadBase &t) : super(t) {}
 public:
@@ -1324,12 +1324,12 @@ enum_flags(StartupFlag, DWORD,
 	PreventPinning      = STARTF_PREVENTPINNING,
 	UntrustedSource     = STARTF_UNTRUSTEDSOURCE);
 template<bool IsUnicode = WX::IsUnicode>
-class StartupInfoX : public RefStruct<structx(STARTUPINFO)> {
+class StartupInfoX : public StructShim<structx(STARTUPINFO)> {
 	using_structx(WNDCLASSEX);
 	using LPTSTR = LPXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<STARTUPINFO>;
+	using super = StructShim<STARTUPINFO>;
 public:
 	StartupInfoX() reflect_to(WX::GetStartupInfo(this));
 	StartupInfoX(Null) reflect_to(self->cb = sizeof(*self));
@@ -1549,7 +1549,7 @@ public: // Property - Immersive
 public:
 	using super::operator=;
 };
-using CProcess = RefAs<Process>;
+using CProcess = ProxyShim<Process>;
 #pragma endregion
 
 // Property - CommandLine

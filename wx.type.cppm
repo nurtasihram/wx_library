@@ -270,7 +270,7 @@ template<class AnyChild>
 class HandleBase;
 using Handle = HandleBase<void>;
 template<class AnyChild>
-class HandleBase : public ChainExtender<HandleBase<AnyChild>, AnyChild> {
+class HandleBase : public ExtendShim<HandleBase<AnyChild>, AnyChild> {
 protected:
 	mutable HANDLE hObject = O;
 public:
@@ -376,9 +376,9 @@ public:
 #pragma endregion
 
 #pragma region Heap
-class HeapSummary : public RefStruct<HEAP_SUMMARY> {
+class HeapSummary : public StructShim<HEAP_SUMMARY> {
 public:
-	using super = RefStruct<HEAP_SUMMARY>;
+	using super = StructShim<HEAP_SUMMARY>;
 public:
 	HeapSummary() reflect_to(this->cb = sizeof(HEAP_SUMMARY));
 	HeapSummary(const HEAP_SUMMARY &hs) : super(hs) {}
@@ -406,7 +406,7 @@ public:
 	using super = HandleBase<Heap>;
 	using AllocFlags = HeapAllocFlag;
 protected:
-	INNER_USE(Heap);
+	PROXY_SHIM(Heap);
 	Heap(HANDLE hHeap) : super(hHeap) {}
 public:
 	Heap() : super(GetProcessHeap()) {}
@@ -465,7 +465,7 @@ public: // Property - Summaries
 	//	_Out_opt_ PSIZE_T ReturnLength);
 	using super::operator=;
 };
-using CHeap = RefAs<Heap>;
+using CHeap = ProxyShim<Heap>;
 CHeap ThisHeap = Heap{};
 #pragma endregion
 
@@ -532,9 +532,9 @@ enum_flags(DateFormat, DWORD,
 	RTLReading             = DATE_RTLREADING,
 	AutoLayout             = DATE_AUTOLAYOUT,
 	MonthDay               = DATE_MONTHDAY);
-class SystemTime : public RefStruct<SYSTEMTIME> {
+class SystemTime : public StructShim<SYSTEMTIME> {
 public:
-	using super = RefStruct<SYSTEMTIME>;
+	using super = StructShim<SYSTEMTIME>;
 public:
 	SystemTime(Null) {}
 	SystemTime() reflect_to(GetSystemTime(this));
@@ -618,9 +618,9 @@ public:
 	inline operator FILETIME() const assertl_reflect_to(FILETIME ft, SystemTimeToFileTime(this, &ft), ft);
 };
 using SysTime = SystemTime;
-class FileTime : public RefStruct<FILETIME> {
+class FileTime : public StructShim<FILETIME> {
 public:
-	using super = RefStruct<FILETIME>;
+	using super = StructShim<FILETIME>;
 public:
 	FileTime() {}
 	FileTime(const FILETIME &ft) : super(ft) {}
@@ -835,9 +835,9 @@ inline LRect operator-(LPoint p, const LRect &r) reflect_as(-(r - p));
 #pragma endregion
 
 #pragma region Message Wrapper
-class Message : public RefStruct<MSG> {
+class Message : public StructShim<MSG> {
 public:
-	using super = RefStruct<MSG>;
+	using super = StructShim<MSG>;
 public:
 	Message() {}
 	Message(const MSG &msg) : super(msg) {}
@@ -1008,7 +1008,7 @@ public:
 	inline BYTE Blue() const reflect_as(GetBValue(self));
 public:
 	template<size_t len>
-	static inline ArrayWith<RGBColor, len> &Attach(ArrayWith<COLORREF, len> &ary) reflect_as(ref_as<ArrayWith<RGBColor, len>>(ary));
+	static inline ArrayOf<RGBColor, len> &Attach(ArrayOf<COLORREF, len> &ary) reflect_as(ref_as<ArrayOf<RGBColor, len>>(ary));
 	inline operator COLORREF() const { return cr; }
 	static inline RGBColor &Attach(COLORREF &clr) reflect_as(*(RGBColor *)&clr);
 };

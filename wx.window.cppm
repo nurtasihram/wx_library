@@ -40,7 +40,7 @@ public:
 	inline operator LPCSTR() const reflect_as(MAKEINTRESOURCEA(atom));
 	inline operator LPCWSTR() const reflect_as(MAKEINTRESOURCEW(atom));
 };
-using CAtom = RefAs<Atom>;
+using CAtom = ProxyShim<Atom>;
 class GlobalAtom {
 	ATOM atom = 0;
 public:
@@ -51,8 +51,8 @@ public:
 	GlobalAtom(ATOM atom) : atom(atom) {}
 	~GlobalAtom() reflect_to(Delete());
 public:
-	static inline RefAs<GlobalAtom> Find(LPCSTR lpString) reflect_as(WX::GlobalFindAtom(lpString));
-	static inline RefAs<GlobalAtom> Find(LPCWSTR lpString) reflect_as(WX::GlobalFindAtom(lpString));
+	static inline ProxyShim<GlobalAtom> Find(LPCSTR lpString) reflect_as(WX::GlobalFindAtom(lpString));
+	static inline ProxyShim<GlobalAtom> Find(LPCWSTR lpString) reflect_as(WX::GlobalFindAtom(lpString));
 	inline void Delete() {
 		if (atom)
 			WX::GlobalDeleteAtom(atom);
@@ -75,13 +75,13 @@ public:
 	inline operator LPCSTR() const reflect_as(MAKEINTRESOURCEA(atom));
 	inline operator LPCWSTR() const reflect_as(MAKEINTRESOURCEW(atom));
 };
-using CGlobalAtom = RefAs<GlobalAtom>;
+using CGlobalAtom = ProxyShim<GlobalAtom>;
 #pragma endregion
 
 #pragma region Monitor
-class MonitorInformations : public RefStruct<MONITORINFO> {
+class MonitorInformations : public StructShim<MONITORINFO> {
 public:
-	using super = RefStruct<MONITORINFO>;
+	using super = StructShim<MONITORINFO>;
 public:
 	MonitorInformations() reflect_to(self->cbSize = sizeof(MONITORINFO));
 	MonitorInformations(const MONITORINFO &mi) : super(mi) {}
@@ -97,11 +97,11 @@ public: // Property - Primary
 };
 using MonitorInfo = MonitorInformations;
 template<bool IsUnicode = WX::IsUnicode>
-class MonitorInformationsExX : public RefStruct<structx(MONITORINFOEX)> {
+class MonitorInformationsExX : public StructShim<structx(MONITORINFOEX)> {
 	using MONITORINFOEX = std::conditional_t<IsUnicode, MONITORINFOEXW, MONITORINFOEXA>;
 	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<MONITORINFOEX>;
+	using super = StructShim<MONITORINFOEX>;
 public:
 	MonitorInformationsExX() reflect_to(self->cbSize = sizeof(MONITORINFOEX));
 	MonitorInformationsExX(const MONITORINFOEX &mie) : super(mie) {}
@@ -116,7 +116,7 @@ public: // Property - Primary
 	/* R */ inline bool  Primary() const reflect_as((self->dwFlags &MONITORINFOF_PRIMARY) != 0);
 public: // Property - DeviceName
 	/* W */ inline auto &DeviceName(const String &name) reflect_to_self(WX::Copy(self->szDevice, name));
-	/* R */ inline String DeviceName() const reflect_as(+CString(self->szDevice, ArrCountOf(self->szDevice)));
+	/* R */ inline String DeviceName() const reflect_as(+CString(self->szDevice, ArrayCountOf(self->szDevice)));
 public:
 	inline operator MONITORINFO &() reflect_as(*(MONITORINFO *)this);
 	inline operator MonitorInfo &() reflect_as(*(MonitorInfo *)this);
@@ -134,7 +134,7 @@ using MonitorInfoExW = MonitorInformationsExX<true>;
 class Monitor {
 	mutable HMONITOR hMonitor = O;
 protected:
-	INNER_USE(Monitor);
+	PROXY_SHIM(Monitor);
 	Monitor(HMONITOR h) : hMonitor(h) {}
 	Monitor(const Monitor &m) = delete;
 public:
@@ -156,7 +156,7 @@ public:
 class Desktop {
 	mutable HDESK hDesk = O;
 protected:
-	INNER_USE(Desktop);
+	PROXY_SHIM(Desktop);
 	Desktop(HDESK h) : hDesk(h) {}
 	Desktop(const Desktop &d) = delete;
 public:
@@ -171,7 +171,7 @@ public:
 class WindowStation {
 	mutable HWINSTA hWinSta = O;
 protected:
-	INNER_USE(WindowStation);
+	PROXY_SHIM(WindowStation);
 	WindowStation(HWINSTA h) : hWinSta(h) {}
 	WindowStation(const WindowStation &w) = delete;
 public:
@@ -185,11 +185,11 @@ public:
 template<class AnyChild>
 class WindowBase;
 using Window = WindowBase<void>;
-using CWindow = RefAs<Window>;
+using CWindow = ProxyShim<Window>;
 template<class AnyChild>
-using WindowShim = RefAs<WindowBase<AnyChild>>;
+using WindowShim = ProxyShim<WindowBase<AnyChild>>;
 template<class AnyChild>
-using CWindowShim = RefAs<const WindowBase<AnyChild>>;
+using CWindowShim = ProxyShim<const WindowBase<AnyChild>>;
 
 #pragma region Misc
 
@@ -202,9 +202,9 @@ struct KEY_FLAGS {
 	uint16_t bTranslated : 1;
 };
 
-class ScrollInfo : public RefStruct<SCROLLINFO> {
+class ScrollInfo : public StructShim<SCROLLINFO> {
 public:
-	using super = RefStruct<SCROLLINFO>;
+	using super = StructShim<SCROLLINFO>;
 public:
 	ScrollInfo() reflect_to(self.cbSize = sizeof(SCROLLINFO); self.fMask = SIF_ALL);
 	ScrollInfo(const SCROLLINFO &si) : super(si) {}
@@ -316,9 +316,9 @@ enum_flags(WindowPosFlag, UINT,
 	NoReposition        = SWP_NOREPOSITION);
 using SWP = WindowPosFlag;
 
-class FlashInfo : public RefStruct<FLASHWINFO> {
+class FlashInfo : public StructShim<FLASHWINFO> {
 public:
-	using super = RefStruct<FLASHWINFO>;
+	using super = StructShim<FLASHWINFO>;
 public:
 	FlashInfo(HWND hwnd = O) reflect_to(self.cbSize = sizeof(cbSize); self.hwnd = hwnd);
 	FlashInfo(const FLASHWINFO &f) : super(f) {}
@@ -373,9 +373,9 @@ enum_flags(SysState, DWORD,
 	Protected           = STATE_SYSTEM_PROTECTED,
 	Valid               = STATE_SYSTEM_VALID);
 
-class TitleBarInfo : public RefStruct<TITLEBARINFO> {
+class TitleBarInfo : public StructShim<TITLEBARINFO> {
 public:
-	using super = RefStruct<TITLEBARINFO>;
+	using super = StructShim<TITLEBARINFO>;
 public:
 	TitleBarInfo() reflect_to(self.cbSize = sizeof(TITLEBARINFO));
 	TitleBarInfo(const TITLEBARINFO &t) : super(t) {}
@@ -399,9 +399,9 @@ public: // Property - CloseButtonState
 	/* R */ inline auto CloseButtonState() const reflect_as(reuse_as<SysState>(self.rgstate[5]));
 };
 
-class WindowPosition : public RefStruct<WINDOWPOS> {
+class WindowPosition : public StructShim<WINDOWPOS> {
 public:
-	using super = RefStruct<WINDOWPOS>;
+	using super = StructShim<WINDOWPOS>;
 	using Flag = WindowPosFlag;
 public:
 	WindowPosition() {}
@@ -435,9 +435,9 @@ public:
 using WndPos = WindowPosition;
 using WindowPos = WindowPosition;
 
-class WindowPlacement : public RefStruct<WINDOWPLACEMENT> {
+class WindowPlacement : public StructShim<WINDOWPLACEMENT> {
 public:
-	using super = RefStruct<WINDOWPLACEMENT>;
+	using super = StructShim<WINDOWPLACEMENT>;
 public:
 	WindowPlacement() reflect_to(self->length = sizeof(WINDOWPLACEMENT));
 public:// Property - SetMinPosition
@@ -467,9 +467,9 @@ public: // Property - NormalPosition
 	/* R */ inline LRect NormalPosition() const reflect_as(self->rcNormalPosition);
 };
 
-class WindowInformation : public RefStruct<WINDOWINFO> {
+class WindowInformation : public StructShim<WINDOWINFO> {
 public:
-	using super = RefStruct<WINDOWINFO>;
+	using super = StructShim<WINDOWINFO>;
 public:
 	WindowInformation() reflect_to(self->cbSize = sizeof(WINDOWINFO));
 public: // Property - Rect
@@ -525,9 +525,9 @@ enum_flags(TrackMouseFlag, DWORD,
 	NoClient = TME_NONCLIENT,
 	Query    = TME_QUERY,
 	Cancel   = TME_CANCEL);
-class TrackMouseEventBox : public RefStruct<TRACKMOUSEEVENT> {
+class TrackMouseEventBox : public StructShim<TRACKMOUSEEVENT> {
 public:
-	using super = RefStruct<TRACKMOUSEEVENT>;
+	using super = StructShim<TRACKMOUSEEVENT>;
 	using Flag = TrackMouseFlag;
 public:
 	TrackMouseEventBox(HWND hWnd) reflect_to(
@@ -564,14 +564,14 @@ enum_flags(ClassStyle, UINT,
 	DropShadow         = CS_DROPSHADOW);
 using CStyle = ClassStyle;
 template<class WNDCLASS, class AnyChild>
-	requires std::is_same_v<WNDCLASS, WNDCLASSA> || std::is_same_v<WNDCLASS, WNDCLASSW> ||
-			 std::is_same_v<WNDCLASS, WNDCLASSEXA> || std::is_same_v<WNDCLASS, WNDCLASSEXW> 
-class WindowClassBase : public RefStruct<WNDCLASS>,
-	public ChainExtender<WindowClassBase<WNDCLASS, AnyChild>, AnyChild> {
+	requires IsSame<WNDCLASS, WNDCLASSA> || IsSame<WNDCLASS, WNDCLASSW> ||
+			 IsSame<WNDCLASS, WNDCLASSEXA> || IsSame<WNDCLASS, WNDCLASSEXW> 
+class WindowClassBase : public StructShim<WNDCLASS>,
+	public ExtendShim<WindowClassBase<WNDCLASS, AnyChild>, AnyChild> {
 	using LPCTSTR = decltype(WNDCLASS::lpszClassName);
 	using String = StringX<IsCharW<LPCTSTR>>;
 public:
-	using super = RefStruct<WNDCLASS>;
+	using super = StructShim<WNDCLASS>;
 	using Child = AnyChild;
 	using Style = CStyle;
 public:
@@ -666,14 +666,14 @@ using WindowClassExW = WindowClassExX<true>;
 
 #pragma region CreateStruct
 template<bool IsUnicode, class Style = WStyle, class StyleEx = WStyleEx>
-class CreateStructX : public RefStruct<structx(CREATESTRUCT)> {
+class CreateStructX : public StructShim<structx(CREATESTRUCT)> {
 	using_structx(CREATESTRUCT);
 	using_structx(WNDCLASS);
 	using_structx(WNDCLASSEX);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<CREATESTRUCT>;
+	using super = StructShim<CREATESTRUCT>;
 public:
 	CreateStructX() {}
 	CreateStructX(const CREATESTRUCT &cs) : super(cs) {}
@@ -965,7 +965,7 @@ using WindowIClassW = WindowIClassX<true>;
 
 template<class AnyChild>
 class WindowBase : 
-	public ChainExtender<WindowBase<AnyChild>, AnyChild> {
+	public ExtendShim<WindowBase<AnyChild>, AnyChild> {
 	template<bool, class, class>
 	friend class CreateStructX;
 	mutable HWND hWnd = O;
@@ -976,7 +976,7 @@ public:
 	using Style = WStyle;
 	using StyleEx = WStyleEx;
 protected:
-	INNER_USE(WindowBase);
+	PROXY_SHIM(WindowBase);
 	WindowBase(HWND h) : hWnd(h) {}
 	WindowBase(const WindowBase &w) : hWnd(w.hWnd) reflect_to(w.hWnd = O);
 public:
@@ -1354,7 +1354,7 @@ private:
 	}
 public:
 	static inline void Unregister() {
-		if_c (!IsTypeEqual(AnyChild::Unregister, Unregister))
+		if_c (!IsSameType(AnyChild::Unregister, Unregister))
 			 reflect_as(AnyChild::Unregister())
 		elif_c (AnyChild::Unregister != Unregister)
 			 reflect_as(AnyChild::Unregister())

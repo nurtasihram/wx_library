@@ -393,9 +393,9 @@ enum_flags(ConsoleSelectionFlag, DWORD,
 	NotEmpty       = CONSOLE_SELECTION_NOT_EMPTY,
 	MouseSelection = CONSOLE_MOUSE_SELECTION,
 	MouseDown      = CONSOLE_MOUSE_DOWN);
-class ConsoleSelectionInfo : public RefStruct<CONSOLE_SELECTION_INFO> {
+class ConsoleSelectionInfo : public StructShim<CONSOLE_SELECTION_INFO> {
 public:
-	using super = RefStruct<CONSOLE_SELECTION_INFO>;
+	using super = StructShim<CONSOLE_SELECTION_INFO>;
 public:
 	ConsoleSelectionInfo() {}
 	ConsoleSelectionInfo(const CONSOLE_SELECTION_INFO &csi) : super(csi) {}
@@ -409,9 +409,9 @@ public: // Property - Rect
 	/* W */ inline auto &Rect(LRect rc) reflect_to_self(self->srSelection = rc);
 	/* R */ inline LRect Rect() const reflect_as(self->srSelection);
 };
-class ConsoleHistoryInfo : public RefStruct<CONSOLE_HISTORY_INFO> {
+class ConsoleHistoryInfo : public StructShim<CONSOLE_HISTORY_INFO> {
 public:
-	using super = RefStruct<CONSOLE_HISTORY_INFO>;
+	using super = StructShim<CONSOLE_HISTORY_INFO>;
 public:
 	ConsoleHistoryInfo() reflect_to(self->cbSize = sizeof(CONSOLE_HISTORY_INFO));
 	ConsoleHistoryInfo(const CONSOLE_HISTORY_INFO &chi) : super(chi) {}
@@ -431,9 +431,9 @@ public: // Property - NoDuplication
 	}
 	/* R */ inline bool NoDuplication() const reflect_as(self->dwFlags & HISTORY_NO_DUP_FLAG);
 };
-class ConsoleCursorInfo : public RefStruct<CONSOLE_CURSOR_INFO> {
+class ConsoleCursorInfo : public StructShim<CONSOLE_CURSOR_INFO> {
 public:
-	using super = RefStruct<CONSOLE_CURSOR_INFO>;
+	using super = StructShim<CONSOLE_CURSOR_INFO>;
 public:
 	ConsoleCursorInfo() {}
 	ConsoleCursorInfo(const CONSOLE_CURSOR_INFO &cci) : super(cci) {}
@@ -444,9 +444,9 @@ public: // Property - Visible
 	/* W */ inline auto &Visible(BOOL bVisible) reflect_to_self(self->bVisible = bVisible);
 	/* W */ inline bool Visible() reflect_as(self->bVisible);
 };
-class ConsoleScreenBufferInfo : public RefStruct<CONSOLE_SCREEN_BUFFER_INFO> {
+class ConsoleScreenBufferInfo : public StructShim<CONSOLE_SCREEN_BUFFER_INFO> {
 public:
-	using super = RefStruct<CONSOLE_SCREEN_BUFFER_INFO>;
+	using super = StructShim<CONSOLE_SCREEN_BUFFER_INFO>;
 	using Attribute = ConsoleAttribute;
 public:
 	ConsoleScreenBufferInfo() {}
@@ -467,9 +467,9 @@ public: // Property - MaximumWindowSize
 	/* W */ inline auto &MaximumWindowSize(LSize size) reflect_to_self(self->dwMaximumWindowSize = size);
 	/* R */ inline LSize MaximumWindowSize() const reflect_as(self->dwMaximumWindowSize);
 };
-class ConsoleScreenBufferInfoEx : public RefStruct<CONSOLE_SCREEN_BUFFER_INFOEX> {
+class ConsoleScreenBufferInfoEx : public StructShim<CONSOLE_SCREEN_BUFFER_INFOEX> {
 public:
-	using super = RefStruct<CONSOLE_SCREEN_BUFFER_INFOEX>;
+	using super = StructShim<CONSOLE_SCREEN_BUFFER_INFOEX>;
 	using Attribute = ConsoleAttribute;
 public:
 	ConsoleScreenBufferInfoEx() reflect_to(self->cbSize = sizeof(CONSOLE_SCREEN_BUFFER_INFOEX));
@@ -527,7 +527,7 @@ public:
 	using Attribute = ConsoleAttribute;
 	using Mode = ConsoleMode;
 protected:
-	INNER_USE(ConsoleHandleOutput);
+	PROXY_SHIM(ConsoleHandleOutput);
 	ConsoleHandleOutput(HANDLE h) : super(h) {}
 public:
 	ConsoleHandleOutput() : super(WX::GetStdHandle(STD_OUTPUT_HANDLE)) {}
@@ -658,7 +658,7 @@ class ConsoleHandleInput :
 public:
 	using super = HandleBase<ConsoleHandleInput>;
 protected:
-	INNER_USE(ConsoleHandleInput);
+	PROXY_SHIM(ConsoleHandleInput);
 	ConsoleHandleInput(HANDLE h) : super(h) {}
 public:
 	ConsoleHandleInput() : super(WX::GetStdHandle(STD_INPUT_HANDLE)) {}

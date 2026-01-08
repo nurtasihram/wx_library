@@ -141,12 +141,12 @@ public: //
 
 template<class DIALOGSTRUCT, class AnyChild>
 class DialogCommon :
-	public RefStruct<DIALOGSTRUCT>,
-	public ChainExtender<DialogCommon<DIALOGSTRUCT, AnyChild>, AnyChild> {
+	public StructShim<DIALOGSTRUCT>,
+	public ExtendShim<DialogCommon<DIALOGSTRUCT, AnyChild>, AnyChild> {
 	using LPCTSTR = decltype(DIALOGSTRUCT::lpTemplateName);
-	using String = StringX<std::is_same_v<LPCTSTR, LPCWSTR>>;
+	using String = StringX<IsSame<LPCTSTR, LPCWSTR>>;
 public:
-	using super = RefStruct<DIALOGSTRUCT>;
+	using super = StructShim<DIALOGSTRUCT>;
 	using Child = AnyChild;
 public:
 	DialogCommon() reflect_to(this->lStructSize = sizeof(DIALOGSTRUCT));
@@ -181,8 +181,8 @@ public:
 	using super = DialogCommon<CHOOSECOLOR, DialogColorX>;
 public:
 	using Style = DialogColorStyle;
-	using ColorSet = ArrayWith<RGBColor, 16>;
-	using CColorSet = const ArrayWith<RGBColor, 16>;
+	using ColorSet = ArrayOf<RGBColor, 16>;
+	using CColorSet = const ArrayOf<RGBColor, 16>;
 public:
 	DialogColorX() reflect_to(self->lStructSize = sizeof(CHOOSECOLOR));
 public: // Property - Styles
@@ -249,7 +249,7 @@ class DialogFontX : public DialogCommon<
 	using_structx(String);
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 public:
-	using super = RefStruct<CHOOSEFONT>;
+	using super = StructShim<CHOOSEFONT>;
 	using Style = DialogFontStyle;
 public:
 	DialogFontX() reflect_to(self->lStructSize = sizeof(CHOOSEFONT));
@@ -337,7 +337,7 @@ class DialogFileX : public DialogCommon<
 	using LPCTSTR = LPCXSTR<IsUnicode>;
 	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<OPENFILENAME>;
+	using super = StructShim<OPENFILENAME>;
 	using Style = DialogFileStyle;
 public:
 	DialogFileX() reflect_to(self->lStructSize = sizeof(OPENFILENAME));
@@ -430,7 +430,7 @@ class DialogTextX : public DialogCommon<
 	using_structx(FINDREPLACE);
 	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<FINDREPLACE>;
+	using super = StructShim<FINDREPLACE>;
 	using Style = DialogTextStyle;
 public:
 	DialogTextX() reflect_to(self->lStructSize = sizeof(FINDREPLACE));
@@ -462,7 +462,7 @@ using DlgTextW = DialogTextW<AnyChild>;
 #pragma region DialogPageSetup
 #pragma endregion
 
-//class ConfigComm : public RefStruct<COMMCONFIG> {
+//class ConfigComm : public StructShim<COMMCONFIG> {
 //	HWND hwndOwner = O;
 //public:
 //	ConfigComm() {

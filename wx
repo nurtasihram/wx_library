@@ -54,12 +54,16 @@ public: \
 	static constexpr CHAR __EntriesA[]{ estr }; \
 	static constexpr WCHAR __EntriesW[]{ L ## estr }; \
 	static inline const ProtoType __Vals[]{ __VA_ARGS__ }; \
-	static constexpr size_t Count = ArrCountOf(__Vals); \
+	static constexpr size_t Count = ArrayCountOf(__Vals); \
 public: \
 	inline ProtoType yield() const reflect_as(val.yield()); \
 	inline operator Unit() const reflect_as(val); \
 	oprt(Unit); }
+#define eunm_eq_opr(name) \
+	inline bool operator==(name v) const reflect_as( yield() == v.yield()); \
+	inline bool operator!=(name v) const reflect_as( yield() != v.yield())
 #define enum_flags_opr(name) \
+	static constexpr bool EnumFlags = true; \
 	inline name operator~ () const reflect_as(~val); \
 	template<class AnyType> inline auto operator^(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() ^  v.yield())); \
 	template<class AnyType> inline auto operator|(AnyType v) const reflect_as(__makeResult<EnumType, typename AnyType::EnumType>((ProtoType)yield() |  v.yield())); \
@@ -69,13 +73,12 @@ public: \
 	inline name operator^=(name v) reflect_to_self( val ^=  v.val); \
 	inline name operator|=(name v) reflect_to_self( val |=  v.val); \
 	inline name operator&=(name v) reflect_to_self( val &=  v.val); \
-	inline bool operator==(name v) const reflect_as( yield() == v.yield()); \
-	inline bool operator!=(name v) const reflect_as( yield() != v.yield()); \
 	inline bool operator<=(name v) const reflect_as((yield() &  v.yield()) ==   yield()); \
-	inline bool operator>=(name v) const reflect_as((yield() &  v.yield()) == v.yield())
+	inline bool operator>=(name v) const reflect_as((yield() &  v.yield()) == v.yield()); \
+	eunm_eq_opr(name)
 #define enum_class_opr(name) \
-	inline bool operator==(name v) const reflect_as(val == v.val); \
-	inline bool operator!=(name v) const reflect_as(val != v.val)
+	static constexpr bool EnumClass = true; \
+	eunm_eq_opr(name)
 #define enum_flags(name, base, ...) __enum_ex(name, base, enum_flags_opr, #__VA_ARGS__, __VA_ARGS__)
 #define enum_class(name, base, ...) __enum_ex(name, base, enum_class_opr, #__VA_ARGS__, __VA_ARGS__)
 #pragma endregion
@@ -91,4 +94,4 @@ public: \
 #define structx(name) std::conditional_t<IsUnicode, name##W, name##A>
 #define using_structx(name) using name = std::conditional_t<IsUnicode, name##W, name##A>
 
-#define INNER_USE(name) friend union WX::RefAs<name>
+#define PROXY_SHIM(name) friend union WX::ProxyShim<name>

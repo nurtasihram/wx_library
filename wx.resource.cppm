@@ -141,9 +141,9 @@ enum_class(ResourceTypes, LPTSTR,
 	Manifest      = RT_MANIFEST);
 
 #pragma region Icon
-class IconInfo : public RefStruct<ICONINFO> {
+class IconInfo : public StructShim<ICONINFO> {
 public:
-	using super = RefStruct<ICONINFO>;
+	using super = StructShim<ICONINFO>;
 public:
 	IconInfo(bool fIcon = true) reflect_to(self->fIcon = fIcon);
 	IconInfo(const ICONINFO &i) : super(i) {}
@@ -161,13 +161,13 @@ public: // Property - Colors
 	/* W */ inline auto &Colors(HBITMAP hbmColor) reflect_to_self(self->hbmColor = hbmColor);
 	/* R */ inline Bitmap &Colors() const reflect_as(Bitmap::Attach(const_cast<HBITMAP &>(self->hbmColor)));
 };
-using CIconInfo = RefAs<IconInfo>;
+using CIconInfo = ProxyShim<IconInfo>;
 template<bool IsUnicode = WX::IsUnicode>
-class IconInfoExX : public RefStruct<std::conditional_t<IsUnicode, ICONINFOEXW, ICONINFOEXA>> {
+class IconInfoExX : public StructShim<std::conditional_t<IsUnicode, ICONINFOEXW, ICONINFOEXA>> {
 	using ICONINFOEX = std::conditional_t<IsUnicode, ICONINFOEXW, ICONINFOEXA>;
 	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<ICONINFOEX>;
+	using super = StructShim<ICONINFOEX>;
 public:
 	IconInfoExX() reflect_to(self->cbSize = sizeof(self); self->fIcon = true);
 	IconInfoExX(const ICONINFOEX &i) : super(i) {}
@@ -188,9 +188,9 @@ public: // Property - ResourceID
 	/* W */ inline auto &ResourceID(WORD wResID) reflect_to_self(self->wResID = wResID);
 	/* R */ inline WORD  ResourceID() const reflect_as(self->wResID);
 public: // Property - ModuleName
-	/* R */ inline const String ModuleName() const reflect_as(CString(self->szModName, ArrCountOf(self->szModName)));
+	/* R */ inline const String ModuleName() const reflect_as(CString(self->szModName, ArrayCountOf(self->szModName)));
 public: // Property - ResourceName
-	/* R */ inline const String ResourceName() const reflect_as(CString(self->szResName, ArrCountOf(self->szResName)));
+	/* R */ inline const String ResourceName() const reflect_as(CString(self->szResName, ArrayCountOf(self->szResName)));
 };
 using IconInfoEx = IconInfoExX<>;
 using IconInfoExA = IconInfoExX<false>;
@@ -198,7 +198,7 @@ using IconInfoExW = IconInfoExX<true>;
 class Icon {
 protected:
 	mutable HICON hIcon = O;
-	INNER_USE(Icon);
+	PROXY_SHIM(Icon);
 	Icon(HICON h) : hIcon(h) {}
 	Icon(const Icon &i) : hIcon(i.hIcon) reflect_to(i.hIcon = O);
 public:
@@ -261,7 +261,7 @@ public:
 	static inline Icon &Attach(HICON &hIcon) reflect_as(ref_as<Icon>(hIcon));
 	static inline const Icon &Attach(const HICON &hIcon) reflect_as(ref_as<const Icon>(hIcon));
 };
-using CIcon = RefAs<Icon>;
+using CIcon = ProxyShim<Icon>;
 #pragma endregion
 
 #pragma region Cursor
@@ -269,7 +269,7 @@ class Cursor : public Icon {
 public:
 	using super = Icon;
 protected:
-	INNER_USE(Cursor);
+	PROXY_SHIM(Cursor);
 	Cursor(HCURSOR h) : super((HICON)h) {}
 	Cursor(const Cursor &c) : Icon(c) {}
 public:
@@ -313,9 +313,9 @@ public:
 	static inline Cursor &Attach(HCURSOR &hCursor) reflect_as(ref_as<Cursor>(hCursor));
 	static inline const Cursor &Attach(const HCURSOR &hCursor) reflect_as(ref_as<const Cursor>(hCursor));
 };
-using CCursor = RefAs<Cursor>;
-struct CursorInfo : public RefStruct<CURSORINFO> {
-	using super = RefStruct<CURSORINFO>;
+using CCursor = ProxyShim<Cursor>;
+struct CursorInfo : public StructShim<CURSORINFO> {
+	using super = StructShim<CURSORINFO>;
 public:
 	CursorInfo() reflect_to(self->cbSize = sizeof(self));
 	CursorInfo(const CURSORINFO &c) : super(c) {}
@@ -360,9 +360,9 @@ enum_flags(VirtualKey, BYTE,
 	Shift    = FSHIFT,
 	Control  = FCONTROL,
 	Alt      = FALT);
-class AccelEntry : public RefStruct<ACCEL> {
+class AccelEntry : public StructShim<ACCEL> {
 public:
-	using super = RefStruct<ACCEL>;
+	using super = StructShim<ACCEL>;
 public:
 	AccelEntry() {}
 	AccelEntry(WX::VirtualKey vk, WORD key, WORD cmd) : super(ACCEL{ vk.yield(), key, cmd }) {}
@@ -379,7 +379,7 @@ public: // Property - CommandID
 class Accelerators {
 protected:
 	mutable HACCEL hAccel = O;
-	INNER_USE(Accelerators);
+	PROXY_SHIM(Accelerators);
 	Accelerators(HACCEL h) : hAccel(h) {}
 	Accelerators(const Accelerators &c) : hAccel(c.hAccel) reflect_to(c.hAccel = O);
 public:
@@ -401,13 +401,13 @@ public:
 	inline auto &operator=(const Accelerators &a) const reflect_to_self(std::swap(hAccel, a.hAccel));
 };
 using Accel = Accelerators;
-using CAccelerators = RefAs<Accelerators>;
-using CAccel = RefAs<Accelerators>;
+using CAccelerators = ProxyShim<Accelerators>;
+using CAccel = ProxyShim<Accelerators>;
 #pragma endregion
 
 #pragma region Menu
 class Menu;
-using CMenu = RefAs<Menu>;
+using CMenu = ProxyShim<Menu>;
 //enum_class(MenuBmp, HBITMAP,
 //	Callback      = HBMMENU_CALLBACK,
 //	System        = HBMMENU_SYSTEM,
@@ -467,7 +467,7 @@ public: // Property - Count
 class Menu {
 protected:
 	mutable HMENU hMenu = O;
-	INNER_USE(Menu);
+	PROXY_SHIM(Menu);
 	Menu(HMENU h) : hMenu(h) {}
 	Menu(const Menu &m) : hMenu(m.hMenu) reflect_to(m.hMenu = O);
 public:
@@ -544,7 +544,7 @@ inline Menu MenuPopup() reflect_as(Menu::CreatePopup());
 class Module {
 protected:
 	mutable HINSTANCE hInst = O;
-	INNER_USE(Module);
+	PROXY_SHIM(Module);
 	Module(HINSTANCE h) : hInst(h) {}
 	Module(const Module &m) : hInst(m.hInst) reflect_to(m.hInst = O);
 public:
@@ -630,7 +630,7 @@ public:
 	static inline Module &Attach(HINSTANCE &hInst) reflect_as(ref_as<Module>(hInst));
 	static inline const Module &Attach(const HINSTANCE &hInst) reflect_as(ref_as<const Module>(hInst));
 };
-using CModule = RefAs<Module>;
+using CModule = ProxyShim<Module>;
 #pragma endregion
 
 inline Bitmap ClipBitmap(const Bitmap &bmp, LRect rc) {

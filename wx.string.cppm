@@ -256,9 +256,9 @@ template<bool IsUnicode>
 using LPCXSTR = std::conditional_t<IsUnicode, LPCWSTR, LPCSTR>;
 
 template<class TCHAR>
-concept IsCharA = std::is_same_v<TCHAR, CHAR> || std::is_same_v<TCHAR, LPSTR> || std::is_same_v<TCHAR, LPCSTR>;
+concept IsCharA = IsSame<TCHAR, CHAR> || IsSame<TCHAR, LPSTR> || IsSame<TCHAR, LPCSTR>;
 template<class TCHAR>
-concept IsCharW = std::is_same_v<TCHAR, WCHAR> || std::is_same_v<TCHAR, LPWSTR> || std::is_same_v<TCHAR, LPCWSTR>;
+concept IsCharW = IsSame<TCHAR, WCHAR> || IsSame<TCHAR, LPWSTR> || IsSame<TCHAR, LPCWSTR>;
 
 template<bool IsUnicode, class AnyTypeW, class AnyTypeA>
 constexpr auto AnyX(AnyTypeW *w, AnyTypeA *a) {
@@ -545,7 +545,7 @@ inline StringW FitsW(const StringA &str, CodePages cp = CodePages::Active) {
 }
 template<bool IsUnicode = WX::IsUnicode, class TCHAR = ::TCHAR>
 inline auto Fits(StringBase<TCHAR> str) {
-	if_c (std::is_same_v<XCHAR<IsUnicode>, TCHAR>)
+	if_c (IsSame<XCHAR<IsUnicode>, TCHAR>)
 		 reflect_as(str)
 	elif_c (IsUnicode)
 		 reflect_as(FitsW(str))
@@ -556,7 +556,7 @@ inline String Fits(const CharType *lpString, size_t MaxLen, CodePages cp = CodeP
 	if (!lpString || !MaxLen) return O;
 	auto uLen = WX::Length(lpString, MaxLen);
 	if (!uLen) return O;
-	if_c (std::is_same_v<CharType, TCHAR>) {
+	if_c (IsSame<CharType, TCHAR>) {
 		auto lpsz = String::Alloc(uLen);
 		CopyMemory(lpsz, lpString, (uLen + 1) * sizeof(TCHAR));
 		return{ uLen, lpsz };
@@ -701,10 +701,11 @@ inline const auto &toString(bool b) {
 #pragma region Enumerator
 
 #pragma region Enum
-template<class TCHAR>
+template<bool IsUnicode>
 class SimpleRegex {
-	using LPCTSTR = const TCHAR *;
-	using String = StringBase<TCHAR>;
+	using TCHAR = XCHAR<IsUnicode>;
+	using String = StringX<IsUnicode>;
+	using LPCTSTR = LPCXSTR<IsUnicode>;
 	static constexpr bool __a_z(TCHAR w) reflect_as('a' <= w && w <= 'z');
 	static constexpr bool __A_Z(TCHAR w) reflect_as('A' <= w && w <= 'Z');
 	static constexpr bool __0_9(TCHAR w) reflect_as('0' <= w && w <= '9');
@@ -787,9 +788,9 @@ class SimpleRegex {
 		return maps;
 	}
 public:
-	template<IsEnum AnyEnum>
+	template<EnumType AnyEnum>
 	static constexpr auto Table() {
-		if_c (IsEnum<AnyEnum>) {
+		if_c (EnumType<AnyEnum>) {
 			if_c (IsCharW<TCHAR>)
 				 reflect_as(GetMaps<AnyEnum::Count>(AnyEnum::__EntriesW))
 			else reflect_as(GetMaps<AnyEnum::Count>(AnyEnum::__EntriesA))
@@ -797,43 +798,33 @@ public:
 	}
 };
 /* EnumTableX */
-template<IsEnum AnyEnum, class TCHAR = ::TCHAR>
-constexpr auto EnumTable = SimpleRegex<TCHAR>::template Table<AnyEnum>();
-template<IsEnum AnyEnum>
-constexpr auto EnumTableA = EnumTable<AnyEnum, CHAR>;
-template<IsEnum AnyEnum>
-constexpr auto EnumTableW = EnumTable<AnyEnum, WCHAR>;
+template<EnumType AnyEnum, bool IsUnicode = WX::IsUnicode>
+constexpr auto EnumTable = SimpleRegex<IsUnicode>::template Table<AnyEnum>();
+template<EnumType AnyEnum>
+constexpr auto EnumTableA = EnumTable<AnyEnum, false>;
+template<EnumType AnyEnum>
+constexpr auto EnumTableW = EnumTable<AnyEnum, true>;
 #pragma endregion
 
 /* SimpleRegex::Token */
-template<class TCHAR>
-inline SimpleRegex<TCHAR>::Token::operator const StringBase<TCHAR>() const reflect_as(CString(len, lpsz));
+template<bool IsUnicode>
+inline SimpleRegex<IsUnicode>::Token::operator const StringX<IsUnicode>() const reflect_as(CString(len, lpsz));
 /* EnumClassParsers */
-template<class TCHAR, IsEnum AnyEnum>
-StringBase<TCHAR> EnumClassParseX(AnyEnum e) {
-	using EnumType = typename AnyEnum::EnumType;
-	misuse_assert(IsEnum<EnumType>, "template type must be based on EnumBase");
-	constexpr auto table = EnumTable<EnumType, TCHAR>;
+template<bool IsUnicode = WX::IsUnicode>
+StringX<IsUnicode> toString(EnumType auto e) {
+	using EnumType = typename decltype(e)::EnumType;
+	constexpr auto table = EnumTable<EnumType, IsUnicode>;
 	auto val = e.yield();
 	for (auto i = 0; i < EnumType::Count; ++i)
 		if (val == EnumType::__Vals[i])
 			return table[i].key;
 	if_c (EnumType::HasProtoEnum)
-		 return EnumClassParseX<TCHAR>(reuse_as<typename EnumType::ProtoEnum>(e));
-	else return toString<TCHAR>(format_numeral("d"), val);
+		 return toString<IsUnicode>(reuse_as<typename EnumType::ProtoEnum>(e));
+	else return toString<IsUnicode>(format_numeral("d"), val);
 }
-template<IsEnum AnyEnum>
-inline auto EnumClassParse(AnyEnum e) reflect_as(EnumClassParseX<TCHAR>(e));
-template<IsEnum AnyEnum>
-inline auto EnumClassParseA(AnyEnum e) reflect_as(EnumClassParseX<CHAR>(e));
-template<IsEnum AnyEnum>
-inline auto EnumClassParseW(AnyEnum e) reflect_as(EnumClassParseX<WCHAR>(e));
+inline auto toStringA(EnumType auto e) reflect_as(EnumClassParseX<false>(e));
+inline auto toStringW(EnumType auto e) reflect_as(EnumClassParseX<true>(e));
 #pragma endregion
-/* toString - Enum */
-template<bool IsUnicode = WX::IsUnicode>
-inline auto toString(IsEnum auto e) reflect_as(EnumClassParseX<XCHAR<IsUnicode>>(e));
-inline auto toStringA(IsEnum auto e) reflect_as(EnumClassParseA(e));
-inline auto toStringW(IsEnum auto e) reflect_as(EnumClassParseW(e));
 
 /* Q - Quick Concatenate */
 template<bool IsUnicode = WX::IsUnicode, class ...AnyType>
