@@ -1062,13 +1062,13 @@ template<class AnyChild, class BaseHandle = HGDIOBJ>
 class GObjectBase;
 using GObject = GObjectBase<void>;
 template<class AnyChild, class BaseHandle>
-class GObjectBase : public ChainExtender<GObjectBase<AnyChild, BaseHandle>, AnyChild> {
+class GObjectBase : public ExtendShim<GObjectBase<AnyChild, BaseHandle>, AnyChild> {
 	misuse_assert((std::is_convertible_v<BaseHandle, HGDIOBJ>),
 				 "BaseHandle must can be converted to HANDLE");
 public:
 	using Child = Chain<GObjectBase, AnyChild>;
 protected:
-	INNER_USE(GObjectBase);
+	PROXY_SHIM(GObjectBase);
 	mutable HGDIOBJ hobj = O;
 	GObjectBase(HGDIOBJ h) : hobj(h) {}
 	GObjectBase(const GObjectBase &h) : hobj(h.hobj) reflect_to(h.hobj = O);
@@ -1094,7 +1094,7 @@ public:
 	static inline const auto &Attach(const BaseHandle &hObj) reflect_as(ref_as<const AnyChild>(hObj));
 	static inline void AutoDelete(BaseHandle &hObj) reflect_to(if (hObj) (WX::DeleteObject(hObj), hObj = O));
 };
-using CGObject = RefAs<GObject>;
+using CGObject = ProxyShim<GObject>;
 #pragma endregion
 
 #pragma region Bitmap
@@ -1163,9 +1163,9 @@ public:
 	inline operator const BITMAPINFO *() const reflect_as(this);
 };
 #pragma pack()
-class BitmapLogic : public RefStruct<BITMAP> {
+class BitmapLogic : public StructShim<BITMAP> {
 public:
-	using super = RefStruct<BITMAP>;
+	using super = StructShim<BITMAP>;
 public:
 	BitmapLogic() {}
 public: // Property - Width
@@ -1200,7 +1200,7 @@ public:
 	using Logic = BitmapLogic;
 	using super = GObjectBase<Bitmap, HBITMAP>;
 protected:
-	INNER_USE(Bitmap);
+	PROXY_SHIM(Bitmap);
 	Bitmap(HBITMAP h) : super(h) {}
 	Bitmap(const Bitmap & b) : super(b) {}
 public:
@@ -1262,7 +1262,7 @@ public: // Property - Log
 public:
 	using super::operator=;
 };
-using CBitmap = RefAs<Bitmap>;
+using CBitmap = ProxyShim<Bitmap>;
 #pragma endregion
 
 #pragma region Font
@@ -1340,12 +1340,12 @@ enum_class(FontFamilies, BYTE,
 	Script     = FF_SCRIPT,
 	Decorative = FF_DECORATIVE);
 template<bool IsUnicode>
-class FontLogicX : public RefStruct<structx(LOGFONT)> {
+class FontLogicX : public StructShim<structx(LOGFONT)> {
 	using_structx(LOGFONT);
 	using TCHAR = XCHAR<IsUnicode>;
 	using String = StringBase<TCHAR>;
 public:
-	using super = RefStruct<LOGFONT>;
+	using super = StructShim<LOGFONT>;
 public:
 	FontLogicX() {}
 	FontLogicX(const LOGFONT &lf) : super(lf) {}
@@ -1398,9 +1398,9 @@ public: // Properties - FaceName
 using FontLogic = FontLogicX<IsUnicode>;
 using FontLogicA = FontLogicX<false>;
 using FontLogicW = FontLogicX<true>;
-using CFontLogic = RefAs<FontLogic>;
-using CFontLogicA = RefAs<FontLogicA>;
-using CFontLogicW = RefAs<FontLogicW>;
+using CFontLogic = ProxyShim<FontLogic>;
+using CFontLogicA = ProxyShim<FontLogicA>;
+using CFontLogicW = ProxyShim<FontLogicW>;
 using FontLog = FontLogic;
 using FontLogA = FontLogicA;
 using FontLogW = FontLogicW;
@@ -1420,7 +1420,7 @@ public:
 	using LogicA = FontLogicA;
 	using LogicW = FontLogicW;
 protected:
-	INNER_USE(Font);
+	PROXY_SHIM(Font);
 	Font(HFONT h) : super(h) {}
 	Font(const Font &f) : super(f) {}
 public:
@@ -1437,7 +1437,7 @@ public:
 public:
 	using super::operator=;
 };
-using CFont = RefAs<Font>;
+using CFont = ProxyShim<Font>;
 #pragma endregion
 
 #pragma region Pen
@@ -1451,9 +1451,9 @@ enum_flags(PenStyles, int,
 	InsideFrame = PS_INSIDEFRAME,
 	UserStyle   = PS_USERSTYLE,
 	Alternate   = PS_ALTERNATE);
-class PenLogic : public RefStruct<LOGPEN> {
+class PenLogic : public StructShim<LOGPEN> {
 public:
-	using super = RefStruct<LOGPEN>;
+	using super = StructShim<LOGPEN>;
 public:
 	PenLogic() {}
 public: // Property - Style
@@ -1472,7 +1472,7 @@ public:
 	using Styles = PenStyles;
 	using Log = PenLogic;
 protected:
-	INNER_USE(Pen);
+	PROXY_SHIM(Pen);
 	Pen(HPEN h) : super(h) {}
 	Pen(const Pen &p) : super(p) {}
 public:
@@ -1503,7 +1503,7 @@ public: // Property - Log
 public:
 	using super::operator=;
 };
-using CPen = RefAs<Pen>;
+using CPen = ProxyShim<Pen>;
 #pragma endregion
 
 #pragma region Brush
@@ -1549,7 +1549,7 @@ class BaseOf_GDI(Brush, HBRUSH) {
 public:
 	using super = GObjectBase<Brush, HBRUSH>;
 protected:
-	INNER_USE(Brush);
+	PROXY_SHIM(Brush);
 	Brush(HBRUSH h) : super(h) {}
 	Brush(const Brush &b) : super(b) {}
 public:
@@ -1578,13 +1578,13 @@ public:
 public:
 	using super::operator=;
 };
-using CBrush = RefAs<Brush>;
+using CBrush = ProxyShim<Brush>;
 #pragma endregion
 
 #pragma region Palette
-class PaletteEntry : public RefStruct<PALETTEENTRY> {
+class PaletteEntry : public StructShim<PALETTEENTRY> {
 public:
-	using super = RefStruct<PALETTEENTRY>;
+	using super = StructShim<PALETTEENTRY>;
 public:
 	PaletteEntry() {}
 	PaletteEntry(const PALETTEENTRY &entry) : super(entry) {}
@@ -1609,7 +1609,7 @@ public:
 	using super = GObjectBase<Palette, HPALETTE>;
 	using Entry = PaletteEntry;
 protected:
-	INNER_USE(Palette);
+	PROXY_SHIM(Palette);
 	Palette(HPALETTE h) : super(h) {}
 	Palette(const Palette &p) : super(p) {}
 public:
@@ -1664,7 +1664,7 @@ public:
 	using super::operator=;
 	inline Entry operator[](size_t ind) const reflect_to(Entry entry; GetEntries((UINT)ind, (Entry *)&entry), entry);
 };
-using CPalette = RefAs<Palette>;
+using CPalette = ProxyShim<Palette>;
 #pragma endregion
 
 #pragma region Region
@@ -1680,7 +1680,7 @@ class BaseOf_GDI(Region, HRGN) {
 public:
 	using super = GObjectBase<Region, HRGN>;
 protected:
-	INNER_USE(Region);
+	PROXY_SHIM(Region);
 	Region(HRGN h) : super(h) {}
 	Region(const Region &r) : super(r) {}
 public:
@@ -1716,7 +1716,7 @@ public:
 	inline auto &operator^(HRGN hRgn) reflect_to_self(Xor(hRgn));
 	inline auto &operator-(HRGN hRgn) reflect_to_self(Diff(hRgn));
 };
-using CRegion = RefAs<Region>;
+using CRegion = ProxyShim<Region>;
 #pragma endregion
 
 #pragma region MetaFile
@@ -1724,7 +1724,7 @@ class BaseOf_GDI(MetaFile, HMETAFILE) {
 public:
 	using super = GObjectBase<MetaFile, HMETAFILE>;
 protected:
-	INNER_USE(Region);
+	PROXY_SHIM(Region);
 	MetaFile(HMETAFILE h) : super(h) {}
 	MetaFile(const MetaFile &m) : super(m) {}
 public:
@@ -1742,7 +1742,7 @@ public:
 		this->hobj = O;
 	}
 };
-using CMetaFile = RefAs<MetaFile>;
+using CMetaFile = ProxyShim<MetaFile>;
 #pragma endregion
 
 #pragma region DevCap
@@ -1821,9 +1821,9 @@ enum_flags(Illuminants, WORD,
 	DayLight       = ILLUMINANT_DAYLIGHT,
 	Fluorescent    = ILLUMINANT_FLUORESCENT,
 	NTSC           = ILLUMINANT_NTSC);
-class ColorAdjustment : public RefStruct<COLORADJUSTMENT> {
+class ColorAdjustment : public StructShim<COLORADJUSTMENT> {
 public:
-	using super = RefStruct<COLORADJUSTMENT>;
+	using super = StructShim<COLORADJUSTMENT>;
 public:
 	ColorAdjustment() reflect_to(self->caSize = sizeof(COLORADJUSTMENT));
 	ColorAdjustment(const COLORADJUSTMENT &ca) : super(ca) {}
@@ -1858,9 +1858,9 @@ public: // Property - RedGreenTint
 	/* W */ inline auto &RedGreenTint(SHORT caRedGreenTint) reflect_to_self(self->caRedGreenTint = caRedGreenTint);
 	/* R */ inline SHORT RedGreenTint() const reflect_as(self->caRedGreenTint);
 };
-class RGBIndex : public RefStruct<CIEXYZ> {
+class RGBIndex : public StructShim<CIEXYZ> {
 public:
-	using super = RefStruct<CIEXYZ>;
+	using super = StructShim<CIEXYZ>;
 public:
 	RGBIndex() {}
 	RGBIndex(const CIEXYZ &xyz) : super(xyz) {}
@@ -1876,9 +1876,9 @@ public: // Property - Z
 	/* W */ inline auto&Z(FXPT2DOT30 ciexyzZ) reflect_to_self(self->ciexyzZ = ciexyzZ);
 	/* R */ inline auto Z() const reflect_as(self->ciexyzZ);
 };
-class RGBTriple : public RefStruct<CIEXYZTRIPLE> {
+class RGBTriple : public StructShim<CIEXYZTRIPLE> {
 public:
-	using super = RefStruct<CIEXYZTRIPLE>;
+	using super = StructShim<CIEXYZTRIPLE>;
 public:
 	RGBTriple() {}
 	RGBTriple(const CIEXYZTRIPLE &xyzTriple) : super(xyzTriple) {}
@@ -1903,10 +1903,10 @@ enum_flags(ColorIntents, DWORD,
 	Saturation        = LCS_GM_IMAGES,
 	Absolute          = LCS_GM_ABS_COLORIMETRIC);
 template<bool IsUnicode>
-class ColorSpaceX : public RefStruct<std::conditional_t<IsUnicode, LOGCOLORSPACEW, LOGCOLORSPACEA>> {
+class ColorSpaceX : public StructShim<std::conditional_t<IsUnicode, LOGCOLORSPACEW, LOGCOLORSPACEA>> {
 public:
 	using LOGCOLORSPACE = std::conditional_t<IsUnicode, LOGCOLORSPACEW, LOGCOLORSPACEA>;
-	using super = RefStruct<LOGCOLORSPACE>;
+	using super = StructShim<LOGCOLORSPACE>;
 	using String = StringX<IsUnicode>;
 public:
 	ColorSpaceX() reflect_to(self->lcsSize = sizeof(LOGCOLORSPACE);
@@ -1940,9 +1940,9 @@ using ColorSpaceA = ColorSpaceX<false>;
 using ColorSpaceW = ColorSpaceX<true>;
 #pragma endregion
 
-class XForm : public RefStruct<XFORM> {
+class XForm : public StructShim<XFORM> {
 public:
-	using super = RefStruct<XFORM>;
+	using super = StructShim<XFORM>;
 public:
 	XForm() {}
 	XForm(const XFORM &xf) : super(xf) {}
@@ -2041,7 +2041,7 @@ class BaseOf_GDI(DevCap, HDC) {
 public:
 	using super = GObjectBase<DevCap, HDC>;
 protected:
-	INNER_USE(DevCap);
+	PROXY_SHIM(DevCap);
 	DevCap(HDC h) : super(h) {}
 	DevCap(const DevCap &d) : super(d) {}
 public:
@@ -2168,7 +2168,7 @@ public: // Property - ICMProfile
 		WX::GetICMProfile(self, &len, (LPXSTR<IsUnicode>)O);
 		StringX<IsUnicode> str((size_t)len);
 		WX::GetICMProfile(self, O, str);
-		return inject(str);
+		return to_right_hand(str);
 	}
 #pragma endregion
 public:
@@ -2179,9 +2179,9 @@ public:
 	inline auto&operator()(const Brush &ho) reflect_to_self(Select(ho));
 	inline auto&operator()(const WX::Palette hPal, bool bForceBkgd = false) reflect_to_self(Palette(hPal, bForceBkgd));
 };
-using CDevCap = RefAs<DevCap>;
+using CDevCap = ProxyShim<DevCap>;
 using DC = DevCap;
-using CDC = RefAs<DevCap>;
+using CDC = ProxyShim<DevCap>;
 #pragma endregion
 
 }

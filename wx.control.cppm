@@ -45,7 +45,7 @@ enum_flags(SystemState, DWORD,
 class ImageList {
 protected:
 	mutable HIMAGELIST hImageList = O;
-	INNER_USE(ImageList);
+	PROXY_SHIM(ImageList);
 	ImageList(HIMAGELIST h) : hImageList(h) {}
 public:
 	ImageList() {}
@@ -54,7 +54,7 @@ public:
 	inline operator bool() const reflect_as(hImageList);
 	inline operator HIMAGELIST() const reflect_as(hImageList);
 };
-using CImageList = RefAs<ImageList>;
+using CImageList = ProxyShim<ImageList>;
 #pragma endregion
 
 #pragma region ControlCommon
@@ -158,12 +158,12 @@ enum_class(HeaderFilterType, UINT,
 enum_flags(HeaderItemState, UINT,
 	Focussed = HDIS_FOCUSED);
 template<bool IsUnicode>
-class HeaderItemX : public RefStruct<structx(HDITEM)> {
+class HeaderItemX : public StructShim<structx(HDITEM)> {
 	using_structx(HDITEM);
 	using_structx(HD_TEXTFILTER);
 	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<structx(HDITEM)>;
+	using super = StructShim<structx(HDITEM)>;
 public:
 	HeaderItemX() reflect_to(self->mask = HDI_WIDTH | HDI_HEIGHT |
 		HDI_TEXT | HDI_FORMAT | HDI_LPARAM |
@@ -236,7 +236,7 @@ public: // Property - Count
 #pragma endregion
 };
 using Header = HeaderBase<void>;
-using CHeader = RefAs<Header>;
+using CHeader = ProxyShim<Header>;
 #pragma endregion
 
 #pragma region Control ToolBar
@@ -284,8 +284,8 @@ enum_flags(ToolBarButtonStyle, BYTE,
 	NoPrefix        = BTNS_NOPREFIX,
 	ShowText        = BTNS_SHOWTEXT,
 	WholeDropDown   = BTNS_WHOLEDROPDOWN);
-struct ToolBarButton : public RefStruct<TBBUTTON> {
-	using super = RefStruct<TBBUTTON>;
+struct ToolBarButton : public StructShim<TBBUTTON> {
+	using super = StructShim<TBBUTTON>;
 public:
 	ToolBarButton() {}
 	ToolBarButton(const TBBUTTON &t) : super(t) {}
@@ -326,7 +326,7 @@ public:
 	ToolBarBase() {}
 };
 using ToolBar = ToolBarBase<void>;
-using CToolBar = RefAs<ToolBar>;
+using CToolBar = ProxyShim<ToolBar>;
 #pragma endregion
 
 #pragma region Control ReBar
@@ -370,9 +370,9 @@ class StatusBarTextX {
 	StatusBarTextStyle styles;
 public:
 	StatusBarTextX() {}
-	StatusBarTextX(StatusBarTextX &&t) : text(inject(t.text)), styles(t.styles) {}
+	StatusBarTextX(StatusBarTextX &&t) : text(to_right_hand(t.text)), styles(t.styles) {}
 	StatusBarTextX(String text, StatusBarTextStyle styles = StatusBarTextStyle::Default) : 
-		text(inject(text)), styles(styles) {}
+		text(to_right_hand(text)), styles(styles) {}
 public: // Property - Styles
 	/* W */ inline auto&Styles(StatusBarTextStyle styles) reflect_to_self(this->styles = styles);
 	/* R */ inline auto Styles() const reflect_as(styles);
@@ -408,7 +408,7 @@ public: // Property - Text
 		if (len <= 0) return{};
 		StringX<IsUnicode> str((size_t)len);
 		auto styles = reuse_as<StatusBarTextStyle>(HIWORD(bar->Send(SB_GETTEXT, nPart, str)));
-		return{ inject(str), styles };
+		return{ to_right_hand(str), styles };
 	}
 public: // Property - TipText
 	/* W */ inline auto &TipText(LPCSTR lpText) reflect_to_self(bar->Send(SB_SETTIPTEXTA, nPart, lpText));
@@ -460,7 +460,7 @@ public:
 	inline const StatusBarIPart operator[](uint8_t nPart) const reflect_as({ self, nPart });
 };
 using StatusBar = StatusBarBase<void>;
-using CStatusBar = RefAs<StatusBar>;
+using CStatusBar = ProxyShim<StatusBar>;
 #pragma endregion
 
 #pragma region Control TrackBar
@@ -508,7 +508,7 @@ public:
 	UpDownBase() {}
 };
 using UpDown = UpDownBase<void>;
-using CUpDown = RefAs<UpDown>;
+using CUpDown = ProxyShim<UpDown>;
 #pragma endregion
 
 #pragma region Control Progress Bar
@@ -559,7 +559,7 @@ public:
 	inline auto &operator--() reflect_to_child(DeltaPos(-1));
 };
 using ProgBar = ProgBarBase<void>;
-using CProgBar = RefAs<ProgBar>;
+using CProgBar = ProxyShim<ProgBar>;
 #pragma endregion
 
 #pragma region Control HotKey
@@ -612,7 +612,7 @@ public: // Property - Rules
 #pragma endregion
 };
 using HotKey = HotKeyBase<void>;
-using CHotKey = RefAs<HotKey>;
+using CHotKey = ProxyShim<HotKey>;
 #pragma endregion
 
 #pragma region Control SysLink
@@ -660,19 +660,19 @@ enum_flags(ListViewStyle, CCStyle,
 	NoColumnHeader      = LVS_NOCOLUMNHEADER,
 	NoSortHeader        = LVS_NOSORTHEADER);
 template<bool IsUnicode>
-class ListViewIndex : public RefStruct<LVFINDINFO> {
+class ListViewIndex : public StructShim<LVFINDINFO> {
 	using_structx(LVFINDINFO);
 	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<LVFINDINFO>;
+	using super = StructShim<LVFINDINFO>;
 public:
 };
 template<bool IsUnicode>
-class ListViewItemX : public RefStruct<structx(LVITEM)> {
+class ListViewItemX : public StructShim<structx(LVITEM)> {
 	using_structx(LVITEM);
 	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<LVITEM>;
+	using super = StructShim<LVITEM>;
 public:
 	ListViewItemX() {}
 	ListViewItemX(const LVITEM &l) : super(l) {}
@@ -681,11 +681,11 @@ using ListViewItem = ListViewItemX<IsUnicode>;
 using ListViewItemA = ListViewItemX<false>;
 using ListViewItemW = ListViewItemX<true>;
 template<bool IsUnicode>
-class ListViewColumnX : public RefStruct<structx(LVCOLUMN)> {
+class ListViewColumnX : public StructShim<structx(LVCOLUMN)> {
 	using_structx(LVCOLUMN);
 	using String = StringX<IsUnicode>;
 public:
-	using super = RefStruct<LVCOLUMN>;
+	using super = StructShim<LVCOLUMN>;
 public:
 	ListViewColumnX() {}
 	ListViewColumnX(const LVCOLUMN &l) : super(l) {}
@@ -722,7 +722,7 @@ public:
 #pragma endregion
 };
 using ListView = ListViewBase<void>;
-using CListView = RefAs<ListView>;
+using CListView = ProxyShim<ListView>;
 #pragma endregion
 
 #pragma region Control TreeView
@@ -766,7 +766,7 @@ public:
 	TreeViewBase() {}
 };
 using TreeView = TreeViewBase<void>;
-using CTreeView = RefAs<TreeView>;
+using CTreeView = ProxyShim<TreeView>;
 #pragma endregion
 
 #pragma region Control Tab Control
@@ -801,7 +801,7 @@ public:
 	TabControlBase() {}
 };
 using TabControl = TabControlBase<void>;
-using CTabControl = RefAs<TabControl>;
+using CTabControl = ProxyShim<TabControl>;
 #pragma endregion
 
 #pragma region Control Animate
@@ -827,7 +827,7 @@ public:
 	inline bool IsPlaying() const reflect_as(super::Send(ACM_ISPLAYING));
 };
 using Animate = AnimateBase<void>;
-using CAnimate = RefAs<Animate>;
+using CAnimate = ProxyShim<Animate>;
 #pragma endregion
 
 #pragma region Control Calendar
@@ -860,8 +860,8 @@ enum_class(CalendarID, UINT,
 	Gregorian_XLit_French      = CAL_GREGORIAN_XLIT_FRENCH,
 //	Persian                    = CAL_PERSIAN,
 	UmAlQura                   = CAL_UMALQURA);
-struct CalendarGridInfo : public RefStruct<MCGRIDINFO> {
-	using super = RefStruct<MCGRIDINFO>;
+struct CalendarGridInfo : public StructShim<MCGRIDINFO> {
+	using super = StructShim<MCGRIDINFO>;
 public:
 	CalendarGridInfo() reflect_to(self->cbSize = sizeof(MCGRIDINFO));
 	CalendarGridInfo(Null) {}
@@ -936,7 +936,7 @@ public: // Property - MinReqRect
 #pragma endregion
 };
 using Calendar = CalendarBase<void>;
-using CCalendar = RefAs<Calendar>;
+using CCalendar = ProxyShim<Calendar>;
 #pragma endregion
 
 #pragma region Control DateTimePick
@@ -953,8 +953,8 @@ enum_class(DateTimePickFlags, DWORD,
 	Error = GDT_ERROR,
 	Valid = GDT_VALID,
 	None  = GDT_NONE);
-struct DateTimePickInfo : public RefStruct<DATETIMEPICKERINFO> {
-	using super = RefStruct<DATETIMEPICKERINFO>;
+struct DateTimePickInfo : public StructShim<DATETIMEPICKERINFO> {
+	using super = StructShim<DATETIMEPICKERINFO>;
 public:
 	DateTimePickInfo() reflect_to(self->cbSize = sizeof(DATETIMEPICKERINFO));
 	DateTimePickInfo(const DATETIMEPICKERINFO &dtpi) : super(dtpi) {}
@@ -1009,7 +1009,7 @@ public: // Property - SystemTime
 
 };
 using DateTimePick = DateTimePickBase<void>;
-using CDateTimePick = RefAs<DateTimePick>;
+using CDateTimePick = ProxyShim<DateTimePick>;
 #pragma endregion
 
 #pragma region Control Pager
@@ -1070,8 +1070,8 @@ enum_flags(ButtonSplitStyle, UINT,
 	Stretch   = BCSS_STRETCH,
 	AlignLeft = BCSS_ALIGNLEFT,
 	Image     = BCSS_IMAGE);
-struct ButtonSplitInfo : public RefStruct<BUTTON_SPLITINFO> {
-	using super = RefStruct<BUTTON_SPLITINFO>;
+struct ButtonSplitInfo : public StructShim<BUTTON_SPLITINFO> {
+	using super = StructShim<BUTTON_SPLITINFO>;
 public:
 	ButtonSplitInfo() reflect_to(self->mask = BCSIF_GLYPH | BCSIF_IMAGE | BCSIF_STYLE | BCSIF_SIZE);
 	ButtonSplitInfo(Null) {}
@@ -1086,8 +1086,8 @@ public: // Property - Glyph
 	/* W */ inline auto &Glyph(HIMAGELIST glyph) reflect_to_self(self->himlGlyph = glyph);
 	/* R */ inline CImageList Glyph() const reflect_as(self->himlGlyph);
 };
-struct ButtonImageList : public RefStruct<BUTTON_IMAGELIST> {
-	using super = RefStruct<BUTTON_IMAGELIST>;
+struct ButtonImageList : public StructShim<BUTTON_IMAGELIST> {
+	using super = StructShim<BUTTON_IMAGELIST>;
 public:
 	ButtonImageList() {}
 	ButtonImageList(const BUTTON_IMAGELIST &b) : super(b) {}
@@ -1129,7 +1129,7 @@ public: // Property - Note
 		if (len <= 0) return O;
 		String str(len);
 		super::Send(BCM_GETNOTE, len + 1, (LPCTSTR)str);
-		return inject(str);
+		return to_right_hand(str);
 	}
 public: // Property - TextMargin
 	/* W */ inline auto &TextMargin(RECT margin) reflect_to_child(super::Send(BCM_SETTEXTMARGIN, 0, &margin));
@@ -1163,7 +1163,7 @@ public: // Property - DontClick
 #pragma endregion
 };
 using Button = ButtonBase<void>;
-using CButton = RefAs<Button>;
+using CButton = ProxyShim<Button>;
 #pragma endregion
 
 #pragma region Control Static
@@ -1228,7 +1228,7 @@ public: // Property - ImageEnhMeta
 #pragma endregion
 };
 using Static = StaticBase<void>;
-using CStatic = RefAs<Static>;
+using CStatic = ProxyShim<Static>;
 #pragma endregion
 
 #pragma region Control Edit
@@ -1251,8 +1251,8 @@ enum_flags(EditMargin, UINT,
 	Left     = EC_LEFTMARGIN,
 	Right    = EC_RIGHTMARGIN,
 	FontInfo = EC_USEFONTINFO);
-struct EditBalloonTip : public RefStruct<EDITBALLOONTIP> {
-	using super = RefStruct<EDITBALLOONTIP>;
+struct EditBalloonTip : public StructShim<EDITBALLOONTIP> {
+	using super = StructShim<EDITBALLOONTIP>;
 };
 BaseOf_CommCtl(class EditBase) {
 	SFINAE_CommCtl(EditBase);
@@ -1350,7 +1350,7 @@ public:
 #pragma endregion
 };
 using Edit = EditBase<void>;
-using CEdit = RefAs<Edit>;
+using CEdit = ProxyShim<Edit>;
 #pragma endregion
 
 #pragma region Control ListBox
@@ -1421,7 +1421,7 @@ public: // Property - Count
 public: // 
 };
 using ListBox = ListBoxBase<void>;
-using CListBox = RefAs<ListBox>;
+using CListBox = ProxyShim<ListBox>;
 #pragma endregion
 
 #pragma region Control ComboBox
@@ -1449,7 +1449,7 @@ public:
 	ComboBoxBase() {}
 };
 using ComboBox = ComboBoxBase<void>;
-using CComboBox = RefAs<ComboBox>;
+using CComboBox = ProxyShim<ComboBox>;
 #pragma endregion
 
 #pragma region Control ScrollBar
@@ -1464,8 +1464,8 @@ enum_flags(ScrollBarStyle, CCStyle,
 	SizeBoxBottomRightAlign = SBS_SIZEBOXBOTTOMRIGHTALIGN,
 	SizeBox                 = SBS_SIZEBOX,
 	SizeGrip                = SBS_SIZEGRIP);
-struct ScrollBarInfo : public RefStruct<SCROLLBARINFO> {
-	using super = RefStruct<SCROLLBARINFO>;
+struct ScrollBarInfo : public StructShim<SCROLLBARINFO> {
+	using super = StructShim<SCROLLBARINFO>;
 public:
 	ScrollBarInfo() reflect_to(self->cbSize = sizeof(SCROLLBARINFO));
 	ScrollBarInfo(const SCROLLBARINFO &s) : super(s) {}
@@ -1508,7 +1508,7 @@ public: // Property - Info
 #pragma endregion
 };
 using ScrollBar = ScrollBarBase<void>;
-using CScrollBar = RefAs<ScrollBar>;
+using CScrollBar = ProxyShim<ScrollBar>;
 #pragma endregion
 
 }

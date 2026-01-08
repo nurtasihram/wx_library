@@ -253,9 +253,9 @@ enum_flags(MapAccess, DWORD,
 	ReadWrite = FILE_MAP_WRITE | FILE_MAP_READ);
 //enum_flags(FileDispose)
 struct FileTimes { FileTime Creation, LastAccess, LastWrite; };
-class FileBaseInfo : public RefStruct<FILE_BASIC_INFO> {
+class FileBaseInfo : public StructShim<FILE_BASIC_INFO> {
 public:
-	using super = RefStruct<FILE_BASIC_INFO>;
+	using super = StructShim<FILE_BASIC_INFO>;
 public:
 	FileBaseInfo() {}
 	FileBaseInfo(const FILE_BASIC_INFO &fbi) : super(fbi) {}
@@ -406,7 +406,7 @@ public: // Property - Type
 #pragma endregion
 
 };
-using CFile = RefAs<File>;
+using CFile = ProxyShim<File>;
 #pragma endregion
 
 #pragma region Comm
@@ -524,8 +524,8 @@ enum_flags(CommParam, DWORD,
 	Handshaking     = SP_HANDSHAKING,
 	ParityCheck     = SP_PARITY_CHECK,
 	RLSD            = SP_RLSD);
-struct CommStates : public RefStruct<DCB> {
-	using super = RefStruct<DCB>;
+struct CommStates : public StructShim<DCB> {
+	using super = StructShim<DCB>;
 public:
 	CommStates() reflect_to(self->DCBlength = sizeof(DCB); self->fBinary = 1);
 	CommStates(const DCB &dcb) : super(dcb) {}
@@ -595,8 +595,8 @@ public: // Property - EvtChar
 	/* W */ inline auto&EvtChar(char evtchar) reflect_to_self(self->EvtChar = evtchar);
 	/* R */ inline char EvtChar() const reflect_as(self->EvtChar);
 };
-struct CommProps : public RefStruct<COMMPROP> {
-	using super = RefStruct<COMMPROP>;
+struct CommProps : public StructShim<COMMPROP> {
+	using super = StructShim<COMMPROP>;
 public:
 	CommProps() reflect_to(self->wPacketLength = sizeof(COMMPROP); self->dwProvSpec1 = COMMPROP_INITIALIZED);
 	CommProps(const COMMPROP &cp) : super(cp) {}
@@ -630,7 +630,7 @@ public: // Property - CurrentRxQueue
 	//DWORD dwProvSpec2;
 	//WCHAR wcProvChar[1];
 };
-class CommConfig : public RefStruct<COMMCONFIG> {
+class CommConfig : public StructShim<COMMCONFIG> {
 	HeapPointer<COMMCONFIG> lpCC;
 public:
 	CommConfig() {}
@@ -641,8 +641,8 @@ public: // Property - ProviderSubType
 //	/* W */ inline auto &ProviderName(LPCTSTR lpName) reflect_to_self(lstrcpyn(self->szProvider, lpName, sizeof(self->szProvider) / sizeof(TCHAR)));
 //	/* R */ inline String ProviderName() const reflect_as(String(self->szProvider));
 };
-struct CommTimeouts : public RefStruct<COMMTIMEOUTS> {
-	using super = RefStruct<COMMTIMEOUTS>;
+struct CommTimeouts : public StructShim<COMMTIMEOUTS> {
+	using super = StructShim<COMMTIMEOUTS>;
 public:
 	CommTimeouts() reflect_to(self->ReadIntervalTimeout = MAXDWORD);
 	CommTimeouts(const COMMTIMEOUTS &ct) : super(ct) {}

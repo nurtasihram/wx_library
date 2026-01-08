@@ -270,7 +270,7 @@ template<class AnyChild>
 class HandleBase;
 using Handle = HandleBase<void>;
 template<class AnyChild>
-class HandleBase : public ChainExtender<HandleBase<AnyChild>, AnyChild> {
+class HandleBase : public ExtendShim<HandleBase<AnyChild>, AnyChild> {
 protected:
 	mutable HANDLE hObject = O;
 public:
@@ -376,9 +376,9 @@ public:
 #pragma endregion
 
 #pragma region Heap
-class HeapSummary : public RefStruct<HEAP_SUMMARY> {
+class HeapSummary : public StructShim<HEAP_SUMMARY> {
 public:
-	using super = RefStruct<HEAP_SUMMARY>;
+	using super = StructShim<HEAP_SUMMARY>;
 public:
 	HeapSummary() reflect_to(this->cb = sizeof(HEAP_SUMMARY));
 	HeapSummary(const HEAP_SUMMARY &hs) : super(hs) {}
@@ -406,7 +406,7 @@ public:
 	using super = HandleBase<Heap>;
 	using AllocFlags = HeapAllocFlag;
 protected:
-	INNER_USE(Heap);
+	PROXY_SHIM(Heap);
 	Heap(HANDLE hHeap) : super(hHeap) {}
 public:
 	Heap() : super(GetProcessHeap()) {}
@@ -465,7 +465,7 @@ public: // Property - Summaries
 	//	_Out_opt_ PSIZE_T ReturnLength);
 	using super::operator=;
 };
-using CHeap = RefAs<Heap>;
+using CHeap = ProxyShim<Heap>;
 CHeap ThisHeap = Heap{};
 #pragma endregion
 
@@ -532,9 +532,9 @@ enum_flags(DateFormat, DWORD,
 	RTLReading             = DATE_RTLREADING,
 	AutoLayout             = DATE_AUTOLAYOUT,
 	MonthDay               = DATE_MONTHDAY);
-class SystemTime : public RefStruct<SYSTEMTIME> {
+class SystemTime : public StructShim<SYSTEMTIME> {
 public:
-	using super = RefStruct<SYSTEMTIME>;
+	using super = StructShim<SYSTEMTIME>;
 public:
 	SystemTime(Null) {}
 	SystemTime() reflect_to(GetSystemTime(this));
@@ -569,7 +569,7 @@ public: // FormatDate
 		int len = WX::GetDateFormat(locale.yield(), df.yield(), this, lpFormat, O, 0);
 		StringX<IsUnicode> str((size_t)len - 1);
 		WX::GetDateFormat(locale.yield(), df.yield(), this, lpFormat, str, len);
-		return inject(str);
+		return to_right_hand(str);
 	}
 	inline StringA FormatDate(Locales locale, DateFormat df, LPCSTR lpFormat) const reflect_as(FormatDate<false>(locale, df, lpFormat));
 	inline StringW FormatDate(Locales locale, DateFormat df, LPCWSTR lpFormat) const reflect_as(FormatDate<true>(locale, df, lpFormat));
@@ -579,7 +579,7 @@ public: // FormatDate
 		int len = WX::GetDateFormat(lpLocaleName, df.yield(), this, lpFormat, O, 0, O);
 		StringW str((size_t)len - 1);
 		WX::GetDateFormat(lpLocaleName, df.yield(), this, lpFormat, str, len, O);
-		return inject(str);
+		return to_right_hand(str);
 	}
 public: // FormatTime
 	template<bool IsUnicode = WX::IsUnicode>
@@ -587,7 +587,7 @@ public: // FormatTime
 		int len = WX::GetTimeFormat(locale.yield(), tf.yield(), this, lpFormat, O, 0);
 		StringX<IsUnicode> str((size_t)len - 1);
 		GetTimeFormat(locale.yield(), tf.yield(), this, lpFormat, str, len);
-		return inject(str);
+		return to_right_hand(str);
 	}
 	inline StringA FormatTime(Locales locale, TimeFormat tf, LPCSTR lpFormat) const reflect_as(FormatTime<false>(locale, tf, lpFormat));
 	inline StringW FormatTime(Locales locale, TimeFormat tf, LPCWSTR lpFormat) const reflect_as(FormatTime<true>(locale, tf, lpFormat));
@@ -597,7 +597,7 @@ public: // FormatTime
 		int len = WX::GetTimeFormat(lpLocaleName, tf.yield(), this, lpFormat, O, 0);
 		StringW str((size_t)len - 1);
 		WX::GetTimeFormat(lpLocaleName, tf.yield(), this, lpFormat, str, len);
-		return inject(str);
+		return to_right_hand(str);
 	}
 public:
 	template<bool IsUnicode = WX::IsUnicode>
@@ -608,7 +608,7 @@ public:
 		WX::GetDateFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, str, lenDate);
 		WX::GetTimeFormat(LOCALE_CUSTOM_DEFAULT, 0, this, O, ((LPXSTR<IsUnicode>)str) + lenDate, lenTime);
 		str[lenDate - 1] = ' ';
-		return inject(str);
+		return to_right_hand(str);
 	}
 	inline StringA toStringA() const reflect_as(toString<false>());
 	inline StringW toStringW() const reflect_as(toString<true>());
@@ -618,9 +618,9 @@ public:
 	inline operator FILETIME() const assertl_reflect_to(FILETIME ft, SystemTimeToFileTime(this, &ft), ft);
 };
 using SysTime = SystemTime;
-class FileTime : public RefStruct<FILETIME> {
+class FileTime : public StructShim<FILETIME> {
 public:
-	using super = RefStruct<FILETIME>;
+	using super = StructShim<FILETIME>;
 public:
 	FileTime() {}
 	FileTime(const FILETIME &ft) : super(ft) {}
@@ -835,9 +835,9 @@ inline LRect operator-(LPoint p, const LRect &r) reflect_as(-(r - p));
 #pragma endregion
 
 #pragma region Message Wrapper
-class Message : public RefStruct<MSG> {
+class Message : public StructShim<MSG> {
 public:
-	using super = RefStruct<MSG>;
+	using super = StructShim<MSG>;
 public:
 	Message() {}
 	Message(const MSG &msg) : super(msg) {}
@@ -1008,7 +1008,7 @@ public:
 	inline BYTE Blue() const reflect_as(GetBValue(self));
 public:
 	template<size_t len>
-	static inline arrayof<RGBColor, len> &Attach(arrayof<COLORREF, len> &ary) reflect_as(ref_as<arrayof<RGBColor, len>>(ary));
+	static inline ArrayOf<RGBColor, len> &Attach(ArrayOf<COLORREF, len> &ary) reflect_as(ref_as<ArrayOf<RGBColor, len>>(ary));
 	inline operator COLORREF() const { return cr; }
 	static inline RGBColor &Attach(COLORREF &clr) reflect_as(*(RGBColor *)&clr);
 };
