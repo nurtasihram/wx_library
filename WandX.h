@@ -8,34 +8,34 @@
 #	error This project requires C++20 or later.
 #endif
 
-#if !defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL
+#if defined(_MSC_VER) && !defined(__clang__) && (!defined(_MSVC_TRADITIONAL) || _MSVC_TRADITIONAL)
 #	error This project requires a C++20 compliant preprocessor. For MSVC may need open /Zc:preprocessor option
 #endif
 
 #pragma region Macros Self-Helpers
 // macro direct operators
-#define	_mx_cat_(a, b)  a ## b
-#define _mx_str_(x)    #x
+#define	_macro_cat_(a, b)  a ## b
+#define _macro_str_(x)    #x
 // macro argument counter
-#define _mx_ret_13_(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, ...) _13
-#define _mx_seq_12_ 12, 11, 10,  9,  8,  7,  6,  5,  4,   3,   2,   1,   0
+#define _macro_ret_13_(_1, _2, _3, _4, _5, _6, _7, _8, _9, _10, _11, _12, _13, ...) _13
+#define _macro_seq_12_ 12, 11, 10,  9,  8,  7,  6,  5,  4,   3,   2,   1,   0
 // macro cushion
-#define mx_b0(...)   __VA_ARGS__
-#define mx_b1(...) ( __VA_ARGS__ )
-#define mx_b2(...) { __VA_ARGS__ }
-#define mx_b3(...) < __VA_ARGS__ >
+#define macro_brace0(...)   __VA_ARGS__
+#define macro_brace1(...) ( __VA_ARGS__ )
+#define macro_brace2(...) { __VA_ARGS__ }
+#define macro_brace3(...) < __VA_ARGS__ >
+#define macro_kill_brace0(arg) macro_brace0(macro_brace0 arg)
 // macro invoker
-#define mx_call(func, ...) mx_b0(func(__VA_ARGS__))
-#define mx_ret(...)  __VA_ARGS__
-#define mx_void(...) 
-#define mx_kill_braces(arg) mx_b0(mx_b0 arg)
+#define macro_call(func, ...) macro_brace0(func(__VA_ARGS__))
+#define macro_expand(...)  __VA_ARGS__
+#define macro_void(...) 
 // macro indirect operators
-#define mx_cat(a, b)  mx_call(_mx_cat_, a, b)
-#define mx_str(x)     mx_call(_mx_str_, x)
-#define mx_narg(...)  mx_call(_mx_ret_13_, mx_b0() __VA_ARGS__, _mx_seq_12_)
+#define macro_cat(a, b)  macro_call(_macro_cat_, a, b)
+#define macro_str(x)     macro_call(_macro_str_, x)
+#define macro_narg(...)  macro_call(_macro_ret_13_, macro_brace0() __VA_ARGS__, _macro_seq_12_)
 // macro argument counter wrappers
-#define mx_nameN(name, ...) mx_cat(name, mx_narg(__VA_ARGS__))
-#define mx_funcN(name, ...) mx_call(mx_nameN(name, __VA_ARGS__), __VA_ARGS__)
+#define macro_nameN(name, ...) macro_cat(name, macro_narg(__VA_ARGS__))
+#define macro_funcN(name, ...) macro_call(macro_nameN(name, __VA_ARGS__), __VA_ARGS__)
 #pragma endregion
 
 #pragma region Macros Of C++ Keywords Alias
@@ -48,6 +48,7 @@
 #define misuse_assert(cond, note) { static_assert(cond , "Misused: "      note); }
 #define misdef_assert(cond, note) { static_assert(cond , "Misdefined: "   note); }
 #define wx_uncallable               misuse_assert(false, "Uncallable function")
+#define puretype_assert(type, ref_type) static_assert(IsSameSize<type, ref_type>, "Pure type must be the same size as its reference type")
 // alias type
 #define alias_of_type(alias, proto_name) using alias = proto_name
 #pragma endregion
@@ -60,7 +61,7 @@
 #	define T(str) TEXT(str)
 #endif
 /* Macro static reflection */
-#define use_member(name) \
+#define ref_member(name) \
 template <class AnyClass> class member_##name##_of { \
     template<class AnyType> static auto ist(int) -> decltype(any_require<typename AnyType::name>(), std::true_type()); \
     template<class AnyType> static auto ist(...) -> std::false_type; \
@@ -107,8 +108,8 @@ public: \
     proxy_prop_get_arr(name, proto_name, type)
 // proxy self-size
 #define proxy_prop_size(proto_name, type) \
-    protected: proxy_prop_set(SelfSize, proto_name, size_t); friend Super; \
-    public:    proxy_prop_get(SelfSize, proto_name, type)
+    public:    proxy_prop_get(SelfSize, proto_name, type); \
+    protected: proxy_prop_set(SelfSize, proto_name, size_t); friend Super
 // proxy view
 #define proxy_basetype(name, base, ...) \
     protected: mutable base proxy_obj{ __VA_ARGS__ }; \
@@ -129,28 +130,29 @@ public: \
 
 #pragma region Macros Of Enum 
 #define enum_shim(type, name, base) WandX::Enum##type##Shim<name, base>
-#define enum_base(type, name, base, ...)                           \
-struct name : public enum_shim(type, name, base) {                 \
-    using ShimType = enum_shim(type, name, base)                 ; \
-    using ShimType::ShimType                                     ; \
-    using typename ShimType::Super                               ; \
-    using typename ShimType::BaseType                            ; \
-    static constexpr ShimType                      __VA_ARGS__   ; \
-    static constexpr BaseType EnumEntries     []{  __VA_ARGS__ } ; \
-    static constexpr char     EnumProtoString []{ #__VA_ARGS__ } ; \
-    static constexpr char     EnumName        []{  #name       } ; }
+#define enum_base(type, name, base, ...)                              \
+struct name : public enum_shim(type, name, base) {                    \
+    using ShimType = enum_shim(type, name, base)                 ;    \
+    using ShimType::ShimType                                     ;    \
+    using typename ShimType::Super                               ;    \
+    using typename ShimType::BaseType                            ;    \
+    static constexpr ShimType                      __VA_ARGS__   ;    \
+    static constexpr BaseType EnumEntries     []{  __VA_ARGS__ } ;    \
+    static constexpr char     EnumProtoString []{ #__VA_ARGS__ } ;    \
+    static constexpr char     EnumName        []{  #name       } ; }; \
+    puretype_assert(name, base)
 #define enum_class(name, base, ...) enum_base(Class, name, base, __VA_ARGS__)
 #define enum_flags(name, base, ...) enum_base(Flags, name, base, __VA_ARGS__)
 #pragma endregion
 
 #pragma region Macros Of Chain Extended Helper
 // alias key-word
-#define self     mx_b1(*this)
-#define pself    mx_b1( this)
-#define child    mx_b1( this->__child__())
-#define super    mx_b1( this->__super__())
-#define pchild   mx_b1(&this->__child__())
-#define psuper   mx_b1(&this->__super__())
+#define self     macro_brace1(*this)
+#define pself    macro_brace1( this)
+#define child    macro_brace1( this->__child__())
+#define super    macro_brace1( this->__super__())
+#define pchild   macro_brace1(&this->__child__())
+#define psuper   macro_brace1(&this->__super__())
 // alias return
 #define retself           {              return self ; }
 #define retchild          {              return child; }
@@ -160,10 +162,6 @@ struct name : public enum_shim(type, name, base) {                 \
 #pragma endregion
 
 #pragma region Macros Of Exception System throw
-/* exception throw */
-#define wx_context_inf        __FILE__, __FUNCTION__, __LINE__
-#define wx_error_detail(sent) WandX::Exception(wx_context_inf, #sent)
-#define wx_throw_line(sent)   throw wx_error_detail(sent)
 /* exception answer */
 #define wx_answer           int
 #define wx_answer_ignore    0

@@ -1020,16 +1020,16 @@ public:
 	constexpr operator AnyType() const ret_as((AnyType)t);
 public:
 	constexpr operator AnyRef &() ret_as(t);
-	constexpr operator AnyRef *() ret_as(std::addressof(t));
+	constexpr operator AnyRef *() ret_as(address_cast(t));
 	constexpr operator const AnyRef &() const ret_as(t);
-	constexpr operator const AnyRef *() const ret_as(std::addressof(t));
+	constexpr operator const AnyRef *() const ret_as(address_cast(t));
 public:
 	constexpr auto &operator*() ret_as(t);
-	constexpr auto *operator&() ret_as(std::addressof(t));
-	constexpr auto *operator->() ret_as(std::addressof(t));
+	constexpr auto *operator&() ret_as(address_cast(t));
+	constexpr auto *operator->() ret_as(address_cast(t));
 	constexpr auto &operator*() const ret_as(t);
-	constexpr auto *operator&() const ret_as(std::addressof(t));
-	constexpr auto *operator->() const ret_as(std::addressof(t));
+	constexpr auto *operator&() const ret_as(address_cast(t));
+	constexpr auto *operator->() const ret_as(address_cast(t));
 };
 template<class AnyType>
 union ProxyView<AnyType *> final {
@@ -1058,7 +1058,7 @@ template<HasBaseType AnyEnum> using BaseTypeOf = typename AnyEnum::BaseType;
 template<class OutType, class InType>
 constexpr auto safe_c_cast(const InType &c_value) {
 	if constexpr (HasBaseType<OutType>) {
-		 misuse_assert(IsSameSize<mx_b0(BaseTypeOf<OutType>, InType)>, "Unsafe enum cast detected");
+		 misuse_assert(IsSameSize<macro_brace0(BaseTypeOf<OutType>, InType)>, "Unsafe enum cast detected");
 		 return reuse_cast<OutType>(c_value);
 	}
 	else return (OutType)c_value;
@@ -1074,24 +1074,24 @@ struct ProxyType {
 		using BaseType = AnyTypePureC;
 		friend AnyChild;
 	protected:
-		mutable BaseType value;
+		mutable BaseType proxy_obj;
 	public:
-		CValue(const BaseType &s) noexcept : value(s) {}
+		CValue(const BaseType &s) noexcept : proxy_obj(s) {}
 	public:
 		static constexpr       AnyChild &view_cast(      BaseType &s) noexcept requires(IsExtendedOf<AnyChild, Super>) ret_as(reuse_cast<      AnyChild &>(s));
 		static constexpr const AnyChild &view_cast(const BaseType &s) noexcept requires(IsExtendedOf<AnyChild, Super>) ret_as(reuse_cast<const AnyChild &>(s));
 	public:
-		constexpr operator         BaseType &()       noexcept ret_as(value);
-		constexpr operator   const BaseType &() const noexcept ret_as(value);
-		constexpr       BaseType & operator *()       noexcept ret_as(value);
-		constexpr const BaseType & operator *() const noexcept ret_as(value);
-		constexpr       BaseType * operator->()       noexcept ret_as(std::addressof(value));
-		constexpr const BaseType * operator->() const noexcept ret_as(std::addressof(value));
+		constexpr operator         BaseType &()       noexcept ret_as(proxy_obj);
+		constexpr operator   const BaseType &() const noexcept ret_as(proxy_obj);
+		constexpr       BaseType & operator *()       noexcept ret_as(proxy_obj);
+		constexpr const BaseType & operator *() const noexcept ret_as(proxy_obj);
+		constexpr       BaseType * operator->()       noexcept ret_as(address_cast(proxy_obj));
+		constexpr const BaseType * operator->() const noexcept ret_as(address_cast(proxy_obj));
 	public:
 		inline auto operator=(const BaseType &s) noexcept
 			requires(ConstructorStaticAssert<AnyChild, BaseType>) {
-			AnyChild last{ (const BaseType &)value };
-			value = s;
+			AnyChild last{ (const BaseType &)proxy_obj };
+			proxy_obj = s;
 			return right_cast(last);
 		}
 	};
@@ -1395,8 +1395,8 @@ constexpr auto AssertFaultMap = ValueMap<ops,
 	AssertOps::Default    , LiString(" => false ")
 >;
 
-template<class AnyType, AssertOps ops, auto val>
-constexpr bool assert_oeperator(AnyType arg) {
+template<AssertOps ops, auto val>
+constexpr bool assert_oeperator(auto arg) {
 	     if constexpr   (ops == AssertOps::   Bigger  )  return val <  arg;
 	else if constexpr   (ops == AssertOps::   BigEqual)  return val <= arg;
 	else if constexpr   (ops == AssertOps:: Smaller   )  return val >  arg;
@@ -1408,23 +1408,24 @@ constexpr bool assert_oeperator(AnyType arg) {
 	else { static_assert(ops == AssertOps::Default    ); return (bool)arg; }
 }
 
-template<class AnyType, AssertOps ops, auto val = true, auto val_str = LiStringO>
+template<AssertOps ops, auto val = true, auto val_str = LiStringO>
 struct AssertOperator {
-	constexpr bool operator()(AnyType arg) const ret_as(assert_oeperator<AnyType, ops, val>(arg));
+	constexpr bool operator()(auto arg) const ret_as(assert_oeperator<ops, val>(arg));
 	static constexpr auto FaultString = AssertFaultMap<ops> + val_str;
 };
 template<class AnyType> constexpr bool IsAssertOperatorType = false;
-template<class AnyType, AssertOps ops, auto val, auto val_str>
-constexpr bool IsAssertOperatorType<AssertOperator<AnyType, ops, val, val_str>> = true;
+template<AssertOps ops, auto val, auto val_str>
+constexpr bool IsAssertOperatorType<AssertOperator<ops, val, val_str>> = true;
 template<class AnyType> concept AssertOperatorType = IsAssertOperatorType<AnyType>;
 template<auto assert> constexpr bool IsAssertOperator = IsAssertOperatorType<decltype(assert)>;
 
-template<class AnyType>	constexpr auto AssertTrue     = AssertOperator<AnyType, AssertOps::Default                     >();
-template<class AnyType>	constexpr auto AssertPositive = AssertOperator<AnyType, AssertOps::Bigger , 0, LiString("0")   >();
-template<class AnyType>	constexpr auto AssertNotZero  = AssertOperator<AnyType, AssertOps::Nequal , 0, LiString("0")   >();
-template<class AnyType>	constexpr auto AssertNotNull  = AssertOperator<AnyType, AssertOps::Nequal , O, LiString("null")>();
-template<class AnyType, auto fault_val, auto fault_str>
-constexpr auto AssertFaultValue = AssertOperator<AnyType, AssertOps::Nequal, fault_val, fault_str>();
+constexpr auto AssertTrue     = AssertOperator<AssertOps::Default                      >();
+constexpr auto AssertPositive = AssertOperator<AssertOps::Bigger  , 0, LiString("0")   >();
+constexpr auto AssertNotZero  = AssertOperator<AssertOps::Nequal  , 0, LiString("0")   >();
+constexpr auto AssertNatural  = AssertOperator<AssertOps::BigEqual, 0, LiString("0")   >();
+constexpr auto AssertNotNull  = AssertOperator<AssertOps::Nequal  , O, LiString("null")>();
+template<auto fault_val, auto fault_str>
+constexpr auto AssertFaultValue = AssertOperator<AssertOps::Nequal, fault_val, fault_str>();
 #pragma endregion
 
 template<auto file, auto name, class AnyType>
@@ -1444,7 +1445,7 @@ public:
 				constexpr NewAPI   operator&() const ret_as(NewAPI::Reflective);
 			};
 		public: // reflectors
-			template<AssertOperatorType auto assert, class NewRet = AnyRet, auto GetLastError = O>
+			template<AssertOperatorType auto assert, auto GetLastError = O, class NewRet = AnyRet>
 				requires(NotVoid<AnyRet>)
 			struct AssertReturn {
 				static constexpr NewRet Reflective(ParaN...args) {
