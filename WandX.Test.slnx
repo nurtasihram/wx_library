@@ -1,0 +1,7 @@
+<Solution>
+  <Configurations>
+    <Platform Name="x64" />
+    <Platform Name="x86" />
+  </Configurations>
+  <Project Path="WandX.Test.vcxproj" Id="887465b1-5104-435b-949a-486f962927f6" />
+</Solution>

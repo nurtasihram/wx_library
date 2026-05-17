@@ -1257,25 +1257,29 @@ template<class AnyEnum1, class AnyEnum2> concept       SameChainOfEnum =  SameCh
 template<EnumType AnyEnum> constexpr bool IsPureEnum = IsSameSize<AnyEnum, BaseTypeOf<AnyEnum>>;
 template<class AnyType> concept PureEnumType = IsPureEnum<AnyType>;
 
+template<EnumType AnyEnum, bool = HasSuperEnum<AnyEnum>>
+struct HasDefaultEnumProto;
 template<EnumType AnyEnum>
-constexpr bool IsDefaultEnum = requires { AnyEnum::Default; };
+struct HasDefaultEnumProto<AnyEnum, true> : OfValue<true> {};
+template<EnumType AnyEnum>
+struct HasDefaultEnumProto<AnyEnum, false> : OfValue<requires { AnyEnum::Default; }> {};
+template<EnumType AnyEnum>
+constexpr bool HasDefaultEnum = ValueOf<HasDefaultEnumProto<AnyEnum>>;
 
+template<EnumType AnyEnum, bool = HasSuperEnum<AnyEnum>>
+struct DefaultEnumValueProto;
 template<EnumType AnyEnum>
-constexpr bool HasDefaultEnum = ([]() {
-	if constexpr (IsDefaultEnum<AnyEnum>)
-		return true;
-	elif constexpr (HasSuperEnum<AnyEnum>)
-		return HasDefaultEnum<SuperOfEnum<AnyEnum>>;
-	else return false;
-})();
+struct DefaultEnumValueProto<AnyEnum, true> : OfValue<ValueOf<DefaultEnumValueProto<SuperOfEnum<AnyEnum>>>> {};
+template<EnumType AnyEnum>
+struct DefaultEnumValueProto<AnyEnum, false> : OfValue<AnyEnum::Default.yield()> {};
 
 template<EnumType AnyEnum>
 	requires(HasDefaultEnum<AnyEnum>)
-constexpr auto DefaultEnumAtom = AnyEnum::Default;
+constexpr auto DefaultEnumAtom = AnyEnum::value_cast(ValueOf<DefaultEnumValueProto<AnyEnum>>);
 
 template<EnumType AnyEnum>
 	requires(HasDefaultEnum<AnyEnum>)
-constexpr auto DefaultEnumValue = AnyEnum::Default.yield();
+constexpr auto DefaultEnumValue = ValueOf<DefaultEnumValueProto<AnyEnum>>;
 
 template<EnumType AnyEnum1, EnumType AnyEnum2>
 constexpr auto enum_result_cast(BaseTypeOf<AnyEnum1> v) {
