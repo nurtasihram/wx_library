@@ -144,11 +144,11 @@ public: \
     friend union WandX::ProxyView<name>
 // 
 //#define use_public_super() public: using Super = 
-#define class_extended(name, parent)       class name : public parent
-#define class_super_constructor()          using Super::Super
-#define class_chain_begin(name)            template<class AnyChild> class name : public ChainBegin<AnyChild, name>
-#define class_chain_node(name, parent)     template<class AnyChild> class name : public ChainBegin<AnyChild, name>, public parent<name>
-#define class_chain_end(name, parent)      class name : public parent<name>
+#define class_extended(name, parent)        class name : public parent
+#define class_super_constructor()           using Super::Super
+#define class_chain_begin(name)             template<class AnyChild> class name : public ChainBegin<AnyChild, name>
+#define class_chain_node(name, parent)      template<class AnyChild> class name : public ChainBegin<AnyChild, name>, public parent<name>
+#define class_chain_end(name, parent)       class name : public parent<name>
 #pragma endregion
 
 #pragma region Macros Of Enum 
@@ -162,6 +162,10 @@ struct name : public enum_shim(type, name, base) {                    \
     static constexpr ShimType                      __VA_ARGS__   ;    \
     static constexpr BaseType EnumEntries     []{  __VA_ARGS__ } ;    \
     static constexpr char     EnumProtoString []{ #__VA_ARGS__ } ;    \
+    static constexpr SizeT    EnumEntryCount = sizeof(EnumEntries) / sizeof(BaseType) ; \
+    static constexpr auto     EnumEntryNames = WandX::make_enum_entry_names<EnumEntryCount>(EnumProtoString); \
+    template<SizeT index> requires(index < EnumEntryCount)            \
+    static constexpr auto     EnumEntryName = WandX::make_enum_entry_names<EnumEntryCount>(EnumProtoString)[index]; \
     static constexpr char     EnumName        []{  #name       } ; }; \
     puretype_assert(name, base)
 #define enum_class(name, base, ...) enum_base(Class, name, base, __VA_ARGS__)
