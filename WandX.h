@@ -162,6 +162,10 @@ struct name : public enum_shim(type, name, base) {                    \
     static constexpr ShimType                      __VA_ARGS__   ;    \
     static constexpr BaseType EnumEntries     []{  __VA_ARGS__ } ;    \
     static constexpr char     EnumProtoString []{ #__VA_ARGS__ } ;    \
+    static constexpr SizeT    EnumEntryCount = sizeof(EnumEntries) / sizeof(BaseType) ; \
+    static constexpr auto     EnumEntryNames = WandX::make_enum_entry_names<EnumEntryCount>(EnumProtoString); \
+    template<SizeT index> requires(index < EnumEntryCount)            \
+    static constexpr auto     EnumEntryName = WandX::make_enum_entry_names<EnumEntryCount>(EnumProtoString)[index]; \
     static constexpr char     EnumName        []{  #name       } ; }; \
     puretype_assert(name, base)
 #define enum_class(name, base, ...) enum_base(Class, name, base, __VA_ARGS__)

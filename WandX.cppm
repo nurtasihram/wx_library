@@ -1251,25 +1251,73 @@ template<class AnyEnum1, class AnyEnum2> concept       SameChainOfEnum =  SameCh
 template<EnumType AnyEnum> constexpr bool IsPureEnum = IsSameSize<AnyEnum, BaseTypeOf<AnyEnum>>;
 template<class AnyType> concept PureEnumType = IsPureEnum<AnyType>;
 
+template<EnumType AnyEnum, bool = HasSuperEnum<AnyEnum>>
+struct HasDefaultEnumProto;
 template<EnumType AnyEnum>
-constexpr bool IsDefaultEnum = requires { AnyEnum::Default; };
+struct HasDefaultEnumProto<AnyEnum, true> : OfValue<true> {};
+template<EnumType AnyEnum>
+struct HasDefaultEnumProto<AnyEnum, false> : OfValue<requires { AnyEnum::Default; }> {};
+template<EnumType AnyEnum>
+constexpr bool HasDefaultEnum = ValueOf<HasDefaultEnumProto<AnyEnum>>;
 
+template<EnumType AnyEnum, bool = HasSuperEnum<AnyEnum>>
+struct DefaultEnumValueProto;
 template<EnumType AnyEnum>
-constexpr bool HasDefaultEnum = ([]() {
-	if constexpr (IsDefaultEnum<AnyEnum>)
-		return true;
-	elif constexpr (HasSuperEnum<AnyEnum>)
-		return HasDefaultEnum<SuperOfEnum<AnyEnum>>;
-	else return false;
-})();
+struct DefaultEnumValueProto<AnyEnum, true> : OfValue<ValueOf<DefaultEnumValueProto<SuperOfEnum<AnyEnum>>>> {};
+template<EnumType AnyEnum>
+struct DefaultEnumValueProto<AnyEnum, false> : OfValue<AnyEnum::Default.yield()> {};
 
 template<EnumType AnyEnum>
 	requires(HasDefaultEnum<AnyEnum>)
-constexpr auto DefaultEnumAtom = AnyEnum::Default;
+constexpr auto DefaultEnumAtom = AnyEnum::value_cast(ValueOf<DefaultEnumValueProto<AnyEnum>>);
 
 template<EnumType AnyEnum>
 	requires(HasDefaultEnum<AnyEnum>)
-constexpr auto DefaultEnumValue = AnyEnum::Default.yield();
+constexpr auto DefaultEnumValue = ValueOf<DefaultEnumValueProto<AnyEnum>>;
+
+constexpr bool enum_proto_space(char c) {
+	return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
+template<class AnyType, SizeT Len>
+constexpr SizeT countof_entries(const AnyType(&)[Len]) ret_as(Len);
+
+template<SizeT Count, SizeT Len>
+constexpr auto make_enum_entry_names(const char(&proto)[Len]) {
+	Array<LiStringA<Len>, Count> names{};
+	SizeT index = 0;
+	SizeT out = 0;
+	while (proto[index] && out < Count) {
+		while (proto[index] == ',' || enum_proto_space(proto[index]))
+			++index;
+		SizeT start = index;
+		while (enum_proto_space(proto[start]))
+			++start;
+		while (proto[index] && proto[index] != '=' && proto[index] != ',')
+			++index;
+		SizeT stop = index;
+		while (stop > start && enum_proto_space(proto[stop - 1]))
+			--stop;
+		for (SizeT i = 0; start + i < stop; ++i)
+			names[out][i] = proto[start + i];
+		while (proto[index] && proto[index] != ',')
+			++index;
+		if (proto[index] == ',')
+			++index;
+		++out;
+	}
+	return names;
+}
+
+template<EnumType AnyEnum>
+constexpr SizeT EnumEntryCountOf() ret_as(countof_entries(AnyEnum::EnumEntries));
+
+template<EnumType AnyEnum>
+constexpr auto EnumEntryNamesOf() ret_as(make_enum_entry_names<EnumEntryCountOf<AnyEnum>()>(AnyEnum::EnumProtoString));
+
+template<EnumType AnyEnum, SizeT index>
+	requires(index < EnumEntryCountOf<AnyEnum>())
+constexpr auto EnumEntryNameOf() ret_as(EnumEntryNamesOf<AnyEnum>()[index]);
 
 template<EnumType AnyEnum1, EnumType AnyEnum2>
 constexpr auto enum_result_cast(BaseTypeOf<AnyEnum1> v) {
