@@ -25,9 +25,34 @@ enum_class(ExampleEnum2, ExampleEnum,
 		   EnumF = 5);
 
 void test_enum() {
+	static_assert(ExampleFlags ::EnumEntryCount == 4);
+	static_assert(ExampleFlags2::EnumEntryCount == 3);
+	static_assert(ExampleEnum  ::EnumEntryCount == 4);
+	static_assert(ExampleEnum2 ::EnumEntryCount == 3);
+
 	// Compile-time reflection
-	cout << "ExampleFlags: " << ExampleFlags::EnumProtoString << endl;
-	cout << "ExampleEnum: " << ExampleEnum::EnumProtoString << endl;
+	cout << "ExampleFlags:  " << ExampleFlags ::EnumProtoString << endl;
+	cout << "ExampleFlags2: " << ExampleFlags2::EnumProtoString << endl;
+	cout << "ExampleEnum:   " << ExampleEnum  ::EnumProtoString << endl;
+	cout << "ExampleEnum2:  " << ExampleEnum2 ::EnumProtoString << endl;
+	cout << "ExampleFlags Names:  "
+		<< ExampleFlags::EnumEntryName<0> << ", "
+		<< ExampleFlags::EnumEntryName<1> << ", "
+		<< ExampleFlags::EnumEntryName<2> << ", "
+		<< ExampleFlags::EnumEntryName<3> << endl;
+	cout << "ExampleFlags2 Names: "
+		<< ExampleFlags2::EnumEntryName<0> << ", "
+		<< ExampleFlags2::EnumEntryName<1> << ", "
+		<< ExampleFlags2::EnumEntryName<2> << endl;
+	cout << "ExampleEnum Names:   "
+		<< ExampleEnum::EnumEntryName<0> << ", "
+		<< ExampleEnum::EnumEntryName<1> << ", "
+		<< ExampleEnum::EnumEntryName<2> << ", "
+		<< ExampleEnum::EnumEntryName<3> << endl;
+	cout << "ExampleEnum2 Names:  "
+		<< ExampleEnum2::EnumEntryName<0> << ", "
+		<< ExampleEnum2::EnumEntryName<1> << ", "
+		<< ExampleEnum2::EnumEntryName<2> << endl;
 
 	// Usage
 	ExampleFlags flags = ExampleFlags::FlagA | ExampleFlags::FlagC;
@@ -47,10 +72,10 @@ void test_enum() {
 	ExampleFlags2 defaultFlags2;
 	ExampleEnum defaultEnum;
 	ExampleEnum2 defaultEnum2;
-	cout << "Default Flags: " << (int)defaultFlags << endl;
+	cout << "Default Flags:  " << (int)defaultFlags  << endl;
 	cout << "Default Flags2: " << (int)defaultFlags2 << endl;
-	cout << "Default Enum: " << (int)defaultEnum << endl;
-	cout << "Default Enum2: " << (int)defaultEnum2 << endl;
+	cout << "Default Enum:   " << (int)defaultEnum   << endl;
+	cout << "Default Enum2:  " << (int)defaultEnum2  << endl;
 }
 #pragma endregion
 
