@@ -1281,6 +1281,50 @@ template<EnumType AnyEnum>
 	requires(HasDefaultEnum<AnyEnum>)
 constexpr auto DefaultEnumValue = ValueOf<DefaultEnumValueProto<AnyEnum>>;
 
+constexpr bool enum_proto_space(char c) {
+	return c == ' ' || c == '\t' || c == '\n' || c == '\r';
+}
+
+template<class AnyType, SizeT Len>
+constexpr SizeT countof_entries(const AnyType(&)[Len]) ret_as(Len);
+
+template<SizeT Count, SizeT Len>
+constexpr auto make_enum_entry_names(const char(&proto)[Len]) {
+	Array<LiStringA<Len>, Count> names{};
+	SizeT index = 0;
+	SizeT out = 0;
+	while (proto[index] && out < Count) {
+		while (proto[index] == ',' || enum_proto_space(proto[index]))
+			++index;
+		SizeT start = index;
+		while (enum_proto_space(proto[start]))
+			++start;
+		while (proto[index] && proto[index] != '=' && proto[index] != ',')
+			++index;
+		SizeT stop = index;
+		while (stop > start && enum_proto_space(proto[stop - 1]))
+			--stop;
+		for (SizeT i = 0; start + i < stop; ++i)
+			names[out][i] = proto[start + i];
+		while (proto[index] && proto[index] != ',')
+			++index;
+		if (proto[index] == ',')
+			++index;
+		++out;
+	}
+	return names;
+}
+
+template<EnumType AnyEnum>
+constexpr SizeT EnumEntryCountOf() ret_as(countof_entries(AnyEnum::EnumEntries));
+
+template<EnumType AnyEnum>
+constexpr auto EnumEntryNamesOf() ret_as(make_enum_entry_names<EnumEntryCountOf<AnyEnum>()>(AnyEnum::EnumProtoString));
+
+template<EnumType AnyEnum, SizeT index>
+	requires(index < EnumEntryCountOf<AnyEnum>())
+constexpr auto EnumEntryNameOf() ret_as(EnumEntryNamesOf<AnyEnum>()[index]);
+
 template<EnumType AnyEnum1, EnumType AnyEnum2>
 constexpr auto enum_result_cast(BaseTypeOf<AnyEnum1> v) {
 	constexpr int order = OrderCastOfEnum<AnyEnum1, AnyEnum2>;
