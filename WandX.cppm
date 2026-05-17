@@ -1064,7 +1064,7 @@ constexpr auto safe_c_cast(const InType &c_value) {
 	else return (OutType)c_value;
 }
 template<class SetType, class GetType>
-constexpr SetType &safe_setval(SetType &set, GetType &&get) noexcept ret_as((set = (SetType)get));
+constexpr SetType &safe_setval(SetType &set, GetType &&get) noexcept ret_as((set = safe_c_cast<SetType>(get)));
 
 template<class AnyTypePureC>
 struct ProxyType {
@@ -1097,7 +1097,6 @@ struct ProxyType {
 	};
 	template<class AnyChild>
 	struct CStruct : protected AnyTypePureC {
-		using Super = CStruct;
 		using BaseType = AnyTypePureC;
 		friend AnyChild;
 	private:
@@ -1110,8 +1109,8 @@ struct ProxyType {
 				 static_cast<AnyChild *>(this)->SelfSize(sizeof(AnyChild));
 		}
 	public:
-		static constexpr       AnyChild &view_cast(      BaseType &s) noexcept requires(IsExtendedOf<AnyChild, Super>) ret_as(reuse_cast<      AnyChild &>(s));
-		static constexpr const AnyChild &view_cast(const BaseType &s) noexcept requires(IsExtendedOf<AnyChild, Super>) ret_as(reuse_cast<const AnyChild &>(s));
+		static constexpr       AnyChild &view_cast(      BaseType &s) noexcept requires(IsExtendedOf<AnyChild, CStruct>) ret_as(reuse_cast<      AnyChild &>(s));
+		static constexpr const AnyChild &view_cast(const BaseType &s) noexcept requires(IsExtendedOf<AnyChild, CStruct>) ret_as(reuse_cast<const AnyChild &>(s));
 	public:
 		constexpr operator         BaseType &()       noexcept ret_as(self);
 		constexpr operator   const BaseType &() const noexcept ret_as(self);
@@ -1138,26 +1137,21 @@ using ProxyCStruct = typename ProxyType<AnyStruct>::template CStruct<AnyChild>;
 
 #pragma region Exception
 class Exception {
-	const char
-		*lpFile = O,
-		*lpFunc = O,
-		*lpSent = O;
-	Int32U
-		uLine = 0,
-		uErrCode = 0;
+	const char *lpFile = O, *lpFunc = O, *lpSent = O;
+	Int32U uLine = 0, uErrCode = 0;
 public:
 	Exception() {}
 	Exception(const char *lpszFile, const char *lpszFunc, const char *lpszSent,
 			  Int32U nLine, Int32U uErrCode = 0) :
 		lpFile(lpszFile), lpFunc(lpszFunc), lpSent(lpszSent),
 		uLine(nLine), uErrCode(uErrCode) {}
-public:
+
 	inline auto File()      const ret_as(lpFile);
 	inline auto Function()  const ret_as(lpFunc);
 	inline auto Sentence()  const ret_as(lpSent);
 	inline auto Line()      const ret_as(uLine);
 	inline auto ErrorCode() const ret_as(uErrCode);
-public:
+
 	inline operator bool() const ret_as(lpSent);
 };
 #pragma endregion
