@@ -1052,15 +1052,20 @@ public:
 template<class OtherType> constexpr bool IsProxyViewOf = false;
 template<class RefType>   constexpr bool IsProxyViewOf<ProxyView<RefType>> = true;
 
-template<class AnyType> concept HasBaseType = requires { typename AnyType::BaseType; };
+template<class AnyType> concept HasBaseType = requires(AnyType a) {
+	{ AnyType::value_cast(any_require<typename AnyType::BaseType>()) } noexcept -> SameAs<AnyType>;
+	{ a.yield() } noexcept -> SameSizeType<typename AnyType::BaseType>;
+};
 template<HasBaseType AnyEnum> using BaseTypeOf = typename AnyEnum::BaseType;
 
 template<class OutType, class InType>
 constexpr auto safe_c_cast(const InType &c_value) {
 	if constexpr (HasBaseType<OutType>) {
 		 misuse_assert(IsSameSize<macro_brace0(BaseTypeOf<OutType>, InType)>, "Unsafe enum cast detected");
-		 return reuse_cast<OutType>(c_value);
+		 return OutType::value_cast((BaseTypeOf<OutType>)c_value);
 	}
+	else if constexpr (HasBaseType<InType>)
+		 return (OutType)c_value.yield();
 	else return (OutType)c_value;
 }
 template<class SetType, class GetType>
@@ -1074,24 +1079,26 @@ struct ProxyType {
 		using BaseType = AnyTypePureC;
 		friend AnyChild;
 	protected:
-		mutable BaseType proxy_obj;
+		mutable BaseType c_value;
 	public:
-		CValue(const BaseType &s) noexcept : proxy_obj(s) {}
+		constexpr CValue(const BaseType &o) noexcept : c_value(o) {}
 	public:
+		constexpr BaseType yield() const noexcept ret_as(c_value);
+		static AnyChild value_cast(BaseType obj) noexcept ret_as(obj);
 		static constexpr       AnyChild &view_cast(      BaseType &s) noexcept requires(IsExtendedOf<AnyChild, Super>) ret_as(reuse_cast<      AnyChild &>(s));
 		static constexpr const AnyChild &view_cast(const BaseType &s) noexcept requires(IsExtendedOf<AnyChild, Super>) ret_as(reuse_cast<const AnyChild &>(s));
 	public:
-		constexpr operator         BaseType &()       noexcept ret_as(proxy_obj);
-		constexpr operator   const BaseType &() const noexcept ret_as(proxy_obj);
-		constexpr       BaseType & operator *()       noexcept ret_as(proxy_obj);
-		constexpr const BaseType & operator *() const noexcept ret_as(proxy_obj);
-		constexpr       BaseType * operator->()       noexcept ret_as(address_cast(proxy_obj));
-		constexpr const BaseType * operator->() const noexcept ret_as(address_cast(proxy_obj));
+		constexpr operator         BaseType &()       noexcept ret_as(c_value);
+		constexpr operator   const BaseType &() const noexcept ret_as(c_value);
+		constexpr       BaseType & operator *()       noexcept ret_as(c_value);
+		constexpr const BaseType & operator *() const noexcept ret_as(c_value);
+		constexpr       BaseType * operator->()       noexcept ret_as(address_cast(c_value));
+		constexpr const BaseType * operator->() const noexcept ret_as(address_cast(c_value));
 	public:
 		inline auto operator=(const BaseType &s) noexcept
 			requires(ConstructorStaticAssert<AnyChild, BaseType>) {
-			AnyChild last{ (const BaseType &)proxy_obj };
-			proxy_obj = s;
+			AnyChild last{ (const BaseType &)c_value };
+			c_value = s;
 			return right_cast(last);
 		}
 	};
@@ -1109,6 +1116,8 @@ struct ProxyType {
 				 static_cast<AnyChild *>(this)->SelfSize(sizeof(AnyChild));
 		}
 	public:
+		constexpr const BaseType &yield() const noexcept ret_to_self();
+		static AnyChild value_cast(BaseType obj) noexcept ret_as(obj);
 		static constexpr       AnyChild &view_cast(      BaseType &s) noexcept requires(IsExtendedOf<AnyChild, CStruct>) ret_as(reuse_cast<      AnyChild &>(s));
 		static constexpr const AnyChild &view_cast(const BaseType &s) noexcept requires(IsExtendedOf<AnyChild, CStruct>) ret_as(reuse_cast<const AnyChild &>(s));
 	public:
@@ -1130,6 +1139,8 @@ struct ProxyType {
 	};
 };
 
+template<class AnyChild, class AnyType>
+using ProxyCValue = typename ProxyType<AnyType>::template CValue<AnyChild>;
 template<class AnyChild, class AnyStruct>
 using ProxyCStruct = typename ProxyType<AnyStruct>::template CStruct<AnyChild>;
 
@@ -1337,20 +1348,20 @@ struct EnumClassShim<AnyChild, AnyBase, false> : EnumBase<AnyChild> {
 protected:
 	BaseType value;
 	friend AnyChild;
-	constexpr EnumClassShim(BaseType v) : value(v) {}
-	/* DUMMY, only for macro */ constexpr BaseType operator=(BaseType a) const ret_as(a);
+	constexpr EnumClassShim(BaseType v) noexcept : value(v) {}
+	/* DUMMY, only for macro */ constexpr BaseType operator=(BaseType a) const noexcept ret_as(a);
 public:
-	constexpr EnumClassShim() : value(DefaultEnumValue<AnyChild>) {}
+	constexpr EnumClassShim() noexcept : value(DefaultEnumValue<AnyChild>) {}
 public:
 	constexpr BaseType yield() const noexcept ret_as(value);
-	static constexpr AnyChild value_cast(BaseType v) ret_as(v);
+	static constexpr AnyChild value_cast(BaseType v) noexcept ret_as(v);
 public:
 	inline auto *operator&() ret_as(&value);
-	/* adjust atom into set */ constexpr operator AnyChild() const ret_as(value);
+	/* adjust atom into set */ constexpr operator AnyChild() const noexcept ret_as(value);
 	constexpr explicit operator BaseType() const noexcept ret_as(value);
-	constexpr bool operator==(SameChainOfEnum<AnyChild> auto e) const ret_as(this->yield() == e.yield());
-	constexpr bool operator!=(SameChainOfEnum<AnyChild> auto e) const ret_as(this->yield() != e.yield());
-	inline AnyChild operator=(DownCastOfEnum<AnyChild> auto v) ret_as(this->value = v.yield());
+	constexpr bool operator==(SameChainOfEnum<AnyChild> auto e) const noexcept ret_as(this->yield() == e.yield());
+	constexpr bool operator!=(SameChainOfEnum<AnyChild> auto e) const noexcept ret_as(this->yield() != e.yield());
+	inline AnyChild operator=(DownCastOfEnum<AnyChild> auto v) noexcept ret_as(this->value = v.yield());
 };
 template<class AnyChild, class AnyBase>
 struct EnumClassShim<AnyChild, AnyBase, true> : EnumClassShim<AnyChild, BaseTypeOf<AnyBase>> {
@@ -1363,16 +1374,16 @@ protected:
 	constexpr EnumClassShim(BaseType v) : ShimType(v) {}
 	/* DUMMY, only for macro */ using ShimType::operator=;
 public:
-	constexpr EnumClassShim(AnyBase v) : ShimType(v.yield()) {}
-	constexpr EnumClassShim(DownCastOfEnum<AnyChild> auto v) : ShimType(v.yield()) {}
-	constexpr EnumClassShim() : ShimType(DefaultEnumValue<AnyChild>) {}
+	constexpr EnumClassShim(AnyBase v) noexcept : ShimType(v.yield()) {}
+	constexpr EnumClassShim(DownCastOfEnum<AnyChild> auto v) noexcept : ShimType(v.yield()) {}
+	constexpr EnumClassShim() noexcept : ShimType(DefaultEnumValue<AnyChild>) {}
 public:
-	static constexpr AnyChild value_cast(BaseType v) ret_as(v);
+	static constexpr AnyChild value_cast(BaseType v) noexcept ret_as(v);
 	template<class AnyEnum> requires DownCastOfEnum<AnyEnum, AnyChild>
-	constexpr AnyEnum down_cast() const ret_as(AnyEnum::value_cast(this->yield()));
+	constexpr AnyEnum down_cast() const noexcept ret_as(AnyEnum::value_cast(this->yield()));
 public:
 	using ShimType::operator&;
-	/* adjust atom into set */ constexpr operator AnyChild() const ret_as(this->yield());
+	/* adjust atom into set */ constexpr operator AnyChild() const noexcept ret_as(this->yield());
 };
 
 template<class AnyChild, class AnyBase>
@@ -1386,19 +1397,19 @@ protected:
 public: // Flags operators
 	using ShimType::operator&;
 
-	constexpr bool operator<=(DownCastOfEnum<AnyChild> auto e) const ret_as(BaseType(this->yield() & e.yield()) == this->yield());
-	constexpr bool operator>=(DownCastOfEnum<AnyChild> auto e) const ret_as(BaseType(this->yield() & e.yield()) == e.yield());
-	constexpr auto operator~() const -> AnyChild ret_as(BaseType(~this->yield()));
+	constexpr bool operator<=(DownCastOfEnum<AnyChild> auto e) const noexcept ret_as(BaseType(this->yield() & e.yield()) == this->yield());
+	constexpr bool operator>=(DownCastOfEnum<AnyChild> auto e) const noexcept ret_as(BaseType(this->yield() & e.yield()) == e.yield());
+	constexpr auto operator~() const noexcept -> AnyChild ret_as(BaseType(~this->yield()));
 
-	constexpr auto operator|(EnumType auto e) const ret_as(enum_result_cast<AnyChild, decltype(e)>(BaseType(this->yield() | e.yield())));
-	constexpr auto operator&(EnumType auto e) const ret_as(enum_result_cast<AnyChild, decltype(e)>(BaseType(this->yield() & e.yield())));
-	constexpr auto operator^(EnumType auto e) const ret_as(enum_result_cast<AnyChild, decltype(e)>(BaseType(this->yield() ^ e.yield())));
-	constexpr auto operator-(EnumType auto e) const ret_as(enum_result_cast<AnyChild, decltype(e)>(BaseType(this->yield() & ~e.yield())));
+	constexpr auto operator|(EnumType auto e) const noexcept ret_as(enum_result_cast<AnyChild, decltype(e)>(BaseType(this->yield() | e.yield())));
+	constexpr auto operator&(EnumType auto e) const noexcept ret_as(enum_result_cast<AnyChild, decltype(e)>(BaseType(this->yield() & e.yield())));
+	constexpr auto operator^(EnumType auto e) const noexcept ret_as(enum_result_cast<AnyChild, decltype(e)>(BaseType(this->yield() ^ e.yield())));
+	constexpr auto operator-(EnumType auto e) const noexcept ret_as(enum_result_cast<AnyChild, decltype(e)>(BaseType(this->yield() & ~e.yield())));
 
-	inline AnyChild operator|=(DownCastOfEnum<AnyChild> auto e) ret_as(this->value |= e.yield());
-	inline AnyChild operator&=(DownCastOfEnum<AnyChild> auto e) ret_as(this->value &= e.yield());
-	inline AnyChild operator^=(DownCastOfEnum<AnyChild> auto e) ret_as(this->value ^= e.yield());
-	inline AnyChild operator-=(DownCastOfEnum<AnyChild> auto e) ret_as(this->value &= ~e.yield());
+	inline AnyChild operator|=(DownCastOfEnum<AnyChild> auto e) noexcept ret_as(this->value |= e.yield());
+	inline AnyChild operator&=(DownCastOfEnum<AnyChild> auto e) noexcept ret_as(this->value &= e.yield());
+	inline AnyChild operator^=(DownCastOfEnum<AnyChild> auto e) noexcept ret_as(this->value ^= e.yield());
+	inline AnyChild operator-=(DownCastOfEnum<AnyChild> auto e) noexcept ret_as(this->value &= ~e.yield());
 };
 
 template<class AnyChild>

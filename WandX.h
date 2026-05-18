@@ -103,9 +103,11 @@ public: \
 #pragma endregion
 
 #pragma region Macros Of Proxy Shim
+#define proxy_value(name, value_name) \
+    struct name : WandX::ProxyCValue<name, value_name>
 // proxy struct
 #define proxy_struct(name, struct_name) \
-    struct name final : WandX::ProxyCStruct<name, struct_name>
+    struct name : WandX::ProxyCStruct<name, struct_name>
 // proxy self-size
 #define proxy_prop_size(proto_name, type) \
     public:    proxy_prop_get(SelfSize, proto_name, type); \
