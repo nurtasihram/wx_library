@@ -105,9 +105,13 @@ public: \
 #pragma region Macros Of Proxy Shim
 #define proxy_value(name, value_name) \
     struct name : WandX::ProxyCValue<name, value_name>
+#define value_proxy(name) \
+    ProxyType<name>::template CValue
 // proxy struct
 #define proxy_struct(name, struct_name) \
     struct name : WandX::ProxyCStruct<name, struct_name>
+#define struct_proxy(name) \
+    ProxyType<name>::template CStruct
 // proxy self-size
 #define proxy_prop_size(proto_name, type) \
     public:    proxy_prop_get(SelfSize, proto_name, type); \
@@ -135,22 +139,13 @@ public: \
     inline auto&name(const String &str) ret_to_self(WandX::Copy(CStruct::proto_name, str))
 #define proxy_prop_get_sfx(name, proto_name) \
     inline auto name() const ret_as(CString(CStruct::proto_name, ArrayCountOf(CStruct::proto_name)))
-// proxy view
-#define proxy_basetype(name, base, ...) \
-    protected: mutable base proxy_obj{ __VA_ARGS__ }; \
-    public: name() {} name(base obj) : proxy_obj(obj) {} \
-    inline       name yield(base obj)       ret_to(name last = proxy_obj; proxy_obj = obj, right_cast(last)); \
-    inline const name yield(base obj) const ret_to(name last = proxy_obj; proxy_obj = obj, right_cast(last)); \
-    inline Nu operator=(Nu) ret_to(proxy_obj = O, O); \
-    inline operator base() const ret_as(proxy_obj); \
-    friend union WandX::ProxyView<name>
-// 
 //#define use_public_super() public: using Super = 
-#define class_extended(name, parent)        class name : public parent
-#define class_super_constructor()           using Super::Super
-#define class_chain_begin(name)             template<class AnyChild> class name : public ChainBegin<AnyChild, name>
-#define class_chain_node(name, parent)      template<class AnyChild> class name : public ChainBegin<AnyChild, name>, public parent<name>
-#define class_chain_end(name, parent)       class name : public parent<name>
+#define class_extended(name, parent)        struct name : public parent
+#define class_super_constructor()           using Shim::Shim
+#define class_super_template(...)           using Super = __VA_ARGS__; using Super::Super
+#define class_chain_begin(name, ...)       template<class AnyChild> struct name : public ChainBegin<AnyChild, name> __VA_ARGS__
+#define class_chain_vector(name, parent)    template<class AnyChild> struct name : public ChainVector<parent, name, AnyChild>
+#define class_chain_end(name, parent)       struct name : public ChainNext<parent, name>
 #pragma endregion
 
 #pragma region Macros Of Enum 
@@ -162,13 +157,12 @@ struct name : public enum_shim(type, name, base) {                    \
     using typename ShimType::Super                               ;    \
     using typename ShimType::BaseType                            ;    \
     static constexpr ShimType                      __VA_ARGS__   ;    \
+    static constexpr char     EnumName        []{  #name       } ;    \
     static constexpr BaseType EnumEntries     []{  __VA_ARGS__ } ;    \
     static constexpr char     EnumProtoString []{ #__VA_ARGS__ } ;    \
     static constexpr SizeT    EnumEntryCount = sizeof(EnumEntries) / sizeof(BaseType) ; \
     static constexpr auto     EnumEntryNames = WandX::make_enum_entry_names<EnumEntryCount>(EnumProtoString); \
-    template<SizeT index> requires(index < EnumEntryCount)            \
-    static constexpr auto     EnumEntryName = WandX::make_enum_entry_names<EnumEntryCount>(EnumProtoString)[index]; \
-    static constexpr char     EnumName        []{  #name       } ; }; \
+    static constexpr auto     EnumEntryName = WandX::make_enum_entry_names<EnumEntryCount>(EnumProtoString); }; \
     puretype_assert(name, base)
 #define enum_class(name, base, ...) enum_base(Class, name, base, __VA_ARGS__)
 #define enum_flags(name, base, ...) enum_base(Flags, name, base, __VA_ARGS__)
