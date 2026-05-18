@@ -84,15 +84,39 @@ public: \
         decltype(cmp<AnyClass>(any_require<AnyType *>()))::value; }
 #pragma endregion
 
+#pragma region Macros Of Class Member IDL
+#	define  wx_class_prop_set(type, name, set) inline auto&name(type value) ret_to_self(macro_kill_brace0(set))
+#	define  wx_class_prop_get(type, name, get) inline type name(          ) const { macro_kill_brace0(get); }
+
+#	define  class_prop_getas(type, name, get) wx_class_prop_get(type, name, (return get))
+#	define  class_prop_getto(type, name, get) wx_class_prop_get(type, name, (ret_to get))
+#	define  class_prop_getof(type, name, get) wx_class_prop_get(type, name, (type value; macro_kill_brace0(get); return value))
+
+#	define  class_prop_set(type, name, set) wx_class_prop_set(type, name, set)
+#	define  class_prop_get(type, name, d, get) macro_call(macro_cat(class_prop_get, d), type, name, get)
+
+#	define  class_prop_map(type, name, d, get, set) \
+			class_prop_get(type, name, d, get); \
+			class_prop_set(type, name, set)
+
+#	define  class_method(name, ret, arg, body) inline ret name arg ret_##body
+#pragma endregion
+
 #pragma region Macros Of Proxy Shim
+#define proxy_value(name, value_name) \
+    struct name : WandX::ProxyCValue<name, value_name>
 // proxy struct
 #define proxy_struct(name, struct_name) \
-    struct name final : WandX::ProxyCStruct<name, struct_name>
+    struct name : WandX::ProxyCStruct<name, struct_name>
+// proxy self-size
+#define proxy_prop_size(proto_name, type) \
+    public:    proxy_prop_get(SelfSize, proto_name, type); \
+    protected: proxy_prop_set(SelfSize, proto_name, size_t); friend struct CStruct
 // proxy property
 #define proxy_prop_set(name, proto_name, type) \
-    inline auto&name(type value) ret_to_self(safe_setval(Super::proto_name, value))
+    inline auto&name(type value) ret_to_self(safe_setval(CStruct::proto_name, value))
 #define proxy_prop_get(name, proto_name, type) \
-    inline auto name(          ) const ret_as(WandX::safe_c_cast<type>(Super::proto_name))
+    inline auto name(          ) const ret_as(WandX::safe_c_cast<type>(CStruct::proto_name))
 #define proxy_prop(name, proto_name, type_in, type_out) \
     proxy_prop_set(name, proto_name, type_in ); \
     proxy_prop_get(name, proto_name, type_out)
@@ -100,16 +124,17 @@ public: \
     proxy_prop    (name, proto_name, type, type)
 // proxy array property
 #define proxy_prop_set_arr(name, proto_name, type) \
-    inline auto &name(const Array<type, ArrayCountOf(&Super::proto_name)> &arr)  ret_to_self(ArrayProxy(Super::proto_name).cast<type>() = arr);
+    inline auto &name(const Array<type, ArrayCountOf(&CStruct::proto_name)> &arr)  ret_to_self(ArrayProxy(CStruct::proto_name).cast<type>() = arr);
 #define proxy_prop_get_arr(name, proto_name, type) \
-    inline auto &name(                                                        ) const ret_as(ArrayProxy(Super::proto_name).cast<type>());
+    inline auto &name(                                                        ) const ret_as(ArrayProxy(CStruct::proto_name).cast<type>());
 #define proxy_prop_arrc(name, proto_name, type) \
     proxy_prop_set_arr(name, proto_name, type); \
     proxy_prop_get_arr(name, proto_name, type)
-// proxy self-size
-#define proxy_prop_size(proto_name, type) \
-    public:    proxy_prop_get(SelfSize, proto_name, type); \
-    protected: proxy_prop_set(SelfSize, proto_name, size_t); friend Super
+// proxy string fixed property
+#define proxy_prop_set_sfx(name, proto_name) \
+    inline auto&name(const String &str) ret_to_self(WandX::Copy(CStruct::proto_name, str))
+#define proxy_prop_get_sfx(name, proto_name) \
+    inline auto name() const ret_as(CString(CStruct::proto_name, ArrayCountOf(CStruct::proto_name)))
 // proxy view
 #define proxy_basetype(name, base, ...) \
     protected: mutable base proxy_obj{ __VA_ARGS__ }; \
@@ -121,11 +146,11 @@ public: \
     friend union WandX::ProxyView<name>
 // 
 //#define use_public_super() public: using Super = 
-#define class_extended(name, parent)       class name : public parent
-#define class_super_constructor()          using Super::Super
-#define class_chain_begin(name)            template<class AnyChild> class name : public ChainBegin<AnyChild, name>
-#define class_chain_node(name, parent)     template<class AnyChild> class name : public ChainBegin<AnyChild, name>, public parent<name>
-#define class_chain_end(name, parent)      class name : public parent<name>
+#define class_extended(name, parent)        class name : public parent
+#define class_super_constructor()           using Super::Super
+#define class_chain_begin(name)             template<class AnyChild> class name : public ChainBegin<AnyChild, name>
+#define class_chain_node(name, parent)      template<class AnyChild> class name : public ChainBegin<AnyChild, name>, public parent<name>
+#define class_chain_end(name, parent)       class name : public parent<name>
 #pragma endregion
 
 #pragma region Macros Of Enum 

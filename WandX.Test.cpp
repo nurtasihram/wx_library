@@ -36,23 +36,23 @@ void test_enum() {
 	cout << "ExampleEnum:   " << ExampleEnum  ::EnumProtoString << endl;
 	cout << "ExampleEnum2:  " << ExampleEnum2 ::EnumProtoString << endl;
 	cout << "ExampleFlags Names:  "
-		<< ExampleFlags::EnumEntryName<0> << ", "
-		<< ExampleFlags::EnumEntryName<1> << ", "
-		<< ExampleFlags::EnumEntryName<2> << ", "
-		<< ExampleFlags::EnumEntryName<3> << endl;
+		<< ExampleFlags::EnumEntryName[0] << ", "
+		<< ExampleFlags::EnumEntryName[1] << ", "
+		<< ExampleFlags::EnumEntryName[2] << ", "
+		<< ExampleFlags::EnumEntryName[3] << endl;
 	cout << "ExampleFlags2 Names: "
-		<< ExampleFlags2::EnumEntryName<0> << ", "
-		<< ExampleFlags2::EnumEntryName<1> << ", "
-		<< ExampleFlags2::EnumEntryName<2> << endl;
+		<< ExampleFlags2::EnumEntryName[0] << ", "
+		<< ExampleFlags2::EnumEntryName[1] << ", "
+		<< ExampleFlags2::EnumEntryName[2] << endl;
 	cout << "ExampleEnum Names:   "
-		<< ExampleEnum::EnumEntryName<0> << ", "
-		<< ExampleEnum::EnumEntryName<1> << ", "
-		<< ExampleEnum::EnumEntryName<2> << ", "
-		<< ExampleEnum::EnumEntryName<3> << endl;
+		<< ExampleEnum::EnumEntryName[0] << ", "
+		<< ExampleEnum::EnumEntryName[1] << ", "
+		<< ExampleEnum::EnumEntryName[2] << ", "
+		<< ExampleEnum::EnumEntryName[3] << endl;
 	cout << "ExampleEnum2 Names:  "
-		<< ExampleEnum2::EnumEntryName<0> << ", "
-		<< ExampleEnum2::EnumEntryName<1> << ", "
-		<< ExampleEnum2::EnumEntryName<2> << endl;
+		<< ExampleEnum2::EnumEntryName[0] << ", "
+		<< ExampleEnum2::EnumEntryName[1] << ", "
+		<< ExampleEnum2::EnumEntryName[2] << endl;
 
 	// Usage
 	ExampleFlags flags = ExampleFlags::FlagA | ExampleFlags::FlagC;
