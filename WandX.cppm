@@ -147,8 +147,6 @@ template<bool,   class TrueType, class FalseType> struct TypeIfProto            
 template<        class TrueType, class FalseType> struct TypeIfProto<true,  TrueType, FalseType> : OfType< TrueType> {};
 template<bool b, class TrueType, class FalseType> using  TypeIf = TypeOf<TypeIfProto<b, TrueType, FalseType>>;
 
-template<class AnyType, class AnyDefault> using VoidChain = TypeIf<IsVoid<AnyType>, AnyDefault, AnyType>;
-
 // ValueMap
 
 template<auto...caseN>                                            struct ValueMapProto;
@@ -816,7 +814,7 @@ public:
 	static constexpr SizeT Count = 1;
 public:
 	template<SizeT ind> requires(ind == 0)
-	using type = Type0;     
+	using type = Type0;
 public:
 	template<SizeT ind> requires(ind == 0)
 	inline Left0 value_left() ret_as(arg0);
@@ -928,22 +926,34 @@ public:
 #pragma endregion
 
 #pragma region Chain Extended Helper
+template<class AnyType, class AnyDefault> using VoidChain = TypeIf<IsVoid<AnyType>, AnyDefault, AnyType>;
 
-template<class AnyChild, template<class = void> class AnyBase>
+template<class AnyChild, template<class> class AnyBase>
 struct ChainBegin {
 	using Parent = AnyBase<AnyChild>;
 	using Child = VoidChain<AnyChild, Parent>;
-	ChainBegin() = default;
 	constexpr auto &__child__() requires(IsExtendedOf<Child, Parent>) ret_as(static_cast<Child &>(self));
 	constexpr auto &__child__() const requires(IsExtendedOf<Child, Parent>) ret_as(static_cast<const Child &>(self));
 };
-template<template<class = void> class AnyBase, class AnyChild>
+template<template<class> class AnyBase, class AnyChild>
 struct ChainNext : public AnyBase<AnyChild> {
 	using Super = AnyBase<AnyChild>;
 	using Shim = ChainNext<AnyBase, AnyChild>;
 	using Super::Super;
 	constexpr auto & __super__() requires(IsExtendedOf<Shim, Super>) ret_as(static_cast<Super &>(self));
 	constexpr auto & __super__() const requires(IsExtendedOf<Shim, Super>) ret_as(static_cast<const Super &>(self));
+};
+template<template<class> class AnyBase, class ThisClass, class AnyChild>
+using ChainNode = ChainNext<AnyBase, TypeIf<IsVoid<AnyChild>, ThisClass, AnyChild>>;
+template<template<class> class AnyBase, template<class> class ThisClass, class AnyChild>
+using ChainVector = ChainNext<AnyBase, VoidChain<AnyChild, ThisClass<void>>>;
+
+template<class AnyType>
+struct ChainPackage { using BaseType = AnyType; };
+template<template<class = void> class AnyBase>
+struct ChainPackage<AnyBase<void>> {
+	template<class AnyChild>
+	using BaseType = AnyBase<AnyChild>;
 };
 
 template<class           AnyType> constexpr bool HasSuper     = requires { typename AnyType::Super; };
@@ -1081,7 +1091,7 @@ struct ProxyType {
 	protected:
 		mutable BaseType c_value;
 	public:
-		constexpr CValue(const BaseType &o) noexcept : c_value(o) {}
+		constexpr CValue(BaseType o) noexcept : c_value(o) {}
 	public:
 		constexpr BaseType yield() const noexcept ret_as(c_value);
 		static AnyChild value_cast(BaseType obj) noexcept ret_as(obj);
